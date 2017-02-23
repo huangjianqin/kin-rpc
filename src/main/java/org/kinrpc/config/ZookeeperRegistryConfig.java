@@ -1,6 +1,7 @@
 package org.kinrpc.config;
 
 import org.apache.log4j.Logger;
+import org.kinrpc.common.Constants;
 import org.kinrpc.registry.zookeeper.ZookeeperRegistry;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -13,15 +14,47 @@ public class ZookeeperRegistryConfig {
     private static final Logger log = Logger.getLogger(ZookeeperRegistry.class);
     private static final AtomicInteger refCounter = new AtomicInteger(0);
 
-    private String host;
-    private int port;
+    private final String host;
+    private final int port;
     private String password;
     //连接注册中心的会话超时,以毫秒算,默认5s
-    private int sessionTimeOut = 5000;
+    private int sessionTimeout = Constants.ZOOKEEPER_REGISTRY_DEFAULT_SESSIONTIMEOUT;
 
     private ZookeeperRegistry zookeeperRegistry;
 
-    public ZookeeperRegistry getZookeeperRegistry() {
+    public ZookeeperRegistryConfig(String host) {
+        this(host, Constants.ZOOKEEPER_REGISTRY_DEFAULT_PORT);
+    }
+
+    public ZookeeperRegistryConfig(String host, int port) {
+        this.port = port;
+        this.host = host;
+    }
+
+    /**
+     * 检查配置参数正确性
+     */
+    private void checkConfig(){
+        if(port < 0){
+            throw new IllegalStateException("zookeeper registry's port must be greater than 0");
+        }
+
+        if(sessionTimeout < 0){
+            throw new IllegalStateException("zookeeper registry's seesionTimeout must greater than 0");
+        }
+
+        if(host.matches("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")){
+            throw new IllegalStateException("zookeeper registry's host '" + host + "' format error");
+        }
+    }
+
+    /**
+     * config包下的类才可以调用此方法
+     * @return
+     */
+    ZookeeperRegistry getZookeeperRegistry() {
+        checkConfig();
+
         log.info("getting zookeeper registry...");
         if(zookeeperRegistry == null){
             synchronized (this){
@@ -48,32 +81,15 @@ public class ZookeeperRegistryConfig {
     }
 
     public String getAddress(){
-        String address = host;
-        if(port > 0 && port < Integer.MAX_VALUE){
-            address += (":" + port);
-        }
-        else{
-            //采用默认
-            address += ":2181";
-        }
-
-        return address;
+        return this.host + ":" + this.port;
     }
 
     public String getHost() {
         return host;
     }
 
-    public void setHost(String host) {
-        this.host = host;
-    }
-
     public int getPort() {
         return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
     }
 
     public String getPassword() {
@@ -84,11 +100,11 @@ public class ZookeeperRegistryConfig {
         this.password = password;
     }
 
-    public int getSessionTimeOut() {
-        return sessionTimeOut;
+    public int getSessionTimeout() {
+        return sessionTimeout;
     }
 
-    public void setSessionTimeOut(int sessionTimeOut) {
-        this.sessionTimeOut = sessionTimeOut;
+    public void setSessionTimeout(int sessionTimeout) {
+        this.sessionTimeout = sessionTimeout;
     }
 }

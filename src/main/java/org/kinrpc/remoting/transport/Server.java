@@ -2,6 +2,7 @@ package org.kinrpc.remoting.transport;
 
 import io.netty.channel.ChannelHandlerContext;
 import org.apache.log4j.Logger;
+import org.kinrpc.common.Constants;
 import org.kinrpc.config.ServerConfig;
 import org.kinrpc.remoting.transport.bootstrap.Connection;
 import org.kinrpc.remoting.transport.bootstrap.ProviderConnection;
@@ -25,7 +26,8 @@ import java.util.concurrent.*;
 public class Server {
     private static final Logger log = Logger.getLogger(Server.class);
 
-    //**需要考虑是否需要实现线程安全
+    //只有get的时候没有同步,其余都同步了
+    //大部分情况下get调用的频率比其他方法都多,没有必要使用同步容器,提供一丢丢性能
     private final Map<String, ProviderInvoker> serviceMap = new HashMap<String, ProviderInvoker>();
     //各种服务请求处理的线程池
     private final ThreadPoolExecutor threads;
@@ -35,7 +37,8 @@ public class Server {
     private final BlockingQueue<RPCRequest> requestsQueue = new LinkedBlockingQueue<RPCRequest>();
 
     //server配置
-    private ServerConfig serverConfig;
+    private final int port;
+    private int threadNum;
     //底层的连接
     private Connection connection;
     //扫描RPCRequest的线程
@@ -44,10 +47,11 @@ public class Server {
     private boolean isStopped = false;
 
     public Server(ServerConfig serverConfig) {
-        this.serverConfig = serverConfig;
+        this.port = serverConfig.getPort();
+        this.threadNum = serverConfig.getThreadNum();
 
         //实例化一些基本变量
-        this.threads = new ThreadPoolExecutor(serverConfig.getThreadNum(), serverConfig.getThreadNum(), 600L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(Integer.MAX_VALUE));
+        this.threads = new ThreadPoolExecutor(this.threadNum, this.threadNum, Constants.SERVER_DEFAULT_THREADS_ALIVE, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
     }
 
     /**
@@ -80,20 +84,21 @@ public class Server {
      * 启动Server
      */
     public void start(){
-        log.info("server(port= " + serverConfig.getPort() + ") starting...");
+        log.info("server(port= " + port + ") starting...");
         //启动连接
-        this.connection = new ProviderConnection(new InetSocketAddress("localhost", this.serverConfig.getPort()), requestsQueue);
+        this.connection = new ProviderConnection(new InetSocketAddress("localhost", this.port), requestsQueue);
         new Thread(new Runnable() {
             public void run() {
                 connection.bind();
+                log.info("server connection close successfully");
             }
         }).start();
 
         //启动定时扫描队列,以及时处理所有consumer的请求
         this.scanRequestsThread = new ScanRequestsThread();
-        new Thread(this.scanRequestsThread).start();
+        this.scanRequestsThread.start();
 
-        log.info("server(port= " + serverConfig.getPort() + ") started");
+        log.info("server(port= " + port + ") started");
     }
 
     /**
@@ -101,7 +106,7 @@ public class Server {
      * 但如果仍然有服务在此Server上提供服务,则仍然运行该Server
      */
     public void shutdown(){
-        log.info("server(port= " + serverConfig.getPort() + ") shutdowning...");
+        log.info("server(port= " + port + ") shutdowning...");
         synchronized (serviceMap){
             int refCounter = serviceMap.size();
             if(refCounter > 0){
@@ -117,14 +122,33 @@ public class Server {
      * 不管3721,马上stop
      */
     public void shutdownNow(){
+        if(this.connection == null || scanRequestsThread == null){
+            log.error("Server has not started call shutdown");
+            throw new IllegalStateException("Provider Server has not started");
+        }
+
         log.info("server shutdown now(some resource may be still running)");
         //停止将队列中的请求的放入线程池中处理,转而发送重试的RPCResponse
         scanRequestsThread.setServerStopped(true);
+        //中断对requestsQueue的take()阻塞操作
+        scanRequestsThread.interrupt();
+        try {
+            Thread.sleep(1000L);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         //处理完所有进入队列的请求
         threads.shutdown();
         log.info("thread pool shutdown successfully");
         //关闭扫描请求队列线程
         scanRequestsThread.setStopped(true);
+        //中断对requestsQueue的take()阻塞操作
+        scanRequestsThread.interrupt();
+        try {
+            Thread.sleep(1000L);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         //最后关闭连接
         connection.close();
@@ -134,7 +158,7 @@ public class Server {
         isStopped = true;
     }
 
-    class ScanRequestsThread implements Runnable{
+    class ScanRequestsThread extends Thread{
         private final Logger log = Logger.getLogger(ScanRequestsThread.class);
         private boolean serverStopped = false;
         private boolean stopped = false;
@@ -195,7 +219,8 @@ public class Server {
                     writeBack.write(rpcResponse);
 
                 } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+                    log.info("send unavailable service execute interrupted");
+//                    Thread.currentThread().interrupt();
                 }
             }
             log.info("request scanner thread stop");
@@ -211,7 +236,13 @@ public class Server {
         }
     }
 
-    public ServerConfig getServerConfig() {
-        return serverConfig;
+    /**
+     * 动态设置线程池的最大线程数,线程空闲后会被删除到指定数量之下
+     * @param threadNum
+     */
+    public void setMaxThreadsNum(int threadNum){
+        this.threadNum = threadNum;
+        this.threads.setMaximumPoolSize(this.threadNum);
     }
+
 }

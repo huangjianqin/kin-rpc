@@ -13,13 +13,11 @@ public class AddableConsumer {
         ApplicationConfig applicationConfig = new ApplicationConfig();
         applicationConfig.setAppName("AddableConsumer");
 
-        ZookeeperRegistryConfig zookeeperRegistryConfig = new ZookeeperRegistryConfig();
-        zookeeperRegistryConfig.setHost("127.0.0.1");
+        ZookeeperRegistryConfig zookeeperRegistryConfig = new ZookeeperRegistryConfig("127.0.0.1");
 
-        final ReferenceConfig<Addable> referenceConfig = new ReferenceConfig<Addable>();
+        final ReferenceConfig<Addable> referenceConfig = new ReferenceConfig<Addable>(Addable.class);
         referenceConfig.setApplicationConfig(applicationConfig);
         referenceConfig.setRegistryConfig(zookeeperRegistryConfig);
-        referenceConfig.setInterfaceClass(Addable.class);
 
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             public void run() {

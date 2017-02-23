@@ -7,7 +7,6 @@ import org.kinrpc.remoting.transport.bootstrap.ReferenceConnection;
 import org.kinrpc.rpc.future.RPCFuture;
 import org.kinrpc.rpc.protol.RPCRequest;
 
-import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutionException;
 
@@ -17,15 +16,14 @@ import java.util.concurrent.ExecutionException;
 public class SimpleReferenceInvoker extends ReferenceInvoker {
     private static final Logger log = Logger.getLogger(SimpleReferenceInvoker.class);
 
-    public SimpleReferenceInvoker(Class<?> interfaceClass) {
-        super(interfaceClass);
+    public SimpleReferenceInvoker(Class<?> interfaceClass, ReferenceConnection connection) {
+        super(interfaceClass, connection);
     }
 
     @Override
-    public void init(String host, int port, EventLoopGroup eventLoopGroup) {
+    public void init() {
         log.info("ReferenceInvoker initing...");
-        connection = new ReferenceConnection(new InetSocketAddress(host, port), eventLoopGroup);
-        connection.connect();
+        this.connection.connect();
     }
 
     @Override

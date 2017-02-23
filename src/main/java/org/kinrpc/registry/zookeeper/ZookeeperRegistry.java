@@ -17,7 +17,7 @@ import java.util.zip.DataFormatException;
  */
 public class ZookeeperRegistry extends AbstractRegistry{
     private static final Logger log = Logger.getLogger(ZookeeperRegistry.class);
-    private final CountDownLatch countDownLatch = new CountDownLatch(1);
+    private CountDownLatch countDownLatch = new CountDownLatch(1);
 
     private ZooKeeper zooKeeper;
     private int sessionTimeOut;
@@ -40,6 +40,14 @@ public class ZookeeperRegistry extends AbstractRegistry{
                 public void process(WatchedEvent watchedEvent) {
                     if(watchedEvent.getState() == Event.KeeperState.SyncConnected){
                         countDownLatch.countDown();
+                    }
+                    else if(watchedEvent.getState() == Event.KeeperState.Expired){
+                        log.error("connect to zookeeper server timeout(" + sessionTimeOut + ")");
+                        throw new RuntimeException("connect to zookeeper server timeout(" + sessionTimeOut + ")");
+                    }
+                    else if(watchedEvent.getState() == Event.KeeperState.Disconnected){
+                        log.info("disconnect to zookeeper server");
+                        throw new RuntimeException("disconnect to zookeeper server");
                     }
                 }
             });
@@ -138,9 +146,10 @@ public class ZookeeperRegistry extends AbstractRegistry{
         noChildsAndDelete(servicePath);
     }
 
-    public ZookeeperDirectory subscribe(Class<?> interfaceClass) {
+
+    public ZookeeperDirectory subscribe(Class<?> interfaceClass, int connectTimeout) {
         log.info("consumer subscribe service '" + interfaceClass.getName() + "' " + ">>> zookeeper registry(" + getAddress() + ")");
-        return new ZookeeperDirectory(this, interfaceClass);
+        return new ZookeeperDirectory(this, interfaceClass, connectTimeout);
     }
 
     public void destroy() {
@@ -154,6 +163,7 @@ public class ZookeeperRegistry extends AbstractRegistry{
 //                Thread.currentThread().interrupt();
             }
         }
+        log.info("zookeeper registry destroy successfully");
     }
 
     public int getSessionTimeOut() {

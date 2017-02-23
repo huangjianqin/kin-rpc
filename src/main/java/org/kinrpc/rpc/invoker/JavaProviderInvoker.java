@@ -14,13 +14,13 @@ import java.util.Map;
 public class JavaProviderInvoker extends ProviderInvoker {
     private static final Logger log = Logger.getLogger(JavaProviderInvoker.class);
 
-    public JavaProviderInvoker(Object serivce, Class<?> interfaceClass) {
+    public JavaProviderInvoker(Object serivce, Class<?> interfaceClass){
         super(interfaceClass);
         this.serivce = serivce;
         init();
     }
 
-    private void init() {
+    private void init(){
         if(this.interfaceClass == null || this.serivce == null){
             throw new IllegalStateException("service class and its interface class must not null");
         }

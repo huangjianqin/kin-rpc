@@ -10,5 +10,6 @@ public class LogTest {
 
     public static void main(String[] args) {
         log.info("testing");
+        System.out.println(Thread.activeCount());
     }
 }

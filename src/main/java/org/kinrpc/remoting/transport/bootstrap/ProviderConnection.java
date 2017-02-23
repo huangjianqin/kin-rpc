@@ -26,7 +26,7 @@ import java.util.concurrent.BlockingQueue;
 public class ProviderConnection extends Connection {
     private static final Logger log = Logger.getLogger(ProviderConnection.class);
 
-    private BlockingQueue<RPCRequest> requestsQueue;
+    private final BlockingQueue<RPCRequest> requestsQueue;
 
     //连接相关属性
     private NioEventLoopGroup bossGroup;
@@ -75,10 +75,23 @@ public class ProviderConnection extends Connection {
 
     @Override
     public void close() {
-        log.info("server connection close");
-        this.channelFuture.channel().close();
-        this.workerGroup.shutdownGracefully();
-        this.bossGroup.shutdownGracefully();
+        if(this.channelFuture == null || this.workerGroup == null || this.bossGroup == null){
+            log.error("Provider connection has not started call close");
+            throw new IllegalStateException("Provider connection has not started");
+        }
+
+        log.info("server connection closing...");
+        try {
+            this.channelFuture.channel().close().sync();
+            this.workerGroup.shutdownGracefully().sync();
+            this.bossGroup.shutdownGracefully().sync();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+//        System.out.println(this.channelFuture.channel().isOpen());
+//        System.out.println(this.workerGroup.isShutdown());
+//        System.out.println(this.bossGroup.isShutdown());
     }
 
 }

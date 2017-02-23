@@ -1,6 +1,7 @@
 package org.kinrpc.config;
 
 import org.apache.log4j.Logger;
+import org.kinrpc.common.Constants;
 import org.kinrpc.remoting.transport.Server;
 
 import java.net.InetAddress;
@@ -13,13 +14,18 @@ public class ServerConfig {
     private static final Logger log = Logger.getLogger(ServerConfig.class);
 
     private String host = "127.0.0.1";
-    private int port;
-    private int threadNum = 16;
+    private final int port;
+    private int threadNum = Constants.SERVER_DEFAULT_THREADNUM;
 
     //底层通信服务器
     private Server server;
 
+    public ServerConfig(int port) {
+        this.port = port;
+    }
+
     public ServerConfig() {
+        this.port = Constants.SERVER_DEFAULT_PORT;
 //        try {
 //            host = InetAddress.getLocalHost().toString().split("\\\\")[1];
 //        } catch (UnknownHostException e) {
@@ -28,13 +34,33 @@ public class ServerConfig {
 //        }
     }
 
-    public Server getServer() {
+    /**
+     * 检查配置参数正确性
+    */
+    private void checkConfig(){
+        if(port < 0){
+            throw new IllegalStateException("Server's port must be greater than 0");
+        }
+
+        if(threadNum <= 0){
+            throw new IllegalStateException("Server thread's num must greater than 0");
+        }
+    }
+
+    /**
+     * config包下的类才可以调用此方法
+     * @return
+     */
+    Server getServer() {
+        checkConfig();
+
         log.info("server config >>>");
         log.info("host= " + this.host);
         log.info("post= " + this.port);
         log.info("threadNum= " + this.threadNum);
         log.info("<<<");
         log.info("getting Server...");
+
         if(this.server == null){
             synchronized (this){
                 if(this.server == null){
@@ -59,16 +85,19 @@ public class ServerConfig {
         return port;
     }
 
-    public void setPort(int port) {
-        this.port = port;
-    }
-
     public int getThreadNum() {
         return threadNum;
     }
 
     public void setThreadNum(int threadNum) {
         this.threadNum = threadNum;
+        if(this.server != null){
+            synchronized (this){
+                if (this.server != null){
+                    this.server.setMaxThreadsNum(this.threadNum);
+                }
+            }
+        }
     }
 
     public String getHost() {

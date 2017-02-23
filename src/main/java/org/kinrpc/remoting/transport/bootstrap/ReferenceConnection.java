@@ -1,10 +1,7 @@
 package org.kinrpc.remoting.transport.bootstrap;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -20,6 +17,7 @@ import org.kinrpc.rpc.protol.srializer.Hessian2Serializer;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by 健勤 on 2017/2/15.
@@ -27,7 +25,7 @@ import java.util.concurrent.CountDownLatch;
 public class ReferenceConnection extends Connection {
     private static final Logger log = Logger.getLogger(ReferenceConnection.class);
     //所有的消费者共用一个EventLoopGroup
-    private EventLoopGroup eventLoopGroup;
+    private final EventLoopGroup eventLoopGroup;
     //响应Channel连接的ChannelFuture
     private ChannelFuture channelFuture;
     //针对该连接的ReferenceHandler
@@ -36,9 +34,13 @@ public class ReferenceConnection extends Connection {
     //建立好连接后才可以进行一些操作
     private CountDownLatch latch = new CountDownLatch(1);
 
-    public ReferenceConnection(InetSocketAddress address, EventLoopGroup eventLoopGroup) {
+    //连接超时毫秒数
+    private final int timeout;
+
+    public ReferenceConnection(InetSocketAddress address, EventLoopGroup eventLoopGroup, int timeout) {
         super(address);
         this.eventLoopGroup = eventLoopGroup;
+        this.timeout = timeout;
     }
 
     @Override
@@ -55,6 +57,7 @@ public class ReferenceConnection extends Connection {
                         .addLast(new ReferenceHandler());
             }
         });
+        bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeout);
         this.channelFuture = bootstrap.connect(address);
         channelFuture.addListener(new ChannelFutureListener() {
             public void operationComplete(ChannelFuture channelFuture) throws Exception {
@@ -62,6 +65,9 @@ public class ReferenceConnection extends Connection {
                     log.info("Successfully connect to remote server. remote peer = " + address);
                     handler = channelFuture.channel().pipeline().get(ReferenceHandler.class);
                     latch.countDown();
+                }else{
+                    log.error("connect to Server time out");
+                    throw new RuntimeException("connect to Server time out");
                 }
             }
         });
@@ -73,6 +79,9 @@ public class ReferenceConnection extends Connection {
     }
 
     @Override
+    /**
+     * 使用latch,故不存在null对象问题,因为没连接好就会阻塞
+     */
     public void close() {
         log.info("ReferenceConnection closing...");
         try {

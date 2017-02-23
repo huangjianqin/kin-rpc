@@ -21,8 +21,8 @@ public class DefaultCluster implements Cluster {
     private final Router router;
     private final LoadBalance loadBalance;
 
-    public DefaultCluster(ZookeeperRegistry zookeeperRegistry, Class<?> interfaceClass) {
-        this.directory = new ZookeeperDirectory(zookeeperRegistry, interfaceClass);
+    public DefaultCluster(ZookeeperRegistry zookeeperRegistry, Class<?> interfaceClass, int connectTimeout) {
+        this.directory = zookeeperRegistry.subscribe(interfaceClass, connectTimeout);
         this.router = new SimpleRouter();
         this.loadBalance = new RoundRobinLoadBalance();
     }

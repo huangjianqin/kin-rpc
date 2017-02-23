@@ -15,37 +15,69 @@ import java.util.zip.DataFormatException;
 public class ServiceConfig {
     private static final Logger log = Logger.getLogger(ServiceConfig.class);
 
+    //配置
     private ApplicationConfig applicationConfig;
     private ServerConfig serverConfig;
     private ZookeeperRegistryConfig registryConfig;
-
     private Object ref;
     private Class<?> interfaceClass;
+
+    public ServiceConfig(Object ref, Class<?> interfaceClass) {
+        this.ref = ref;
+        this.interfaceClass = interfaceClass;
+    }
+
+    /**
+     * 检查配置参数正确性
+     */
+    private void checkConfig(){
+        if(this.applicationConfig == null){
+            throw new IllegalStateException("provider must need to configure application");
+        }
+
+        if(this.serverConfig == null){
+            throw new IllegalStateException("provider must need to configure server");
+        }
+
+        if(this.registryConfig == null){
+            throw new IllegalStateException("provider must need to configure register");
+        }
+
+        if(this.ref == null){
+            throw new IllegalStateException("provider object must be not null");
+        }
+
+        if(this.interfaceClass == null){
+            throw new IllegalStateException("provider object interface must be not ");
+        }
+
+        //检查ref和interfaceClass的合法性,后面JavaProviderInvoker会再次检查
+        if(!this.interfaceClass.isInterface()){
+            throw new IllegalStateException("the class '" + this.interfaceClass.getName() + "' is not a interface");
+        }
+
+        Class<?> serviceClass = this.ref.getClass();
+        if(!this.interfaceClass.isAssignableFrom(serviceClass)){
+            throw new IllegalStateException("service class " + serviceClass.getName() + " must implements the certain interface '" + this.interfaceClass.getName() + "'");
+        }
+    }
 
     /**
      * 启动Server并添加服务
      * 注册服务,让消费者发现
      */
     public ServiceFuture export(){
+        checkConfig();
+
         log.info("service exporting...");
 
         //Application配置
-        if(this.applicationConfig == null){
-            throw new IllegalStateException("provider must need to configure application");
-        }
 
         //启动Server
-        if(this.serverConfig == null){
-            throw new IllegalStateException("provider must need to configure server");
-        }
-
         Server server = serverConfig.getServer();
         server.addService(ref, interfaceClass);
 
         //注册中心实例化
-        if(this.registryConfig == null){
-            throw new IllegalStateException("provider must need to configure register");
-        }
         ZookeeperRegistry zookeeperRegistry = registryConfig.getZookeeperRegistry();
 
         //注册服务
@@ -100,17 +132,10 @@ public class ServiceConfig {
         return ref;
     }
 
-    public void setRef(Object ref) {
-        this.ref = ref;
-    }
-
     public Class<?> getInterfaceClass() {
         return interfaceClass;
     }
 
-    public void setInterfaceClass(Class<?> interfaceClass) {
-        this.interfaceClass = interfaceClass;
-    }
 
     public ZookeeperRegistryConfig getRegistryConfig() {
         return registryConfig;

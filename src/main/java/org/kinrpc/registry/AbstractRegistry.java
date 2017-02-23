@@ -9,7 +9,7 @@ import org.apache.log4j.Logger;
 public abstract class AbstractRegistry implements Registry{
     private final Logger logger = Logger.getLogger(AbstractRegistry.class);
 
-    protected String address;
+    protected final String address;
     protected String password;
 
     public AbstractRegistry(String address) {

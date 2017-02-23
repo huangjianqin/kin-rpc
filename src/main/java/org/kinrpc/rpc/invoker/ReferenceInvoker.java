@@ -15,11 +15,12 @@ public abstract class ReferenceInvoker extends AbstractInvoker implements AsyncI
     protected ReferenceConnection connection;
     //远程服务端的一些信息
 
-    public ReferenceInvoker(Class<?> interfaceClass) {
+    public ReferenceInvoker(Class<?> interfaceClass, ReferenceConnection connection) {
         super(interfaceClass);
+        this.connection = connection;
     }
 
-    public abstract void init(String host, int port, EventLoopGroup eventLoopGroup);
+    public abstract void init();
     public abstract void shutdown();
 
     public RPCRequest createRequest(int requestId, String methodName, Object... params){

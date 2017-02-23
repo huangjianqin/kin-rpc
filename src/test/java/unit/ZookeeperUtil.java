@@ -27,6 +27,11 @@ public class ZookeeperUtil {
         latch.await();
 
         printChilds(zooKeeper, "/");
+        System.out.println("<----------------------------------------------------------------------->");
+        printChilds(zooKeeper, "/kinrpc");
+//        deleteAllZNode(zooKeeper, "/kinrpc");
+//        System.out.println("<----------------------------------------------------------------------->");
+//        printChilds(zooKeeper, "/");
 
         zooKeeper.close();
     }
@@ -52,12 +57,13 @@ public class ZookeeperUtil {
         List<String> childs = zooKeeper.getChildren(root, false);
 
         for(String child: childs){
-            if(zooKeeper.getChildren(child, false).size() > 0){
-                deleteAllZNode(zooKeeper, child);
+            if(zooKeeper.getChildren(root + "/" + child, false).size() > 0){
+                deleteAllZNode(zooKeeper, root + "/" + child);
             }
             else{
-                deleteZNode(zooKeeper, child);
+                deleteZNode(zooKeeper, root + "/" + child);
             }
         }
+        deleteZNode(zooKeeper, root);
     }
 }

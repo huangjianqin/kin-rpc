@@ -52,4 +52,17 @@ public class ServiceFuture implements Future<ServiceConfig> {
             }
         }
     }
+
+    public void sync(long timeout){
+        synchronized (serviceConfig){
+            try {
+                log.info("waiting service disable for (" + timeout + "ms)...");
+                this.serviceConfig.wait(timeout);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                //恢复中断标识
+//            Thread.currentThread().interrupt();
+            }
+        }
+    }
 }

@@ -12,33 +12,23 @@ import system.service.Adder;
  * Created by 健勤 on 2017/2/16.
  */
 public class AddableProvider {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         ApplicationConfig applicationConfig = new ApplicationConfig();
         applicationConfig.setAppName("AddableProvider");
 
-        ZookeeperRegistryConfig zookeeperRegistryConfig = new ZookeeperRegistryConfig();
-        zookeeperRegistryConfig.setHost("127.0.0.1");
+        ZookeeperRegistryConfig zookeeperRegistryConfig = new ZookeeperRegistryConfig("127.0.0.1");
 
         final ServerConfig serverConfig = new ServerConfig();
-        serverConfig.setPort(16888);
         serverConfig.setThreadNum(4);
 
-        final ServiceConfig serviceConfig = new ServiceConfig();
+        final ServiceConfig serviceConfig = new ServiceConfig(new Adder(), Object.class);
         serviceConfig.setApplicationConfig(applicationConfig);
         serviceConfig.setRegistryConfig(zookeeperRegistryConfig);
         serviceConfig.setServerConfig(serverConfig);
-        serviceConfig.setInterfaceClass(Addable.class);
-        serviceConfig.setRef(new Adder());
 
         ServiceFuture future = serviceConfig.export();
 
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-            public void run() {
-                serviceConfig.disable();
-            }
-        }));
-
-
-        future.sync();
+//        future.sync(60000L);
+        serviceConfig.disable();
     }
 }

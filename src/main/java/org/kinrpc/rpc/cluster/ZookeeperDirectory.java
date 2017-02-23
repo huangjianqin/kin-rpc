@@ -10,10 +10,12 @@ import org.apache.zookeeper.ZooKeeper;
 import org.kinrpc.common.Constants;
 
 import org.kinrpc.registry.zookeeper.ZookeeperRegistry;
+import org.kinrpc.remoting.transport.bootstrap.ReferenceConnection;
 import org.kinrpc.rpc.invoker.ReferenceInvoker;
 import org.kinrpc.rpc.invoker.SimpleReferenceInvoker;
 
 
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -27,22 +29,25 @@ import java.util.concurrent.locks.ReentrantLock;
 public class ZookeeperDirectory implements Directory{
     private static final Logger log = Logger.getLogger(ZookeeperDirectory.class);
 
-    private ZookeeperRegistry registry;
-    private Class<?> interfaceClass;
+    private final ZookeeperRegistry registry;
+    private final Class<?> interfaceClass;
+    private final int connectTimeout;
 
     //用于启动invoker连接的线程池
-    private ThreadPoolExecutor threads = new ThreadPoolExecutor(2, 16, 600L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+    private final ThreadPoolExecutor threads = new ThreadPoolExecutor(Constants.DIRECTORY_DEFAULT_INIT_THREADNUM, Constants.DIRECTORY_DEFAULT_MAX_THREADNUM, Constants.DIRECTORY_DEFAULT_THREADS_ALIVE, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
     private CopyOnWriteArrayList<ReferenceInvoker> invokers;
+    //所有的消费者共用一个EventLoopGroup
+    private final EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
+
     //用于在没有invoker可用时阻塞
     private Lock lock = new ReentrantLock();
     private Condition hasInvoker = lock.newCondition();
     private boolean isRunning = true;
-    //所有的消费者共用一个EventLoopGroup
-    private EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
 
-    public ZookeeperDirectory(ZookeeperRegistry registry, Class<?> interfaceClass) {
+    public ZookeeperDirectory(ZookeeperRegistry registry, Class<?> interfaceClass, int connectTimeout) {
         this.registry = registry;
         this.interfaceClass = interfaceClass;
+        this.connectTimeout = connectTimeout;
     }
 
     /**
@@ -53,7 +58,7 @@ public class ZookeeperDirectory implements Directory{
         log.info("zookeeper directory listing");
         //第一次调用
         if(invokers == null){
-            invokers = new CopyOnWriteArrayList<ReferenceInvoker>();
+            this.invokers = new CopyOnWriteArrayList<ReferenceInvoker>();
             discover();
             if(invokers.size() == 0){
                 try {
@@ -64,7 +69,7 @@ public class ZookeeperDirectory implements Directory{
             }
         }
 
-
+        //Directory关闭中调用该方法会返回一个size=0的列表
         List<ReferenceInvoker> shallowClonedInvokers = (List<ReferenceInvoker>)this.invokers.clone();
         int size = shallowClonedInvokers.size();
         while(isRunning && size <= 0){
@@ -129,11 +134,16 @@ public class ZookeeperDirectory implements Directory{
             //更新当前的invoker
             updateCurrentInvoker(znodeList);
         } catch (KeeperException e) {
-            e.printStackTrace();
             //如果不存在该节点,则表明服务取消注册了
             if(e.code().equals(KeeperException.Code.NONODE)){
-                log.info("service '" + getServiceName() + "' unregisted");
-                updateCurrentInvoker(null);
+                log.error("service '" + getServiceName() + "' unregisted");
+                //等待一段时间
+                try {
+                    Thread.sleep(60000L);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+                discover();
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -150,7 +160,7 @@ public class ZookeeperDirectory implements Directory{
 
         List<ReferenceInvoker> invalidInvoker = new ArrayList<ReferenceInvoker>();
         if(addresses != null && addresses.size() > 0){
-            //该循环处理完后,addresses里面
+            //该循环处理完后,addresses里面的都是新的
             for(ReferenceInvoker invoker: invokers){
                 //不包含该连接,而是连接变为无用,shutdown
                 if(!addresses.contains(invoker.getAddress())){
@@ -211,8 +221,11 @@ public class ZookeeperDirectory implements Directory{
     private void connectServer(final String host, final int port){
         threads.submit(new Runnable() {
             public void run() {
-                ReferenceInvoker refereneceInvoker = new SimpleReferenceInvoker(interfaceClass);
-                refereneceInvoker.init(host, port, eventLoopGroup);
+                //创建连接
+                ReferenceConnection connection = new ReferenceConnection(new InetSocketAddress(host, port), eventLoopGroup, connectTimeout);
+                ReferenceInvoker refereneceInvoker = new SimpleReferenceInvoker(interfaceClass, connection);
+                //真正启动连接
+                refereneceInvoker.init();
                 addInvoker(refereneceInvoker);
             }
         });
@@ -239,12 +252,15 @@ public class ZookeeperDirectory implements Directory{
         //关闭注册中心连接,此时就不会再更新invokers列表,故不用加锁
         registry.destroy();
         //关闭所有当前连接
-        for(ReferenceInvoker invoker: invokers){
-            invoker.shutdown();
+        if(invokers != null && invokers.size() > 0){
+            for(ReferenceInvoker invoker: invokers){
+                invoker.shutdown();
+            }
         }
         //关闭共享EventLoopGroup
         eventLoopGroup.shutdownGracefully();
         //关闭线程池
         this.threads.shutdown();
     }
+
 }
