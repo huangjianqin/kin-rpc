@@ -1,4 +1,4 @@
-package org.kinrpc.rpc.protol;
+package org.kinrpc.rpc.protocol;
 
 import io.netty.channel.ChannelHandlerContext;
 
@@ -14,7 +14,11 @@ public class RPCRequest implements Serializable {
     private String method;
     private Object[] params;
     //返回RPCResponse的ChannelHandlerContext
-    private ChannelHandlerContext ctx;
+    transient private ChannelHandlerContext ctx;
+
+    public RPCRequest(){
+
+    }
 
     public RPCRequest(int requestId) {
         this.requestId = requestId;
@@ -27,20 +31,36 @@ public class RPCRequest implements Serializable {
         this.params = params;
     }
 
-    public Object[] getParams() {
-        return params;
+    public int getRequestId() {
+        return requestId;
     }
 
-    public String getMethod() {
-        return method;
+    public void setRequestId(int requestId) {
+        this.requestId = requestId;
     }
 
     public String getServiceName() {
         return serviceName;
     }
 
-    public int getRequestId() {
-        return requestId;
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
+
+    public String getMethod() {
+        return method;
+    }
+
+    public void setMethod(String method) {
+        this.method = method;
+    }
+
+    public Object[] getParams() {
+        return params;
+    }
+
+    public void setParams(Object[] params) {
+        this.params = params;
     }
 
     public ChannelHandlerContext getCtx() {

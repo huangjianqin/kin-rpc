@@ -1,14 +1,12 @@
 package org.kinrpc.remoting.transport.handler.consumer;
 
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.apache.log4j.Logger;
 import org.kinrpc.rpc.future.RPCFuture;
-import org.kinrpc.rpc.protol.RPCRequest;
-import org.kinrpc.rpc.protol.RPCResponse;
+import org.kinrpc.rpc.protocol.RPCRequest;
+import org.kinrpc.rpc.protocol.RPCResponse;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

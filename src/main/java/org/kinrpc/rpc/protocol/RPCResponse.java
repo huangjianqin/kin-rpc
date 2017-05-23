@@ -1,4 +1,4 @@
-package org.kinrpc.rpc.protol;
+package org.kinrpc.rpc.protocol;
 
 import java.io.Serializable;
 
@@ -25,6 +25,10 @@ public class RPCResponse implements Serializable {
         }
     }
 
+    public RPCResponse(){
+
+    }
+
     public RPCResponse(int requestId) {
         this.requestId = requestId;
     }
@@ -32,6 +36,26 @@ public class RPCResponse implements Serializable {
     public void setState(State state, String info){
         this.state = state;
         this.info = info;
+    }
+
+    public State getState() {
+        return state;
+    }
+
+    public void setState(State state) {
+        this.state = state;
+    }
+
+    public String getInfo() {
+        return info;
+    }
+
+    public void setInfo(String info) {
+        this.info = info;
+    }
+
+    public Object getResult() {
+        return result;
     }
 
     public void setResult(Object result) {
@@ -42,17 +66,8 @@ public class RPCResponse implements Serializable {
         return requestId;
     }
 
-    public String getInfo() {
-        return info;
-    }
-
-
-    public Object getResult() {
-        return result;
-    }
-
-    public State getState() {
-        return state;
+    public void setRequestId(int requestId) {
+        this.requestId = requestId;
     }
 
     @Override

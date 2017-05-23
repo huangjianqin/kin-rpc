@@ -1,13 +1,12 @@
-package unit;
+package unit.serializer;
 
 import com.caucho.hessian.io.Hessian2Input;
 import com.caucho.hessian.io.Hessian2Output;
-import org.kinrpc.rpc.protol.RPCRequest;
+import org.kinrpc.rpc.protocol.RPCRequest;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.Serializable;
 
 /**
  * Created by 健勤 on 2017/2/9.

@@ -1,9 +1,8 @@
 package org.kinrpc.rpc.invoker;
 
-import io.netty.channel.EventLoopGroup;
 import org.apache.log4j.Logger;
 import org.kinrpc.remoting.transport.bootstrap.ReferenceConnection;
-import org.kinrpc.rpc.protol.RPCRequest;
+import org.kinrpc.rpc.protocol.RPCRequest;
 
 /**
  * Created by 健勤 on 2017/2/14.

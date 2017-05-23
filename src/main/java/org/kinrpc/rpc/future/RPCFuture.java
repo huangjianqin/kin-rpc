@@ -1,8 +1,8 @@
 package org.kinrpc.rpc.future;
 
 import org.apache.log4j.Logger;
-import org.kinrpc.rpc.protol.RPCRequest;
-import org.kinrpc.rpc.protol.RPCResponse;
+import org.kinrpc.rpc.protocol.RPCRequest;
+import org.kinrpc.rpc.protocol.RPCResponse;
 
 import java.util.ArrayList;
 import java.util.List;

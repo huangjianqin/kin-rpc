@@ -1,4 +1,4 @@
-package org.kinrpc.common;
+package org.kinrpc.rpc.protocol;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

@@ -1,4 +1,4 @@
-package org.kinrpc.rpc.protol.srializer;
+package org.kinrpc.rpc.protocol.serializer;
 
 import com.caucho.hessian.io.Hessian2Input;
 import com.caucho.hessian.io.Hessian2Output;

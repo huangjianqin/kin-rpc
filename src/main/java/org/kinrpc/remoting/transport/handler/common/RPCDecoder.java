@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import org.kinrpc.common.Constants;
-import org.kinrpc.rpc.protol.srializer.Serializer;
+import org.kinrpc.rpc.protocol.serializer.Serializer;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package org.kinrpc.rpc.protol.srializer;
+package org.kinrpc.rpc.protocol.serializer;
 
 import java.io.IOException;
 

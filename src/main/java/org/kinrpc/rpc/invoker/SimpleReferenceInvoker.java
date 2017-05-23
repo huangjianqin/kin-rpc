@@ -1,13 +1,11 @@
 package org.kinrpc.rpc.invoker;
 
-import io.netty.channel.EventLoopGroup;
 import org.apache.log4j.Logger;
-import org.kinrpc.common.RPCRequestIdGenerator;
+import org.kinrpc.rpc.protocol.RPCRequestIdGenerator;
 import org.kinrpc.remoting.transport.bootstrap.ReferenceConnection;
 import org.kinrpc.rpc.future.RPCFuture;
-import org.kinrpc.rpc.protol.RPCRequest;
+import org.kinrpc.rpc.protocol.RPCRequest;
 
-import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutionException;
 
 /**

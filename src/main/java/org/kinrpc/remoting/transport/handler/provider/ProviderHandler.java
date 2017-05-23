@@ -3,7 +3,7 @@ package org.kinrpc.remoting.transport.handler.provider;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.apache.log4j.Logger;
-import org.kinrpc.rpc.protol.RPCRequest;
+import org.kinrpc.rpc.protocol.RPCRequest;
 
 import java.util.concurrent.BlockingQueue;
 

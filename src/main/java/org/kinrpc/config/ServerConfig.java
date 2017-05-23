@@ -27,7 +27,7 @@ public class ServerConfig {
     public ServerConfig() {
         this.port = Constants.SERVER_DEFAULT_PORT;
 //        try {
-//            host = InetAddress.getLocalHost().toString().split("\\\\")[1];
+//            host = InetAddress.getAllByName(InetAddress.getLocalHost().getHostName())[0].getHostAddress();
 //        } catch (UnknownHostException e) {
 //            log.error("get localhost error!!!");
 //            e.printStackTrace();

@@ -24,7 +24,7 @@ public class ZookeeperRegistry extends AbstractRegistry{
 
     public ZookeeperRegistry(ZookeeperRegistryConfig registryConfig) {
         super(registryConfig.getAddress(), registryConfig.getPassword());
-        this.sessionTimeOut = registryConfig.getSessionTimeOut();
+        this.sessionTimeOut = registryConfig.getSessionTimeout();
     }
 
     public void connect() throws DataFormatException {
