@@ -2,8 +2,9 @@ package org.kin.kinrpc.remoting.transport.handler.provider;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import org.apache.log4j.Logger;
 import org.kin.kinrpc.rpc.protocol.RPCRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.BlockingQueue;
 
@@ -11,7 +12,7 @@ import java.util.concurrent.BlockingQueue;
  * Created by 健勤 on 2017/2/10.
  */
 public class ProviderHandler extends SimpleChannelInboundHandler<RPCRequest> {
-    private static final Logger log = Logger.getLogger(ProviderHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(ProviderHandler.class);
 
     private BlockingQueue<RPCRequest> requestsQueue;
 

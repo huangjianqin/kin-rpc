@@ -1,8 +1,9 @@
 package org.kin.kinrpc.config;
 
-import org.apache.log4j.Logger;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.registry.zookeeper.ZookeeperRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.DataFormatException;
@@ -11,7 +12,7 @@ import java.util.zip.DataFormatException;
  * Created by 健勤 on 2017/2/13.
  */
 public class ZookeeperRegistryConfig {
-    private static final Logger log = Logger.getLogger(ZookeeperRegistry.class);
+    private static final Logger log = LoggerFactory.getLogger(ZookeeperRegistry.class);
     private static final AtomicInteger refCounter = new AtomicInteger(0);
 
     private final String host;

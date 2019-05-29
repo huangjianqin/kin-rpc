@@ -2,7 +2,6 @@ package org.kin.kinrpc.rpc.cluster;
 
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -12,6 +11,8 @@ import org.kin.kinrpc.registry.zookeeper.ZookeeperRegistry;
 import org.kin.kinrpc.remoting.transport.bootstrap.ReferenceConnection;
 import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
 import org.kin.kinrpc.rpc.invoker.SimpleReferenceInvoker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Created by 健勤 on 2017/2/13.
  */
 public class ZookeeperDirectory implements Directory {
-    private static final Logger log = Logger.getLogger(ZookeeperDirectory.class);
+    private static final Logger log = LoggerFactory.getLogger(ZookeeperDirectory.class);
 
     private final ZookeeperRegistry registry;
     private final Class<?> interfaceClass;

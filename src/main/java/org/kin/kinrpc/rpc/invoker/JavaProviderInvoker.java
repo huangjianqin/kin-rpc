@@ -1,7 +1,8 @@
 package org.kin.kinrpc.rpc.invoker;
 
-import org.apache.log4j.Logger;
 import org.kin.kinrpc.common.LogUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -10,7 +11,7 @@ import java.lang.reflect.Method;
  * Created by 健勤 on 2017/2/12.
  */
 public class JavaProviderInvoker extends ProviderInvoker {
-    private static final Logger log = Logger.getLogger(JavaProviderInvoker.class);
+    private static final Logger log = LoggerFactory.getLogger(JavaProviderInvoker.class);
 
     public JavaProviderInvoker(Object serivce, Class<?> interfaceClass) {
         super(interfaceClass);

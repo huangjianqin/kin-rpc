@@ -8,13 +8,14 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.CharsetUtil;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by 健勤 on 2017/1/17.
  */
 public final class HeartbeatHandler extends ChannelInboundHandlerAdapter {
-    private static final Logger log = Logger.getLogger(HeartbeatHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(HeartbeatHandler.class);
     private static final ByteBuf HEARTBEAT = Unpooled.unreleasableBuffer(Unpooled.copiedBuffer("HEARTBEAT", CharsetUtil.UTF_8));
 
     @Override

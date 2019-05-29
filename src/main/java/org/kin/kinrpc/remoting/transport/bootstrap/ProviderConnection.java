@@ -7,13 +7,14 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
-import org.apache.log4j.Logger;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.remoting.transport.handler.common.RPCDecoder;
 import org.kin.kinrpc.remoting.transport.handler.common.RPCEncoder;
 import org.kin.kinrpc.remoting.transport.handler.provider.ProviderHandler;
 import org.kin.kinrpc.rpc.protocol.RPCRequest;
 import org.kin.kinrpc.rpc.protocol.serializer.Hessian2Serializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.BlockingQueue;
@@ -22,7 +23,7 @@ import java.util.concurrent.BlockingQueue;
  * Created by 健勤 on 2017/2/10.
  */
 public class ProviderConnection extends Connection {
-    private static final Logger log = Logger.getLogger(ProviderConnection.class);
+    private static final Logger log = LoggerFactory.getLogger(ProviderConnection.class);
 
     private final BlockingQueue<RPCRequest> requestsQueue;
 
@@ -86,10 +87,6 @@ public class ProviderConnection extends Connection {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-//        System.out.println(this.channelFuture.channel().isOpen());
-//        System.out.println(this.workerGroup.isShutdown());
-//        System.out.println(this.bossGroup.isShutdown());
     }
 
 }

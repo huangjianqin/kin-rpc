@@ -1,12 +1,13 @@
 package org.kin.kinrpc.rpc.cluster;
 
-import org.apache.log4j.Logger;
 import org.kin.kinrpc.registry.zookeeper.ZookeeperRegistry;
 import org.kin.kinrpc.rpc.cluster.loadbalance.LoadBalance;
 import org.kin.kinrpc.rpc.cluster.loadbalance.RoundRobinLoadBalance;
 import org.kin.kinrpc.rpc.cluster.router.Router;
 import org.kin.kinrpc.rpc.cluster.router.SimpleRouter;
 import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -14,7 +15,7 @@ import java.util.List;
  * Created by 健勤 on 2017/2/15.
  */
 public class DefaultCluster implements Cluster {
-    private static final Logger log = Logger.getLogger(DefaultCluster.class);
+    private static final Logger log = LoggerFactory.getLogger(DefaultCluster.class);
 
     //代表某service的所有ReferenceInvoker
     private final Directory directory;

@@ -3,14 +3,15 @@ package org.kin.kinrpc.remoting.transport.handler.common;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
-import org.apache.log4j.Logger;
 import org.kin.kinrpc.rpc.protocol.serializer.Serializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by 健勤 on 2017/2/10.
  */
 public class RPCEncoder extends MessageToByteEncoder {
-    private static final Logger log = Logger.getLogger(RPCEncoder.class);
+    private static final Logger log = LoggerFactory.getLogger(RPCEncoder.class);
 
     private Serializer serializer;
 

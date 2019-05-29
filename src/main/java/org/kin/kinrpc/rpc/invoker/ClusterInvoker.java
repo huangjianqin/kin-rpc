@@ -1,8 +1,9 @@
 package org.kin.kinrpc.rpc.invoker;
 
-import org.apache.log4j.Logger;
 import org.kin.kinrpc.rpc.cluster.Cluster;
 import org.kin.kinrpc.rpc.future.RPCFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -11,7 +12,7 @@ import java.lang.reflect.Method;
  * Created by 健勤 on 2017/2/15.
  */
 public class ClusterInvoker implements InvocationHandler, AsyncInvoker {
-    private static final Logger log = Logger.getLogger(ClusterInvoker.class);
+    private static final Logger log = LoggerFactory.getLogger(ClusterInvoker.class);
 
     private Cluster cluster;
 

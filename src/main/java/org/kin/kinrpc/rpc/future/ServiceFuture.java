@@ -1,7 +1,9 @@
 package org.kin.kinrpc.rpc.future;
 
-import org.apache.log4j.Logger;
+
 import org.kin.kinrpc.config.ServiceConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -12,7 +14,7 @@ import java.util.concurrent.TimeoutException;
  * Created by 健勤 on 2017/2/13.
  */
 public class ServiceFuture implements Future<ServiceConfig> {
-    private static final Logger log = Logger.getLogger(ServiceFuture.class);
+    private static final Logger log = LoggerFactory.getLogger(ServiceFuture.class);
 
     private ServiceConfig serviceConfig;
 

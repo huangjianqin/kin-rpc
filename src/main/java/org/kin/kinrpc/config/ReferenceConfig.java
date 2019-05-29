@@ -1,12 +1,13 @@
 package org.kin.kinrpc.config;
 
-import org.apache.log4j.Logger;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.registry.zookeeper.ZookeeperRegistry;
 import org.kin.kinrpc.rpc.cluster.Cluster;
 import org.kin.kinrpc.rpc.cluster.DefaultCluster;
 import org.kin.kinrpc.rpc.invoker.AsyncInvoker;
 import org.kin.kinrpc.rpc.invoker.ClusterInvoker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Proxy;
 
@@ -14,7 +15,7 @@ import java.lang.reflect.Proxy;
  * Created by 健勤 on 2017/2/15.
  */
 public class ReferenceConfig<T> {
-    private static final Logger log = Logger.getLogger(ReferenceConfig.class);
+    private static final Logger log = LoggerFactory.getLogger(ReferenceConfig.class);
 
     //配置
     private ApplicationConfig applicationConfig;

@@ -1,8 +1,10 @@
 package org.kin.kinrpc.rpc.future;
 
-import org.apache.log4j.Logger;
+
 import org.kin.kinrpc.rpc.protocol.RPCRequest;
 import org.kin.kinrpc.rpc.protocol.RPCResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +16,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Created by 健勤 on 2017/2/15.
  */
 public class RPCFuture implements Future<Object> {
-    private static final Logger log = Logger.getLogger(RPCFuture.class);
+    private static final Logger log = LoggerFactory.getLogger(RPCFuture.class);
 
     private Sync sync;
     private RPCRequest request;

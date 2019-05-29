@@ -1,14 +1,15 @@
 package org.kin.kinrpc.config;
 
-import org.apache.log4j.Logger;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.remoting.transport.Server;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by 健勤 on 2017/2/12.
  */
 public class ServerConfig {
-    private static final Logger log = Logger.getLogger(ServerConfig.class);
+    private static final Logger log = LoggerFactory.getLogger(ServerConfig.class);
 
     private String host = "127.0.0.1";
     private final int port;

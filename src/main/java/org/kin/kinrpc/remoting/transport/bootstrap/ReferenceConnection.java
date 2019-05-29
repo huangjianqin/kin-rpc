@@ -5,7 +5,6 @@ import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
-import org.apache.log4j.Logger;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.remoting.transport.handler.common.RPCDecoder;
 import org.kin.kinrpc.remoting.transport.handler.common.RPCEncoder;
@@ -13,6 +12,8 @@ import org.kin.kinrpc.remoting.transport.handler.consumer.ReferenceHandler;
 import org.kin.kinrpc.rpc.future.RPCFuture;
 import org.kin.kinrpc.rpc.protocol.RPCRequest;
 import org.kin.kinrpc.rpc.protocol.serializer.Hessian2Serializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.CountDownLatch;
@@ -21,7 +22,7 @@ import java.util.concurrent.CountDownLatch;
  * Created by 健勤 on 2017/2/15.
  */
 public class ReferenceConnection extends Connection {
-    private static final Logger log = Logger.getLogger(ReferenceConnection.class);
+    private static final Logger log = LoggerFactory.getLogger(ReferenceConnection.class);
     //所有的消费者共用一个EventLoopGroup
     private final EventLoopGroup eventLoopGroup;
     //响应Channel连接的ChannelFuture

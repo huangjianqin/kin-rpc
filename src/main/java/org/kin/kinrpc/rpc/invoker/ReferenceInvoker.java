@@ -1,14 +1,15 @@
 package org.kin.kinrpc.rpc.invoker;
 
-import org.apache.log4j.Logger;
 import org.kin.kinrpc.remoting.transport.bootstrap.ReferenceConnection;
 import org.kin.kinrpc.rpc.protocol.RPCRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by 健勤 on 2017/2/14.
  */
 public abstract class ReferenceInvoker extends AbstractInvoker implements AsyncInvoker {
-    private static final Logger log = Logger.getLogger(ReferenceInvoker.class);
+    private static final Logger log = LoggerFactory.getLogger(ReferenceInvoker.class);
 
     //该invoker代表的连接
     protected ReferenceConnection connection;

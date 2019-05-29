@@ -1,7 +1,8 @@
 package org.kin.kinrpc.rpc.cluster.loadbalance;
 
-import org.apache.log4j.Logger;
 import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -10,7 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by 健勤 on 2017/2/15.
  */
 public class RoundRobinLoadBalance implements LoadBalance {
-    private static final Logger log = Logger.getLogger(RoundRobinLoadBalance.class);
+    private static final Logger log = LoggerFactory.getLogger(RoundRobinLoadBalance.class);
 
     private AtomicInteger round = new AtomicInteger(0);
 

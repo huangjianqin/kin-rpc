@@ -1,9 +1,10 @@
 package org.kin.kinrpc.config;
 
-import org.apache.log4j.Logger;
 import org.kin.kinrpc.registry.zookeeper.ZookeeperRegistry;
 import org.kin.kinrpc.remoting.transport.Server;
 import org.kin.kinrpc.rpc.future.ServiceFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.zip.DataFormatException;
 
@@ -11,7 +12,7 @@ import java.util.zip.DataFormatException;
  * Created by 健勤 on 2017/2/12.
  */
 public class ServiceConfig {
-    private static final Logger log = Logger.getLogger(ServiceConfig.class);
+    private static final Logger log = LoggerFactory.getLogger(ServiceConfig.class);
 
     //配置
     private ApplicationConfig applicationConfig;

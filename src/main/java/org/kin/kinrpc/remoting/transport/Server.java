@@ -1,7 +1,6 @@
 package org.kin.kinrpc.remoting.transport;
 
 import io.netty.channel.ChannelHandlerContext;
-import org.apache.log4j.Logger;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.config.ServerConfig;
 import org.kin.kinrpc.remoting.transport.bootstrap.Connection;
@@ -10,6 +9,8 @@ import org.kin.kinrpc.rpc.invoker.JavaProviderInvoker;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
 import org.kin.kinrpc.rpc.protocol.RPCRequest;
 import org.kin.kinrpc.rpc.protocol.RPCResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;
@@ -24,7 +25,7 @@ import java.util.concurrent.TimeUnit;
  * 可以作为多个服务的Server
  */
 public class Server {
-    private static final Logger log = Logger.getLogger(Server.class);
+    private static final Logger log = LoggerFactory.getLogger(Server.class);
 
     //只有get的时候没有同步,其余都同步了
     //大部分情况下get调用的频率比其他方法都多,没有必要使用同步容器,提供一丢丢性能
@@ -158,7 +159,7 @@ public class Server {
     }
 
     class ScanRequestsThread extends Thread {
-        private final Logger log = Logger.getLogger(ScanRequestsThread.class);
+        private final Logger log = LoggerFactory.getLogger(ScanRequestsThread.class);
         private boolean serverStopped = false;
         private boolean stopped = false;
 

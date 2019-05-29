@@ -1,11 +1,12 @@
 package org.kin.kinrpc.registry.zookeeper;
 
-import org.apache.log4j.Logger;
 import org.apache.zookeeper.*;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.config.ZookeeperRegistryConfig;
 import org.kin.kinrpc.registry.AbstractRegistry;
 import org.kin.kinrpc.rpc.cluster.ZookeeperDirectory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -16,7 +17,7 @@ import java.util.zip.DataFormatException;
  * Created by 健勤 on 2016/10/10.
  */
 public class ZookeeperRegistry extends AbstractRegistry {
-    private static final Logger log = Logger.getLogger(ZookeeperRegistry.class);
+    private static final Logger log = LoggerFactory.getLogger(ZookeeperRegistry.class);
     private CountDownLatch countDownLatch = new CountDownLatch(1);
 
     private ZooKeeper zooKeeper;

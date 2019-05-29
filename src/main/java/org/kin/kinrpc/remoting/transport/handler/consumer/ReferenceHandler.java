@@ -3,10 +3,11 @@ package org.kin.kinrpc.remoting.transport.handler.consumer;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import org.apache.log4j.Logger;
 import org.kin.kinrpc.rpc.future.RPCFuture;
 import org.kin.kinrpc.rpc.protocol.RPCRequest;
 import org.kin.kinrpc.rpc.protocol.RPCResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by 健勤 on 2017/2/15.
  */
 public class ReferenceHandler extends SimpleChannelInboundHandler<RPCResponse> {
-    private static final Logger log = Logger.getLogger(ReferenceHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(ReferenceHandler.class);
 
     private Map<String, RPCFuture> pendRPCFutureMap = new ConcurrentHashMap<String, RPCFuture>();
     private volatile Channel channel;
