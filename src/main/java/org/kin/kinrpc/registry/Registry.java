@@ -10,8 +10,12 @@ import java.util.zip.DataFormatException;
 
 public interface Registry {
     void connect() throws DataFormatException;
+
     void register(String serviceName, String host, int port) throws DataFormatException;
+
     void unRegister(String serviceName, String host, int port);
+
     ZookeeperDirectory subscribe(Class<?> interfaceClass, int connectTimeout);
+
     void destroy();
 }

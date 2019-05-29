@@ -34,31 +34,32 @@ public class ZookeeperRegistryConfig {
     /**
      * 检查配置参数正确性
      */
-    private void checkConfig(){
-        if(port < 0){
+    private void checkConfig() {
+        if (port < 0) {
             throw new IllegalStateException("zookeeper registry's port must be greater than 0");
         }
 
-        if(sessionTimeout < 0){
+        if (sessionTimeout < 0) {
             throw new IllegalStateException("zookeeper registry's seesionTimeout must greater than 0");
         }
 
-        if(host.matches("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")){
+        if (host.matches("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")) {
             throw new IllegalStateException("zookeeper registry's host '" + host + "' format error");
         }
     }
 
     /**
      * config包下的类才可以调用此方法
+     *
      * @return
      */
     ZookeeperRegistry getZookeeperRegistry() {
         checkConfig();
 
         log.info("getting zookeeper registry...");
-        if(zookeeperRegistry == null){
-            synchronized (this){
-                if(zookeeperRegistry == null){
+        if (zookeeperRegistry == null) {
+            synchronized (this) {
+                if (zookeeperRegistry == null) {
                     zookeeperRegistry = new ZookeeperRegistry(this);
                     try {
                         zookeeperRegistry.connect();
@@ -73,14 +74,14 @@ public class ZookeeperRegistryConfig {
         return zookeeperRegistry;
     }
 
-    public void closeRegistry(){
+    public void closeRegistry() {
         refCounter.getAndDecrement();
-        if(refCounter.get() <= 0){
+        if (refCounter.get() <= 0) {
             zookeeperRegistry.destroy();
         }
     }
 
-    public String getAddress(){
+    public String getAddress() {
         return this.host + ":" + this.port;
     }
 

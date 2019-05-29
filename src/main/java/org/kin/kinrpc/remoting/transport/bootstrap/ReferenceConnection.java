@@ -6,10 +6,10 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import org.apache.log4j.Logger;
-import org.kin.kinrpc.remoting.transport.handler.consumer.ReferenceHandler;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.remoting.transport.handler.common.RPCDecoder;
 import org.kin.kinrpc.remoting.transport.handler.common.RPCEncoder;
+import org.kin.kinrpc.remoting.transport.handler.consumer.ReferenceHandler;
 import org.kin.kinrpc.rpc.future.RPCFuture;
 import org.kin.kinrpc.rpc.protocol.RPCRequest;
 import org.kin.kinrpc.rpc.protocol.serializer.Hessian2Serializer;
@@ -59,11 +59,11 @@ public class ReferenceConnection extends Connection {
         this.channelFuture = bootstrap.connect(address);
         channelFuture.addListener(new ChannelFutureListener() {
             public void operationComplete(ChannelFuture channelFuture) throws Exception {
-                if(channelFuture.isSuccess()){
+                if (channelFuture.isSuccess()) {
                     log.info("Successfully connect to remote server. remote peer = " + address);
                     handler = channelFuture.channel().pipeline().get(ReferenceHandler.class);
                     latch.countDown();
-                }else{
+                } else {
                     log.error("connect to Server time out");
                     throw new RuntimeException("connect to Server time out");
                 }
@@ -91,7 +91,7 @@ public class ReferenceConnection extends Connection {
         channelFuture.channel().close();
     }
 
-    public RPCFuture request(RPCRequest request){
+    public RPCFuture request(RPCRequest request) {
         try {
             latch.await();
         } catch (InterruptedException e) {

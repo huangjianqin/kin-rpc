@@ -13,10 +13,12 @@ public abstract class Connection {
     }
 
     public abstract void connect();
+
     public abstract void bind();
+
     public abstract void close();
 
-    public String getAddress(){
+    public String getAddress() {
         return address.getHostName() + address.getPort();
     }
 }

@@ -20,20 +20,19 @@ public final class HeartbeatHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         //空闲一段时间触发这个事件
-        if(evt instanceof IdleStateEvent){
+        if (evt instanceof IdleStateEvent) {
             //测试是否仍然与服务连接
             ctx.writeAndFlush(HEARTBEAT.duplicate()).addListener(new ChannelFutureListener() {
                 public void operationComplete(ChannelFuture channelFuture) throws Exception {
                     //发送心跳失败,打印日志,关闭该连接,并
-                    if(!channelFuture.isSuccess()){
+                    if (!channelFuture.isSuccess()) {
                         log.info("send heartbeat fail!!!");
                         log.info("close the service connection >>>" + channelFuture.channel().remoteAddress().toString());
                         channelFuture.channel().close();
                     }
                 }
             });
-        }
-        else{
+        } else {
             super.userEventTriggered(ctx, evt);
         }
     }

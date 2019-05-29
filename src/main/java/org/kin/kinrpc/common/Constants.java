@@ -4,7 +4,7 @@ package org.kin.kinrpc.common;
 /**
  * Created by 健勤 on 2016/10/9.
  */
-public final class Constants{
+public final class Constants {
     //Zookeeper规则
     //格式/kinrpc/{serviceName}/{host:port}
     public static final int ZOOKEEPER_REGISTRY_DEFAULT_PORT = 2181;

@@ -9,5 +9,6 @@ import java.util.List;
  */
 public interface Directory {
     List<ReferenceInvoker> list();
+
     void destroy();
 }

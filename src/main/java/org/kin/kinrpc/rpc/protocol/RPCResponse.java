@@ -11,7 +11,7 @@ public class RPCResponse implements Serializable {
     private String info;
     private State state;
 
-    public enum State{
+    public enum State {
         ERROR(-1), SUCCESS(1), RETRY(0);
 
         int code;
@@ -25,7 +25,7 @@ public class RPCResponse implements Serializable {
         }
     }
 
-    public RPCResponse(){
+    public RPCResponse() {
 
     }
 
@@ -33,7 +33,7 @@ public class RPCResponse implements Serializable {
         this.requestId = requestId;
     }
 
-    public void setState(State state, String info){
+    public void setState(State state, String info) {
         this.state = state;
         this.info = info;
     }

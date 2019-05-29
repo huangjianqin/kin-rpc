@@ -33,19 +33,20 @@ public class ServerConfig {
 
     /**
      * 检查配置参数正确性
-    */
-    private void checkConfig(){
-        if(port < 0){
+     */
+    private void checkConfig() {
+        if (port < 0) {
             throw new IllegalStateException("Server's port must be greater than 0");
         }
 
-        if(threadNum <= 0){
+        if (threadNum <= 0) {
             throw new IllegalStateException("Server thread's num must greater than 0");
         }
     }
 
     /**
      * config包下的类才可以调用此方法
+     *
      * @return
      */
     Server getServer() {
@@ -58,20 +59,18 @@ public class ServerConfig {
         log.info("<<<");
         log.info("getting Server...");
 
-        if(this.server == null){
-            synchronized (this){
-                if(this.server == null){
-                        log.info("ready to start Server...");
-                        this.server = new Server(this);
-                        this.server.start();
-                }
-                else{
+        if (this.server == null) {
+            synchronized (this) {
+                if (this.server == null) {
+                    log.info("ready to start Server...");
+                    this.server = new Server(this);
+                    this.server.start();
+                } else {
                     log.info("server with certain port '" + port + "' has started");
                     log.info("reuse server...");
                 }
             }
-        }
-        else{
+        } else {
             log.info("server with certain port '" + port + "' has started");
             log.info("reuse server...");
         }
@@ -88,9 +87,9 @@ public class ServerConfig {
 
     public void setThreadNum(int threadNum) {
         this.threadNum = threadNum;
-        if(this.server != null){
-            synchronized (this){
-                if (this.server != null){
+        if (this.server != null) {
+            synchronized (this) {
+                if (this.server != null) {
                     this.server.setMaxThreadsNum(this.threadNum);
                 }
             }

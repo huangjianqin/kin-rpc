@@ -28,34 +28,34 @@ public class ServiceConfig {
     /**
      * 检查配置参数正确性
      */
-    private void checkConfig(){
-        if(this.applicationConfig == null){
+    private void checkConfig() {
+        if (this.applicationConfig == null) {
             throw new IllegalStateException("provider must need to configure application");
         }
 
-        if(this.serverConfig == null){
+        if (this.serverConfig == null) {
             throw new IllegalStateException("provider must need to configure server");
         }
 
-        if(this.registryConfig == null){
+        if (this.registryConfig == null) {
             throw new IllegalStateException("provider must need to configure register");
         }
 
-        if(this.ref == null){
+        if (this.ref == null) {
             throw new IllegalStateException("provider object must be not null");
         }
 
-        if(this.interfaceClass == null){
+        if (this.interfaceClass == null) {
             throw new IllegalStateException("provider object interface must be not ");
         }
 
         //检查ref和interfaceClass的合法性,后面JavaProviderInvoker会再次检查
-        if(!this.interfaceClass.isInterface()){
+        if (!this.interfaceClass.isInterface()) {
             throw new IllegalStateException("the class '" + this.interfaceClass.getName() + "' is not a interface");
         }
 
         Class<?> serviceClass = this.ref.getClass();
-        if(!this.interfaceClass.isAssignableFrom(serviceClass)){
+        if (!this.interfaceClass.isAssignableFrom(serviceClass)) {
             throw new IllegalStateException("service class " + serviceClass.getName() + " must implements the certain interface '" + this.interfaceClass.getName() + "'");
         }
     }
@@ -64,7 +64,7 @@ public class ServiceConfig {
      * 启动Server并添加服务
      * 注册服务,让消费者发现
      */
-    public ServiceFuture export(){
+    public ServiceFuture export() {
         checkConfig();
 
         log.info("service exporting...");
@@ -94,7 +94,7 @@ public class ServiceConfig {
      * 取消注册
      * 从Server中删除服务
      */
-    public synchronized void disable(){
+    public synchronized void disable() {
         log.info("service disable...");
         //取消注册
         ZookeeperRegistry zookeeperRegistry = registryConfig.getZookeeperRegistry();

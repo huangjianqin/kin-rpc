@@ -40,8 +40,8 @@ public class ServiceFuture implements Future<ServiceConfig> {
         return get();
     }
 
-    public void sync(){
-        synchronized (serviceConfig){
+    public void sync() {
+        synchronized (serviceConfig) {
             try {
                 log.info("waiting service disable...");
                 this.serviceConfig.wait();
@@ -53,8 +53,8 @@ public class ServiceFuture implements Future<ServiceConfig> {
         }
     }
 
-    public void sync(long timeout){
-        synchronized (serviceConfig){
+    public void sync(long timeout) {
+        synchronized (serviceConfig) {
             try {
                 log.info("waiting service disable for (" + timeout + "ms)...");
                 this.serviceConfig.wait(timeout);

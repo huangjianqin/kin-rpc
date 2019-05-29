@@ -13,7 +13,7 @@ import java.io.ByteArrayOutputStream;
  */
 public class KryoTest {
     public static void main(String[] args) {
-        RPCRequest request = new RPCRequest(0, "system.service.Addable", "add", new Object[]{1,1});
+        RPCRequest request = new RPCRequest(0, "system.service.Addable", "add", new Object[]{1, 1});
 
         Kryo kryo = new Kryo();
         Output output = new Output(new ByteArrayOutputStream());

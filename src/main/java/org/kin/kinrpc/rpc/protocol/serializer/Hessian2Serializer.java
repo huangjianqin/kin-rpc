@@ -11,12 +11,12 @@ import java.io.Serializable;
 /**
  * Created by 健勤 on 2017/2/9.
  */
-public class Hessian2Serializer implements Serializer{
+public class Hessian2Serializer implements Serializer {
     public byte[] serialize(Object target) throws IOException {
         if (target == null)
             throw new NullPointerException("Serialized object must be not null");
 
-        if(!(target instanceof Serializable)){
+        if (!(target instanceof Serializable)) {
             throw new IllegalStateException("Serialized class " + target.getClass().getSimpleName() + " must implement java.io.Serializable");
         }
 
@@ -31,7 +31,7 @@ public class Hessian2Serializer implements Serializer{
     }
 
     public Object deserialize(byte[] bytes) throws IOException {
-        if(bytes == null || bytes.length <= 0){
+        if (bytes == null || bytes.length <= 0) {
             throw new IllegalStateException("byte array must be not null or it's length must be greater than zero");
         }
 

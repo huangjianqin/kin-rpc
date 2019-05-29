@@ -1,9 +1,9 @@
 package org.kin.kinrpc.config;
 
 import org.apache.log4j.Logger;
-import org.kin.kinrpc.rpc.cluster.Cluster;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.registry.zookeeper.ZookeeperRegistry;
+import org.kin.kinrpc.rpc.cluster.Cluster;
 import org.kin.kinrpc.rpc.cluster.DefaultCluster;
 import org.kin.kinrpc.rpc.invoker.AsyncInvoker;
 import org.kin.kinrpc.rpc.invoker.ClusterInvoker;
@@ -35,26 +35,26 @@ public class ReferenceConfig<T> {
     /**
      * 检查配置参数正确性
      */
-    private void checkConfig(){
-        if(this.applicationConfig == null){
+    private void checkConfig() {
+        if (this.applicationConfig == null) {
             throw new IllegalStateException("consumer must need to configure application");
         }
 
-        if(this.registryConfig == null){
+        if (this.registryConfig == null) {
             throw new IllegalStateException("consumer must need to configure register");
         }
 
-        if(this.interfaceClass == null){
+        if (this.interfaceClass == null) {
             throw new IllegalStateException("consumer subscribed interface must be not ");
         }
 
-        if(this.timeout < 0){
+        if (this.timeout < 0) {
             throw new IllegalStateException("connection's timeout must greater than 0");
         }
 
     }
 
-    public T get(){
+    public T get() {
         log.info("consumer getting service proxy...");
 
         //Application配置
@@ -75,18 +75,17 @@ public class ReferenceConfig<T> {
         return service;
     }
 
-    public synchronized T getService(){
-        if(service != null){
+    public synchronized T getService() {
+        if (service != null) {
             return service;
-        }
-        else{
+        } else {
             return get();
         }
     }
 
-    public AsyncInvoker getAsyncInvoker(){
-        if(this.clusterInvoker != null){
-            return (AsyncInvoker)((ClusterInvoker)Proxy.getInvocationHandler(this.clusterInvoker));
+    public AsyncInvoker getAsyncInvoker() {
+        if (this.clusterInvoker != null) {
+            return (AsyncInvoker) ((ClusterInvoker) Proxy.getInvocationHandler(this.clusterInvoker));
         }
         return null;
     }
@@ -94,9 +93,9 @@ public class ReferenceConfig<T> {
     /**
      * 不再使用服务了
      */
-    public void disable(){
+    public void disable() {
         //关闭底层cluster连接
-        if(this.clusterInvoker != null){
+        if (this.clusterInvoker != null) {
             clusterInvoker.getCluster().shutdown();
         }
 

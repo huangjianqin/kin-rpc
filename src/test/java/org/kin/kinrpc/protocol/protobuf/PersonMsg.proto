@@ -10,13 +10,12 @@ syntax = "proto2";
 //option java_outer_classname="StudentDemo";
 
 //枚举类
-enum Sex{
+enum Sex {
     MALE = 0;
     FEMALE = 1;
 }
 
-message Info
-{
+message Info {
     optional int32 qq = 1;
     optional int32 weixin = 2;
 }
@@ -27,17 +26,16 @@ message Info
 //repeated,重复的,对应java的list
 message Person {
     //嵌套
-    message Score
-    {
+    message Score {
         optional int32 chinese = 1;
         optional int32 history = 2;
     }
 
-    required int32 id = 1;//=后面的数字好像就是序号,一直排下来就是了
+    required int32 id = 1; //=后面的数字好像就是序号,一直排下来就是了
     required string name = 2;
     optional string email = 3;
     repeated string friends = 4;
-    required Sex sex = 5;//引用枚举
-    optional Info info = 6;//引用message
-    optional Score score = 7;//引用嵌套message
+    required Sex sex = 5; //引用枚举
+    optional Info info = 6; //引用message
+    optional Score score = 7; //引用嵌套message
 }  

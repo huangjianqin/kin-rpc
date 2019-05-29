@@ -1,11 +1,11 @@
 package org.kin.kinrpc.rpc.cluster;
 
 import org.apache.log4j.Logger;
+import org.kin.kinrpc.registry.zookeeper.ZookeeperRegistry;
 import org.kin.kinrpc.rpc.cluster.loadbalance.LoadBalance;
 import org.kin.kinrpc.rpc.cluster.loadbalance.RoundRobinLoadBalance;
 import org.kin.kinrpc.rpc.cluster.router.Router;
 import org.kin.kinrpc.rpc.cluster.router.SimpleRouter;
-import org.kin.kinrpc.registry.zookeeper.ZookeeperRegistry;
 import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
 
 import java.util.List;
@@ -35,24 +35,24 @@ public class DefaultCluster implements Cluster {
 
     public ReferenceInvoker get() {
         log.info("get one reference invoker from cluster");
-        if(checkState()){
+        if (checkState()) {
             List<ReferenceInvoker> availableInvokers = directory.list();
             List<ReferenceInvoker> filtedInvokers = router.router(availableInvokers);
             ReferenceInvoker realCalledInvoker = loadBalance.loadBalance(filtedInvokers);
 
             log.info("real invoker(" + realCalledInvoker.getAddress() + ")");
-            return  realCalledInvoker;
+            return realCalledInvoker;
         }
 
         return null;
     }
 
-    public void shutdown(){
+    public void shutdown() {
         directory.destroy();
     }
 
-    protected boolean checkState(){
-        if(directory != null && router != null && loadBalance != null){
+    protected boolean checkState() {
+        if (directory != null && router != null && loadBalance != null) {
             return true;
         }
 

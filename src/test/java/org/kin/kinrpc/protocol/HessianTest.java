@@ -13,7 +13,7 @@ import java.io.IOException;
  */
 public class HessianTest {
     public static void main(String[] args) throws IOException {
-        RPCRequest request = new RPCRequest(0, "system.service.Addable", "add", new Object[]{1,1});
+        RPCRequest request = new RPCRequest(0, "system.service.Addable", "add", new Object[]{1, 1});
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         Hessian2Output hessian2Output = new Hessian2Output(baos);
@@ -26,7 +26,7 @@ public class HessianTest {
 
         ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
         Hessian2Input hessian2Input = new Hessian2Input(bais);
-        RPCRequest cloneRequest = (RPCRequest)hessian2Input.readObject();
+        RPCRequest cloneRequest = (RPCRequest) hessian2Input.readObject();
 
         System.out.println(cloneRequest.toString());
 

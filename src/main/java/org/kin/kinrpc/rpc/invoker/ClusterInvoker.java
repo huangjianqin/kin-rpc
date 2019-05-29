@@ -24,12 +24,11 @@ public class ClusterInvoker implements InvocationHandler, AsyncInvoker {
         return invoke(method.getName(), args);
     }
 
-    public Object invoke(String methodName, Object... params){
+    public Object invoke(String methodName, Object... params) {
         ReferenceInvoker invoker = cluster.get();
-        if(invoker != null){
+        if (invoker != null) {
             return invoker.invoke(methodName, params);
-        }
-        else{
+        } else {
             //抛弃异常
             throw new RuntimeException();
         }
@@ -37,10 +36,9 @@ public class ClusterInvoker implements InvocationHandler, AsyncInvoker {
 
     public RPCFuture invokerAsync(String methodName, Object... params) {
         ReferenceInvoker invoker = cluster.get();
-        if(invoker != null){
+        if (invoker != null) {
             return invoker.invokerAsync(methodName, params);
-        }
-        else{
+        } else {
             //抛弃异常
             throw new RuntimeException();
         }

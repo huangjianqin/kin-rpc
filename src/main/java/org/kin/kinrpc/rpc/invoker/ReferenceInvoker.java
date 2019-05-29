@@ -20,14 +20,15 @@ public abstract class ReferenceInvoker extends AbstractInvoker implements AsyncI
     }
 
     public abstract void init();
+
     public abstract void shutdown();
 
-    public RPCRequest createRequest(int requestId, String methodName, Object... params){
+    public RPCRequest createRequest(int requestId, String methodName, Object... params) {
         RPCRequest request = new RPCRequest(requestId, super.getServiceName(), methodName, params);
         return request;
     }
 
-    public String getAddress(){
+    public String getAddress() {
         return connection.getAddress();
     }
 }

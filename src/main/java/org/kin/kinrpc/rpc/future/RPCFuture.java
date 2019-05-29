@@ -22,8 +22,9 @@ public class RPCFuture implements Future<Object> {
 
     //所有RPCFuture实例共用一个线程池
     private static final ThreadPoolExecutor threads = new ThreadPoolExecutor(2, 16, 600L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+
     //添加JVM关闭钩子,以确保释放该静态线程池
-    static{
+    static {
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             public void run() {
                 threads.shutdown();
@@ -58,7 +59,7 @@ public class RPCFuture implements Future<Object> {
 
     public Object get() throws InterruptedException, ExecutionException {
         sync.acquire(-1);
-        if(isDone()){
+        if (isDone()) {
             return this.response.getResult();
         }
         return null;
@@ -66,22 +67,20 @@ public class RPCFuture implements Future<Object> {
 
     public Object get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         boolean success = sync.tryAcquireNanos(-1, unit.toNanos(timeout));
-        if(success){
-            if(isDone()){
+        if (success) {
+            if (isDone()) {
                 return this.response.getResult();
-            }
-            else{
+            } else {
                 return null;
             }
-        }
-        else{
+        } else {
             throw new RuntimeException("Timeout exception. Request id: " + this.request.getRequestId()
                     + ". Request class name: " + this.request.getServiceName()
                     + ". Request method: " + this.request.getMethod());
         }
     }
 
-    public void done(RPCResponse response){
+    public void done(RPCResponse response) {
         sync.release(1);
         this.response = response;
         invokeAllCallBacks();
@@ -92,50 +91,47 @@ public class RPCFuture implements Future<Object> {
         }
     }
 
-    public RPCFuture addRPCCallback(AsyncRPCCallback callback){
+    public RPCFuture addRPCCallback(AsyncRPCCallback callback) {
         lock.lock();
-        try{
-            if(this.isDone()){
+        try {
+            if (this.isDone()) {
                 runCallBack(callback);
-            }
-            else{
+            } else {
                 this.callbacks.add(callback);
             }
-        }finally {
+        } finally {
             lock.unlock();
         }
 
         return this;
     }
 
-    private void runCallBack(final AsyncRPCCallback callback){
+    private void runCallBack(final AsyncRPCCallback callback) {
         final RPCResponse response = this.response;
         threads.submit(new Runnable() {
             public void run() {
-                if(!response.getState().equals(RPCResponse.State.ERROR)){
+                if (!response.getState().equals(RPCResponse.State.ERROR)) {
                     callback.success(response.getResult());
-                }
-                else{
+                } else {
                     callback.fail(new RuntimeException("Response error", new Throwable(response.getInfo())));
                 }
             }
         });
     }
 
-    private void invokeAllCallBacks(){
+    private void invokeAllCallBacks() {
         lock.lock();
 
-        try{
-            for(AsyncRPCCallback callback: this.callbacks){
+        try {
+            for (AsyncRPCCallback callback : this.callbacks) {
                 runCallBack(callback);
             }
-        }
-        finally {
+        } finally {
             lock.unlock();
         }
     }
 
-    class Sync extends AbstractQueuedSynchronizer{
+    class Sync extends AbstractQueuedSynchronizer {
         private final int DONE = 1;
         private final int PENDING = 0;
 
@@ -146,8 +142,8 @@ public class RPCFuture implements Future<Object> {
 
         @Override
         protected boolean tryRelease(int releases) {
-            if(getState() == PENDING){
-                if(compareAndSetState(PENDING, DONE)){
+            if (getState() == PENDING) {
+                if (compareAndSetState(PENDING, DONE)) {
                     return true;
                 }
             }
@@ -155,7 +151,7 @@ public class RPCFuture implements Future<Object> {
             return false;
         }
 
-        public boolean isDone(){
+        public boolean isDone() {
             return getState() == DONE;
         }
     }

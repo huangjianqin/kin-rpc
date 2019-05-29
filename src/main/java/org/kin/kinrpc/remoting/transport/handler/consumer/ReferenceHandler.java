@@ -36,7 +36,7 @@ public class ReferenceHandler extends SimpleChannelInboundHandler<RPCResponse> {
         log.info("收到一个响应");
         String requestId = response.getRequestId() + "";
         RPCFuture pendRPCFuture = pendRPCFutureMap.get(requestId);
-        if(pendRPCFuture != null){
+        if (pendRPCFuture != null) {
             pendRPCFutureMap.remove(requestId);
             pendRPCFuture.done(response);
         }
@@ -48,7 +48,7 @@ public class ReferenceHandler extends SimpleChannelInboundHandler<RPCResponse> {
         this.pendRPCFutureMap.clear();
     }
 
-    public RPCFuture request(RPCRequest request){
+    public RPCFuture request(RPCRequest request) {
         log.info("发送请求>>>" + request.toString());
         RPCFuture future = new RPCFuture(request);
         pendRPCFutureMap.put(request.getRequestId() + "", future);

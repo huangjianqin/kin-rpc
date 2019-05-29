@@ -16,7 +16,7 @@ public class RPCRequest implements Serializable {
     //返回RPCResponse的ChannelHandlerContext
     transient private ChannelHandlerContext ctx;
 
-    public RPCRequest(){
+    public RPCRequest() {
 
     }
 

@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Created by 健勤 on 2017/2/10.
  */
-public class RPCDecoder extends ByteToMessageDecoder{
+public class RPCDecoder extends ByteToMessageDecoder {
     private Serializer serializer;
 
     public RPCDecoder(Serializer serializer) {
@@ -21,7 +21,7 @@ public class RPCDecoder extends ByteToMessageDecoder{
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf in, List<Object> out) throws Exception {
         //可读字节数少于数据帧长度标识 => 不合法的数据帧
-        if(in.readableBytes() < Constants.FRAMELENGTH_FIELD_LENGTH){
+        if (in.readableBytes() < Constants.FRAMELENGTH_FIELD_LENGTH) {
             return;
         }
 

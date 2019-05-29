@@ -11,11 +11,13 @@ import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
 import org.kin.kinrpc.rpc.protocol.RPCRequest;
 import org.kin.kinrpc.rpc.protocol.RPCResponse;
 
-
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by 健勤 on 2017/2/10.
@@ -59,11 +61,10 @@ public class Server {
         JavaProviderInvoker invoker = new JavaProviderInvoker(service, interfaceClass);
         String realServiceName = invoker.getServiceName();
 
-        synchronized (serviceMap){
-            if(!serviceMap.containsKey(realServiceName)){
+        synchronized (serviceMap) {
+            if (!serviceMap.containsKey(realServiceName)) {
                 serviceMap.put(invoker.getServiceName(), invoker);
-            }
-            else{
+            } else {
                 throw new IllegalStateException("service'" + realServiceName + "' has registered. can not register again");
             }
         }
@@ -72,8 +73,8 @@ public class Server {
     /**
      * 支持动态移除服务
      */
-    public void disableService(String serviceName){
-        synchronized (serviceMap){
+    public void disableService(String serviceName) {
+        synchronized (serviceMap) {
             serviceMap.remove(serviceName);
         }
     }
@@ -81,7 +82,7 @@ public class Server {
     /**
      * 启动Server
      */
-    public void start(){
+    public void start() {
         log.info("server(port= " + port + ") starting...");
         //启动连接
         this.connection = new ProviderConnection(new InetSocketAddress("localhost", this.port), requestsQueue);
@@ -103,11 +104,11 @@ public class Server {
      * 默认每个服务关闭都需要关闭Server
      * 但如果仍然有服务在此Server上提供服务,则仍然运行该Server
      */
-    public void shutdown(){
+    public void shutdown() {
         log.info("server(port= " + port + ") shutdowning...");
-        synchronized (serviceMap){
+        synchronized (serviceMap) {
             int refCounter = serviceMap.size();
-            if(refCounter > 0){
+            if (refCounter > 0) {
                 log.info("server still has service to server, don't stop");
                 return;
             }
@@ -119,8 +120,8 @@ public class Server {
     /**
      * 不管3721,马上stop
      */
-    public void shutdownNow(){
-        if(this.connection == null || scanRequestsThread == null){
+    public void shutdownNow() {
+        if (this.connection == null || scanRequestsThread == null) {
             log.error("Server has not started call shutdown");
             throw new IllegalStateException("Provider Server has not started");
         }
@@ -156,7 +157,7 @@ public class Server {
         isStopped = true;
     }
 
-    class ScanRequestsThread extends Thread{
+    class ScanRequestsThread extends Thread {
         private final Logger log = Logger.getLogger(ScanRequestsThread.class);
         private boolean serverStopped = false;
         private boolean stopped = false;
@@ -164,7 +165,7 @@ public class Server {
         public void run() {
             log.info("request scanner thread started");
             log.info("ready to handle consumer's request");
-            while(!serverStopped){
+            while (!serverStopped) {
                 try {
                     final RPCRequest rpcRequest = requestsQueue.take();
                     log.info("收到一个请求");
@@ -180,11 +181,10 @@ public class Server {
 
                             RPCResponse rpcResponse = new RPCResponse(rpcRequest.getRequestId());
                             Object result = null;
-                            if(invoker != null){
+                            if (invoker != null) {
                                 result = invoker.invoke(methodName, params);
                                 rpcResponse.setState(RPCResponse.State.SUCCESS, "");
-                            }
-                            else{
+                            } else {
                                 log.error("can not find rpcRequest(id= " + rpcRequest.getRequestId() + ")'s service");
                                 rpcResponse.setState(RPCResponse.State.ERROR, "can not find service '" + serviceName + "'");
                             }
@@ -205,7 +205,7 @@ public class Server {
             log.info("request scanner thread state change");
             log.info("ready to response directly and ask client to retry service call");
 
-            while(!stopped){
+            while (!stopped) {
                 try {
                     RPCRequest rpcRequest = requestsQueue.take();
                     //创建RPCResponse,设置服务不可用请求重试标识,直接回发
@@ -236,9 +236,10 @@ public class Server {
 
     /**
      * 动态设置线程池的最大线程数,线程空闲后会被删除到指定数量之下
+     *
      * @param threadNum
      */
-    public void setMaxThreadsNum(int threadNum){
+    public void setMaxThreadsNum(int threadNum) {
         this.threadNum = threadNum;
         this.threads.setMaximumPoolSize(this.threadNum);
     }

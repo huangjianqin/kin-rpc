@@ -5,5 +5,6 @@ package org.kin.kinrpc.rpc.future;
  */
 public interface AsyncRPCCallback {
     void success(Object result);
+
     void fail(Exception e);
 }

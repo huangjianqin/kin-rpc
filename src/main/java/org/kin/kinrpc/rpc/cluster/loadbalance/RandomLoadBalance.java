@@ -13,8 +13,8 @@ public class RandomLoadBalance implements LoadBalance {
     private static final Logger log = Logger.getLogger(RandomLoadBalance.class);
 
     public ReferenceInvoker loadBalance(List<ReferenceInvoker> invokers) {
-        if(invokers != null && invokers.size() > 0){
-            if(invokers.size() == 1){
+        if (invokers != null && invokers.size() > 0) {
+            if (invokers.size() == 1) {
                 return invokers.get(0);
             }
 
