@@ -1,7 +1,7 @@
 package org.kin.kinrpc.rpc.future;
 
 
-import org.kin.kinrpc.config.ServiceConfig;
+import org.kin.kinrpc.api.ServiceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

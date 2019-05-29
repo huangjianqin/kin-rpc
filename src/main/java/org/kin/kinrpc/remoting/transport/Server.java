@@ -2,11 +2,9 @@ package org.kin.kinrpc.remoting.transport;
 
 import io.netty.channel.ChannelHandlerContext;
 import org.kin.kinrpc.common.Constants;
-import org.kin.kinrpc.config.ServerConfig;
-import org.kin.kinrpc.remoting.transport.bootstrap.Connection;
-import org.kin.kinrpc.remoting.transport.bootstrap.ProviderConnection;
-import org.kin.kinrpc.rpc.invoker.JavaProviderInvoker;
-import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
+import org.kin.kinrpc.api.ServerConfig;
+import org.kin.kinrpc.rpc.invoker.impl.JavaProviderInvoker;
+import org.kin.kinrpc.rpc.invoker.impl.ProviderInvoker;
 import org.kin.kinrpc.rpc.protocol.RPCRequest;
 import org.kin.kinrpc.rpc.protocol.RPCResponse;
 import org.slf4j.Logger;
@@ -86,7 +84,7 @@ public class Server {
     public void start() {
         log.info("server(port= " + port + ") starting...");
         //启动连接
-        this.connection = new ProviderConnection(new InetSocketAddress("localhost", this.port), requestsQueue);
+        this.connection = new ServerConnection(new InetSocketAddress("localhost", this.port), requestsQueue);
         new Thread(new Runnable() {
             public void run() {
                 connection.bind();

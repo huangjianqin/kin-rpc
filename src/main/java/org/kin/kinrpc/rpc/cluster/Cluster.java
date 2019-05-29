@@ -1,6 +1,6 @@
 package org.kin.kinrpc.rpc.cluster;
 
-import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
+import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
 
 /**
  * Created by 健勤 on 2017/2/13.

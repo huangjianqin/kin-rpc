@@ -1,9 +1,9 @@
 package org.kin.kinrpc.test.provider;
 
-import org.kin.kinrpc.config.ApplicationConfig;
-import org.kin.kinrpc.config.ServerConfig;
-import org.kin.kinrpc.config.ServiceConfig;
-import org.kin.kinrpc.config.ZookeeperRegistryConfig;
+import org.kin.kinrpc.api.ApplicationConfig;
+import org.kin.kinrpc.api.ServerConfig;
+import org.kin.kinrpc.api.ServiceConfig;
+import org.kin.kinrpc.api.ZookeeperRegistryConfig;
 import org.kin.kinrpc.rpc.future.ServiceFuture;
 import org.kin.kinrpc.test.service.Adder;
 

@@ -1,6 +1,6 @@
 package org.kin.kinrpc.rpc.cluster.router;
 
-import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
+import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
 
 import java.util.List;
 

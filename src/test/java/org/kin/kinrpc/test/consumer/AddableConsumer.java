@@ -1,8 +1,8 @@
 package org.kin.kinrpc.test.consumer;
 
-import org.kin.kinrpc.config.ApplicationConfig;
-import org.kin.kinrpc.config.ReferenceConfig;
-import org.kin.kinrpc.config.ZookeeperRegistryConfig;
+import org.kin.kinrpc.api.ApplicationConfig;
+import org.kin.kinrpc.api.ReferenceConfig;
+import org.kin.kinrpc.api.ZookeeperRegistryConfig;
 import org.kin.kinrpc.test.service.Addable;
 
 /**
