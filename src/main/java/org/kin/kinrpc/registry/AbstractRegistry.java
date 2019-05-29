@@ -6,7 +6,7 @@ package org.kin.kinrpc.registry;
 
 import org.apache.log4j.Logger;
 
-public abstract class AbstractRegistry implements Registry{
+public abstract class AbstractRegistry implements Registry {
     private final Logger logger = Logger.getLogger(AbstractRegistry.class);
 
     protected final String address;
