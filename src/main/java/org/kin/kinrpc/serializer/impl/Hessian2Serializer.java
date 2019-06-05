@@ -3,6 +3,7 @@ package org.kin.kinrpc.serializer.impl;
 import com.caucho.hessian.io.Hessian2Input;
 import com.caucho.hessian.io.Hessian2Output;
 import org.kin.kinrpc.serializer.Serializer;
+import org.kin.kinrpc.transport.rpc.domain.RPCRequest;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -13,6 +14,7 @@ import java.io.Serializable;
  * Created by 健勤 on 2017/2/9.
  */
 public class Hessian2Serializer implements Serializer {
+    @Override
     public byte[] serialize(Object target) throws IOException {
         if (target == null)
             throw new NullPointerException("Serialized object must be not null");
@@ -31,18 +33,19 @@ public class Hessian2Serializer implements Serializer {
         return outputStream.toByteArray();
     }
 
-    public Object deserialize(byte[] bytes) throws IOException {
+    @Override
+    public <T> T deserialize(byte[] bytes) throws IOException {
         if (bytes == null || bytes.length <= 0) {
             throw new IllegalStateException("byte array must be not null or it's length must be greater than zero");
         }
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
         Hessian2Input hessian2Input = new Hessian2Input(inputStream);
-        Object result = hessian2Input.readObject();
+        Object request = hessian2Input.readObject(RPCRequest.class);
 
         hessian2Input.close();
         inputStream.close();
 
-        return result;
+        return (T) request;
     }
 }

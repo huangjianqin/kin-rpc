@@ -1,9 +1,9 @@
 package org.kin.kinrpc.rpc.invoker.impl;
 
-import org.kin.kinrpc.remoting.transport.ClientConnection;
 import org.kin.kinrpc.rpc.future.RPCFuture;
-import org.kin.kinrpc.rpc.protocol.RPCRequest;
-import org.kin.kinrpc.rpc.protocol.RPCRequestIdGenerator;
+import org.kin.kinrpc.transport.rpc.ConsumerConnection;
+import org.kin.kinrpc.transport.rpc.domain.RPCRequest;
+import org.kin.kinrpc.transport.rpc.domain.RPCRequestIdGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +15,7 @@ import java.util.concurrent.ExecutionException;
 public class SimpleReferenceInvoker extends ReferenceInvoker {
     private static final Logger log = LoggerFactory.getLogger(SimpleReferenceInvoker.class);
 
-    public SimpleReferenceInvoker(Class<?> interfaceClass, ClientConnection connection) {
+    public SimpleReferenceInvoker(Class<?> interfaceClass, ConsumerConnection connection) {
         super(interfaceClass, connection);
     }
 

@@ -5,4 +5,5 @@
 1. 在模块化基础上，支持service mesh和url直连
 2. 支持重载方法调用(使用hash(class+方法名+参数类型)作为唯一标识)
 3. 模块化工作，分离底层网络传输，负载均衡，router，discove和consumer/provider核心封装 
-4. 利用netty api支持rest服务
+4. 增加限流和降级策略
+5. 利用netty api支持rest服务

@@ -1,7 +1,7 @@
 package org.kin.kinrpc.api;
 
 import org.kin.kinrpc.common.Constants;
-import org.kin.kinrpc.remoting.transport.Server;
+import org.kin.kinrpc.transport.rpc.RPCServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +16,7 @@ public class ServerConfig {
     private int threadNum = Constants.SERVER_DEFAULT_THREADNUM;
 
     //底层通信服务器
-    private Server server;
+    private RPCServer RPCServer;
 
     public ServerConfig(int port) {
         this.port = port;
@@ -50,7 +50,7 @@ public class ServerConfig {
      *
      * @return
      */
-    Server getServer() {
+    RPCServer getRPCServer() {
         checkConfig();
 
         log.info("server config >>>");
@@ -60,12 +60,12 @@ public class ServerConfig {
         log.info("<<<");
         log.info("getting Server...");
 
-        if (this.server == null) {
+        if (this.RPCServer == null) {
             synchronized (this) {
-                if (this.server == null) {
+                if (this.RPCServer == null) {
                     log.info("ready to start Server...");
-                    this.server = new Server(this);
-                    this.server.start();
+                    this.RPCServer = new RPCServer(this);
+                    this.RPCServer.start();
                 } else {
                     log.info("server with certain port '" + port + "' has started");
                     log.info("reuse server...");
@@ -75,7 +75,7 @@ public class ServerConfig {
             log.info("server with certain port '" + port + "' has started");
             log.info("reuse server...");
         }
-        return server;
+        return RPCServer;
     }
 
     public int getPort() {
@@ -88,10 +88,10 @@ public class ServerConfig {
 
     public void setThreadNum(int threadNum) {
         this.threadNum = threadNum;
-        if (this.server != null) {
+        if (this.RPCServer != null) {
             synchronized (this) {
-                if (this.server != null) {
-                    this.server.setMaxThreadsNum(this.threadNum);
+                if (this.RPCServer != null) {
+//                    this.RPCServer.setMaxThreadsNum(this.threadNum);
                 }
             }
         }

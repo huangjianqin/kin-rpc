@@ -26,15 +26,11 @@ public final class Constants {
     public static final String METHOD_KEY = "method";//接口方法列表
     public static final String CALLED_METHOD_KEY = "calledMethod";//被调用方法,参数不显示
 
-    //协议参数
-    public static final int FRAMELENGTH_FIELD_LENGTH = 4;
-    public static final int FRAMELENGTH_FIELD_OFFSET = 0;
-    public static final int FRAME_MAX_LENGTH = 65536;
-
     //provider Server默认配置
     public static final int SERVER_DEFAULT_PORT = 16888;
     public static final int SERVER_DEFAULT_THREADNUM = 4;
-    public static final long SERVER_DEFAULT_THREADS_ALIVE = 60L;
+    //限流
+    public static final int SERVER_REQUEST_THRESHOLD = 100;
 
     //Reference默认配置
     public static final int REFERENCE_DEFAULT_CONNECT_TIMEOUT = 5000;

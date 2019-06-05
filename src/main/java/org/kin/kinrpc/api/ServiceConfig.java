@@ -1,8 +1,8 @@
 package org.kin.kinrpc.api;
 
-import org.kin.kinrpc.rpc.registry.zookeeper.ZookeeperRegistry;
-import org.kin.kinrpc.remoting.transport.Server;
 import org.kin.kinrpc.rpc.future.ServiceFuture;
+import org.kin.kinrpc.rpc.registry.zookeeper.ZookeeperRegistry;
+import org.kin.kinrpc.transport.rpc.RPCServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,8 +73,8 @@ public class ServiceConfig {
         //Application配置
 
         //启动Server
-        Server server = serverConfig.getServer();
-        server.addService(ref, interfaceClass);
+        RPCServer RPCServer = serverConfig.getRPCServer();
+        RPCServer.addService(ref, interfaceClass);
 
         //注册中心实例化
         ZookeeperRegistry zookeeperRegistry = registryConfig.getZookeeperRegistry();
@@ -103,9 +103,9 @@ public class ServiceConfig {
         registryConfig.closeRegistry();
 
         //从Server中删除服务
-        Server server = serverConfig.getServer();
-        server.disableService(interfaceClass.getName());
-        server.shutdown();
+        RPCServer RPCServer = serverConfig.getRPCServer();
+        RPCServer.disableService(interfaceClass.getName());
+        RPCServer.shutdown();
 
         //释放ServiceFuture.sync的blocking
         this.notifyAll();

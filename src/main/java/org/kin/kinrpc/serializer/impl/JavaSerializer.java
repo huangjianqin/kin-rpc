@@ -8,6 +8,7 @@ import java.io.*;
  * Created by 健勤 on 2017/2/9.
  */
 public class JavaSerializer implements Serializer {
+    @Override
     public byte[] serialize(Object target) throws IOException {
         if (target == null)
             throw new NullPointerException("Serialized object must be not null");
@@ -23,7 +24,8 @@ public class JavaSerializer implements Serializer {
         return outputStream.toByteArray();
     }
 
-    public Object deserialize(byte[] bytes) throws IOException, ClassNotFoundException {
+    @Override
+    public <T> T deserialize(byte[] bytes) throws IOException, ClassNotFoundException {
         if (bytes == null || bytes.length <= 0) {
             throw new IllegalStateException("byte array must be not null or it's length must be greater than zero");
         }
@@ -32,6 +34,6 @@ public class JavaSerializer implements Serializer {
         ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
         Object result = objectInputStream.readObject();
 
-        return result;
+        return (T) result;
     }
 }

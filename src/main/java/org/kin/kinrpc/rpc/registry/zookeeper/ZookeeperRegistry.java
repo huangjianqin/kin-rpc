@@ -1,10 +1,10 @@
 package org.kin.kinrpc.rpc.registry.zookeeper;
 
 import org.apache.zookeeper.*;
-import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.api.ZookeeperRegistryConfig;
-import org.kin.kinrpc.rpc.registry.AbstractRegistry;
+import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.rpc.cluster.impl.ZookeeperDirectory;
+import org.kin.kinrpc.rpc.registry.AbstractRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

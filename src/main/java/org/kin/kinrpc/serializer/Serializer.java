@@ -8,5 +8,5 @@ import java.io.IOException;
 public interface Serializer {
     byte[] serialize(Object target) throws IOException;
 
-    Object deserialize(byte[] bytes) throws IOException, ClassNotFoundException;
+    <T> T deserialize(byte[] bytes) throws IOException, ClassNotFoundException;
 }

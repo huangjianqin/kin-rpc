@@ -1,9 +1,9 @@
 package org.kin.kinrpc.rpc.invoker.impl;
 
-import org.kin.kinrpc.remoting.transport.ClientConnection;
 import org.kin.kinrpc.rpc.invoker.AbstractInvoker;
 import org.kin.kinrpc.rpc.invoker.AsyncInvoker;
-import org.kin.kinrpc.rpc.protocol.RPCRequest;
+import org.kin.kinrpc.transport.rpc.ConsumerConnection;
+import org.kin.kinrpc.transport.rpc.domain.RPCRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,10 +14,10 @@ public abstract class ReferenceInvoker extends AbstractInvoker implements AsyncI
     private static final Logger log = LoggerFactory.getLogger(ReferenceInvoker.class);
 
     //该invoker代表的连接
-    protected ClientConnection connection;
+    protected ConsumerConnection connection;
     //远程服务端的一些信息
 
-    public ReferenceInvoker(Class<?> interfaceClass, ClientConnection connection) {
+    public ReferenceInvoker(Class<?> interfaceClass, ConsumerConnection connection) {
         super(interfaceClass);
         this.connection = connection;
     }

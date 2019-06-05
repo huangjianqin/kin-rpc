@@ -1,8 +1,8 @@
 package org.kin.kinrpc.rpc.future;
 
 
-import org.kin.kinrpc.rpc.protocol.RPCRequest;
-import org.kin.kinrpc.rpc.protocol.RPCResponse;
+import org.kin.kinrpc.transport.rpc.domain.RPCRequest;
+import org.kin.kinrpc.transport.rpc.domain.RPCResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

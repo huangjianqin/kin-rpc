@@ -105,6 +105,34 @@
         </rollingPolicy>
     </appender>
 
+    <appender name="reqStatisticAppender" class="ch.qos.logback.core.rolling.RollingFileAppender" >
+        <Append>true</Append>
+        <encoder>
+            <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] |  %C.%M\(%L\) : %msg%n%ex</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/%d{yyyy-MM-dd}/reqStatistic.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <!--<maxHistory>30</maxHistory>-->
+        </rollingPolicy>
+    </appender>
+
+    <appender name="respStatisticAppender" class="ch.qos.logback.core.rolling.RollingFileAppender" >
+        <Append>true</Append>
+        <encoder>
+            <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] |  %C.%M\(%L\) : %msg%n%ex</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/%d{yyyy-MM-dd}/respStatistic.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <!--<maxHistory>30</maxHistory>-->
+        </rollingPolicy>
+    </appender>
+
     <!--                                       async                                                       -->
     <appender name="asyncSTDOUT" class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="STDOUT"/>
@@ -134,6 +162,14 @@
         <appender-ref ref="invokerAppender"/>
     </appender>
 
+    <appender name="asyncReqStatisticAppender" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="reqStatisticAppender"/>
+    </appender>
+
+    <appender name="asyncRespStatisticAppender" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="respStatisticAppender"/>
+    </appender>
+
     <!--                                       logger                                                       -->
     <logger name="transport" level="INFO" additivity="false">
         <appender-ref ref="asyncTransportAppender"/>
@@ -153,6 +189,14 @@
 
     <logger name="invoker" level="INFO" additivity="false">
         <appender-ref ref="asyncInvokerAppender"/>
+    </logger>
+
+    <logger name="reqStatistic" level="INFO" additivity="false">
+        <appender-ref ref="asyncReqStatisticAppender"/>
+    </logger>
+
+    <logger name="respStatistic" level="INFO" additivity="false">
+        <appender-ref ref="asyncRespStatisticAppender"/>
     </logger>
 
     <root level="INFO">

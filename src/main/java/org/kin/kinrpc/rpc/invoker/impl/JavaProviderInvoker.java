@@ -1,6 +1,6 @@
 package org.kin.kinrpc.rpc.invoker.impl;
 
-import org.kin.kinrpc.utils.LogUtil;
+import org.kin.framework.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,14 +58,14 @@ public class JavaProviderInvoker extends ProviderInvoker {
             paramTypeStrs[i] = paramTypes[i].getName();
         }
         log.info("'" + methodName + "' method's params' type");
-        log.info(LogUtil.mkString(",", paramTypeStrs));
+        log.info(StringUtils.mkString(",", paramTypeStrs));
 
         String[] actualParamTypeStrs = new String[params.length];
         for (int i = 0; i < params.length; i++) {
             paramTypeStrs[i] = params[i].getClass().getName();
         }
         log.info("'" + methodName + "' method's actual params' type");
-        log.info(LogUtil.mkString(",", actualParamTypeStrs));
+        log.info(StringUtils.mkString(",", actualParamTypeStrs));
 
         try {
             return target.invoke(serivce, params);

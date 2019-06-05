@@ -7,11 +7,11 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.kin.kinrpc.common.Constants;
-import org.kin.kinrpc.remoting.transport.ClientConnection;
 import org.kin.kinrpc.rpc.cluster.Directory;
-import org.kin.kinrpc.rpc.registry.zookeeper.ZookeeperRegistry;
 import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.SimpleReferenceInvoker;
+import org.kin.kinrpc.rpc.registry.zookeeper.ZookeeperRegistry;
+import org.kin.kinrpc.transport.rpc.ConsumerConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -228,7 +228,7 @@ public class ZookeeperDirectory implements Directory {
         threads.submit(new Runnable() {
             public void run() {
                 //创建连接
-                ClientConnection connection = new ClientConnection(new InetSocketAddress(host, port), eventLoopGroup, connectTimeout);
+                ConsumerConnection connection = new ConsumerConnection(new InetSocketAddress(host, port), eventLoopGroup, connectTimeout);
                 ReferenceInvoker refereneceInvoker = new SimpleReferenceInvoker(interfaceClass, connection);
                 //真正启动连接
                 refereneceInvoker.init();
