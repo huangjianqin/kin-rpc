@@ -2,14 +2,14 @@
 <configuration scan="true" scanPeriod="60 seconds">
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] |  %C.%M\(%L\) : %msg%n%ex</pattern>
+            <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
         </encoder>
     </appender>
 
     <appender name="STDOUT" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <Append>true</Append>
         <encoder>
-            <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] |  %C.%M\(%L\) : %msg%n%ex</pattern>
+            <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>INFO</level>
@@ -20,10 +20,10 @@
         </rollingPolicy>
     </appender>
 
-    <appender name="ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender" >
+    <appender name="ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <Append>true</Append>
         <encoder>
-            <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] |  %C.%M\(%L\) : %msg%n%ex</pattern>
+            <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>ERROR</level>
@@ -34,10 +34,10 @@
         </rollingPolicy>
     </appender>
 
-    <appender name="transportAppender" class="ch.qos.logback.core.rolling.RollingFileAppender" >
+    <appender name="transportAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <Append>true</Append>
         <encoder>
-            <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] |  %C.%M\(%L\) : %msg%n%ex</pattern>
+            <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>ERROR</level>
@@ -48,10 +48,10 @@
         </rollingPolicy>
     </appender>
 
-    <appender name="loadbalanceAppender" class="ch.qos.logback.core.rolling.RollingFileAppender" >
+    <appender name="loadbalanceAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <Append>true</Append>
         <encoder>
-            <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] |  %C.%M\(%L\) : %msg%n%ex</pattern>
+            <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>ERROR</level>
@@ -62,10 +62,10 @@
         </rollingPolicy>
     </appender>
 
-    <appender name="routerAppender" class="ch.qos.logback.core.rolling.RollingFileAppender" >
+    <appender name="routerAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <Append>true</Append>
         <encoder>
-            <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] |  %C.%M\(%L\) : %msg%n%ex</pattern>
+            <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>ERROR</level>
@@ -77,10 +77,10 @@
     </appender>
 
     <!-- 包含注册中心日志-->
-    <appender name="clusterAppender" class="ch.qos.logback.core.rolling.RollingFileAppender" >
+    <appender name="clusterAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <Append>true</Append>
         <encoder>
-            <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] |  %C.%M\(%L\) : %msg%n%ex</pattern>
+            <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>ERROR</level>
@@ -91,10 +91,10 @@
         </rollingPolicy>
     </appender>
 
-    <appender name="invokerAppender" class="ch.qos.logback.core.rolling.RollingFileAppender" >
+    <appender name="invokerAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <Append>true</Append>
         <encoder>
-            <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] |  %C.%M\(%L\) : %msg%n%ex</pattern>
+            <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>ERROR</level>
@@ -105,10 +105,10 @@
         </rollingPolicy>
     </appender>
 
-    <appender name="reqStatisticAppender" class="ch.qos.logback.core.rolling.RollingFileAppender" >
+    <appender name="reqStatisticAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <Append>true</Append>
         <encoder>
-            <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] |  %C.%M\(%L\) : %msg%n%ex</pattern>
+            <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>ERROR</level>
@@ -119,10 +119,10 @@
         </rollingPolicy>
     </appender>
 
-    <appender name="respStatisticAppender" class="ch.qos.logback.core.rolling.RollingFileAppender" >
+    <appender name="respStatisticAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <Append>true</Append>
         <encoder>
-            <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] |  %C.%M\(%L\) : %msg%n%ex</pattern>
+            <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>ERROR</level>
@@ -206,23 +206,23 @@
     </root>
 
     <!--<appender name="FILE" class="ch.qos.logback.core.FileAppender">-->
-        <!--<File>/log</File>-->
-        <!--<Append>true</Append>-->
-        <!--<encoder>-->
-            <!--<pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] |  %C.%M\(%L\) : %msg%n%ex</pattern>-->
-        <!--</encoder>-->
-        <!--<filter class="ch.qos.logback.classic.filter.ThresholdFilter">-->
-            <!--<level>INFO</level>-->
-        <!--</filter>-->
+    <!--<File>/log</File>-->
+    <!--<Append>true</Append>-->
+    <!--<encoder>-->
+    <!--<pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] |  %C.%M\(%L\) : %msg%n%ex</pattern>-->
+    <!--</encoder>-->
+    <!--<filter class="ch.qos.logback.classic.filter.ThresholdFilter">-->
+    <!--<level>INFO</level>-->
+    <!--</filter>-->
     <!--</appender>-->
     <!--<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">-->
-        <!--<fileNamePattern>tests.%i.log.zip</fileNamePattern>-->
-        <!--<minIndex>1</minIndex>-->
-        <!--<maxIndex>3</maxIndex>-->
+    <!--<fileNamePattern>tests.%i.log.zip</fileNamePattern>-->
+    <!--<minIndex>1</minIndex>-->
+    <!--<maxIndex>3</maxIndex>-->
     <!--</rollingPolicy>-->
 
     <!--<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">-->
-        <!--<maxFileSize>5MB</maxFileSize>-->
+    <!--<maxFileSize>5MB</maxFileSize>-->
     <!--</triggeringPolicy>-->
 
 
