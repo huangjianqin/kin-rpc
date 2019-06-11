@@ -1,9 +1,11 @@
 package org.kin.kinrpc.registry.zookeeper;
 
+import com.google.common.net.HostAndPort;
 import org.apache.zookeeper.*;
-import org.kin.kinrpc.common.Constants;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.registry.AbstractRegistry;
 import org.kin.kinrpc.registry.Directory;
+import org.kin.kinrpc.registry.RegistryConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,10 +16,11 @@ import java.util.zip.DataFormatException;
 
 /**
  * Created by 健勤 on 2016/10/10.
+ * <p>
+ * zookeeper作为注册中心, 操作zookeeper node
  */
 public class ZookeeperRegistry extends AbstractRegistry {
     private static final Logger log = LoggerFactory.getLogger("registry");
-    private CountDownLatch countDownLatch = new CountDownLatch(1);
 
     private ZooKeeper zooKeeper;
     private int sessionTimeOut;
@@ -27,21 +30,18 @@ public class ZookeeperRegistry extends AbstractRegistry {
         this.sessionTimeOut = sessionTimeOut;
     }
 
+    @Override
     public void connect() throws DataFormatException {
         log.info("zookeeper registry creating...");
 
-        if (!address.matches("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}:\\d{1,5}")) {
-            throw new DataFormatException("zookeeper registry address('" + address + "') format error");
-        }
-        String host = address.split(":")[0];
-
+        CountDownLatch countDownLatch = new CountDownLatch(1);
         try {
-            this.zooKeeper = new ZooKeeper(host, this.sessionTimeOut, new Watcher() {
+            this.zooKeeper = new ZooKeeper(address.getHost(), this.sessionTimeOut, new Watcher() {
                 public void process(WatchedEvent watchedEvent) {
                     if (watchedEvent.getState() == Event.KeeperState.SyncConnected) {
                         countDownLatch.countDown();
                     } else if (watchedEvent.getState() == Event.KeeperState.Expired) {
-                        log.error("connect to zookeeper server timeout(" + sessionTimeOut + ")");
+                        log.error("connect to zookeeper server timeout({})", sessionTimeOut);
                         throw new RuntimeException("connect to zookeeper server timeout(" + sessionTimeOut + ")");
                     } else if (watchedEvent.getState() == Event.KeeperState.Disconnected) {
                         log.info("disconnect to zookeeper server");
@@ -51,13 +51,13 @@ public class ZookeeperRegistry extends AbstractRegistry {
             });
         } catch (IOException e) {
             log.error("zookeeper client connect error");
-            e.printStackTrace();
+            ExceptionUtils.log(e);
         }
 
         try {
             countDownLatch.await();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            ExceptionUtils.log(e);
         }
 
         //一些预处理
@@ -66,18 +66,15 @@ public class ZookeeperRegistry extends AbstractRegistry {
 
     private void initRootZNode() {
         //如果没有创建根节点
-        notExistAndCreate(Constants.REGISTRY_ROOT, null);
+        notExistAndCreate(RegistryConstants.REGISTRY_ROOT, null);
     }
 
     private void createZNode(String path, byte[] data) {
         try {
             this.zooKeeper.create(path, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-            log.info("create znode successfully>>> " + path);
-            log.info("this znode's data>>> " + data);
-        } catch (KeeperException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            log.info("create persistent znode(data= '{}') successfully>>> {}", data, path);
+        } catch (KeeperException | InterruptedException e) {
+            ExceptionUtils.log(e);
         }
     }
 
@@ -85,10 +82,8 @@ public class ZookeeperRegistry extends AbstractRegistry {
         try {
             this.zooKeeper.delete(path, -1);
             log.info("delete znode successfully>>> " + path);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (KeeperException e) {
-            e.printStackTrace();
+        } catch (KeeperException | InterruptedException e) {
+            ExceptionUtils.log(e);
         }
     }
 
@@ -98,67 +93,64 @@ public class ZookeeperRegistry extends AbstractRegistry {
                 log.info("znode: " + path + " >>> not exist. now create");
                 createZNode(path, data);
             }
-        } catch (KeeperException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        } catch (KeeperException | InterruptedException e) {
+            ExceptionUtils.log(e);
         }
     }
 
-    private void noChildsAndDelete(String path) {
+    private void deleteIfNoChilds(String path) {
         try {
             List<String> childs = this.zooKeeper.getChildren(path, false);
             if (childs == null || childs.size() <= 0) {
                 deleteZNode(path);
             }
-        } catch (KeeperException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        } catch (KeeperException | InterruptedException e) {
+            ExceptionUtils.log(e);
         }
     }
 
+    @Override
     public void register(String serviceName, String host, int port) throws DataFormatException {
-        log.info("provider register service '" + serviceName + "' " + ">>> zookeeper registry(" + getAddress() + ")");
+        log.info("provider register service '{}' " + ">>> zookeeper registry({})", serviceName, getAddress());
         String address = host + ":" + port;
 
         if (!address.matches("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}:\\d{1,5}")) {
             throw new DataFormatException("zookeeper registry address('" + address + "') format error");
         }
 
-        String servicePath = Constants.REGISTRY_ROOT + Constants.REGISTRY_PAHT_SEPARATOR + serviceName;
-        String serviceHostPath = Constants.REGISTRY_ROOT + Constants.REGISTRY_PAHT_SEPARATOR + serviceName + Constants.REGISTRY_PAHT_SEPARATOR + address;
+        String servicePath = RegistryConstants.getPath(serviceName);
+        String serviceHostPath = RegistryConstants.getPath(serviceName, address);
 
         notExistAndCreate(servicePath, null);
         createZNode(serviceHostPath, null);
     }
 
+    @Override
     public void unRegister(String serviceName, String host, int port) {
-        log.info("provider unregister service '" + serviceName + "' " + ">>> zookeeper registry(" + getAddress() + ")");
+        log.info("provider unregister service '{}' " + ">>> zookeeper registry({})", serviceName, getAddress());
         String address = host + ":" + port;
 
-        String servicePath = Constants.REGISTRY_ROOT + Constants.REGISTRY_PAHT_SEPARATOR + serviceName;
-        String serviceHostPath = Constants.REGISTRY_ROOT + Constants.REGISTRY_PAHT_SEPARATOR + serviceName + Constants.REGISTRY_PAHT_SEPARATOR + address;
+        String servicePath = RegistryConstants.getPath(serviceName);
+        String serviceHostPath = RegistryConstants.getPath(serviceName, address);
 
         deleteZNode(serviceHostPath);
-        noChildsAndDelete(servicePath);
+        deleteIfNoChilds(servicePath);
     }
 
     @Override
     public Directory subscribe(Class<?> interfaceClass, int connectTimeout) {
-        log.info("consumer subscribe service '" + interfaceClass.getName() + "' " + ">>> zookeeper registry(" + getAddress() + ")");
-        return new ZookeeperDirectory(this, interfaceClass, connectTimeout);
+        log.info("consumer subscribe service '{}' " + ">>> zookeeper registry({})", interfaceClass.getName(), getAddress());
+        return new ZookeeperDirectory(interfaceClass, connectTimeout, this);
     }
 
+    @Override
     public void destroy() {
         if (zooKeeper != null) {
             try {
                 log.info("zookeeper registry destroying...");
                 zooKeeper.close();
             } catch (InterruptedException e) {
-                e.printStackTrace();
-                //恢复中断标识
-//                Thread.currentThread().interrupt();
+                ExceptionUtils.log(e);
             }
         }
         log.info("zookeeper registry destroy successfully");

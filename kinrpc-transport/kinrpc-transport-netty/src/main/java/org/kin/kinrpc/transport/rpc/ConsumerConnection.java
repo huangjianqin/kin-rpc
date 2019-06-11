@@ -6,11 +6,11 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import org.kin.framework.utils.ExceptionUtils;
-import org.kin.kinrpc.future.RPCFuture;
 import org.kin.kinrpc.serializer.impl.Hessian2Serializer;
 import org.kin.kinrpc.transport.AbstractConsumerConnection;
 import org.kin.kinrpc.transport.handler.BaseFrameCodec;
 import org.kin.kinrpc.transport.rpc.domain.RPCRequest;
+import org.kin.kinrpc.transport.rpc.domain.RPCResponse;
 import org.kin.kinrpc.transport.rpc.handler.ConsumerHandler;
 import org.kin.kinrpc.transport.rpc.handler.RPCDecoder;
 import org.kin.kinrpc.transport.rpc.handler.RPCEncoder;
@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
 
 /**
  * Created by 健勤 on 2017/2/15.
@@ -74,6 +75,12 @@ public class ConsumerConnection extends AbstractConsumerConnection {
                 }
             }
         });
+
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            ExceptionUtils.log(e);
+        }
     }
 
     @Override
@@ -90,11 +97,13 @@ public class ConsumerConnection extends AbstractConsumerConnection {
             ExceptionUtils.log(e);
         }
 
-        channel.close();
+        if (channel.isOpen() || channel.isActive()) {
+            channel.close();
+        }
     }
 
     @Override
-    public RPCFuture request(RPCRequest request) {
+    public Future<RPCResponse> request(RPCRequest request) {
         try {
             latch.await();
         } catch (InterruptedException e) {
@@ -104,4 +113,23 @@ public class ConsumerConnection extends AbstractConsumerConnection {
         return handler.request(request);
     }
 
+    @Override
+    public boolean isActive() {
+        return channel.isActive();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ConsumerConnection that = (ConsumerConnection) o;
+
+        return channel.equals(that.channel);
+    }
+
+    @Override
+    public int hashCode() {
+        return channel.hashCode();
+    }
 }

@@ -11,5 +11,7 @@ import java.util.List;
 public interface Directory {
     List<ReferenceInvoker> list();
 
+    String getServiceName();
+
     void destroy();
 }

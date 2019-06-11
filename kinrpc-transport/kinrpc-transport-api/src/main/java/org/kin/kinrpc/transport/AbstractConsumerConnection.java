@@ -1,9 +1,10 @@
 package org.kin.kinrpc.transport;
 
-import org.kin.kinrpc.future.RPCFuture;
 import org.kin.kinrpc.transport.rpc.domain.RPCRequest;
+import org.kin.kinrpc.transport.rpc.domain.RPCResponse;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.Future;
 
 /**
  * Created by huangjianqin on 2019/6/5.
@@ -13,5 +14,7 @@ public abstract class AbstractConsumerConnection extends Connection {
         super(address);
     }
 
-    public abstract RPCFuture request(RPCRequest rpcRequest);
+    public abstract Future<RPCResponse> request(RPCRequest rpcRequest);
+
+    public abstract boolean isActive();
 }

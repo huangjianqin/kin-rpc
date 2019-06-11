@@ -1,15 +1,17 @@
 package org.kin.kinrpc.rpc.invoker.impl;
 
 
-import org.kin.kinrpc.future.RPCFuture;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
 import org.kin.kinrpc.transport.rpc.ConsumerConnection;
 import org.kin.kinrpc.transport.rpc.domain.RPCRequest;
 import org.kin.kinrpc.transport.rpc.domain.RPCRequestIdGenerator;
+import org.kin.kinrpc.transport.rpc.domain.RPCResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 /**
  * Created by 健勤 on 2017/2/15.
@@ -37,24 +39,23 @@ public class SimpleReferenceInvoker extends ReferenceInvoker {
     public Object invoke(String methodName, Object... params) {
         log.info("invoker method '" + methodName + "'");
         RPCRequest request = createRequest(RPCRequestIdGenerator.next(), methodName, params);
-        RPCFuture future = consumerConnection.request(request);
+        Future<RPCResponse> future = consumerConnection.request(request);
         try {
             return future.get();
         } catch (InterruptedException e) {
             log.info("pending result interrupted");
-            e.printStackTrace();
+            ExceptionUtils.log(e);
         } catch (ExecutionException e) {
             log.info("pending result execute error");
-            e.printStackTrace();
+            ExceptionUtils.log(e);
         }
 
         return null;
     }
 
-    public RPCFuture invokerAsync(String methodName, Object... params) {
+    public Future invokerAsync(String methodName, Object... params) {
         log.info("invokerAsync method '" + methodName + "'");
         RPCRequest request = createRequest(RPCRequestIdGenerator.next(), methodName, params);
-        RPCFuture future = consumerConnection.request(request);
-        return future;
+        return consumerConnection.request(request);
     }
 }

@@ -1,5 +1,6 @@
 package org.kin.kinrpc.registry;
 
+import com.google.common.net.HostAndPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,19 +12,19 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractRegistry implements Registry {
     private final Logger logger = LoggerFactory.getLogger("registry");
 
-    protected final String address;
+    protected final HostAndPort address;
     protected String password;
 
     public AbstractRegistry(String address) {
-        this.address = address;
+        this(address, "");
     }
 
     public AbstractRegistry(String address, String password) {
-        this.address = address;
+        this.address = HostAndPort.fromString(address);
         this.password = password;
     }
 
-    public String getAddress() {
+    public HostAndPort getAddress() {
         return address;
     }
 

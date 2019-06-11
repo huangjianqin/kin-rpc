@@ -10,8 +10,6 @@ public final class Constants {
     public static final int ZOOKEEPER_REGISTRY_DEFAULT_PORT = 2181;
     //连接注册中心的会话超时,以毫秒算
     public static final int ZOOKEEPER_REGISTRY_DEFAULT_SESSIONTIMEOUT = 5000;
-    public static final String REGISTRY_ROOT = "/kinrpc";
-    public static final String REGISTRY_PAHT_SEPARATOR = "/";
 
     //url参数
     public static final String KINP_URL_HEARDER = "kin://";

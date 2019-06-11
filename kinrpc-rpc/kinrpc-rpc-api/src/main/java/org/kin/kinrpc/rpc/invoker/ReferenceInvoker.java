@@ -1,5 +1,6 @@
 package org.kin.kinrpc.rpc.invoker;
 
+import com.google.common.net.HostAndPort;
 import org.kin.kinrpc.transport.rpc.ConsumerConnection;
 import org.kin.kinrpc.transport.rpc.domain.RPCRequest;
 import org.slf4j.Logger;
@@ -13,7 +14,6 @@ public abstract class ReferenceInvoker extends AbstractInvoker implements AsyncI
 
     //该invoker代表的连接
     protected ConsumerConnection consumerConnection;
-    //远程服务端的一些信息
 
     public ReferenceInvoker(Class<?> interfaceClass, ConsumerConnection consumerConnection) {
         super(interfaceClass);
@@ -24,12 +24,31 @@ public abstract class ReferenceInvoker extends AbstractInvoker implements AsyncI
 
     public abstract void shutdown();
 
-    public RPCRequest createRequest(int requestId, String methodName, Object... params) {
+    protected RPCRequest createRequest(int requestId, String methodName, Object... params) {
         RPCRequest request = new RPCRequest(requestId, super.getServiceName(), methodName, params);
         return request;
     }
 
-    public String getAddress() {
-        return consumerConnection.getAddress();
+    public HostAndPort getAddress() {
+        return HostAndPort.fromString(consumerConnection.getAddress());
+    }
+
+    public boolean isActive() {
+        return consumerConnection.isActive();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ReferenceInvoker that = (ReferenceInvoker) o;
+
+        return consumerConnection.equals(that.consumerConnection);
+    }
+
+    @Override
+    public int hashCode() {
+        return consumerConnection.hashCode();
     }
 }

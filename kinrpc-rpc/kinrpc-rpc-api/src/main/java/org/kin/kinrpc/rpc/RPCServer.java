@@ -194,7 +194,14 @@ public class RPCServer implements RPCRequestHandler {
                         RPCResponse rpcResponse = new RPCResponse(rpcRequest.getRequestId(), rpcRequest.getServiceName(), rpcRequest.getMethod());
                         Object result = null;
                         if (invoker != null) {
-                            result = invoker.invoke(methodName, params);
+                            try {
+                                result = invoker.invoke(methodName, params);
+                            } catch (Throwable throwable) {
+                                //服务调用报错, 将异常信息返回
+                                rpcResponse.setState(RPCResponse.State.ERROR, throwable.getMessage());
+                                rpcResponse.setResult(null);
+                                channel.writeAndFlush(rpcResponse);
+                            }
                             rpcResponse.setState(RPCResponse.State.SUCCESS, "");
                         } else {
                             log.error("can not find rpcRequest(id= " + rpcRequest.getRequestId() + ")'s service");

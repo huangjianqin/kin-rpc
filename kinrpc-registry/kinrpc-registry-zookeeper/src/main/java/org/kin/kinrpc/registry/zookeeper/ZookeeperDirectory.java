@@ -1,94 +1,76 @@
 package org.kin.kinrpc.registry.zookeeper;
 
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
+import com.google.common.net.HostAndPort;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
-import org.kin.kinrpc.common.Constants;
-import org.kin.kinrpc.registry.Directory;
+import org.kin.framework.concurrent.ThreadManager;
+import org.kin.framework.utils.ExceptionUtils;
+import org.kin.kinrpc.registry.AbstractDirectory;
+import org.kin.kinrpc.registry.RegistryConstants;
 import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.SimpleReferenceInvoker;
 import org.kin.kinrpc.transport.rpc.ConsumerConnection;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 /**
  * Created by 健勤 on 2017/2/13.
+ * 以zookeeper为注册中心, 实时监听服务状态变化, 并更新可调用服务invoker
  */
-public class ZookeeperDirectory implements Directory {
-    private static final Logger log = LoggerFactory.getLogger("registry");
-
+public class ZookeeperDirectory extends AbstractDirectory {
     private final ZookeeperRegistry registry;
-    private final Class<?> interfaceClass;
-    private final int connectTimeout;
-
-    //用于启动invoker连接的线程池
-    private final ThreadPoolExecutor threads = new ThreadPoolExecutor(Constants.DIRECTORY_DEFAULT_INIT_THREADNUM, Constants.DIRECTORY_DEFAULT_MAX_THREADNUM, Constants.DIRECTORY_DEFAULT_THREADS_ALIVE, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
-    private CopyOnWriteArrayList<ReferenceInvoker> invokers;
-    //所有的消费者共用一个EventLoopGroup
-    private final EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
+    private List<ReferenceInvoker> invokers;
 
     //用于在没有invoker可用时阻塞
     private Lock lock = new ReentrantLock();
-    private Condition hasInvoker = lock.newCondition();
-    private boolean isRunning = true;
+    private Condition hasInvokers = lock.newCondition();
+    private volatile boolean isRunning = true;
 
-    public ZookeeperDirectory(ZookeeperRegistry registry, Class<?> interfaceClass, int connectTimeout) {
+    public ZookeeperDirectory(Class<?> interfaceClass, int connectTimeout, ZookeeperRegistry registry) {
+        super(interfaceClass, connectTimeout);
         this.registry = registry;
-        this.interfaceClass = interfaceClass;
-        this.connectTimeout = connectTimeout;
     }
 
     /**
      * 获取当前可用的所有ReferenceInvoker
-     *
-     * @return
      */
+    @Override
     public List<ReferenceInvoker> list() {
-        log.info("zookeeper directory listing");
-        //第一次调用
-        if (invokers == null) {
-            this.invokers = new CopyOnWriteArrayList<ReferenceInvoker>();
-            discover();
-            if (invokers.size() == 0) {
+        lock.lock();
+        try {
+            //第一次调用
+            if (invokers == null) {
+                this.invokers = new ArrayList<>();
+                discover();
+            }
+
+            //Directory关闭中调用该方法会返回一个size=0的列表
+            List<ReferenceInvoker> shallowClonedInvokers = new ArrayList<>();
+            while (isRunning) {
                 try {
                     waitingForAvailableInvoker();
+                    shallowClonedInvokers = new ArrayList<>(this.invokers);
+                    if (shallowClonedInvokers.size() > 0) {
+                        break;
+                    }
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    ExceptionUtils.log(e);
                 }
             }
-        }
 
-        //Directory关闭中调用该方法会返回一个size=0的列表
-        List<ReferenceInvoker> shallowClonedInvokers = (List<ReferenceInvoker>) this.invokers.clone();
-        int size = shallowClonedInvokers.size();
-        while (isRunning && size <= 0) {
-            try {
-                boolean hasAvailableInvoker = waitingForAvailableInvoker();
-                if (hasAvailableInvoker) {
-                    shallowClonedInvokers = (List<ReferenceInvoker>) this.invokers.clone();
-                    size = shallowClonedInvokers.size();
-                }
-            } catch (InterruptedException e) {
-                log.info("waiting for available invoker is interrupted");
-                e.printStackTrace();
-            }
+            return shallowClonedInvokers.stream().filter(ReferenceInvoker::isActive).collect(Collectors.toList());
+        } finally {
+            lock.unlock();
         }
-
-        return shallowClonedInvokers;
     }
 
     /**
@@ -97,7 +79,7 @@ public class ZookeeperDirectory implements Directory {
     private void signalAvailableInvoker() {
         lock.lock();
         try {
-            hasInvoker.signalAll();
+            hasInvokers.signalAll();
         } finally {
             lock.unlock();
         }
@@ -109,10 +91,12 @@ public class ZookeeperDirectory implements Directory {
      * @return
      * @throws InterruptedException
      */
-    private boolean waitingForAvailableInvoker() throws InterruptedException {
+    private void waitingForAvailableInvoker() throws InterruptedException {
         lock.lock();
         try {
-            return hasInvoker.await(5000, TimeUnit.MILLISECONDS);
+            if (this.invokers.size() <= 0) {
+                hasInvokers.await(200, TimeUnit.MILLISECONDS);
+            }
         } finally {
             lock.unlock();
         }
@@ -122,151 +106,143 @@ public class ZookeeperDirectory implements Directory {
      * 发现服务,发现可用服务的address
      */
     private void discover() {
-        log.info("consumer discover service...");
-        ZooKeeper zooKeeper = registry.getConnection();
-        try {
-            //获取注册服务的所有address
-            List<String> znodeList = zooKeeper.getChildren(Constants.REGISTRY_ROOT + Constants.REGISTRY_PAHT_SEPARATOR + getServiceName(), new Watcher() {
-                public void process(WatchedEvent watchedEvent) {
-                    if (watchedEvent.getType() == Event.EventType.NodeChildrenChanged) {
-                        log.info("service '" + getServiceName() + "' Server node changed");
-                        discover();
-                    }
-                }
-            });
+        if (isRunning) {
+            log.info("consumer discover service...");
+            ZooKeeper zooKeeper = registry.getConnection();
+            try {
+                //获取注册服务的所有address
+                List<String> znodeList = zooKeeper.getChildren(RegistryConstants.getPath(getServiceName()),
+                        (WatchedEvent watchedEvent) -> {
+                            if (watchedEvent.getType() == Watcher.Event.EventType.NodeChildrenChanged) {
+                                log.info("service '" + getServiceName() + "' Server node changed");
+                                discover();
+                            }
+                        });
 
-            //更新当前的invoker
-            updateCurrentInvoker(znodeList);
-        } catch (KeeperException e) {
-            //如果不存在该节点,则表明服务取消注册了
-            if (e.code().equals(KeeperException.Code.NONODE)) {
-                log.error("service '" + getServiceName() + "' unregisted");
-                //等待一段时间
-                try {
-                    Thread.sleep(60000L);
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
+                //更新当前的invoker
+                updateCurrentInvoker(znodeList);
+            } catch (KeeperException e) {
+                //如果不存在该节点,则表明服务取消注册了
+                if (e.code().equals(KeeperException.Code.NONODE)) {
+                    log.error("service '" + getServiceName() + "' unregisted");
+                    //等待一段时间
+                    try {
+                        Thread.sleep(5 * 1000L);
+                    } catch (InterruptedException e1) {
+                        e1.printStackTrace();
+                    }
+                    discover();
                 }
-                discover();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 
     private void updateCurrentInvoker(List<String> addresses) {
-        log.info("update current invoker...");
-        String addressesStr = addresses.get(0);
-        for (int i = 1; i < addresses.size(); i++) {
-            addressesStr += " , " + addresses.get(i);
+        if(addresses == null){
+            return;
         }
-        log.info("current address: " + addressesStr);
 
+        log.info("update current invoker...");
+        StringBuilder sb = new StringBuilder();
+        List<HostAndPort> hostAndPorts = new ArrayList<>();
+        for (String address: addresses) {
+            HostAndPort hostAndPort = HostAndPort.fromString(address);
+            hostAndPorts.add(hostAndPort);
+
+            sb.append(hostAndPort.toString() + ", ");
+        }
+        log.info("current address: " + sb.toString());
+
+        lock.lock();
         List<ReferenceInvoker> invalidInvoker = new ArrayList<ReferenceInvoker>();
-        if (addresses != null && addresses.size() > 0) {
-            //该循环处理完后,addresses里面的都是新的
-            for (ReferenceInvoker invoker : invokers) {
-                //不包含该连接,而是连接变为无用,shutdown
-                if (!addresses.contains(invoker.getAddress())) {
-                    invalidInvoker.add(invoker);
+        try {
+            if (isRunning) {
+                if (hostAndPorts.size() > 0) {
+                    //该循环处理完后,addresses里面的都是新的
+                    for (ReferenceInvoker invoker : invokers) {
+                        //不包含该连接,而是连接变为无用,shutdown
+                        HostAndPort invokerHostAndPort = invoker.getAddress();
+                        if (!hostAndPorts.contains(invokerHostAndPort)) {
+                            invalidInvoker.add(invoker);
+                        } else {
+                            //连接仍然有效,故addresses仍然有该连接的host:port
+                            hostAndPorts.remove(invokerHostAndPort);
+                        }
+                    }
+                    //清除掉invokers中的无效Invoker
+                    invokers.removeAll(invalidInvoker);
                 } else {
-                    //连接仍然有效,故addresses仍然有该连接的host:port
-                    addresses.remove(invoker.getAddress());
+                    //如果服务取消注册或者没有子节点(注册了但没有启动完连接),关闭所有现有的invoker
+                    invalidInvoker.addAll(this.invokers);
+                    this.invokers.clear();
                 }
+            } else {
+                hostAndPorts.clear();
             }
-            //清除掉invokers中的无效Invoker
-            invokers.removeAll(invalidInvoker);
+        } finally {
+            lock.unlock();
+        }
 
-            //构建新的ReferenceInvoker
-            List<ReferenceInvoker> newInvoker = new ArrayList<ReferenceInvoker>();
-            for (String address : addresses) {
-                //address有效,创建ReferenceInvoker
-//                if(address.matches("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}:\\d{1,5}")){
-//                    String host = address.split(":")[0];
-//                    int port = Integer.valueOf(address.split(":")[1]);
-//                    connectServer(host, port);
-//                }
-//                else{
-//                    //address格式错误,不创建ReferenceInvoker
-//                    log.error("service address('" + address + "') format error!!!");
-//                }
-                //测试用
-                String host = address.split(":")[0];
-                int port = Integer.valueOf(address.split(":")[1]);
-                connectServer(host, port);
-            }
-
-        } else {
-            //如果服务取消注册或者没有子节点(注册了但没有启动完连接),关闭所有现有的invoker
-            invalidInvoker.addAll(this.invokers);
-            this.invokers.clear();
+        //构建新的ReferenceInvoker
+        for (HostAndPort hostAndPort : hostAndPorts) {
+            //address有效,创建ReferenceInvoker
+            connectServer(hostAndPort.getHost(), hostAndPort.getPort());
         }
 
         //移除所有无效的Service Server
-        removeInvalidServer(invalidInvoker);
-    }
-
-    /**
-     * shutdown invoker, 包括底层的连接
-     *
-     * @param invokers
-     */
-    private void removeInvalidServer(List<ReferenceInvoker> invokers) {
-        for (ReferenceInvoker invoker : invokers) {
+        for (ReferenceInvoker invoker : invalidInvoker) {
             invoker.shutdown();
         }
     }
 
     /**
      * 创建新的ReferenceInvoker,连接Service Server
-     *
-     * @param host
-     * @param port
      */
-    private void connectServer(final String host, final int port) {
-        threads.submit(new Runnable() {
-            public void run() {
-                //创建连接
-                ConsumerConnection connection = new ConsumerConnection(new InetSocketAddress(host, port), eventLoopGroup, connectTimeout);
-                ReferenceInvoker refereneceInvoker = new SimpleReferenceInvoker(interfaceClass, connection);
-                //真正启动连接
-                refereneceInvoker.init();
-                addInvoker(refereneceInvoker);
+    private void connectServer(String host, int port) {
+        ThreadManager.DEFAULT.submit(() -> {
+            //创建连接
+            ConsumerConnection connection = new ConsumerConnection(new InetSocketAddress(host, port), eventLoopGroup, connectTimeout);
+            ReferenceInvoker refereneceInvoker = new SimpleReferenceInvoker(interfaceClass, connection);
+            //真正启动连接
+            refereneceInvoker.init();
+
+            if (isRunning && refereneceInvoker.isActive()) {
+                lock.lock();
+                try {
+                    if (isRunning) {
+                        invokers.add(refereneceInvoker);
+                        signalAvailableInvoker();
+                    }
+                } finally {
+                    lock.unlock();
+                }
             }
         });
-    }
-
-    /**
-     * 添加新ReferenceInvoker,并释放等待可用ReferenceInvoker的线程
-     *
-     * @param invoker
-     */
-    private void addInvoker(ReferenceInvoker invoker) {
-        invokers.add(invoker);
-        signalAvailableInvoker();
-    }
-
-    public String getServiceName() {
-        return interfaceClass.getName();
     }
 
     public void destroy() {
         log.info("zookeeper directory destroy...");
         isRunning = false;
-        //释放所有等待idle invoker的线程
-        this.signalAvailableInvoker();
+        //关闭共享EventLoopGroup
+        eventLoopGroup.shutdownGracefully();
         //关闭注册中心连接,此时就不会再更新invokers列表,故不用加锁
         registry.destroy();
         //关闭所有当前连接
-        if (invokers != null && invokers.size() > 0) {
-            for (ReferenceInvoker invoker : invokers) {
-                invoker.shutdown();
+        lock.lock();
+        try {
+            if (invokers != null && invokers.size() > 0) {
+                for (ReferenceInvoker invoker : invokers) {
+                    invoker.shutdown();
+                }
+                invokers.clear();
             }
+        } finally {
+            lock.unlock();
         }
-        //关闭共享EventLoopGroup
-        eventLoopGroup.shutdownGracefully();
-        //关闭线程池
-        this.threads.shutdown();
+        //释放所有等待idle invoker的线程
+        this.signalAvailableInvoker();
     }
 
 }
