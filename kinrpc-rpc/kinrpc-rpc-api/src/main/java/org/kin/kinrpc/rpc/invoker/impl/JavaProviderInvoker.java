@@ -1,5 +1,6 @@
 package org.kin.kinrpc.rpc.invoker.impl;
 
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
 import org.slf4j.Logger;
@@ -72,10 +73,10 @@ public class JavaProviderInvoker extends ProviderInvoker {
             return target.invoke(serivce, params);
         } catch (IllegalAccessException e) {
             log.error("service '" + getServiceName() + "' method '" + methodName + "' access illegally");
-            e.printStackTrace();
+            ExceptionUtils.log(e);
         } catch (InvocationTargetException e) {
             log.error("service '" + getServiceName() + "' method '" + methodName + "' invoke error");
-            e.printStackTrace();
+            ExceptionUtils.log(e);
         }
 
         return null;

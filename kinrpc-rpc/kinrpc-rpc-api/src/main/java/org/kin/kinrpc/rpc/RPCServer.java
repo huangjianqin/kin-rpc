@@ -3,6 +3,7 @@ package org.kin.kinrpc.rpc;
 import io.netty.channel.Channel;
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.concurrent.ThreadManager;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.JavaProviderInvoker;
 import org.kin.kinrpc.transport.Connection;
@@ -141,7 +142,7 @@ public class RPCServer implements RPCRequestHandler {
         try {
             Thread.sleep(500L);
         } catch (InterruptedException e) {
-
+            ExceptionUtils.log(e);
         }
         //处理完所有进入队列的请求
         threads.shutdown();
@@ -149,7 +150,7 @@ public class RPCServer implements RPCRequestHandler {
         try {
             Thread.sleep(200L);
         } catch (InterruptedException e) {
-
+            ExceptionUtils.log(e);
         }
 
         //最后关闭连接
@@ -166,7 +167,7 @@ public class RPCServer implements RPCRequestHandler {
             try {
                 requestsQueue.put(rpcRequest);
             } catch (InterruptedException e) {
-
+                ExceptionUtils.log(e);
             }
         });
     }
@@ -201,6 +202,7 @@ public class RPCServer implements RPCRequestHandler {
                                 rpcResponse.setState(RPCResponse.State.ERROR, throwable.getMessage());
                                 rpcResponse.setResult(null);
                                 channel.writeAndFlush(rpcResponse);
+                                log.error("", throwable);
                             }
                             rpcResponse.setState(RPCResponse.State.SUCCESS, "");
                         } else {
@@ -214,7 +216,7 @@ public class RPCServer implements RPCRequestHandler {
                     });
 
                 } catch (InterruptedException e) {
-                    log.info("submit service execute interrupted");
+                    ExceptionUtils.log(e);
                 }
             }
             log.info("request scanner thread state change");

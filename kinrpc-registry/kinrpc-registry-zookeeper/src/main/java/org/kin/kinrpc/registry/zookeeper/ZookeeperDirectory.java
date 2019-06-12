@@ -134,7 +134,7 @@ public class ZookeeperDirectory extends AbstractDirectory {
                     discover();
                 }
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                ExceptionUtils.log(e);
             }
         }
     }
