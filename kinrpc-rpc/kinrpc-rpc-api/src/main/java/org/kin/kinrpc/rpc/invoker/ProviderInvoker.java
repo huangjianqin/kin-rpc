@@ -21,6 +21,4 @@ public abstract class ProviderInvoker extends AbstractInvoker {
     public ProviderInvoker(Class<?> interfaceClass) {
         super(interfaceClass);
     }
-
-
 }

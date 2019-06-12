@@ -3,6 +3,7 @@ package org.kin.kinrpc.rpc.invoker.impl;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
+import org.kin.kinrpc.rpc.utils.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +42,7 @@ public class JavaProviderInvoker extends ProviderInvoker {
         for (Method method : methods) {
             method.setAccessible(true);
             String methodName = method.getName();
-            this.methodMap.put(methodName, method);
+            this.methodMap.put(ClassUtils.getUniqueName(method), method);
         }
     }
 

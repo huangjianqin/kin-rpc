@@ -4,6 +4,7 @@ import org.kin.framework.concurrent.ThreadManager;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.cluster.Cluster;
 import org.kin.kinrpc.rpc.cluster.ClusterConstants;
+import org.kin.kinrpc.rpc.utils.ClassUtils;
 import org.kin.kinrpc.transport.rpc.domain.RPCResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +29,7 @@ public class ClusterInvoker implements InvocationHandler, AsyncInvoker {
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         log.info("invoke method '" + method.getName() + "'");
-        return invoke(method.getName(), args);
+        return invoke(ClassUtils.getUniqueName(method), args);
     }
 
     public Object invoke(String methodName, Object... params) throws Throwable {
