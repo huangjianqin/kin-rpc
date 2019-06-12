@@ -46,7 +46,8 @@ public class JavaProviderInvoker extends ProviderInvoker {
         }
     }
 
-    public Object invoke(String methodName, Object... params) {
+    @Override
+    public Object invoke(String methodName, boolean isVoid, Object... params) throws Throwable{
         log.info("service '" + getServiceName() + "' method '" + methodName + "' invoking...");
         Method target = methodMap.get(methodName);
 
@@ -75,12 +76,11 @@ public class JavaProviderInvoker extends ProviderInvoker {
         } catch (IllegalAccessException e) {
             log.error("service '" + getServiceName() + "' method '" + methodName + "' access illegally");
             ExceptionUtils.log(e);
+            throw e;
         } catch (InvocationTargetException e) {
             log.error("service '" + getServiceName() + "' method '" + methodName + "' invoke error");
-            ExceptionUtils.log(e);
+            throw e;
         }
-
-        return null;
     }
 
 

@@ -196,7 +196,7 @@ public class RPCServer implements RPCRequestHandler {
                         Object result = null;
                         if (invoker != null) {
                             try {
-                                result = invoker.invoke(methodName, params);
+                                result = invoker.invoke(methodName, false, params);
                             } catch (Throwable throwable) {
                                 //服务调用报错, 将异常信息返回
                                 rpcResponse.setState(RPCResponse.State.ERROR, throwable.getMessage());

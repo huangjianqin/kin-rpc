@@ -35,25 +35,29 @@ public class SimpleReferenceInvoker extends ReferenceInvoker {
         consumerConnection.close();
     }
 
-
-    public Object invoke(String methodName, Object... params) {
+    @Override
+    public Object invoke(String methodName, boolean isVoid, Object... params) throws Throwable {
         log.info("invoker method '" + methodName + "'");
         RPCRequest request = createRequest(RPCRequestIdGenerator.next(), methodName, params);
         Future<RPCResponse> future = consumerConnection.request(request);
         try {
-            return future.get();
+            if(!isVoid){
+                return future.get();
+            }
+            return null;
         } catch (InterruptedException e) {
             log.info("pending result interrupted");
             ExceptionUtils.log(e);
+            throw e;
         } catch (ExecutionException e) {
             log.info("pending result execute error");
             ExceptionUtils.log(e);
+            throw e;
         }
-
-        return null;
     }
 
-    public Future invokerAsync(String methodName, Object... params) {
+    @Override
+    public Future invokerAsync(String methodName, Object... params) throws Throwable {
         log.info("invokerAsync method '" + methodName + "'");
         RPCRequest request = createRequest(RPCRequestIdGenerator.next(), methodName, params);
         return consumerConnection.request(request);

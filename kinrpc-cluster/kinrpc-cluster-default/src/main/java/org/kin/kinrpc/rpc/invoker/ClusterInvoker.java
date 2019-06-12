@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
 /**
@@ -29,15 +30,35 @@ public class ClusterInvoker implements InvocationHandler, AsyncInvoker {
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         log.info("invoke method '" + method.getName() + "'");
-        return invoke(ClassUtils.getUniqueName(method), args);
+
+        //异步方式: consumer端必须自定义一个与service端除了返回值为Future.class或者CompletableFuture.class外,
+        //方法签名相同的接口
+        Class returnType = method.getReturnType();
+        if(Future.class.equals(returnType)){
+            return invokerAsync(ClassUtils.getUniqueName(method), args);
+        }
+        else if(CompletableFuture.class.equals(returnType)){
+            return CompletableFuture.supplyAsync(() -> {
+                try {
+                    return getAsyncInvocationDetail(ClassUtils.getUniqueName(method), args).call();
+                } catch (Exception e) {
+                    ExceptionUtils.log(e);
+                }
+
+                return null;
+            });
+        }
+
+        return invoke(ClassUtils.getUniqueName(method), Void.class.equals(returnType), args);
     }
 
-    public Object invoke(String methodName, Object... params) throws Throwable {
+    @Override
+    public Object invoke(String methodName, boolean isVoid, Object... params) throws Throwable {
         int tryTimes = 0;
         while (tryTimes < ClusterConstants.RETRY_TIMES) {
             ReferenceInvoker invoker = cluster.get();
             if (invoker != null) {
-                RPCResponse rpcResponse = (RPCResponse) invoker.invoke(methodName, params);
+                RPCResponse rpcResponse = (RPCResponse) invoker.invoke(methodName, isVoid, params);
                 switch (rpcResponse.getState()) {
                     case SUCCESS:
                         return rpcResponse.getResult();
@@ -53,8 +74,13 @@ public class ClusterInvoker implements InvocationHandler, AsyncInvoker {
         throw new RuntimeException("invoke get unvalid response more than " + ClusterConstants.RETRY_TIMES + " times");
     }
 
+    @Override
     public Future invokerAsync(String methodName, Object... params) throws Throwable {
-        Callable callable = () -> {
+        return threads.submit(getAsyncInvocationDetail(methodName, params));
+    }
+
+    private Callable getAsyncInvocationDetail(String methodName, Object... params){
+        return () -> {
             try {
                 int tryTimes = 0;
                 while (tryTimes < ClusterConstants.RETRY_TIMES) {
@@ -80,11 +106,5 @@ public class ClusterInvoker implements InvocationHandler, AsyncInvoker {
             //超过重试次数, 抛弃异常
             throw new RuntimeException("invoke get unvalid response more than " + ClusterConstants.RETRY_TIMES + " times");
         };
-
-        return threads.submit(callable);
-    }
-
-    public Cluster getCluster() {
-        return cluster;
     }
 }
