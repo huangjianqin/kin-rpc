@@ -14,6 +14,7 @@ import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by 健勤 on 2017/2/15.
@@ -59,14 +60,19 @@ public class ClusterInvoker implements InvocationHandler, AsyncInvoker {
             ReferenceInvoker invoker = cluster.get();
             if (invoker != null) {
                 RPCResponse rpcResponse = (RPCResponse) invoker.invoke(methodName, isVoid, params);
-                switch (rpcResponse.getState()) {
-                    case SUCCESS:
-                        return rpcResponse.getResult();
-                    case RETRY:
-                        tryTimes++;
-                        break;
-                    case ERROR:
-                        throw new RuntimeException(rpcResponse.getInfo());
+                if(rpcResponse != null){
+                    switch (rpcResponse.getState()) {
+                        case SUCCESS:
+                            return rpcResponse.getResult();
+                        case RETRY:
+                            tryTimes++;
+                            break;
+                        case ERROR:
+                            throw new RuntimeException(rpcResponse.getInfo());
+                    }
+                }
+                else{
+                    tryTimes++;
                 }
             }
         }
@@ -87,15 +93,20 @@ public class ClusterInvoker implements InvocationHandler, AsyncInvoker {
                     ReferenceInvoker invoker = cluster.get();
                     if (invoker != null) {
                         Future<RPCResponse> future = invoker.invokerAsync(methodName, params);
-                        RPCResponse rpcResponse = future.get();
-                        switch (rpcResponse.getState()) {
-                            case SUCCESS:
-                                return rpcResponse.getResult();
-                            case RETRY:
-                                tryTimes++;
-                                break;
-                            case ERROR:
-                                throw new RuntimeException(rpcResponse.getInfo());
+                        RPCResponse rpcResponse = future.get(200, TimeUnit.MILLISECONDS);
+                        if(rpcResponse != null){
+                            switch (rpcResponse.getState()) {
+                                case SUCCESS:
+                                    return rpcResponse.getResult();
+                                case RETRY:
+                                    tryTimes++;
+                                    break;
+                                case ERROR:
+                                    throw new RuntimeException(rpcResponse.getInfo());
+                            }
+                        }
+                        else{
+                            tryTimes++;
                         }
                     }
                 }

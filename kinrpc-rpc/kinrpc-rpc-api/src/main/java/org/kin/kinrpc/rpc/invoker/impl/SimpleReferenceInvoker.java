@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by 健勤 on 2017/2/15.
@@ -42,7 +43,7 @@ public class SimpleReferenceInvoker extends ReferenceInvoker {
         Future<RPCResponse> future = consumerConnection.request(request);
         try {
             if(!isVoid){
-                return future.get();
+                return future.get(200, TimeUnit.MILLISECONDS);
             }
             return null;
         } catch (InterruptedException e) {
