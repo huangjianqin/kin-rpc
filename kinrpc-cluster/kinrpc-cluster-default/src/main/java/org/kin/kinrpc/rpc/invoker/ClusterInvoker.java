@@ -2,6 +2,7 @@ package org.kin.kinrpc.rpc.invoker;
 
 import org.kin.framework.concurrent.ThreadManager;
 import org.kin.framework.utils.ExceptionUtils;
+import org.kin.kinrpc.rpc.RPCContext;
 import org.kin.kinrpc.rpc.cluster.Cluster;
 import org.kin.kinrpc.rpc.cluster.ClusterConstants;
 import org.kin.kinrpc.rpc.utils.ClassUtils;
@@ -82,7 +83,9 @@ public class ClusterInvoker implements InvocationHandler, AsyncInvoker {
 
     @Override
     public Future invokerAsync(String methodName, Object... params) throws Throwable {
-        return threads.submit(getAsyncInvocationDetail(methodName, params));
+        Future future = threads.submit(getAsyncInvocationDetail(methodName, params));
+        RPCContext.instance().setFuture(future);
+        return future;
     }
 
     private Callable getAsyncInvocationDetail(String methodName, Object... params){
