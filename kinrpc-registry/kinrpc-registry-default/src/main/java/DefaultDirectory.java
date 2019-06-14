@@ -3,7 +3,7 @@ import org.kin.framework.concurrent.ThreadManager;
 import org.kin.kinrpc.registry.AbstractDirectory;
 import org.kin.kinrpc.rpc.domain.RPCReference;
 import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
-import org.kin.kinrpc.rpc.invoker.impl.SimpleReferenceInvoker;
+import org.kin.kinrpc.rpc.invoker.impl.JavaReferenceInvoker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +40,7 @@ public class DefaultDirectory extends AbstractDirectory {
         ThreadManager.DEFAULT.submit(() -> {
             //创建连接
             RPCReference rpcReference = new RPCReference(new InetSocketAddress(host, port));
-            ReferenceInvoker refereneceInvoker = new SimpleReferenceInvoker(interfaceClass, rpcReference);
+            ReferenceInvoker refereneceInvoker = new JavaReferenceInvoker(interfaceClass, rpcReference);
             //真正启动连接
             refereneceInvoker.init();
 

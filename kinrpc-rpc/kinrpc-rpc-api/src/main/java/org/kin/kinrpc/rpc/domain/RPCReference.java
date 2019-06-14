@@ -37,19 +37,18 @@ public class RPCReference implements ExceptionHandler, ChannelInactiveListener {
         String requestId = rpcResponse.getRequestId() + "";
         RPCFuture pendRPCFuture = pendingRPCFutureMap.get(requestId);
         if (pendRPCFuture != null) {
-            pendingRPCFutureMap.remove(requestId);
             pendRPCFuture.done(rpcResponse);
         }
     }
 
-    public Future<RPCResponse> request(RPCRequest request) throws Throwable {
+    public Future<RPCResponse> request(RPCRequest request) throws Exception {
         log.info("发送请求>>>" + request.toString());
         try {
             referenceHandler.request(request);
-            RPCFuture future = new RPCFuture(request);
+            RPCFuture future = new RPCFuture(request, this);
             pendingRPCFutureMap.put(request.getRequestId() + "", future);
             return future;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             log.error("", e);
             throw e;
         }
@@ -81,6 +80,10 @@ public class RPCReference implements ExceptionHandler, ChannelInactiveListener {
 
     public void shutdown() {
         referenceHandler.close();
+    }
+
+    public void removeInvalid(RPCRequest rpcRequest) {
+        this.pendingRPCFutureMap.remove(rpcRequest.getRequestId() + "");
     }
 
     @Override

@@ -1,6 +1,7 @@
 package org.kin.kinrpc.rpc.future;
 
 
+import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 
 /**
@@ -8,6 +9,8 @@ import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
  */
 public interface AsyncRPCCallback {
     void success(RPCResponse rpcResponse);
+
+    void retry(RPCRequest rpcRequest);
 
     void fail(Exception e);
 }

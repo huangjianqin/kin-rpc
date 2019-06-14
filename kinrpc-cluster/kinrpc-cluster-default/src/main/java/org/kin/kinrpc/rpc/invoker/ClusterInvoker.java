@@ -2,9 +2,10 @@ package org.kin.kinrpc.rpc.invoker;
 
 import org.kin.framework.concurrent.ThreadManager;
 import org.kin.framework.utils.ExceptionUtils;
-import org.kin.kinrpc.rpc.domain.RPCContext;
 import org.kin.kinrpc.rpc.cluster.Cluster;
 import org.kin.kinrpc.rpc.cluster.ClusterConstants;
+import org.kin.kinrpc.rpc.domain.RPCContext;
+import org.kin.kinrpc.rpc.future.RPCFuture;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.kin.kinrpc.rpc.utils.ClassUtils;
 import org.slf4j.Logger;
@@ -22,9 +23,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class ClusterInvoker implements InvocationHandler, AsyncInvoker {
     private static final Logger log = LoggerFactory.getLogger("cluster");
-    private static final ThreadManager threads = ThreadManager.forkJoinPoolThreadManager();
-
     private Cluster cluster;
+    private static final ThreadManager threads = ThreadManager.forkJoinPoolThreadManager();
 
     public ClusterInvoker(Cluster cluster) {
         this.cluster = cluster;
@@ -37,11 +37,11 @@ public class ClusterInvoker implements InvocationHandler, AsyncInvoker {
         //方法签名相同的接口
         Class returnType = method.getReturnType();
         if (Future.class.equals(returnType)) {
-            return invokerAsync(ClassUtils.getUniqueName(method), args);
+            return invokeAsync(ClassUtils.getUniqueName(method), args);
         } else if (CompletableFuture.class.equals(returnType)) {
             return CompletableFuture.supplyAsync(() -> {
                 try {
-                    return getAsyncInvocationDetail(ClassUtils.getUniqueName(method), args).call();
+                    return invoke0(ClassUtils.getUniqueName(method), args);
                 } catch (Exception e) {
                     ExceptionUtils.log(e);
                 }
@@ -54,68 +54,47 @@ public class ClusterInvoker implements InvocationHandler, AsyncInvoker {
     }
 
     @Override
-    public Object invoke(String methodName, boolean isVoid, Object... params) throws Throwable {
-        int tryTimes = 0;
-        while (tryTimes < ClusterConstants.RETRY_TIMES) {
-            ReferenceInvoker invoker = cluster.get();
-            if (invoker != null) {
-                RPCResponse rpcResponse = (RPCResponse) invoker.invoke(methodName, isVoid, params);
-                if (rpcResponse != null) {
-                    switch (rpcResponse.getState()) {
-                        case SUCCESS:
-                            return rpcResponse.getResult();
-                        case RETRY:
-                            tryTimes++;
-                            break;
-                        case ERROR:
-                            throw new RuntimeException(rpcResponse.getInfo());
+    public Object invoke(String methodName, boolean isVoid, Object... params) throws Exception {
+        return invoke0(methodName, params);
+    }
+
+    private Object invoke0(String methodName, Object... params) throws Exception {
+        try {
+            int tryTimes = 0;
+            while (tryTimes < ClusterConstants.RETRY_TIMES) {
+                ReferenceInvoker invoker = cluster.get();
+                if (invoker != null) {
+                    Future<RPCResponse> future = invoker.invokeAsync(methodName, params);
+                    RPCResponse rpcResponse = future.get(200, TimeUnit.MILLISECONDS);
+                    if (rpcResponse != null) {
+                        switch (rpcResponse.getState()) {
+                            case SUCCESS:
+                                return rpcResponse.getResult();
+                            case RETRY:
+                                tryTimes++;
+                                break;
+                            case ERROR:
+                                throw new RuntimeException(rpcResponse.getInfo());
+                        }
+                    } else {
+                        tryTimes++;
+                        ((RPCFuture) future).doneTimeout();
                     }
-                } else {
-                    tryTimes++;
                 }
             }
+        } catch (Throwable throwable) {
+            ExceptionUtils.log(throwable);
         }
+
         //超过重试次数, 抛弃异常
         throw new RuntimeException("invoke get unvalid response more than " + ClusterConstants.RETRY_TIMES + " times");
     }
 
     @Override
-    public Future invokerAsync(String methodName, Object... params) throws Throwable {
-        Future future = threads.submit(getAsyncInvocationDetail(methodName, params));
+    public Future invokeAsync(String methodName, Object... params) throws Exception {
+        Callable callable = () -> invoke0(methodName, params);
+        Future future = threads.submit(callable);
         RPCContext.instance().setFuture(future);
         return future;
-    }
-
-    private Callable getAsyncInvocationDetail(String methodName, Object... params) {
-        return () -> {
-            try {
-                int tryTimes = 0;
-                while (tryTimes < ClusterConstants.RETRY_TIMES) {
-                    ReferenceInvoker invoker = cluster.get();
-                    if (invoker != null) {
-                        Future<RPCResponse> future = invoker.invokerAsync(methodName, params);
-                        RPCResponse rpcResponse = future.get(200, TimeUnit.MILLISECONDS);
-                        if (rpcResponse != null) {
-                            switch (rpcResponse.getState()) {
-                                case SUCCESS:
-                                    return rpcResponse.getResult();
-                                case RETRY:
-                                    tryTimes++;
-                                    break;
-                                case ERROR:
-                                    throw new RuntimeException(rpcResponse.getInfo());
-                            }
-                        } else {
-                            tryTimes++;
-                        }
-                    }
-                }
-            } catch (Throwable throwable) {
-                ExceptionUtils.log(throwable);
-            }
-
-            //超过重试次数, 抛弃异常
-            throw new RuntimeException("invoke get unvalid response more than " + ClusterConstants.RETRY_TIMES + " times");
-        };
     }
 }

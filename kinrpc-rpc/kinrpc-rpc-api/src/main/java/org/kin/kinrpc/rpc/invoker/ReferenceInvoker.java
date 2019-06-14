@@ -10,8 +10,7 @@ import org.slf4j.LoggerFactory;
  * Created by 健勤 on 2017/2/14.
  */
 public abstract class ReferenceInvoker extends AbstractInvoker implements AsyncInvoker {
-    private static final Logger log = LoggerFactory.getLogger("invoker");
-
+    protected static final Logger log = LoggerFactory.getLogger("invoker");
     //该invoker代表的连接
     protected RPCReference rpcReference;
 

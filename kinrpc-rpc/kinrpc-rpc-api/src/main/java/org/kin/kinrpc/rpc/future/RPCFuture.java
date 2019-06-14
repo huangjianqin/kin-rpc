@@ -2,6 +2,7 @@ package org.kin.kinrpc.rpc.future;
 
 
 import org.kin.framework.concurrent.ThreadManager;
+import org.kin.kinrpc.rpc.domain.RPCReference;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.slf4j.Logger;
@@ -14,18 +15,12 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by 健勤 on 2017/2/15.
  */
 public class RPCFuture implements Future<RPCResponse> {
     private static final Logger log = LoggerFactory.getLogger("transport");
-
-    private Sync sync;
-    private RPCRequest request;
-    private RPCResponse response;
-
     //所有RPCFuture实例共用一个线程池
     private static final ThreadManager threads = ThreadManager.forkJoinPoolThreadManager();
 
@@ -36,17 +31,21 @@ public class RPCFuture implements Future<RPCResponse> {
         }));
     }
 
-    private List<AsyncRPCCallback> callbacks = new ArrayList<>();
-    private ReentrantLock lock = new ReentrantLock();
-
     //用于记录服务调用的耗时(毫秒),衡量负载
     private long startTime;
     private long responseTimeThreshold = 5000;
 
-    public RPCFuture(RPCRequest request) {
+    private Sync sync;
+    private RPCRequest request;
+    private RPCResponse response;
+    private List<AsyncRPCCallback> callbacks = new ArrayList<>();
+    private RPCReference rpcReference;
+
+    public RPCFuture(RPCRequest request, RPCReference rpcReference) {
         this.sync = new Sync();
         this.request = request;
         this.startTime = System.currentTimeMillis();
+        this.rpcReference = rpcReference;
     }
 
     public boolean cancel(boolean mayInterruptIfRunning) {
@@ -78,62 +77,57 @@ public class RPCFuture implements Future<RPCResponse> {
                 return null;
             }
         } else {
-            throw new RuntimeException("Timeout exception. Request id: " + this.request.getRequestId()
-                    + ". Request class name: " + this.request.getServiceName()
-                    + ". Request method: " + this.request.getMethod());
+            throw new TimeoutException(getTimeoutMessage());
         }
+    }
+
+    private String getTimeoutMessage() {
+        return "Timeout exception. Request id: " + this.request.getRequestId()
+                + ". Request class name: " + this.request.getServiceName()
+                + ". Request method: " + this.request.getMethod();
+    }
+
+    public void doneTimeout() {
+        RPCResponse rpcResponse = RPCResponse.respWithError(request.getRequestId(),
+                request.getServiceName(), request.getMethod(), getTimeoutMessage());
+        done(rpcResponse);
     }
 
     public void done(RPCResponse response) {
         if (isDone()) {
             return;
         }
-        sync.release(1);
         this.response = response;
-        invokeAllCallBacks();
+        rpcReference.removeInvalid(request);
+        sync.release(1);
+        threads.submit(() -> {
+            for (AsyncRPCCallback callback : this.callbacks) {
+                switch (response.getState()) {
+                    case SUCCESS:
+                        callback.success(response);
+                        break;
+                    case RETRY:
+                        callback.retry(request);
+                        break;
+                    case ERROR:
+                        callback.fail(new RuntimeException("Response error", new Throwable(response.getInfo())));
+                        break;
+                }
+            }
+        });
 
         long responseTime = System.currentTimeMillis() - startTime;
         if (responseTime > this.responseTimeThreshold) {
-            log.info("Service response time is too slow. Request id = '{}'. Response Time = {}ms", response.getRequestId(), responseTime);
+            log.info("service response time is too slow. Request id = '{}'. Response Time = {}ms", response.getRequestId(), responseTime);
         }
     }
 
     public RPCFuture addRPCCallback(AsyncRPCCallback callback) {
-        lock.lock();
-        try {
-            if (this.isDone()) {
-                runCallBack(callback);
-            } else {
-                this.callbacks.add(callback);
-            }
-        } finally {
-            lock.unlock();
+        if (!this.isDone()) {
+            this.callbacks.add(callback);
         }
 
         return this;
-    }
-
-    private void runCallBack(final AsyncRPCCallback callback) {
-        RPCResponse response = this.response;
-        threads.submit(() -> {
-            if (!response.getState().equals(RPCResponse.State.ERROR)) {
-                callback.success(response);
-            } else {
-                callback.fail(new RuntimeException("Response error", new Throwable(response.getInfo())));
-            }
-        });
-    }
-
-    private void invokeAllCallBacks() {
-        lock.lock();
-
-        try {
-            for (AsyncRPCCallback callback : this.callbacks) {
-                runCallBack(callback);
-            }
-        } finally {
-            lock.unlock();
-        }
     }
 
     class Sync extends AbstractQueuedSynchronizer {

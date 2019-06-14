@@ -4,8 +4,6 @@ import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
 import org.kin.kinrpc.rpc.utils.ClassUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -14,8 +12,6 @@ import java.lang.reflect.Method;
  * Created by 健勤 on 2017/2/12.
  */
 public class JavaProviderInvoker extends ProviderInvoker {
-    private static final Logger log = LoggerFactory.getLogger("invoker");
-
     public JavaProviderInvoker(Object serivce, Class<?> interfaceClass) {
         super(interfaceClass);
         this.serivce = serivce;
@@ -47,7 +43,7 @@ public class JavaProviderInvoker extends ProviderInvoker {
     }
 
     @Override
-    public Object invoke(String methodName, boolean isVoid, Object... params) throws Throwable {
+    public Object invoke(String methodName, boolean isVoid, Object... params) throws Exception {
         log.info("service '" + getServiceName() + "' method '" + methodName + "' invoking...");
         Method target = methodMap.get(methodName);
 

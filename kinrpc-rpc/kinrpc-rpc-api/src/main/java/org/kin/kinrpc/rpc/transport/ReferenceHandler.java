@@ -57,7 +57,7 @@ public class ReferenceHandler extends Connection implements ProtocolHandler<RPCR
         return client.isActive();
     }
 
-    public void request(RPCRequest request) throws Throwable {
+    public void request(RPCRequest request) throws Exception {
         try {
             byte[] data = serializer.serialize(request);
             RPCRequestProtocol protocol = new RPCRequestProtocol(data);
