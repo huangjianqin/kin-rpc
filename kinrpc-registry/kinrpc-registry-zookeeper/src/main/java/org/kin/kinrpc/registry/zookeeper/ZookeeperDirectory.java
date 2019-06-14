@@ -95,7 +95,7 @@ public class ZookeeperDirectory extends AbstractDirectory {
         lock.lock();
         try {
             if (this.invokers.size() <= 0) {
-                hasInvokers.await(200, TimeUnit.MILLISECONDS);
+                hasInvokers.await(300, TimeUnit.MILLISECONDS);
             }
         } finally {
             lock.unlock();

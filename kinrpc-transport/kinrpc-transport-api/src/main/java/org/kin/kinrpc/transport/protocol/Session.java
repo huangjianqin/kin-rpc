@@ -78,7 +78,7 @@ public abstract class Session {
             if (flushChannelScheduleTag.compareAndSet(true, false)) {
                 channel.flush();
             }
-        }, 10, TimeUnit.MILLISECONDS);
+        }, 50, TimeUnit.MILLISECONDS);
     }
 
     public void writeAndClose(Response response, ChannelCloseCause cause, String ip) {

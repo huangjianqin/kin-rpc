@@ -7,6 +7,7 @@ import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.JavaProviderInvoker;
 import org.kin.kinrpc.rpc.transport.ProviderHandler;
+import org.kin.kinrpc.rpc.transport.RPCConstants;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.slf4j.Logger;
@@ -17,6 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -30,13 +32,13 @@ public class RPCProvider {
     //大部分情况下get调用的频率比其他方法都多,没有必要使用同步容器,提供一丢丢性能
     private final Map<String, ProviderInvoker> serviceMap = new HashMap<String, ProviderInvoker>();
     //各种服务请求处理的线程池
-    private final ThreadManager threads;
+    private final ForkJoinPool threads;
     //保证RPCRequest按请求顺序进队
     private final ThreadManager singleThread = new ThreadManager(Executors.newSingleThreadExecutor());
     //RPCRequest队列,所有连接该Server的consumer发送的request都put进这个队列
     //然后由一个专门的线程不断地get,再提交到线程池去处理
     //本质上是生产者-消费者模式
-    private final BlockingQueue<RPCRequest> requestsQueue = new LinkedBlockingQueue<RPCRequest>();
+    private final BlockingQueue<RPCRequest> requestsQueue = new LinkedBlockingQueue<>();
 
     //server配置
     private final int port;
@@ -53,9 +55,7 @@ public class RPCProvider {
         this.threadNum = threadNum;
 
         //实例化一些基本变量
-        this.threads = ThreadManager.forkJoinPoolThreadManager();
-//        this.threads = new ThreadManager(
-//                new ThreadPoolExecutor(this.threadNum, this.threadNum, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<>()));
+        this.threads = new ForkJoinPool();
         JvmCloseCleaner.DEFAULT().add(this::shutdownNow);
     }
 
@@ -180,8 +180,13 @@ public class RPCProvider {
                 try {
                     final RPCRequest rpcRequest = requestsQueue.take();
                     log.info("收到一个请求");
+
+                    while(threads.getQueuedTaskCount() > RPCConstants.POOL_TASK_NUM){
+                        Thread.sleep(200);
+                    }
+
                     //提交线程池处理服务执行
-                    threads.submit(() -> {
+                    threads.execute(() -> {
                         String serviceName = rpcRequest.getServiceName();
                         String methodName = rpcRequest.getMethod();
                         Object[] params = rpcRequest.getParams();
@@ -208,9 +213,8 @@ public class RPCProvider {
 
                         rpcResponse.setResult(result);
                         //写回给消费者
-                        connection.resp(rpcRequest.getChannel(), rpcResponse);
+                        connection.resp(channel, rpcResponse);
                     });
-
                 } catch (InterruptedException e) {
                     ExceptionUtils.log(e);
                 }
