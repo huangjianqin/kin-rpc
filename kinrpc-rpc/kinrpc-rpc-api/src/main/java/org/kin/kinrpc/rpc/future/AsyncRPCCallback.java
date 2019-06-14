@@ -1,6 +1,7 @@
-package org.kin.kinrpc.future;
+package org.kin.kinrpc.rpc.future;
 
-import org.kin.kinrpc.transport.rpc.domain.RPCResponse;
+
+import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 
 /**
  * Created by 健勤 on 2017/2/15.

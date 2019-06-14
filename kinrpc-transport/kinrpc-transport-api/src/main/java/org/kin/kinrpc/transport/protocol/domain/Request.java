@@ -21,6 +21,8 @@ public interface Request {
 
     byte[] readBytes(int length);
 
+    byte[] readBytes();
+
     short readShort();
 
     int readUnsignedShort();

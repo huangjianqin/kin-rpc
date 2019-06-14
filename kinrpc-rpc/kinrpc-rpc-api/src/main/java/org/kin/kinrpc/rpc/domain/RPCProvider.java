@@ -1,4 +1,4 @@
-package org.kin.kinrpc.rpc;
+package org.kin.kinrpc.rpc.domain;
 
 import io.netty.channel.Channel;
 import org.kin.framework.JvmCloseCleaner;
@@ -6,11 +6,9 @@ import org.kin.framework.concurrent.ThreadManager;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.JavaProviderInvoker;
-import org.kin.kinrpc.transport.Connection;
-import org.kin.kinrpc.transport.rpc.ProviderConnection;
-import org.kin.kinrpc.transport.rpc.RPCRequestHandler;
-import org.kin.kinrpc.transport.rpc.domain.RPCRequest;
-import org.kin.kinrpc.transport.rpc.domain.RPCResponse;
+import org.kin.kinrpc.rpc.transport.ProviderHandler;
+import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
+import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +23,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * Created by 健勤 on 2017/2/10.
  * 可以作为多个服务的Server
  */
-public class RPCServer implements RPCRequestHandler {
+public class RPCProvider {
     private static final Logger log = LoggerFactory.getLogger("invoker");
 
     //只有get的时候没有同步,其余都同步了
@@ -44,13 +42,13 @@ public class RPCServer implements RPCRequestHandler {
     private final int port;
     private int threadNum;
     //底层的连接
-    private Connection connection;
+    private ProviderHandler connection;
     //扫描RPCRequest的线程
     private ScanRequestsThread scanRequestsThread;
     //用于标识该Server是否stopped
     private boolean isStopped = false;
 
-    public RPCServer(int port, int threadNum) {
+    public RPCProvider(int port, int threadNum) {
         this.port = port;
         this.threadNum = threadNum;
 
@@ -92,7 +90,7 @@ public class RPCServer implements RPCRequestHandler {
     public void start() {
         log.info("server(port= " + port + ") starting...");
         //启动连接
-        this.connection = new ProviderConnection(new InetSocketAddress("localhost", this.port), this);
+        this.connection = new ProviderHandler(new InetSocketAddress("localhost", this.port), this);
         try {
             connection.bind();
         } catch (Exception e) {
@@ -161,7 +159,6 @@ public class RPCServer implements RPCRequestHandler {
         isStopped = true;
     }
 
-    @Override
     public void handleRequest(RPCRequest rpcRequest) {
         singleThread.execute(() -> {
             try {
@@ -192,7 +189,8 @@ public class RPCServer implements RPCRequestHandler {
 
                         ProviderInvoker invoker = serviceMap.get(serviceName);
 
-                        RPCResponse rpcResponse = new RPCResponse(rpcRequest.getRequestId(), rpcRequest.getServiceName(), rpcRequest.getMethod());
+                        RPCResponse rpcResponse = new RPCResponse(rpcRequest.getRequestId(),
+                                rpcRequest.getServiceName(), rpcRequest.getMethod());
                         Object result = null;
                         if (invoker != null) {
                             try {
@@ -200,8 +198,6 @@ public class RPCServer implements RPCRequestHandler {
                             } catch (Throwable throwable) {
                                 //服务调用报错, 将异常信息返回
                                 rpcResponse.setState(RPCResponse.State.ERROR, throwable.getMessage());
-                                rpcResponse.setResult(null);
-                                channel.writeAndFlush(rpcResponse);
                                 log.error("", throwable);
                             }
                             rpcResponse.setState(RPCResponse.State.SUCCESS, "");
@@ -212,7 +208,7 @@ public class RPCServer implements RPCRequestHandler {
 
                         rpcResponse.setResult(result);
                         //写回给消费者
-                        channel.writeAndFlush(rpcResponse);
+                        connection.resp(rpcRequest.getChannel(), rpcResponse);
                     });
 
                 } catch (InterruptedException e) {

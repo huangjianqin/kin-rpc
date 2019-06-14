@@ -85,9 +85,9 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
             return;
         }
         if (channelActiveListener != null) {
-            try{
+            try {
                 channelActiveListener.channelActive(ctx.channel());
-            }catch (Exception e){
+            } catch (Exception e) {
                 log.error("", e);
             }
         }
@@ -98,9 +98,9 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         log.info("channel inactive: {}", ctx.channel());
         if (channelInactiveListener != null) {
-            try{
+            try {
                 channelInactiveListener.channelInactive(ctx.channel());
-            }catch (Exception e){
+            } catch (Exception e) {
                 log.error("", e);
             }
         }
@@ -115,9 +115,9 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
             ctx.close();
         }
         if (exceptionHandler != null) {
-            try{
+            try {
                 exceptionHandler.handleException(ctx.channel(), cause);
-            }catch (Exception e){
+            } catch (Exception e) {
                 log.error("", e);
             }
         }

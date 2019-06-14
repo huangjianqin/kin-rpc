@@ -9,9 +9,9 @@ import org.kin.framework.concurrent.ThreadManager;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.registry.AbstractDirectory;
 import org.kin.kinrpc.registry.RegistryConstants;
+import org.kin.kinrpc.rpc.domain.RPCReference;
 import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.SimpleReferenceInvoker;
-import org.kin.kinrpc.transport.rpc.ConsumerConnection;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -140,14 +140,14 @@ public class ZookeeperDirectory extends AbstractDirectory {
     }
 
     private void updateCurrentInvoker(List<String> addresses) {
-        if(addresses == null){
+        if (addresses == null) {
             return;
         }
 
         log.info("update current invoker...");
         StringBuilder sb = new StringBuilder();
         List<HostAndPort> hostAndPorts = new ArrayList<>();
-        for (String address: addresses) {
+        for (String address : addresses) {
             HostAndPort hostAndPort = HostAndPort.fromString(address);
             hostAndPorts.add(hostAndPort);
 
@@ -203,8 +203,8 @@ public class ZookeeperDirectory extends AbstractDirectory {
     private void connectServer(String host, int port) {
         ThreadManager.DEFAULT.submit(() -> {
             //创建连接
-            ConsumerConnection connection = new ConsumerConnection(new InetSocketAddress(host, port), eventLoopGroup, connectTimeout);
-            ReferenceInvoker refereneceInvoker = new SimpleReferenceInvoker(interfaceClass, connection);
+            RPCReference rpcReference = new RPCReference(new InetSocketAddress(host, port));
+            ReferenceInvoker refereneceInvoker = new SimpleReferenceInvoker(interfaceClass, rpcReference);
             //真正启动连接
             refereneceInvoker.init();
 

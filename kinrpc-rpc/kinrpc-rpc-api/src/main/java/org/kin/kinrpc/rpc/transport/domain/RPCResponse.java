@@ -1,4 +1,4 @@
-package org.kin.kinrpc.transport.rpc.domain;
+package org.kin.kinrpc.rpc.transport.domain;
 
 import java.io.Serializable;
 
@@ -33,6 +33,12 @@ public class RPCResponse implements Serializable {
         this.requestId = requestId;
         this.serviceName = serviceName;
         this.method = method;
+    }
+
+    public static RPCResponse respWithError(int requestId, String serviceName, String method, String errorMsg) {
+        RPCResponse rpcResponse = new RPCResponse(requestId, serviceName, method);
+        rpcResponse.setState(RPCResponse.State.ERROR, errorMsg);
+        return rpcResponse;
     }
 
     public void setState(State state, String info) {

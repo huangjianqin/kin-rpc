@@ -76,7 +76,16 @@ public class ProtocolByteBuf implements Request, Response, ReferenceCounted {
     public byte[] readBytes(int length) {
         Preconditions.checkArgument(mode == READ_MODE);
         Preconditions.checkArgument(length > 0);
+        Preconditions.checkArgument(length <= byteBuf.readableBytes());
         byte[] result = new byte[length];
+        byteBuf.readBytes(result);
+        return result;
+    }
+
+    @Override
+    public byte[] readBytes() {
+        Preconditions.checkArgument(mode == READ_MODE);
+        byte[] result = new byte[byteBuf.readableBytes()];
         byteBuf.readBytes(result);
         return result;
     }

@@ -24,7 +24,7 @@ import java.util.concurrent.CountDownLatch;
 /**
  * Created by huangjianqin on 2019/5/30.
  */
-public class ServerConnection extends Connection {
+public class Server extends Connection {
     private static final Logger log = LoggerFactory.getLogger("transport");
 
     //连接相关属性
@@ -42,7 +42,7 @@ public class ServerConnection extends Connection {
     private ReadIdleListener readIdleListener;
     private WriteIdleListener writeIdleListener;
 
-    public ServerConnection(
+    public Server(
             InetSocketAddress address,
             Bytes2ProtocolTransfer transfer,
             ProtocolHandler protocolHandler) {
@@ -117,6 +117,11 @@ public class ServerConnection extends Connection {
         this.bossGroup = null;
     }
 
+    @Override
+    public boolean isActive() {
+        return selector.isActive();
+    }
+
     //setter && getter
     public void setSessionBuilder(SessionBuilder sessionBuilder) {
         this.sessionBuilder = sessionBuilder;
@@ -140,5 +145,20 @@ public class ServerConnection extends Connection {
 
     public void setWriteIdleListener(WriteIdleListener writeIdleListener) {
         this.writeIdleListener = writeIdleListener;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Server that = (Server) o;
+
+        return selector != null ? selector.equals(that.selector) : that.selector == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return selector != null ? selector.hashCode() : 0;
     }
 }

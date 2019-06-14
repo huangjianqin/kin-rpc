@@ -21,4 +21,6 @@ public abstract class Connection {
     public String getAddress() {
         return address.getHostName() + address.getPort();
     }
+
+    public abstract boolean isActive();
 }

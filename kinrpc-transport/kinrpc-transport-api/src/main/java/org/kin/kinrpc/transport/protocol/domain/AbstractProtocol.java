@@ -4,10 +4,13 @@ package org.kin.kinrpc.transport.protocol.domain;
  * Created by huangjianqin on 2019/5/30.
  */
 public abstract class AbstractProtocol {
-    private short protocolId;
+    private int protocolId;
     private long createTime = System.currentTimeMillis();
 
-    public AbstractProtocol(short protocolId) {
+    public AbstractProtocol() {
+    }
+
+    public AbstractProtocol(int protocolId) {
         this.protocolId = protocolId;
     }
 
@@ -34,7 +37,7 @@ public abstract class AbstractProtocol {
     }
 
     //setter && getter
-    public short getProtocolId() {
+    public int getProtocolId() {
         return protocolId;
     }
 

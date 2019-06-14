@@ -47,7 +47,7 @@ public class JavaProviderInvoker extends ProviderInvoker {
     }
 
     @Override
-    public Object invoke(String methodName, boolean isVoid, Object... params) throws Throwable{
+    public Object invoke(String methodName, boolean isVoid, Object... params) throws Throwable {
         log.info("service '" + getServiceName() + "' method '" + methodName + "' invoking...");
         Method target = methodMap.get(methodName);
 

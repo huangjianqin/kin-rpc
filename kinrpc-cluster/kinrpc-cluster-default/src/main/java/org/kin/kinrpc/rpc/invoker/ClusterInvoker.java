@@ -2,11 +2,11 @@ package org.kin.kinrpc.rpc.invoker;
 
 import org.kin.framework.concurrent.ThreadManager;
 import org.kin.framework.utils.ExceptionUtils;
-import org.kin.kinrpc.rpc.RPCContext;
+import org.kin.kinrpc.rpc.domain.RPCContext;
 import org.kin.kinrpc.rpc.cluster.Cluster;
 import org.kin.kinrpc.rpc.cluster.ClusterConstants;
+import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.kin.kinrpc.rpc.utils.ClassUtils;
-import org.kin.kinrpc.transport.rpc.domain.RPCResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,10 +36,9 @@ public class ClusterInvoker implements InvocationHandler, AsyncInvoker {
         //异步方式: consumer端必须自定义一个与service端除了返回值为Future.class或者CompletableFuture.class外,
         //方法签名相同的接口
         Class returnType = method.getReturnType();
-        if(Future.class.equals(returnType)){
+        if (Future.class.equals(returnType)) {
             return invokerAsync(ClassUtils.getUniqueName(method), args);
-        }
-        else if(CompletableFuture.class.equals(returnType)){
+        } else if (CompletableFuture.class.equals(returnType)) {
             return CompletableFuture.supplyAsync(() -> {
                 try {
                     return getAsyncInvocationDetail(ClassUtils.getUniqueName(method), args).call();
@@ -61,7 +60,7 @@ public class ClusterInvoker implements InvocationHandler, AsyncInvoker {
             ReferenceInvoker invoker = cluster.get();
             if (invoker != null) {
                 RPCResponse rpcResponse = (RPCResponse) invoker.invoke(methodName, isVoid, params);
-                if(rpcResponse != null){
+                if (rpcResponse != null) {
                     switch (rpcResponse.getState()) {
                         case SUCCESS:
                             return rpcResponse.getResult();
@@ -71,8 +70,7 @@ public class ClusterInvoker implements InvocationHandler, AsyncInvoker {
                         case ERROR:
                             throw new RuntimeException(rpcResponse.getInfo());
                     }
-                }
-                else{
+                } else {
                     tryTimes++;
                 }
             }
@@ -88,7 +86,7 @@ public class ClusterInvoker implements InvocationHandler, AsyncInvoker {
         return future;
     }
 
-    private Callable getAsyncInvocationDetail(String methodName, Object... params){
+    private Callable getAsyncInvocationDetail(String methodName, Object... params) {
         return () -> {
             try {
                 int tryTimes = 0;
@@ -97,7 +95,7 @@ public class ClusterInvoker implements InvocationHandler, AsyncInvoker {
                     if (invoker != null) {
                         Future<RPCResponse> future = invoker.invokerAsync(methodName, params);
                         RPCResponse rpcResponse = future.get(200, TimeUnit.MILLISECONDS);
-                        if(rpcResponse != null){
+                        if (rpcResponse != null) {
                             switch (rpcResponse.getState()) {
                                 case SUCCESS:
                                     return rpcResponse.getResult();
@@ -107,8 +105,7 @@ public class ClusterInvoker implements InvocationHandler, AsyncInvoker {
                                 case ERROR:
                                     throw new RuntimeException(rpcResponse.getInfo());
                             }
-                        }
-                        else{
+                        } else {
                             tryTimes++;
                         }
                     }

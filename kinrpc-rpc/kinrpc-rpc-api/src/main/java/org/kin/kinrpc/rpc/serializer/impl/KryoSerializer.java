@@ -1,10 +1,10 @@
-package org.kin.kinrpc.serializer.impl;
+package org.kin.kinrpc.rpc.serializer.impl;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import org.kin.kinrpc.serializer.Serializer;
-import org.kin.kinrpc.transport.rpc.domain.RPCRequest;
+import org.kin.kinrpc.rpc.serializer.Serializer;
+import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

@@ -1,9 +1,9 @@
-package org.kin.kinrpc.future;
+package org.kin.kinrpc.rpc.future;
 
 
 import org.kin.framework.concurrent.ThreadManager;
-import org.kin.kinrpc.transport.rpc.domain.RPCRequest;
-import org.kin.kinrpc.transport.rpc.domain.RPCResponse;
+import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
+import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

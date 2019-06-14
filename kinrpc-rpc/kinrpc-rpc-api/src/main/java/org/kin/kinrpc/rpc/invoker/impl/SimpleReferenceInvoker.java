@@ -2,11 +2,11 @@ package org.kin.kinrpc.rpc.invoker.impl;
 
 
 import org.kin.framework.utils.ExceptionUtils;
+import org.kin.kinrpc.rpc.domain.RPCReference;
 import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
-import org.kin.kinrpc.transport.rpc.ConsumerConnection;
-import org.kin.kinrpc.transport.rpc.domain.RPCRequest;
-import org.kin.kinrpc.transport.rpc.domain.RPCRequestIdGenerator;
-import org.kin.kinrpc.transport.rpc.domain.RPCResponse;
+import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
+import org.kin.kinrpc.rpc.transport.domain.RPCRequestIdGenerator;
+import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,29 +20,29 @@ import java.util.concurrent.TimeUnit;
 public class SimpleReferenceInvoker extends ReferenceInvoker {
     private static final Logger log = LoggerFactory.getLogger("invoker");
 
-    public SimpleReferenceInvoker(Class<?> interfaceClass, ConsumerConnection consumerConnection) {
-        super(interfaceClass, consumerConnection);
+    public SimpleReferenceInvoker(Class<?> interfaceClass, RPCReference rpcReference) {
+        super(interfaceClass, rpcReference);
     }
 
     @Override
     public void init() {
         log.info("ReferenceInvoker initing...");
-        this.consumerConnection.connect();
+        this.rpcReference.start();
     }
 
     @Override
     public void shutdown() {
         log.info("ReferenceInvoker shutdowning...");
-        consumerConnection.close();
+        rpcReference.shutdown();
     }
 
     @Override
     public Object invoke(String methodName, boolean isVoid, Object... params) throws Throwable {
         log.info("invoker method '" + methodName + "'");
         RPCRequest request = createRequest(RPCRequestIdGenerator.next(), methodName, params);
-        Future<RPCResponse> future = consumerConnection.request(request);
+        Future<RPCResponse> future = rpcReference.request(request);
         try {
-            if(!isVoid){
+            if (!isVoid) {
                 return future.get(200, TimeUnit.MILLISECONDS);
             }
             return null;
@@ -61,6 +61,6 @@ public class SimpleReferenceInvoker extends ReferenceInvoker {
     public Future invokerAsync(String methodName, Object... params) throws Throwable {
         log.info("invokerAsync method '" + methodName + "'");
         RPCRequest request = createRequest(RPCRequestIdGenerator.next(), methodName, params);
-        return consumerConnection.request(request);
+        return rpcReference.request(request);
     }
 }

@@ -1,4 +1,4 @@
-package org.kin.kinrpc.transport.rpc.domain;
+package org.kin.kinrpc.rpc.transport.domain;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

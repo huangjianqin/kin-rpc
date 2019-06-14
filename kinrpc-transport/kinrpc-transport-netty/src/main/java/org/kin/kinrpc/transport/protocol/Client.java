@@ -24,7 +24,7 @@ import java.util.concurrent.CountDownLatch;
 /**
  * Created by huangjianqin on 2019/5/30.
  */
-public class ClientConnection extends Connection {
+public class Client extends Connection {
     private static final Logger log = LoggerFactory.getLogger("transport");
 
     private EventLoopGroup eventLoopGroup;
@@ -43,7 +43,7 @@ public class ClientConnection extends Connection {
     private ReadIdleListener readIdleListener;
     private WriteIdleListener writeIdleListener;
 
-    public ClientConnection(InetSocketAddress address, Bytes2ProtocolTransfer transfer, ProtocolHandler protocolHandler) {
+    public Client(InetSocketAddress address, Bytes2ProtocolTransfer transfer, ProtocolHandler protocolHandler) {
         super(address);
         this.transfer = transfer;
         this.protocolHandler = protocolHandler;
@@ -91,7 +91,7 @@ public class ClientConnection extends Connection {
 
     @Override
     public void close() {
-        log.info("consumer closing...");
+        log.info("client closing...");
         try {
             latch.await();
         } catch (InterruptedException e) {
@@ -100,6 +100,16 @@ public class ClientConnection extends Connection {
 
         channel.close();
         eventLoopGroup.shutdownGracefully();
+    }
+
+    @Override
+    public boolean isActive() {
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            ExceptionUtils.log(e);
+        }
+        return channel.isActive();
     }
 
     public void request(AbstractProtocol protocol) {
@@ -139,5 +149,20 @@ public class ClientConnection extends Connection {
 
     public void setWriteIdleListener(WriteIdleListener writeIdleListener) {
         this.writeIdleListener = writeIdleListener;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Client that = (Client) o;
+
+        return channel != null ? channel.equals(that.channel) : that.channel == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return channel != null ? channel.hashCode() : 0;
     }
 }

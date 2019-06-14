@@ -1,6 +1,5 @@
 package org.kin.kinrpc.registry.zookeeper;
 
-import com.google.common.net.HostAndPort;
 import org.apache.zookeeper.*;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.registry.AbstractRegistry;

@@ -1,8 +1,8 @@
 package org.kin.kinrpc.rpc.invoker;
 
 import com.google.common.net.HostAndPort;
-import org.kin.kinrpc.transport.rpc.ConsumerConnection;
-import org.kin.kinrpc.transport.rpc.domain.RPCRequest;
+import org.kin.kinrpc.rpc.domain.RPCReference;
+import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,11 +13,11 @@ public abstract class ReferenceInvoker extends AbstractInvoker implements AsyncI
     private static final Logger log = LoggerFactory.getLogger("invoker");
 
     //该invoker代表的连接
-    protected ConsumerConnection consumerConnection;
+    protected RPCReference rpcReference;
 
-    public ReferenceInvoker(Class<?> interfaceClass, ConsumerConnection consumerConnection) {
+    public ReferenceInvoker(Class<?> interfaceClass, RPCReference rpcReference) {
         super(interfaceClass);
-        this.consumerConnection = consumerConnection;
+        this.rpcReference = rpcReference;
     }
 
     public abstract void init();
@@ -30,11 +30,11 @@ public abstract class ReferenceInvoker extends AbstractInvoker implements AsyncI
     }
 
     public HostAndPort getAddress() {
-        return HostAndPort.fromString(consumerConnection.getAddress());
+        return rpcReference.getAddress();
     }
 
     public boolean isActive() {
-        return consumerConnection.isActive();
+        return rpcReference.isActive();
     }
 
     @Override
@@ -44,11 +44,11 @@ public abstract class ReferenceInvoker extends AbstractInvoker implements AsyncI
 
         ReferenceInvoker that = (ReferenceInvoker) o;
 
-        return consumerConnection.equals(that.consumerConnection);
+        return rpcReference.equals(that.rpcReference);
     }
 
     @Override
     public int hashCode() {
-        return consumerConnection.hashCode();
+        return rpcReference.hashCode();
     }
 }
