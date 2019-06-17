@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.kin</groupId>
-    <artifactId>kinrpc</artifactId>
+    <artifactId>kinrpc-parent</artifactId>
     <version>0.1.0.0</version>
     <modules>
         <module>Kinrpc-Transport</module>
@@ -12,6 +12,8 @@
         <module>Kinrpc-Registry</module>
         <module>Kinrpc-Cluster</module>
         <module>kinrpc-rpc</module>
+        <module>kinrpc-config</module>
+        <module>kinrpc</module>
     </modules>
     <packaging>pom</packaging>
 
