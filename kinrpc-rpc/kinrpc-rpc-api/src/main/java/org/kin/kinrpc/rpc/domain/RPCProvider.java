@@ -42,7 +42,6 @@ public class RPCProvider {
 
     //server配置
     private final int port;
-    private int threadNum;
     //底层的连接
     private ProviderHandler connection;
     //扫描RPCRequest的线程
@@ -50,9 +49,8 @@ public class RPCProvider {
     //用于标识该Server是否stopped
     private boolean isStopped = false;
 
-    public RPCProvider(int port, int threadNum) {
+    public RPCProvider(int port) {
         this.port = port;
-        this.threadNum = threadNum;
 
         //实例化一些基本变量
         this.threads = new ForkJoinPool();
