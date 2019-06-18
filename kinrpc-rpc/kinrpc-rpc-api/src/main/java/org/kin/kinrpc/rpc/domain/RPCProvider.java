@@ -61,14 +61,16 @@ public class RPCProvider {
      * 支持动态添加服务
      */
     public void addService(Object service, Class<?> interfaceClass) {
-        JavaProviderInvoker invoker = new JavaProviderInvoker(service, interfaceClass);
-        String realServiceName = invoker.getServiceName();
+        if(!isStopped){
+            JavaProviderInvoker invoker = new JavaProviderInvoker(service, interfaceClass);
+            String realServiceName = invoker.getServiceName();
 
-        synchronized (serviceMap) {
-            if (!serviceMap.containsKey(realServiceName)) {
-                serviceMap.put(invoker.getServiceName(), invoker);
-            } else {
-                throw new IllegalStateException("service'" + realServiceName + "' has registered. can not register again");
+            synchronized (serviceMap) {
+                if (!serviceMap.containsKey(realServiceName)) {
+                    serviceMap.put(invoker.getServiceName(), invoker);
+                } else {
+                    throw new IllegalStateException("service'" + realServiceName + "' has registered. can not register again");
+                }
             }
         }
     }
@@ -86,6 +88,9 @@ public class RPCProvider {
      * 启动Server
      */
     public void start() {
+        if(isStopped){
+            throw new RuntimeException("try start stopped provider");
+        }
         log.info("server(port= " + port + ") starting...");
         //启动连接
         this.connection = new ProviderHandler(new InetSocketAddress("localhost", this.port), this);
@@ -109,6 +114,9 @@ public class RPCProvider {
      * 但如果仍然有服务在此Server上提供服务,则仍然运行该Server
      */
     public void shutdown() {
+        if(isStopped){
+            throw new RuntimeException("try shutdown stopped provider");
+        }
         log.info("server(port= " + port + ") shutdowning...");
         synchronized (serviceMap) {
             int refCounter = serviceMap.size();
@@ -125,6 +133,9 @@ public class RPCProvider {
      * 不管3721,马上stop
      */
     public void shutdownNow() {
+        if(isStopped){
+            throw new RuntimeException("try shutdown stopped provider");
+        }
         if (this.connection == null || scanRequestsThread == null) {
             log.error("Server has not started call shutdown");
             throw new IllegalStateException("Provider Server has not started");
@@ -158,13 +169,15 @@ public class RPCProvider {
     }
 
     public void handleRequest(RPCRequest rpcRequest) {
-        singleThread.execute(() -> {
-            try {
-                requestsQueue.put(rpcRequest);
-            } catch (InterruptedException e) {
-                ExceptionUtils.log(e);
-            }
-        });
+        if(!isStopped){
+            singleThread.execute(() -> {
+                try {
+                    requestsQueue.put(rpcRequest);
+                } catch (InterruptedException e) {
+                    ExceptionUtils.log(e);
+                }
+            });
+        }
     }
 
     private class ScanRequestsThread extends Thread {
