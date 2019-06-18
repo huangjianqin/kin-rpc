@@ -225,8 +225,6 @@ public class ZookeeperDirectory extends AbstractDirectory {
     public void destroy() {
         log.info("zookeeper directory destroy...");
         isRunning = false;
-        //关闭共享EventLoopGroup
-        eventLoopGroup.shutdownGracefully();
         //关闭注册中心连接,此时就不会再更新invokers列表,故不用加锁
         registry.destroy();
         //关闭所有当前连接

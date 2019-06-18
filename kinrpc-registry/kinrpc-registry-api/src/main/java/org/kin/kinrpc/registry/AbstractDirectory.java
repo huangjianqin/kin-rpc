@@ -1,7 +1,5 @@
 package org.kin.kinrpc.registry;
 
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,9 +11,6 @@ public abstract class AbstractDirectory implements Directory {
 
     protected final Class<?> interfaceClass;
     protected final int connectTimeout;
-
-    //所有的消费者共用一个EventLoopGroup
-    protected final EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
 
     protected AbstractDirectory(Class<?> interfaceClass, int connectTimeout) {
         this.interfaceClass = interfaceClass;

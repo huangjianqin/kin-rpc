@@ -1,9 +1,10 @@
 package org.kin.kinrpc.registry.zookeeper;
 
+import com.google.common.net.HostAndPort;
 import org.apache.zookeeper.*;
 import org.kin.framework.utils.ExceptionUtils;
-import org.kin.kinrpc.registry.AbstractRegistry;
 import org.kin.kinrpc.registry.Directory;
+import org.kin.kinrpc.registry.Registry;
 import org.kin.kinrpc.registry.RegistryConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,14 +19,18 @@ import java.util.zip.DataFormatException;
  * <p>
  * zookeeper作为注册中心, 操作zookeeper node
  */
-public class ZookeeperRegistry extends AbstractRegistry {
+public class ZookeeperRegistry implements Registry {
     private static final Logger log = LoggerFactory.getLogger("registry");
+
+    protected final HostAndPort address;
+    protected String password;
 
     private ZooKeeper zooKeeper;
     private int sessionTimeOut;
 
     public ZookeeperRegistry(String address, String password, int sessionTimeOut) {
-        super(address, password);
+        this.address = HostAndPort.fromString(address);
+        this.password = password;
         this.sessionTimeOut = sessionTimeOut;
     }
 
@@ -155,11 +160,20 @@ public class ZookeeperRegistry extends AbstractRegistry {
         log.info("zookeeper registry destroy successfully");
     }
 
+    //setter && getter
     public int getSessionTimeOut() {
         return sessionTimeOut;
     }
 
     public ZooKeeper getConnection() {
         return this.zooKeeper;
+    }
+
+    public HostAndPort getAddress() {
+        return address;
+    }
+
+    public String getPassword() {
+        return password;
     }
 }

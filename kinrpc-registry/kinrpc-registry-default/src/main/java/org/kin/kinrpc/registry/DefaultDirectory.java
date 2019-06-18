@@ -1,6 +1,7 @@
+package org.kin.kinrpc.registry;
+
 import com.google.common.net.HostAndPort;
 import org.kin.framework.concurrent.ThreadManager;
-import org.kin.kinrpc.registry.AbstractDirectory;
 import org.kin.kinrpc.rpc.domain.RPCReference;
 import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.JavaReferenceInvoker;
