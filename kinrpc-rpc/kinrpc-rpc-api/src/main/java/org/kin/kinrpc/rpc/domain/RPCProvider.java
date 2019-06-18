@@ -181,6 +181,8 @@ public class RPCProvider {
                     final RPCRequest rpcRequest = requestsQueue.take();
                     log.info("收到一个请求");
 
+                    //因为fork-join的工作窃取机制, 会优先窃取队列靠后的task(maybe后面才来request)
+                    //因此, 限制队列的任务数, 以此做到尽可能先完成早到的request
                     while(threads.getQueuedTaskCount() > RPCConstants.POOL_TASK_NUM){
                         Thread.sleep(200);
                     }
