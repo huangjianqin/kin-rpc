@@ -16,10 +16,7 @@ import org.slf4j.LoggerFactory;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 
 /**
  * Created by 健勤 on 2017/2/10.
@@ -34,7 +31,9 @@ public class RPCProvider {
     //各种服务请求处理的线程池
     private final ForkJoinPool threads;
     //保证RPCRequest按请求顺序进队
-    private final ThreadManager singleThread = new ThreadManager(Executors.newSingleThreadExecutor());
+    private final ThreadManager singleThread = new ThreadManager(
+            new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<>()));
     //RPCRequest队列,所有连接该Server的consumer发送的request都put进这个队列
     //然后由一个专门的线程不断地get,再提交到线程池去处理
     //本质上是生产者-消费者模式
@@ -184,6 +183,7 @@ public class RPCProvider {
         private final Logger log = LoggerFactory.getLogger("invoker");
         private boolean stopped = false;
 
+        @Override
         public void run() {
             log.info("request scanner thread started");
             log.info("ready to handle consumer's request");
