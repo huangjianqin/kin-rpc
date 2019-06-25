@@ -8,7 +8,7 @@ import java.util.zip.DataFormatException;
 /**
  * Created by huangjianqin on 2019/6/18.
  */
-public class DefaultRegistry implements Registry {
+public class DefaultRegistry extends AbstractRegistry {
     private final Directory directory;
 
     public DefaultRegistry(Class<?> interfaceClass, int connectTimeout, List<HostAndPort> hostAndPorts) {

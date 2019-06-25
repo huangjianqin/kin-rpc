@@ -16,5 +16,8 @@ public interface Registry {
 
     Directory subscribe(Class<?> interfaceClass, int connectTimeout);
 
+    void retain();
+    boolean release();
+
     void destroy();
 }

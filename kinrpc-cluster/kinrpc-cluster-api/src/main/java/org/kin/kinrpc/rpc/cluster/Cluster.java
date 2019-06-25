@@ -10,8 +10,6 @@ import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
 public interface Cluster {
     /**
      * 从注册中心中多个invoker中选择一个,包含router, loadbalance
-     *
-     * @return
      */
     ReferenceInvoker get();
 

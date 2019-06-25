@@ -83,6 +83,13 @@ public class RPCProvider {
         }
     }
 
+    public boolean isBusy(){
+        synchronized (serviceMap) {
+            return !serviceMap.isEmpty();
+        }
+    }
+
+
     /**
      * 启动Server
      */

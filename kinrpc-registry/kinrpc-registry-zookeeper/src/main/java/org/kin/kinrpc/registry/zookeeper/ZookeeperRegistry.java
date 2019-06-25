@@ -3,8 +3,9 @@ package org.kin.kinrpc.registry.zookeeper;
 import com.google.common.net.HostAndPort;
 import org.apache.zookeeper.*;
 import org.kin.framework.utils.ExceptionUtils;
+import org.kin.framework.utils.HttpUtils;
+import org.kin.kinrpc.registry.AbstractRegistry;
 import org.kin.kinrpc.registry.Directory;
-import org.kin.kinrpc.registry.Registry;
 import org.kin.kinrpc.registry.RegistryConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +20,7 @@ import java.util.zip.DataFormatException;
  * <p>
  * zookeeper作为注册中心, 操作zookeeper node
  */
-public class ZookeeperRegistry implements Registry {
+public class ZookeeperRegistry extends AbstractRegistry{
     private static final Logger log = LoggerFactory.getLogger("registry");
 
     protected final HostAndPort address;
@@ -41,6 +42,7 @@ public class ZookeeperRegistry implements Registry {
         CountDownLatch countDownLatch = new CountDownLatch(1);
         try {
             this.zooKeeper = new ZooKeeper(address.getHost(), this.sessionTimeOut, new Watcher() {
+                @Override
                 public void process(WatchedEvent watchedEvent) {
                     if (watchedEvent.getState() == Event.KeeperState.SyncConnected) {
                         countDownLatch.countDown();
@@ -118,7 +120,7 @@ public class ZookeeperRegistry implements Registry {
         log.info("provider register service '{}' " + ">>> zookeeper registry({})", serviceName, getAddress());
         String address = host + ":" + port;
 
-        if (!address.matches("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}:\\d{1,5}")) {
+        if (!HttpUtils.checkHostPort(address)) {
             throw new DataFormatException("zookeeper registry address('" + address + "') format error");
         }
 

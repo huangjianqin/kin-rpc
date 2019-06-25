@@ -19,18 +19,6 @@ public class JavaProviderInvoker extends ProviderInvoker {
     }
 
     private void init() {
-        if (this.interfaceClass == null || this.serivce == null) {
-            throw new IllegalStateException("service class and its interface class must not null");
-        }
-
-        if (!this.interfaceClass.isInterface()) {
-            throw new IllegalStateException("the class '" + this.interfaceClass.getName() + "' is not a interface");
-        }
-
-        Class<?> serviceClass = serivce.getClass();
-        if (!this.interfaceClass.isAssignableFrom(serviceClass)) {
-            throw new IllegalStateException("service class " + serviceClass.getName() + " must implements the certain interface '" + this.interfaceClass.getName() + "'");
-        }
         log.info("initing service '" + getServiceName() + "'");
 
         Method[] methods = this.interfaceClass.getMethods();
