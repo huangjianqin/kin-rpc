@@ -18,7 +18,7 @@ public class ChannelUtils {
 
     public static long ipHashCode(String ip) {
         String[] splits = ip.split("\\.");
-        long hashcode = 0l;
+        long hashcode = 0L;
         int offset = 24;
         for (String item : splits) {
             hashcode += Long.valueOf(item) << offset;

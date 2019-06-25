@@ -6,10 +6,10 @@ import org.kin.kinrpc.rpc.serializer.Serializer;
 import org.kin.kinrpc.rpc.serializer.SerializerType;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
-import org.kin.kinrpc.transport.Connection;
+import org.kin.kinrpc.transport.AbstractConnection;
 import org.kin.kinrpc.transport.protocol.ProtocolHandler;
 import org.kin.kinrpc.transport.protocol.Server;
-import org.kin.kinrpc.transport.protocol.Session;
+import org.kin.kinrpc.transport.protocol.AbstractSession;
 import org.kin.kinrpc.transport.statistic.InOutBoundStatisicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +20,7 @@ import java.net.InetSocketAddress;
 /**
  * Created by 健勤 on 2017/2/10.
  */
-public class ProviderHandler extends Connection implements ProtocolHandler<RPCRequestProtocol> {
+public class ProviderHandler extends AbstractConnection implements ProtocolHandler<RPCRequestProtocol> {
     private static final Logger log = LoggerFactory.getLogger("transport");
     private final RPCProvider rpcProvider;
     private Serializer serializer;
@@ -63,7 +63,7 @@ public class ProviderHandler extends Connection implements ProtocolHandler<RPCRe
     }
 
     @Override
-    public void handleProtocol(Session session, RPCRequestProtocol protocol) {
+    public void handleProtocol(AbstractSession session, RPCRequestProtocol protocol) {
         try {
             byte[] data = protocol.getReqContent();
             RPCRequest rpcRequest = null;

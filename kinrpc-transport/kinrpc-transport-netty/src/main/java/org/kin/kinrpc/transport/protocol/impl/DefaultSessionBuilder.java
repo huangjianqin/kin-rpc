@@ -1,7 +1,7 @@
 package org.kin.kinrpc.transport.protocol.impl;
 
 import io.netty.channel.Channel;
-import org.kin.kinrpc.transport.protocol.Session;
+import org.kin.kinrpc.transport.protocol.AbstractSession;
 import org.kin.kinrpc.transport.protocol.SessionBuilder;
 
 /**
@@ -9,8 +9,8 @@ import org.kin.kinrpc.transport.protocol.SessionBuilder;
  */
 public class DefaultSessionBuilder implements SessionBuilder {
     @Override
-    public Session create(Channel channel) {
-        return new Session(channel, false) {
+    public AbstractSession create(Channel channel) {
+        return new AbstractSession(channel, false) {
         };
     }
 }

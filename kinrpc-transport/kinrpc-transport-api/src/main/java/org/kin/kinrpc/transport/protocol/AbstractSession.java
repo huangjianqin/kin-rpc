@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Created by huangjianqin on 2019/5/30.
  */
-public abstract class Session {
+public abstract class AbstractSession {
     private static final Logger log = LoggerFactory.getLogger("transport");
 
     private volatile Channel channel;
@@ -30,7 +30,7 @@ public abstract class Session {
     private ChannelCloseCause channelCloseCause;
     private AtomicBoolean flushChannelScheduleTag = new AtomicBoolean(false);
 
-    public Session(Channel channel, boolean isFlush) {
+    public AbstractSession(Channel channel, boolean isFlush) {
         this.channel = channel;
         this.ip = ChannelUtils.getIP(channel);
         this.ipHashCode = ChannelUtils.ipHashCode(ip);

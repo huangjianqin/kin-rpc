@@ -5,10 +5,10 @@ import java.net.InetSocketAddress;
 /**
  * Created by 健勤 on 2017/2/10.
  */
-public abstract class Connection {
+public abstract class AbstractConnection {
     protected final InetSocketAddress address;
 
-    public Connection(InetSocketAddress address) {
+    public AbstractConnection(InetSocketAddress address) {
         this.address = address;
     }
 

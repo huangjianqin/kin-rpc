@@ -3,7 +3,7 @@ package org.kin.kinrpc.registry;
 import com.google.common.net.HostAndPort;
 import org.kin.framework.concurrent.ThreadManager;
 import org.kin.kinrpc.rpc.domain.RPCReference;
-import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
+import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.JavaReferenceInvoker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +19,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class DefaultDirectory extends AbstractDirectory {
     private static final Logger log = LoggerFactory.getLogger("registry");
-    private List<ReferenceInvoker> invokers;
+    private List<AbstractReferenceInvoker> invokers;
 
     public DefaultDirectory(String serviceName, int connectTimeout, List<HostAndPort> hostAndPorts) {
         super(serviceName, connectTimeout);
@@ -41,7 +41,7 @@ public class DefaultDirectory extends AbstractDirectory {
         ThreadManager.DEFAULT.submit(() -> {
             //创建连接
             RPCReference rpcReference = new RPCReference(new InetSocketAddress(host, port));
-            ReferenceInvoker refereneceInvoker = new JavaReferenceInvoker(serviceName, rpcReference);
+            AbstractReferenceInvoker refereneceInvoker = new JavaReferenceInvoker(serviceName, rpcReference);
             //真正启动连接
             refereneceInvoker.init();
 
@@ -52,13 +52,13 @@ public class DefaultDirectory extends AbstractDirectory {
     }
 
     @Override
-    public List<ReferenceInvoker> list() {
+    public List<AbstractReferenceInvoker> list() {
         return new ArrayList<>(this.invokers);
     }
 
     @Override
     public void destroy() {
-        for (ReferenceInvoker invoker : invokers) {
+        for (AbstractReferenceInvoker invoker : invokers) {
             invoker.shutdown();
         }
         invokers.clear();

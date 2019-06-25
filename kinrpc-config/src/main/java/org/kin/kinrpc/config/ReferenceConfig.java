@@ -11,11 +11,11 @@ import java.util.Collections;
 /**
  * Created by 健勤 on 2017/2/15.
  */
-class ReferenceConfig<T> extends Config {
+class ReferenceConfig<T> extends AbstractConfig {
     private ApplicationConfig applicationConfig;
-    private RegistryConfig registryConfig;
+    private AbstractRegistryConfig registryConfig;
     private Class<T> interfaceClass;
-    private int timeout = Constants.REFERENCE_DEFAULT_CONNECT_TIMEOUT;//默认5s
+    private int timeout = Constants.REFERENCE_DEFAULT_CONNECT_TIMEOUT;
     private String serviceName;
 
     private URL url;
@@ -125,7 +125,7 @@ class ReferenceConfig<T> extends Config {
         return applicationConfig;
     }
 
-    public RegistryConfig getRegistryConfig() {
+    public AbstractRegistryConfig getRegistryConfig() {
         return registryConfig;
     }
 

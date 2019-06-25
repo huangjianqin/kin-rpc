@@ -2,7 +2,7 @@ package org.kin.kinrpc.rpc.invoker.impl;
 
 
 import org.kin.kinrpc.rpc.domain.RPCReference;
-import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
+import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequestIdGenerator;
 
@@ -13,7 +13,7 @@ import java.util.concurrent.TimeoutException;
 /**
  * Created by 健勤 on 2017/2/15.
  */
-public class JavaReferenceInvoker extends ReferenceInvoker {
+public class JavaReferenceInvoker extends AbstractReferenceInvoker {
     public JavaReferenceInvoker(String serviceName, RPCReference rpcReference) {
         super(serviceName, rpcReference);
     }

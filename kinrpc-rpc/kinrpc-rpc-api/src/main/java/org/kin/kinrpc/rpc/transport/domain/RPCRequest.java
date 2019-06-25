@@ -58,8 +58,12 @@ public class RPCRequest implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof RPCRequest)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof RPCRequest)) {
+            return false;
+        }
 
         RPCRequest request = (RPCRequest) o;
 

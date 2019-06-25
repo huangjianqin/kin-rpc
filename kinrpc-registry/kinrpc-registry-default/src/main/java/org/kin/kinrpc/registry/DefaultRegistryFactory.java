@@ -18,7 +18,7 @@ public class DefaultRegistryFactory extends AbstractRegistryFactory{
         String address = url.getParam(Constants.REGISTRY_URL);
 
         List<HostAndPort> hostAndPorts = new ArrayList<>();
-        for(String one: address.split(";")){
+        for(String one: address.split(Constants.DEFAULT_REGISTRY_URL_SPLITOR)){
             hostAndPorts.add(HostAndPort.fromString(one));
         }
 

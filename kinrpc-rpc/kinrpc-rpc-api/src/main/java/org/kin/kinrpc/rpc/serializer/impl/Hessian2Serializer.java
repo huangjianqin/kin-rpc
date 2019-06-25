@@ -16,8 +16,9 @@ import java.io.Serializable;
 public class Hessian2Serializer implements Serializer {
     @Override
     public byte[] serialize(Object target) throws IOException {
-        if (target == null)
+        if (target == null) {
             throw new NullPointerException("Serialized object must be not null");
+        }
 
         if (!(target instanceof Serializable)) {
             throw new IllegalStateException("Serialized class " + target.getClass().getSimpleName() + " must implement java.io.Serializable");

@@ -17,25 +17,25 @@ import java.lang.reflect.Proxy;
  * Created by huangjianqin on 2019/6/18.
  */
 public class Clusters {
-    private static final Cache<Integer, RPCProvider> providerCache = CacheBuilder.newBuilder().build();
-    private static final Cache<String, ClusterInvoker> referenceCache = CacheBuilder.newBuilder().build();
+    private static final Cache<Integer, RPCProvider> PROVIDER_CACHE = CacheBuilder.newBuilder().build();
+    private static final Cache<String, ClusterInvoker> REFERENCE_CACHE = CacheBuilder.newBuilder().build();
 
     static {
         JvmCloseCleaner.DEFAULT().add(() -> {
-            for(RPCProvider provider: providerCache.asMap().values()){
+            for(RPCProvider provider: PROVIDER_CACHE.asMap().values()){
                 provider.shutdown();
             }
         });
     }
 
-    private void Clusters(){
+    private Clusters(){
     }
 
     public static synchronized void export(URL url, Class interfaceClass, Object instance){
         int port = url.getPort();
         RPCProvider provider = null;
         try {
-            provider = providerCache.get(port, () -> {
+            provider = PROVIDER_CACHE.get(port, () -> {
                 RPCProvider provider0 = new RPCProvider(port);
                 provider0.start();
 
@@ -62,12 +62,12 @@ public class Clusters {
         registry.unRegister(interfaceClass.getName(), "0.0.0.0", url.getPort());
         Registries.closeRegistry(url);
 
-        RPCProvider provider = providerCache.getIfPresent(url.getPort());
+        RPCProvider provider = PROVIDER_CACHE.getIfPresent(url.getPort());
         provider.disableService(interfaceClass.getName());
         if(!provider.isBusy()){
             //该端口没有提供服务, 关闭网络连接
             provider.shutdown();
-            providerCache.invalidate(url.getPort());
+            PROVIDER_CACHE.invalidate(url.getPort());
         }
     }
 
@@ -83,17 +83,17 @@ public class Clusters {
 
         Object jdkProxy = Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class<?>[]{interfaceClass}, clusterInvoker);
 
-        referenceCache.put(url.getServiceName(), clusterInvoker);
+        REFERENCE_CACHE.put(url.getServiceName(), clusterInvoker);
 
         return interfaceClass.cast(jdkProxy);
     }
 
     public static synchronized void disableReference(URL url){
-        ClusterInvoker clusterInvoker = referenceCache.getIfPresent(url.getServiceName());
+        ClusterInvoker clusterInvoker = REFERENCE_CACHE.getIfPresent(url.getServiceName());
 
         clusterInvoker.close();
         Registries.closeRegistry(url);
 
-        referenceCache.invalidate(url.getServiceName());
+        REFERENCE_CACHE.invalidate(url.getServiceName());
     }
 }

@@ -5,10 +5,10 @@ import org.kin.kinrpc.rpc.serializer.Serializer;
 import org.kin.kinrpc.rpc.serializer.SerializerType;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
-import org.kin.kinrpc.transport.Connection;
+import org.kin.kinrpc.transport.AbstractConnection;
+import org.kin.kinrpc.transport.protocol.AbstractSession;
 import org.kin.kinrpc.transport.protocol.Client;
 import org.kin.kinrpc.transport.protocol.ProtocolHandler;
-import org.kin.kinrpc.transport.protocol.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +18,7 @@ import java.net.InetSocketAddress;
 /**
  * Created by 健勤 on 2017/2/15.
  */
-public class ReferenceHandler extends Connection implements ProtocolHandler<RPCResponseProtocol> {
+public class ReferenceHandler extends AbstractConnection implements ProtocolHandler<RPCResponseProtocol> {
     private static final Logger log = LoggerFactory.getLogger("transport");
     private Serializer serializer;
     private final RPCReference rpcReference;
@@ -70,8 +70,12 @@ public class ReferenceHandler extends Connection implements ProtocolHandler<RPCR
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         ReferenceHandler that = (ReferenceHandler) o;
 
@@ -84,7 +88,7 @@ public class ReferenceHandler extends Connection implements ProtocolHandler<RPCR
     }
 
     @Override
-    public void handleProtocol(Session session, RPCResponseProtocol protocol) {
+    public void handleProtocol(AbstractSession session, RPCResponseProtocol protocol) {
         try {
             RPCResponse rpcResponse;
             try {

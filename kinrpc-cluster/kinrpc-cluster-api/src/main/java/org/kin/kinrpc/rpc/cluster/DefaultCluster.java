@@ -6,7 +6,7 @@ import org.kin.kinrpc.rpc.cluster.loadbalance.LoadBalance;
 import org.kin.kinrpc.rpc.cluster.loadbalance.impl.RoundRobinLoadBalance;
 import org.kin.kinrpc.rpc.cluster.router.Router;
 import org.kin.kinrpc.rpc.cluster.router.impl.SimpleRouter;
-import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
+import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,12 +35,13 @@ class DefaultCluster implements Cluster {
         this.loadBalance = loadBalance;
     }
 
-    public ReferenceInvoker get() {
+    @Override
+    public AbstractReferenceInvoker get() {
         log.info("get one reference invoker from cluster");
         if (checkState()) {
-            List<ReferenceInvoker> availableInvokers = directory.list();
-            List<ReferenceInvoker> filtedInvokers = router.router(availableInvokers);
-            ReferenceInvoker realCalledInvoker = loadBalance.loadBalance(filtedInvokers);
+            List<AbstractReferenceInvoker> availableInvokers = directory.list();
+            List<AbstractReferenceInvoker> filtedInvokers = router.router(availableInvokers);
+            AbstractReferenceInvoker realCalledInvoker = loadBalance.loadBalance(filtedInvokers);
 
             log.info("real invoker(" + realCalledInvoker.getAddress() + ")");
             return realCalledInvoker;

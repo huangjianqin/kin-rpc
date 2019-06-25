@@ -10,5 +10,5 @@ public interface ProtocolHandler<T extends AbstractProtocol> {
     /**
      * 在channel线程调用, 最好内部捕获异常, 不然会导致channel因异常关闭
      */
-    void handleProtocol(Session session, T protocol);
+    void handleProtocol(AbstractSession session, T protocol);
 }

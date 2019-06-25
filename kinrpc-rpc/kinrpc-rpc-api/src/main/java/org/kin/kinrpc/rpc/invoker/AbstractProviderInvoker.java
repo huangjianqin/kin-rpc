@@ -11,14 +11,14 @@ import java.util.Map;
 /**
  * Created by 健勤 on 2017/2/14.
  */
-public abstract class ProviderInvoker extends AbstractInvoker {
+public abstract class AbstractProviderInvoker extends AbstractInvoker {
     protected static final Logger log = LoggerFactory.getLogger("invoker");
 
     //服务类
     protected Object serivce;
     protected Map<String, Method> methodMap = new HashMap<String, Method>();
 
-    public ProviderInvoker(String serviceName) {
+    public AbstractProviderInvoker(String serviceName) {
         super(serviceName);
     }
 }

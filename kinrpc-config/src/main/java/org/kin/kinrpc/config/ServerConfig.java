@@ -5,7 +5,7 @@ import com.google.common.base.Preconditions;
 /**
  * Created by 健勤 on 2017/2/12.
  */
-class ServerConfig extends Config{
+class ServerConfig extends AbstractConfig{
     private static final int MAX_PORT = Short.MAX_VALUE - Short.MIN_VALUE;
     private int port;
 

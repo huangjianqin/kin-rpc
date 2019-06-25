@@ -6,7 +6,7 @@ import org.kin.framework.utils.HttpUtils;
 /**
  * Created by 健勤 on 2017/2/13.
  */
-class ZookeeperRegistryConfig extends RegistryConfig{
+class ZookeeperRegistryConfig extends AbstractRegistryConfig {
     public ZookeeperRegistryConfig(String adress) {
         super(adress);
     }

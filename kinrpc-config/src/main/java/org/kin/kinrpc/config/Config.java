@@ -14,7 +14,7 @@ import java.util.Map;
 /**
  * Created by huangjianqin on 2019/6/25.
  */
-public abstract class Config {
+abstract class AbstractConfig {
     /**
      * 检查配置参数正确性
      */
@@ -22,24 +22,24 @@ public abstract class Config {
 
     protected URL createServiceURL(ApplicationConfig applicationConfig,
                                    ServerConfig serverConfig,
-                                   RegistryConfig registryConfig, String serviceName){
+                                   AbstractRegistryConfig registryConfig, String serviceName){
         return createURL(applicationConfig, "0.0.0.0:" + serverConfig.getPort(), registryConfig, serviceName, Collections.EMPTY_MAP);
     }
 
     protected URL createReferenceURL(ApplicationConfig applicationConfig,
-                                     RegistryConfig registryConfig,
+                                     AbstractRegistryConfig registryConfig,
                                      String serviceName, Map<String, String> otherParams){
         return createURL(applicationConfig, "0.0.0.0:0", registryConfig, serviceName, otherParams);
     }
 
     private URL createURL(ApplicationConfig applicationConfig,
                           String hostPort,
-                          RegistryConfig registryConfig,
+                          AbstractRegistryConfig registryConfig,
                           String serviceName, Map<String, String> otherParams){
         StringBuilder sb = new StringBuilder();
         sb.append(Constants.KINRPC_PROTOCOL + "://" + hostPort + "/" + serviceName + "?");
 
-        Map<String, String> params = new HashMap<>();
+        Map<String, String> params = new HashMap<>(Constants.URL_PARAM_NUM);
         params.put(Constants.APP_NAME, applicationConfig.getAppName());
         if(registryConfig instanceof DefaultRegistryConfig){
             params.put(Constants.REGISTRY, Constants.DEFAULT_REGISTRY);

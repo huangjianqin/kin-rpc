@@ -2,7 +2,7 @@ package org.kin.kinrpc.rpc.invoker.impl;
 
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
-import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
+import org.kin.kinrpc.rpc.invoker.AbstractProviderInvoker;
 import org.kin.kinrpc.rpc.utils.ClassUtils;
 
 import java.lang.reflect.InvocationTargetException;
@@ -11,7 +11,7 @@ import java.lang.reflect.Method;
 /**
  * Created by 健勤 on 2017/2/12.
  */
-public class JavaProviderInvoker extends ProviderInvoker {
+public class JavaProviderInvoker extends AbstractProviderInvoker {
     public JavaProviderInvoker(String serviceName, Object service) {
         super(serviceName);
         this.serivce = service;

@@ -14,7 +14,7 @@ import java.util.concurrent.ExecutionException;
  * Created by huangjianqin on 2019/6/18.
  */
 public class Registries {
-    private static final Cache<String, RegistryFactory> registryFactories = CacheBuilder.newBuilder().build();
+    private static final Cache<String, RegistryFactory> REGISTRY_FACTORY_CACHE = CacheBuilder.newBuilder().build();
 
     private Registries() {
     }
@@ -23,7 +23,7 @@ public class Registries {
         String registryType = url.getParam(Constants.REGISTRY).toLowerCase();
 
         try {
-            RegistryFactory registryFactory = registryFactories.get(registryType, () -> {
+            RegistryFactory registryFactory = REGISTRY_FACTORY_CACHE.get(registryType, () -> {
                 Set<Class<RegistryFactory>> classes = ClassUtils.getSubClass("org.kin.kinrpc.registry", RegistryFactory.class, true);
                 if (classes.size() > 0) {
                     for (Class<RegistryFactory> claxx : classes) {

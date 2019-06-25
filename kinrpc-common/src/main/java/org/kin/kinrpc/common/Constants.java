@@ -10,23 +10,26 @@ public class Constants {
     }
 
     //url参数
-    public static final String KINRPC_PROTOCOL = "kinrpc";
-    public static final String APP_NAME = "kinrpc";
-//    public static final String CHECK_KEY = "check";//启动检查
-    public static final String TIMEOUT = "timeout";//连接超时
-
+    public static final int URL_PARAM_NUM = 6;
+    public static final String APP_NAME = "appName";
+    //连接超时
+    public static final String TIMEOUT = "timeout";
     public static final String REGISTRY = "registry";
     public static final String REGISTRY_URL = "registryURL";
     public static final String REGISTRY_PASSWORD = "registryPassword";
-    public static final String SESSION_TIMEOUT = "sessionTimeout";//会话超时
+    //会话超时
+    public static final String SESSION_TIMEOUT = "sessionTimeout";
 
 //    public static final String CLAXX_KEY = "claxx";//接口名
 //    public static final String VERSION_KEY = "version";//服务版本
 //    public static final String METHOD_KEY = "method";//接口方法列表
 //    public static final String CALLED_METHOD_KEY = "calledMethod";//被调用方法,参数不显示
+    //启动检查
+//    public static final String CHECK_KEY = "check";
 
 
 
+    public static final String KINRPC_PROTOCOL = "kinrpc";
     //url可选值, 或默认值
     public static final String ZOOKEEPER_REGISTRY = "zookeeper";
     public static final String DEFAULT_REGISTRY = "default";
@@ -34,6 +37,8 @@ public class Constants {
     public static final int SERVER_DEFAULT_PORT = 16888;
     //限流
     public static final int SERVER_REQUEST_THRESHOLD = 100;
+    //default register url splitor
+    public static final String DEFAULT_REGISTRY_URL_SPLITOR = ";";
 
 
 

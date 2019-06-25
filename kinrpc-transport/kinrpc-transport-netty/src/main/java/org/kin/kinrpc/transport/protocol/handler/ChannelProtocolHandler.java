@@ -7,9 +7,9 @@ import io.netty.util.Attribute;
 import org.kin.kinrpc.transport.listener.ChannelActiveListener;
 import org.kin.kinrpc.transport.listener.ChannelInactiveListener;
 import org.kin.kinrpc.transport.listener.ExceptionHandler;
+import org.kin.kinrpc.transport.protocol.AbstractSession;
 import org.kin.kinrpc.transport.protocol.ProtocolConstants;
 import org.kin.kinrpc.transport.protocol.ProtocolHandler;
-import org.kin.kinrpc.transport.protocol.Session;
 import org.kin.kinrpc.transport.protocol.SessionBuilder;
 import org.kin.kinrpc.transport.protocol.domain.AbstractProtocol;
 import org.kin.kinrpc.transport.utils.ChannelUtils;
@@ -69,7 +69,7 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
 
         log.debug("Recv {} {} {}", Arrays.asList(protocol.getProtocolId(), protocol.getClass().getSimpleName(), ctx.channel()));
 
-        Session session = ProtocolConstants.session(ctx.channel());
+        AbstractSession session = ProtocolConstants.session(ctx.channel());
         if (session != null) {
             protocolHandler.handleProtocol(session, protocol);
         }
@@ -78,7 +78,7 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         log.info("channel active: {}", ctx.channel());
-        Attribute<Session> attr = ctx.channel().attr(ProtocolConstants.SESSION_KEY);
+        Attribute<AbstractSession> attr = ctx.channel().attr(ProtocolConstants.SESSION_KEY);
         if (attr.compareAndSet(null, sessionBuilder.create(ctx.channel()))) {
             ctx.channel().close();
             log.error("Duplicate Session! IP: {}", ChannelUtils.getIP(ctx.channel()));

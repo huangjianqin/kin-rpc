@@ -9,6 +9,9 @@ import org.kin.kinrpc.rpc.serializer.impl.KryoSerializer;
  * Created by huangjianqin on 2019/6/4.
  */
 public enum SerializerType {
+    /**
+     * java自带序列化
+     */
     JAVA("java") {
         private final Serializer instance = new JavaSerializer();
 
@@ -17,6 +20,9 @@ public enum SerializerType {
             return instance;
         }
     },
+    /**
+     * kryo序列化
+     */
     KRYO("kryo") {
         private final Serializer instance = new KryoSerializer();
 
@@ -25,6 +31,9 @@ public enum SerializerType {
             return instance;
         }
     },
+    /**
+     * hession序列化
+     */
     HESSION("hession") {
         private final Serializer instance = new Hessian2Serializer();
 

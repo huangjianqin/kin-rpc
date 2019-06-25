@@ -6,7 +6,7 @@ import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.domain.RPCContext;
 import org.kin.kinrpc.rpc.future.RPCFuture;
 import org.kin.kinrpc.rpc.invoker.AsyncInvoker;
-import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
+import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.kin.kinrpc.rpc.utils.ClassUtils;
 import org.slf4j.Logger;
@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 class ClusterInvoker implements InvocationHandler, AsyncInvoker, Closeable {
     private static final Logger log = LoggerFactory.getLogger("cluster");
     private Cluster cluster;
-    private static final ThreadManager threads = ThreadManager.forkJoinPoolThreadManager();
+    private static final ThreadManager THREADS = ThreadManager.forkJoinPoolThreadManager();
 
     public ClusterInvoker(Cluster cluster) {
         this.cluster = cluster;
@@ -64,7 +64,7 @@ class ClusterInvoker implements InvocationHandler, AsyncInvoker, Closeable {
         try {
             int tryTimes = 0;
             while (tryTimes < ClusterConstants.RETRY_TIMES) {
-                ReferenceInvoker invoker = cluster.get();
+                AbstractReferenceInvoker invoker = cluster.get();
                 if (invoker != null) {
                     Future<RPCResponse> future = invoker.invokeAsync(methodName, params);
                     RPCResponse rpcResponse = future.get(200, TimeUnit.MILLISECONDS);
@@ -77,6 +77,8 @@ class ClusterInvoker implements InvocationHandler, AsyncInvoker, Closeable {
                                 break;
                             case ERROR:
                                 throw new RuntimeException(rpcResponse.getInfo());
+                            default:
+                                throw new RuntimeException("unknown rpc response state code");
                         }
                     } else {
                         tryTimes++;
@@ -95,7 +97,7 @@ class ClusterInvoker implements InvocationHandler, AsyncInvoker, Closeable {
     @Override
     public Future invokeAsync(String methodName, Object... params) throws Exception {
         Callable callable = () -> invoke0(methodName, params);
-        Future future = threads.submit(callable);
+        Future future = THREADS.submit(callable);
         RPCContext.instance().setFuture(future);
         return future;
     }

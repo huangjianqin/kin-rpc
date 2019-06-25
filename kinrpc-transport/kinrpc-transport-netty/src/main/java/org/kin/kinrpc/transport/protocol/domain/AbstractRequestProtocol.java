@@ -3,11 +3,11 @@ package org.kin.kinrpc.transport.protocol.domain;
 /**
  * Created by huangjianqin on 2019/5/30.
  */
-public abstract class RequestProtocol extends AbstractProtocol {
-    public RequestProtocol() {
+public abstract class AbstractRequestProtocol extends AbstractProtocol {
+    public AbstractRequestProtocol() {
     }
 
-    public RequestProtocol(int protocolId) {
+    public AbstractRequestProtocol(int protocolId) {
         super(protocolId);
     }
 

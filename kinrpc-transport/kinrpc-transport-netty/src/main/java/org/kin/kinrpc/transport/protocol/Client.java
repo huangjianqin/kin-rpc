@@ -7,7 +7,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import org.kin.framework.utils.ExceptionUtils;
-import org.kin.kinrpc.transport.Connection;
+import org.kin.kinrpc.transport.AbstractConnection;
 import org.kin.kinrpc.transport.handler.BaseFrameCodec;
 import org.kin.kinrpc.transport.listener.*;
 import org.kin.kinrpc.transport.protocol.domain.AbstractProtocol;
@@ -24,7 +24,7 @@ import java.util.concurrent.CountDownLatch;
 /**
  * Created by huangjianqin on 2019/5/30.
  */
-public class Client extends Connection {
+public class Client extends AbstractConnection {
     private static final Logger log = LoggerFactory.getLogger("transport");
 
     private EventLoopGroup eventLoopGroup;
@@ -153,8 +153,12 @@ public class Client extends Connection {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         Client that = (Client) o;
 

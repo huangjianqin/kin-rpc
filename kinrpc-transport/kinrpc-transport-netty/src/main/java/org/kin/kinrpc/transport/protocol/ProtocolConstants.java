@@ -12,10 +12,10 @@ public final class ProtocolConstants {
 
     }
 
-    public static final AttributeKey<Session> SESSION_KEY = AttributeKey.valueOf("session");
+    public static final AttributeKey<AbstractSession> SESSION_KEY = AttributeKey.valueOf("session");
 
-    public static Session session(Channel channel) {
-        Attribute<Session> attr = channel.attr(ProtocolConstants.SESSION_KEY);
+    public static AbstractSession session(Channel channel) {
+        Attribute<AbstractSession> attr = channel.attr(ProtocolConstants.SESSION_KEY);
         return attr.get();
     }
 }

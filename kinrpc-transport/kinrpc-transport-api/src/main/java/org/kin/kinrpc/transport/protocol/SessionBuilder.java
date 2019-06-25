@@ -9,5 +9,5 @@ public interface SessionBuilder {
     /**
      * 在channel线程调用, 最好内部捕获异常, 不然会导致channel因异常关闭
      */
-    Session create(Channel channel);
+    AbstractSession create(Channel channel);
 }

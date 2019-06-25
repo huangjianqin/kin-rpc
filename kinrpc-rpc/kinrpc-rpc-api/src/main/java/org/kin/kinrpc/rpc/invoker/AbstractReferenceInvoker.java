@@ -9,12 +9,12 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by 健勤 on 2017/2/14.
  */
-public abstract class ReferenceInvoker extends AbstractInvoker implements AsyncInvoker {
+public abstract class AbstractReferenceInvoker extends AbstractInvoker implements AsyncInvoker {
     protected static final Logger log = LoggerFactory.getLogger("invoker");
     //该invoker代表的连接
     protected RPCReference rpcReference;
 
-    public ReferenceInvoker(String serviceName, RPCReference rpcReference) {
+    public AbstractReferenceInvoker(String serviceName, RPCReference rpcReference) {
         super(serviceName);
         this.rpcReference = rpcReference;
     }
@@ -38,10 +38,14 @@ public abstract class ReferenceInvoker extends AbstractInvoker implements AsyncI
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
-        ReferenceInvoker that = (ReferenceInvoker) o;
+        AbstractReferenceInvoker that = (AbstractReferenceInvoker) o;
 
         return rpcReference.equals(that.rpcReference);
     }

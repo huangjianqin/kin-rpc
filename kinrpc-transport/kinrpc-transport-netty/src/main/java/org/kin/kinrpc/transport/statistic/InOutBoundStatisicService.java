@@ -5,7 +5,8 @@ import org.kin.framework.concurrent.ThreadManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -14,12 +15,14 @@ import java.util.concurrent.TimeUnit;
 public class InOutBoundStatisicService {
     private static final Logger reqStatisticLog = LoggerFactory.getLogger("reqStatistic");
     private static final Logger respStatisticLog = LoggerFactory.getLogger("respStatistic");
-    private static final InOutBoundStatisicService instance = new InOutBoundStatisicService();
+    private static final InOutBoundStatisicService INSTANCE = new InOutBoundStatisicService();
 
     private InOutBoundStatisticHolder reqHolder = new InOutBoundStatisticHolder();
     private InOutBoundStatisticHolder respHolder = new InOutBoundStatisticHolder();
     private ThreadManager threadManager = new ThreadManager(
-            Executors.newScheduledThreadPool(3, new SimpleThreadFactory("InOutBoundStatisic")));
+            new ThreadPoolExecutor(3, 3, 60L, TimeUnit.SECONDS,
+                    new LinkedBlockingQueue<Runnable>(),
+                    new SimpleThreadFactory("inoutbound-statisic")));
 
     private InOutBoundStatisicService() {
         threadManager.scheduleAtFixedRate(() -> {
@@ -29,7 +32,7 @@ public class InOutBoundStatisicService {
     }
 
     public static InOutBoundStatisicService instance() {
-        return instance;
+        return INSTANCE;
     }
 
     //-------------------------------------------------------------------------------------------------------

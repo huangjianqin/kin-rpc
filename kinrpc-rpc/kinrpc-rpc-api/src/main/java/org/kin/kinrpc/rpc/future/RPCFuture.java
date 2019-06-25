@@ -22,12 +22,12 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 public class RPCFuture implements Future<RPCResponse> {
     private static final Logger log = LoggerFactory.getLogger("transport");
     //所有RPCFuture实例共用一个线程池
-    private static final ThreadManager threads = ThreadManager.forkJoinPoolThreadManager();
+    private static final ThreadManager THREADS = ThreadManager.forkJoinPoolThreadManager();
 
     //添加JVM关闭钩子,以确保释放该静态线程池
     static {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            threads.shutdown();
+            THREADS.shutdown();
         }));
     }
 
@@ -48,18 +48,22 @@ public class RPCFuture implements Future<RPCResponse> {
         this.rpcReference = rpcReference;
     }
 
+    @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public boolean isCancelled() {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public boolean isDone() {
         return sync.isDone();
     }
 
+    @Override
     public RPCResponse get() throws InterruptedException, ExecutionException {
         sync.acquire(-1);
         if (isDone()) {
@@ -68,6 +72,7 @@ public class RPCFuture implements Future<RPCResponse> {
         return null;
     }
 
+    @Override
     public RPCResponse get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         boolean success = sync.tryAcquireNanos(-1, unit.toNanos(timeout));
         if (success) {
@@ -100,7 +105,7 @@ public class RPCFuture implements Future<RPCResponse> {
         this.response = response;
         rpcReference.removeInvalid(request);
         sync.release(1);
-        threads.submit(() -> {
+        THREADS.submit(() -> {
             for (AsyncRPCCallback callback : this.callbacks) {
                 switch (response.getState()) {
                     case SUCCESS:
@@ -111,6 +116,8 @@ public class RPCFuture implements Future<RPCResponse> {
                         break;
                     case ERROR:
                         callback.fail(new RuntimeException("Response error", new Throwable(response.getInfo())));
+                        break;
+                    default:
                         break;
                 }
             }

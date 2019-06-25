@@ -7,10 +7,15 @@ import java.util.concurrent.Future;
  */
 public class RPCContext {
     private ThreadLocal<Future> rpcFuture = new ThreadLocal<>();
-    private static final RPCContext instance = new RPCContext();
+    private static final RPCContext INSTANCE = new RPCContext();
 
     public static RPCContext instance() {
-        return instance;
+        return INSTANCE;
+    }
+
+    public void clean(){
+        //TODO 该RPC FUTURE完成时, 要清掉
+        rpcFuture.remove();
     }
 
     //setter && getter

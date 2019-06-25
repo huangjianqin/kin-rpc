@@ -1,7 +1,7 @@
 package org.kin.kinrpc.transport.protocol.impl;
 
 import org.kin.kinrpc.transport.protocol.ProtocolHandler;
-import org.kin.kinrpc.transport.protocol.Session;
+import org.kin.kinrpc.transport.protocol.AbstractSession;
 import org.kin.kinrpc.transport.protocol.domain.AbstractProtocol;
 
 /**
@@ -9,7 +9,7 @@ import org.kin.kinrpc.transport.protocol.domain.AbstractProtocol;
  */
 public class PrintProtocolHandler implements ProtocolHandler {
     @Override
-    public void handleProtocol(Session session, AbstractProtocol protocol) {
+    public void handleProtocol(AbstractSession session, AbstractProtocol protocol) {
         System.out.println(session + "-" + protocol);
     }
 }

@@ -14,12 +14,12 @@ import java.io.IOException;
  * Created by huangjianqin on 2019/5/29.
  */
 public class KryoSerializer implements Serializer {
-    private static final Kryo kryo = new Kryo();
+    private static final Kryo KRYO = new Kryo();
 
     @Override
     public byte[] serialize(Object target) throws IOException {
         Output output = new Output(new ByteArrayOutputStream());
-        kryo.writeObject(output, target);
+        KRYO.writeObject(output, target);
         byte[] bytes = output.toBytes();
         output.close();
 
@@ -29,7 +29,7 @@ public class KryoSerializer implements Serializer {
     @Override
     public <T> T deserialize(byte[] bytes) throws IOException, ClassNotFoundException {
         Input input = new Input(new ByteArrayInputStream(bytes));
-        RPCRequest request = kryo.readObject(input, RPCRequest.class);
+        RPCRequest request = KRYO.readObject(input, RPCRequest.class);
         input.close();
 
         return (T) request;

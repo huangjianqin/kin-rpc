@@ -16,7 +16,19 @@ public class RPCResponse implements Serializable {
     private State state;
 
     public enum State {
-        ERROR(-1), SUCCESS(1), RETRY(0);
+        /**
+         * 服务调用错误
+         */
+        ERROR(-1),
+        /**
+         * 服务调用成功
+         */
+        SUCCESS(1),
+        /**
+         * 告诉消费者请求其他server的该服务调用
+         */
+        RETRY(0),
+        ;
 
         int code;
 
@@ -77,8 +89,12 @@ public class RPCResponse implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof RPCResponse)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof RPCResponse)) {
+            return false;
+        }
 
         RPCResponse that = (RPCResponse) o;
 

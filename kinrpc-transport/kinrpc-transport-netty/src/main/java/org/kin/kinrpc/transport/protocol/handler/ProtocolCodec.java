@@ -6,7 +6,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
 import org.kin.kinrpc.transport.protocol.Bytes2ProtocolTransfer;
 import org.kin.kinrpc.transport.protocol.ProtocolConstants;
-import org.kin.kinrpc.transport.protocol.Session;
+import org.kin.kinrpc.transport.protocol.AbstractSession;
 import org.kin.kinrpc.transport.protocol.domain.ProtocolByteBuf;
 import org.kin.kinrpc.transport.protocol.domain.Request;
 import org.kin.kinrpc.transport.statistic.InOutBoundStatisicService;
@@ -75,7 +75,7 @@ public class ProtocolCodec extends MessageToMessageCodec<ByteBuf, ProtocolByteBu
     }
 
     private int getRespSN(Channel channel) {
-        Session session = ProtocolConstants.session(channel);
+        AbstractSession session = ProtocolConstants.session(channel);
         if (session != null) {
             return session.getRespSN();
         }

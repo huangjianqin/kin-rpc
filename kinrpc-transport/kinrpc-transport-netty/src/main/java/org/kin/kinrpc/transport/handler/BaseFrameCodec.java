@@ -27,8 +27,8 @@ public class BaseFrameCodec extends ByteToMessageCodec<ByteBuf> {
     private final int FRAME_BASE_LENGTH;
 
 
-    public BaseFrameCodec(int MAX_BODY_SIZE, boolean inElseOut) {
-        this.MAX_BODY_SIZE = MAX_BODY_SIZE;
+    public BaseFrameCodec(int maxBodySize, boolean inElseOut) {
+        this.MAX_BODY_SIZE = maxBodySize;
         this.inElseOut = inElseOut;
         this.FRAME_BASE_LENGTH = FRAME_SNO_SIZE + FRAME_MAGIC.length + FRAME_BODY_SIZE;
     }

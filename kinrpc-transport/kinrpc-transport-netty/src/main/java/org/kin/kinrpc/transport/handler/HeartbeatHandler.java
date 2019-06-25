@@ -24,6 +24,7 @@ public final class HeartbeatHandler extends ChannelInboundHandlerAdapter {
         if (evt instanceof IdleStateEvent) {
             //测试是否仍然与服务连接
             ctx.writeAndFlush(HEARTBEAT.duplicate()).addListener(new ChannelFutureListener() {
+                @Override
                 public void operationComplete(ChannelFuture channelFuture) throws Exception {
                     //发送心跳失败,打印日志,关闭该连接,并
                     if (!channelFuture.isSuccess()) {

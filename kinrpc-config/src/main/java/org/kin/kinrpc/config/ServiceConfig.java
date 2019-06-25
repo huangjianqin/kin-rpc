@@ -10,11 +10,11 @@ import org.kin.kinrpc.rpc.cluster.Clusters;
 /**
  * Created by 健勤 on 2017/2/12.
  */
-class ServiceConfig extends Config{
+class ServiceConfig extends AbstractConfig{
     //配置
     private ApplicationConfig applicationConfig = new ApplicationConfig();
     private ServerConfig serverConfig = new ServerConfig(Constants.SERVER_DEFAULT_PORT);
-    private RegistryConfig registryConfig;
+    private AbstractRegistryConfig registryConfig;
     private Object ref;
     private Class<?> interfaceClass;
     private String serviceName;
@@ -146,7 +146,7 @@ class ServiceConfig extends Config{
         return serverConfig;
     }
 
-    public RegistryConfig getRegistryConfig() {
+    public AbstractRegistryConfig getRegistryConfig() {
         return registryConfig;
     }
 

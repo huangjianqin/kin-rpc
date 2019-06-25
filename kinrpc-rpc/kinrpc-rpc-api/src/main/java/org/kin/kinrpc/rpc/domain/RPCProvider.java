@@ -2,9 +2,10 @@ package org.kin.kinrpc.rpc.domain;
 
 import io.netty.channel.Channel;
 import org.kin.framework.JvmCloseCleaner;
+import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadManager;
 import org.kin.framework.utils.ExceptionUtils;
-import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
+import org.kin.kinrpc.rpc.invoker.AbstractProviderInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.JavaProviderInvoker;
 import org.kin.kinrpc.rpc.transport.ProviderHandler;
 import org.kin.kinrpc.rpc.transport.RPCConstants;
@@ -27,13 +28,13 @@ public class RPCProvider {
 
     //只有get的时候没有同步,其余都同步了
     //大部分情况下get调用的频率比其他方法都多,没有必要使用同步容器,提供一丢丢性能
-    private final Map<String, ProviderInvoker> serviceMap = new HashMap<String, ProviderInvoker>();
+    private final Map<String, AbstractProviderInvoker> serviceMap = new HashMap<String, AbstractProviderInvoker>();
     //各种服务请求处理的线程池
     private final ForkJoinPool threads;
     //保证RPCRequest按请求顺序进队
     private final ThreadManager singleThread = new ThreadManager(
             new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<>()));
+            new LinkedBlockingQueue<>(), new SimpleThreadFactory("scan-request")));
     //RPCRequest队列,所有连接该Server的consumer发送的request都put进这个队列
     //然后由一个专门的线程不断地get,再提交到线程池去处理
     //本质上是生产者-消费者模式
@@ -212,7 +213,7 @@ public class RPCProvider {
                         Object[] params = rpcRequest.getParams();
                         Channel channel = rpcRequest.getChannel();
 
-                        ProviderInvoker invoker = serviceMap.get(serviceName);
+                        AbstractProviderInvoker invoker = serviceMap.get(serviceName);
 
                         RPCResponse rpcResponse = new RPCResponse(rpcRequest.getRequestId(),
                                 rpcRequest.getServiceName(), rpcRequest.getMethod());
