@@ -11,11 +11,12 @@ import java.util.Collections;
 /**
  * Created by 健勤 on 2017/2/15.
  */
-public class ReferenceConfig<T> extends Config {
+class ReferenceConfig<T> extends Config {
     private ApplicationConfig applicationConfig;
     private RegistryConfig registryConfig;
     private Class<T> interfaceClass;
     private int timeout = Constants.REFERENCE_DEFAULT_CONNECT_TIMEOUT;//默认5s
+    private String serviceName;
 
     private URL url;
     private volatile T reference;
@@ -31,6 +32,7 @@ public class ReferenceConfig<T> extends Config {
         public static <T> ReferenceConfig<T> reference(Class<T> interfaceClass) {
             ReferenceConfig builder = new ReferenceConfig();
             builder.interfaceClass = interfaceClass;
+            builder.serviceName = interfaceClass.getName();
 
             return builder;
         }
@@ -50,7 +52,7 @@ public class ReferenceConfig<T> extends Config {
         if(!isReference){
             check();
 
-            url = createReferenceURL(applicationConfig, registryConfig, interfaceClass.getName(),
+            url = createReferenceURL(applicationConfig, registryConfig, serviceName,
                     Collections.singletonMap(Constants.TIMEOUT, timeout + ""));
             Preconditions.checkNotNull(url);
 
@@ -107,6 +109,13 @@ public class ReferenceConfig<T> extends Config {
     public ReferenceConfig<T> timeout(int timeout){
         if(isReference){
             this.timeout = timeout;
+        }
+        return this;
+    }
+
+    public ReferenceConfig<T> serviceName(String serviceName){
+        if(isReference){
+            this.serviceName = serviceName;
         }
         return this;
     }

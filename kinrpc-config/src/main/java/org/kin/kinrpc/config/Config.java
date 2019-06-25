@@ -37,8 +37,7 @@ public abstract class Config {
                           RegistryConfig registryConfig,
                           String serviceName, Map<String, String> otherParams){
         StringBuilder sb = new StringBuilder();
-        sb.append(Constants.KINRPC_PROTOCOL + "://" + hostPort + "/");
-        sb.append(serviceName.replaceAll("\\.", "/") + "?");
+        sb.append(Constants.KINRPC_PROTOCOL + "://" + hostPort + "/" + serviceName + "?");
 
         Map<String, String> params = new HashMap<>();
         params.put(Constants.APP_NAME, applicationConfig.getAppName());

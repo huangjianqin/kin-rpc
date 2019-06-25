@@ -1,5 +1,6 @@
 package org.kin.kinrpc.registry;
 
+import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
 
 import java.util.List;
@@ -9,10 +10,10 @@ import java.util.zip.DataFormatException;
  * Created by huangjianqin on 2019/6/18.
  */
 public class DefaultRegistry extends AbstractRegistry {
-    private final Directory directory;
+    private List<HostAndPort> hostAndPorts;
 
-    public DefaultRegistry(String serviceName, int connectTimeout, List<HostAndPort> hostAndPorts) {
-        directory = new DefaultDirectory(serviceName, connectTimeout, hostAndPorts);
+    public DefaultRegistry(List<HostAndPort> hostAndPorts) {
+        this.hostAndPorts = hostAndPorts;
     }
 
     @Override
@@ -32,11 +33,12 @@ public class DefaultRegistry extends AbstractRegistry {
 
     @Override
     public Directory subscribe(String serviceName, int connectTimeout) {
-        return directory;
+        return new DefaultDirectory(serviceName, connectTimeout, hostAndPorts);
     }
 
     @Override
     public void destroy() {
-        directory.destroy();
+        hostAndPorts.clear();
+        hostAndPorts = null;
     }
 }

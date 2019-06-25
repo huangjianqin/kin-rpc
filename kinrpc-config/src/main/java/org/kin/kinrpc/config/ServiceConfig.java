@@ -10,13 +10,14 @@ import org.kin.kinrpc.rpc.cluster.Clusters;
 /**
  * Created by 健勤 on 2017/2/12.
  */
-public class ServiceConfig extends Config{
+class ServiceConfig extends Config{
     //配置
     private ApplicationConfig applicationConfig = new ApplicationConfig();
     private ServerConfig serverConfig = new ServerConfig(Constants.SERVER_DEFAULT_PORT);
     private RegistryConfig registryConfig;
     private Object ref;
     private Class<?> interfaceClass;
+    private String serviceName;
 
     private URL url;
     private volatile boolean isExport;
@@ -34,6 +35,7 @@ public class ServiceConfig extends Config{
             ServiceConfig builder = new ServiceConfig();
             builder.ref = ref;
             builder.interfaceClass = interfaceClass;
+            builder.serviceName = interfaceClass.getName();
 
             return builder;
         }
@@ -68,7 +70,7 @@ public class ServiceConfig extends Config{
         if(!isExport){
             check();
 
-            url = createServiceURL(applicationConfig, serverConfig, registryConfig, interfaceClass.getName());
+            url = createServiceURL(applicationConfig, serverConfig, registryConfig, serviceName);
             Preconditions.checkNotNull(url);
 
             Clusters.export(url, interfaceClass, ref);
@@ -124,6 +126,13 @@ public class ServiceConfig extends Config{
     public ServiceConfig sessionTimeout(int sessionTimeout){
         if(isExport){
             this.registryConfig.setSessionTimeout(sessionTimeout);
+        }
+        return this;
+    }
+
+    public ServiceConfig serviceName(String serviceName){
+        if(isExport){
+            this.serviceName = serviceName;
         }
         return this;
     }

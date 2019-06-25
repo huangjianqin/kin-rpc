@@ -16,7 +16,6 @@ public class DefaultRegistryFactory extends AbstractRegistryFactory{
     @Override
     public Registry getRegistry(URL url) {
         String address = url.getParam(Constants.REGISTRY_URL);
-        int sessionTimeout = Integer.valueOf(url.getParam(Constants.SESSION_TIMEOUT));
 
         List<HostAndPort> hostAndPorts = new ArrayList<>();
         for(String one: address.split(";")){
@@ -24,8 +23,7 @@ public class DefaultRegistryFactory extends AbstractRegistryFactory{
         }
 
         try {
-            //TODO interfaceclass = null
-            Registry registry = registryCache.get(address, () -> new DefaultRegistry(null, sessionTimeout, hostAndPorts));
+            Registry registry = registryCache.get(address, () -> new DefaultRegistry(hostAndPorts));
             registry.retain();
             return registry;
         } catch (ExecutionException e) {
