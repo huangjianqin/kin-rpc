@@ -11,6 +11,7 @@ import java.util.List;
  * 不进行任何过滤
  */
 public class SimpleRouter implements Router {
+    @Override
     public List<ReferenceInvoker> router(List<ReferenceInvoker> invokers) {
         return invokers;
     }

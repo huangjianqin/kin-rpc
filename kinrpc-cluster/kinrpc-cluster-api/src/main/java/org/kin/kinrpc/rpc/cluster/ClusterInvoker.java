@@ -1,11 +1,12 @@
-package org.kin.kinrpc.rpc.invoker;
+package org.kin.kinrpc.rpc.cluster;
 
+import org.kin.framework.Closeable;
 import org.kin.framework.concurrent.ThreadManager;
 import org.kin.framework.utils.ExceptionUtils;
-import org.kin.kinrpc.rpc.cluster.Cluster;
-import org.kin.kinrpc.rpc.cluster.ClusterConstants;
 import org.kin.kinrpc.rpc.domain.RPCContext;
 import org.kin.kinrpc.rpc.future.RPCFuture;
+import org.kin.kinrpc.rpc.invoker.AsyncInvoker;
+import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.kin.kinrpc.rpc.utils.ClassUtils;
 import org.slf4j.Logger;
@@ -21,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by 健勤 on 2017/2/15.
  */
-public class ClusterInvoker implements InvocationHandler, AsyncInvoker {
+class ClusterInvoker implements InvocationHandler, AsyncInvoker, Closeable {
     private static final Logger log = LoggerFactory.getLogger("cluster");
     private Cluster cluster;
     private static final ThreadManager threads = ThreadManager.forkJoinPoolThreadManager();
@@ -30,6 +31,7 @@ public class ClusterInvoker implements InvocationHandler, AsyncInvoker {
         this.cluster = cluster;
     }
 
+    @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         log.info("invoke method '" + method.getName() + "'");
 
@@ -96,5 +98,11 @@ public class ClusterInvoker implements InvocationHandler, AsyncInvoker {
         Future future = threads.submit(callable);
         RPCContext.instance().setFuture(future);
         return future;
+    }
+
+
+    @Override
+    public void close() {
+        cluster.shutdown();
     }
 }

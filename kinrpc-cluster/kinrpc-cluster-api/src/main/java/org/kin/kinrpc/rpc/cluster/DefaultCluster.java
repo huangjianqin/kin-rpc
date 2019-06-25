@@ -1,8 +1,7 @@
-package org.kin.kinrpc.rpc.cluster.impl;
+package org.kin.kinrpc.rpc.cluster;
 
 import org.kin.kinrpc.registry.Directory;
 import org.kin.kinrpc.registry.Registry;
-import org.kin.kinrpc.rpc.cluster.Cluster;
 import org.kin.kinrpc.rpc.cluster.loadbalance.LoadBalance;
 import org.kin.kinrpc.rpc.cluster.loadbalance.impl.RoundRobinLoadBalance;
 import org.kin.kinrpc.rpc.cluster.router.Router;
@@ -16,7 +15,7 @@ import java.util.List;
 /**
  * Created by 健勤 on 2017/2/15.
  */
-public class DefaultCluster implements Cluster {
+class DefaultCluster implements Cluster {
     private static final Logger log = LoggerFactory.getLogger("cluster");
 
     //代表某service的所有ReferenceInvoker
@@ -50,6 +49,7 @@ public class DefaultCluster implements Cluster {
         return null;
     }
 
+    @Override
     public void shutdown() {
         directory.destroy();
     }
@@ -62,6 +62,7 @@ public class DefaultCluster implements Cluster {
         return false;
     }
 
+    //getter
     public Directory getDirectory() {
         return directory;
     }
