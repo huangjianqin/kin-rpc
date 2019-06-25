@@ -14,8 +14,8 @@ import java.util.concurrent.TimeoutException;
  * Created by 健勤 on 2017/2/15.
  */
 public class JavaReferenceInvoker extends ReferenceInvoker {
-    public JavaReferenceInvoker(Class<?> interfaceClass, RPCReference rpcReference) {
-        super(interfaceClass, rpcReference);
+    public JavaReferenceInvoker(String serviceName, RPCReference rpcReference) {
+        super(serviceName, rpcReference);
     }
 
     @Override

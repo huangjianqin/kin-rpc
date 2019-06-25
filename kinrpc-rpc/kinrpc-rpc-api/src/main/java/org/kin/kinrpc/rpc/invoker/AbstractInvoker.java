@@ -4,13 +4,14 @@ package org.kin.kinrpc.rpc.invoker;
  * Created by 健勤 on 2017/2/11.
  */
 public abstract class AbstractInvoker implements Invoker {
-    protected final Class<?> interfaceClass;
+    protected final String serviceName;
 
-    public AbstractInvoker(Class<?> interfaceClass) {
-        this.interfaceClass = interfaceClass;
+    protected AbstractInvoker(String serviceName) {
+        this.serviceName = serviceName;
     }
 
+    //getter
     public String getServiceName() {
-        return interfaceClass.getName();
+        return serviceName;
     }
 }

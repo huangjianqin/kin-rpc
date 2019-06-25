@@ -59,16 +59,16 @@ public class RPCProvider {
     /**
      * 支持动态添加服务
      */
-    public void addService(Object service, Class<?> interfaceClass) {
+    public void addService(String serviceName, Class<?> interfaceClass, Object service) {
         if(!isStopped){
-            JavaProviderInvoker invoker = new JavaProviderInvoker(service, interfaceClass);
-            String realServiceName = invoker.getServiceName();
+            JavaProviderInvoker invoker = new JavaProviderInvoker(serviceName, service);
+            invoker.init(interfaceClass);
 
             synchronized (serviceMap) {
-                if (!serviceMap.containsKey(realServiceName)) {
-                    serviceMap.put(invoker.getServiceName(), invoker);
+                if (!serviceMap.containsKey(serviceName)) {
+                    serviceMap.put(serviceName, invoker);
                 } else {
-                    throw new IllegalStateException("service'" + realServiceName + "' has registered. can not register again");
+                    throw new IllegalStateException("service'" + serviceName + "' has registered. can not register again");
                 }
             }
         }

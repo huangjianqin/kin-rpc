@@ -12,20 +12,18 @@ import java.lang.reflect.Method;
  * Created by 健勤 on 2017/2/12.
  */
 public class JavaProviderInvoker extends ProviderInvoker {
-    public JavaProviderInvoker(Object serivce, Class<?> interfaceClass) {
-        super(interfaceClass);
-        this.serivce = serivce;
-        init();
+    public JavaProviderInvoker(String serviceName, Object service) {
+        super(serviceName);
+        this.serivce = service;
     }
 
-    private void init() {
+    public void init(Class interfaceClass) {
         log.info("initing service '" + getServiceName() + "'");
 
-        Method[] methods = this.interfaceClass.getMethods();
+        Method[] methods = interfaceClass.getMethods();
 
         for (Method method : methods) {
             method.setAccessible(true);
-            String methodName = method.getName();
             this.methodMap.put(ClassUtils.getUniqueName(method), method);
         }
     }

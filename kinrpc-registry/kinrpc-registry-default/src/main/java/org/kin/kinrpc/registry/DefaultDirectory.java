@@ -21,8 +21,8 @@ public class DefaultDirectory extends AbstractDirectory {
     private static final Logger log = LoggerFactory.getLogger("registry");
     private List<ReferenceInvoker> invokers;
 
-    public DefaultDirectory(Class<?> interfaceClass, int connectTimeout, List<HostAndPort> hostAndPorts) {
-        super(interfaceClass, connectTimeout);
+    public DefaultDirectory(String serviceName, int connectTimeout, List<HostAndPort> hostAndPorts) {
+        super(serviceName, connectTimeout);
 
         init(hostAndPorts);
     }
@@ -41,7 +41,7 @@ public class DefaultDirectory extends AbstractDirectory {
         ThreadManager.DEFAULT.submit(() -> {
             //创建连接
             RPCReference rpcReference = new RPCReference(new InetSocketAddress(host, port));
-            ReferenceInvoker refereneceInvoker = new JavaReferenceInvoker(interfaceClass, rpcReference);
+            ReferenceInvoker refereneceInvoker = new JavaReferenceInvoker(serviceName, rpcReference);
             //真正启动连接
             refereneceInvoker.init();
 

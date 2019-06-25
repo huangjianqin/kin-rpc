@@ -49,7 +49,7 @@ public class Clusters {
         try {
             Registry registry = Registries.getRegistry(url);
             Preconditions.checkNotNull(registry);
-            provider.addService(instance, interfaceClass);
+            provider.addService(url.getServiceName(), interfaceClass, instance);
             registry.register(interfaceClass.getName(), "0.0.0.0", port);
         } catch (Exception e) {
             ExceptionUtils.log(e);
@@ -77,7 +77,7 @@ public class Clusters {
 
         //构建Cluster类
         int timeout = Integer.valueOf(url.getParam(Constants.TIMEOUT));
-        Cluster cluster = new DefaultCluster(registry, interfaceClass, timeout);
+        Cluster cluster = new DefaultCluster(registry, url.getServiceName(), timeout);
 
         ClusterInvoker clusterInvoker = new ClusterInvoker(cluster);
 

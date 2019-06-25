@@ -11,8 +11,8 @@ import java.util.zip.DataFormatException;
 public class DefaultRegistry extends AbstractRegistry {
     private final Directory directory;
 
-    public DefaultRegistry(Class<?> interfaceClass, int connectTimeout, List<HostAndPort> hostAndPorts) {
-        directory = new DefaultDirectory(interfaceClass, connectTimeout, hostAndPorts);
+    public DefaultRegistry(String serviceName, int connectTimeout, List<HostAndPort> hostAndPorts) {
+        directory = new DefaultDirectory(serviceName, connectTimeout, hostAndPorts);
     }
 
     @Override
@@ -31,7 +31,7 @@ public class DefaultRegistry extends AbstractRegistry {
     }
 
     @Override
-    public Directory subscribe(Class<?> interfaceClass, int connectTimeout) {
+    public Directory subscribe(String serviceName, int connectTimeout) {
         return directory;
     }
 

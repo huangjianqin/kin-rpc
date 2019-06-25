@@ -35,8 +35,8 @@ public class ZookeeperDirectory extends AbstractDirectory {
     private Condition hasInvokers = lock.newCondition();
     private volatile boolean isRunning = true;
 
-    public ZookeeperDirectory(Class<?> interfaceClass, int connectTimeout, ZookeeperRegistry registry) {
-        super(interfaceClass, connectTimeout);
+    public ZookeeperDirectory(String serviceName, int connectTimeout, ZookeeperRegistry registry) {
+        super(serviceName, connectTimeout);
         this.registry = registry;
     }
 
@@ -204,7 +204,7 @@ public class ZookeeperDirectory extends AbstractDirectory {
         ThreadManager.DEFAULT.submit(() -> {
             //创建连接
             RPCReference rpcReference = new RPCReference(new InetSocketAddress(host, port));
-            ReferenceInvoker refereneceInvoker = new JavaReferenceInvoker(interfaceClass, rpcReference);
+            ReferenceInvoker refereneceInvoker = new JavaReferenceInvoker(serviceName, rpcReference);
             //真正启动连接
             refereneceInvoker.init();
 
@@ -222,6 +222,7 @@ public class ZookeeperDirectory extends AbstractDirectory {
         });
     }
 
+    @Override
     public void destroy() {
         log.info("zookeeper directory destroy...");
         isRunning = false;

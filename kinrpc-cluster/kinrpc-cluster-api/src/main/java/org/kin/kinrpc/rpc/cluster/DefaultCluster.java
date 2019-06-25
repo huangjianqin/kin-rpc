@@ -23,8 +23,8 @@ class DefaultCluster implements Cluster {
     private final Router router;
     private final LoadBalance loadBalance;
 
-    public DefaultCluster(Registry registry, Class<?> interfaceClass, int connectTimeout) {
-        this.directory = registry.subscribe(interfaceClass, connectTimeout);
+    public DefaultCluster(Registry registry, String serviceName, int connectTimeout) {
+        this.directory = registry.subscribe(serviceName, connectTimeout);
         this.router = new SimpleRouter();
         this.loadBalance = new RoundRobinLoadBalance();
     }

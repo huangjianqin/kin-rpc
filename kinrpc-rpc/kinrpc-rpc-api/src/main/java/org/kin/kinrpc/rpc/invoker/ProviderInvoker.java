@@ -18,7 +18,7 @@ public abstract class ProviderInvoker extends AbstractInvoker {
     protected Object serivce;
     protected Map<String, Method> methodMap = new HashMap<String, Method>();
 
-    public ProviderInvoker(Class<?> interfaceClass) {
-        super(interfaceClass);
+    public ProviderInvoker(String serviceName) {
+        super(serviceName);
     }
 }

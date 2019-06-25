@@ -14,8 +14,8 @@ public abstract class ReferenceInvoker extends AbstractInvoker implements AsyncI
     //该invoker代表的连接
     protected RPCReference rpcReference;
 
-    public ReferenceInvoker(Class<?> interfaceClass, RPCReference rpcReference) {
-        super(interfaceClass);
+    public ReferenceInvoker(String serviceName, RPCReference rpcReference) {
+        super(serviceName);
         this.rpcReference = rpcReference;
     }
 

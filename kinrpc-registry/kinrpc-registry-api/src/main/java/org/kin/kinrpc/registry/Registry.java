@@ -14,7 +14,7 @@ public interface Registry {
 
     void unRegister(String serviceName, String host, int port);
 
-    Directory subscribe(Class<?> interfaceClass, int connectTimeout);
+    Directory subscribe(String serviceName, int connectTimeout);
 
     void retain();
     boolean release();

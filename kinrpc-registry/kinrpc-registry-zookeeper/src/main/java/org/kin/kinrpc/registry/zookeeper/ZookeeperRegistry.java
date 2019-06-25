@@ -132,7 +132,6 @@ public class ZookeeperRegistry extends AbstractRegistry{
     }
 
     @Override
-    //TODO 优化参数
     public void unRegister(String serviceName, String host, int port) {
         log.info("provider unregister service '{}' " + ">>> zookeeper registry({})", serviceName, getAddress());
         String address = host + ":" + port;
@@ -145,9 +144,9 @@ public class ZookeeperRegistry extends AbstractRegistry{
     }
 
     @Override
-    public Directory subscribe(Class<?> interfaceClass, int connectTimeout) {
-        log.info("consumer subscribe service '{}' " + ">>> zookeeper registry({})", interfaceClass.getName(), getAddress());
-        return new ZookeeperDirectory(interfaceClass, connectTimeout, this);
+    public Directory subscribe(String serviceName, int connectTimeout) {
+        log.info("consumer subscribe service '{}' " + ">>> zookeeper registry({})", serviceName, getAddress());
+        return new ZookeeperDirectory(serviceName, connectTimeout, this);
     }
 
     @Override

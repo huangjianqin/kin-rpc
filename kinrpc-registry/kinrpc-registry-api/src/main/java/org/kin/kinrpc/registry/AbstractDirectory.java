@@ -9,16 +9,16 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractDirectory implements Directory {
     protected static final Logger log = LoggerFactory.getLogger("registry");
 
-    protected final Class<?> interfaceClass;
+    protected final String serviceName;
     protected final int connectTimeout;
 
-    protected AbstractDirectory(Class<?> interfaceClass, int connectTimeout) {
-        this.interfaceClass = interfaceClass;
+    protected AbstractDirectory(String serviceName, int connectTimeout) {
+        this.serviceName = serviceName;
         this.connectTimeout = connectTimeout;
     }
 
     @Override
     public String getServiceName() {
-        return interfaceClass.getName();
+        return serviceName;
     }
 }
