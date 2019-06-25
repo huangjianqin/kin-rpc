@@ -64,11 +64,11 @@
     <!--                                       logger                                                       -->
     <logger name="registry" level="INFO" additivity="false">
         <appender-ref ref="asyncRegistryAppender"/>
+        <appender-ref ref="asyncERROR" level="ERROR"/>
     </logger>
 
     <logger name="error" level="ERROR" additivity="false">
         <appender-ref ref="asyncERROR"/>
-        <appender-ref ref="asyncRegistryAppender"/>
     </logger>
 
     <root level="INFO">

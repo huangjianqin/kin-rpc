@@ -64,11 +64,11 @@
     <!--                                       logger                                                       -->
     <logger name="invoker" level="INFO" additivity="false">
         <appender-ref ref="asyncInvokerAppender"/>
+        <appender-ref ref="asyncERROR" level="ERROR"/>
     </logger>
 
     <logger name="error" level="ERROR" additivity="false">
         <appender-ref ref="asyncERROR"/>
-        <appender-ref ref="asyncInvokerAppender"/>
     </logger>
 
     <root level="INFO">

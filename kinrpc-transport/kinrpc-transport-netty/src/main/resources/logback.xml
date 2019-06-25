@@ -100,6 +100,7 @@
     <!--                                       logger                                                       -->
     <logger name="transport" level="INFO" additivity="false">
         <appender-ref ref="asyncTransportAppender"/>
+        <appender-ref ref="asyncERROR" level="ERROR"/>
     </logger>
 
     <logger name="reqStatistic" level="INFO" additivity="false">
@@ -112,7 +113,6 @@
 
     <logger name="error" level="ERROR" additivity="false">
         <appender-ref ref="asyncERROR"/>
-        <appender-ref ref="asyncTransportAppender"/>
     </logger>
 
     <root level="INFO">

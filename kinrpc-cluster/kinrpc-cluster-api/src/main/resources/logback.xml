@@ -100,21 +100,21 @@
     <!--                                       logger                                                       -->
     <logger name="loadbalance" level="INFO" additivity="false">
         <appender-ref ref="asyncLoadbalanceAppender"/>
+        <appender-ref ref="asyncERROR" level="ERROR"/>
     </logger>
 
     <logger name="router" level="INFO" additivity="false">
         <appender-ref ref="asyncRouterAppender"/>
+        <appender-ref ref="asyncERROR" level="ERROR"/>
     </logger>
 
     <logger name="cluster" level="INFO" additivity="false">
         <appender-ref ref="asyncClusterAppender"/>
+        <appender-ref ref="asyncERROR" level="ERROR"/>
     </logger>
 
     <logger name="error" level="ERROR" additivity="false">
         <appender-ref ref="asyncERROR"/>
-        <appender-ref ref="asyncClusterAppender"/>
-        <appender-ref ref="asyncRouterAppender"/>
-        <appender-ref ref="asyncLoadbalanceAppender"/>
     </logger>
 
     <root level="INFO">
