@@ -28,8 +28,8 @@ public final class HeartbeatHandler extends ChannelInboundHandlerAdapter {
                 public void operationComplete(ChannelFuture channelFuture) throws Exception {
                     //发送心跳失败,打印日志,关闭该连接,并
                     if (!channelFuture.isSuccess()) {
-                        log.info("send heartbeat fail!!!");
-                        log.info("close the service connection >>>" + channelFuture.channel().remoteAddress().toString());
+                        log.warn("send heartbeat fail!!!");
+                        log.error("close the service connection >>>" + channelFuture.channel().remoteAddress().toString());
                         channelFuture.channel().close();
                     }
                 }

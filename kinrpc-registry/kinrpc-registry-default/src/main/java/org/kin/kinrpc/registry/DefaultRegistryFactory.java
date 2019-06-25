@@ -15,7 +15,7 @@ import java.util.concurrent.ExecutionException;
 public class DefaultRegistryFactory extends AbstractRegistryFactory{
     @Override
     public Registry getRegistry(URL url) {
-        String address = url.getParam(Constants.REGISTRY_URL);
+        String address = url.getParam(Constants.REGISTRY_URL_KEY);
 
         List<HostAndPort> hostAndPorts = new ArrayList<>();
         for(String one: address.split(Constants.DEFAULT_REGISTRY_URL_SPLITOR)){
@@ -27,7 +27,7 @@ public class DefaultRegistryFactory extends AbstractRegistryFactory{
             registry.retain();
             return registry;
         } catch (ExecutionException e) {
-            ExceptionUtils.log(e);
+            log.error("", e);
         }
 
         return null;

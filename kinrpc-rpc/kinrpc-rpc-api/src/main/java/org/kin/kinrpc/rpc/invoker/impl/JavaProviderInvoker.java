@@ -30,7 +30,7 @@ public class JavaProviderInvoker extends AbstractProviderInvoker {
 
     @Override
     public Object invoke(String methodName, boolean isVoid, Object... params) throws Exception {
-        log.info("service '" + getServiceName() + "' method '" + methodName + "' invoking...");
+        log.debug("service '" + getServiceName() + "' method '" + methodName + "' invoking...");
         Method target = methodMap.get(methodName);
 
         if (target == null) {
@@ -43,21 +43,21 @@ public class JavaProviderInvoker extends AbstractProviderInvoker {
         for (int i = 0; i < paramTypes.length; i++) {
             paramTypeStrs[i] = paramTypes[i].getName();
         }
-        log.info("'" + methodName + "' method's params' type");
-        log.info(StringUtils.mkString(",", paramTypeStrs));
+        log.debug("'" + methodName + "' method's params' type");
+        log.debug(StringUtils.mkString(",", paramTypeStrs));
 
         String[] actualParamTypeStrs = new String[params.length];
         for (int i = 0; i < params.length; i++) {
             paramTypeStrs[i] = params[i].getClass().getName();
         }
-        log.info("'" + methodName + "' method's actual params' type");
-        log.info(StringUtils.mkString(",", actualParamTypeStrs));
+        log.debug("'" + methodName + "' method's actual params' type");
+        log.debug(StringUtils.mkString(",", actualParamTypeStrs));
 
         try {
             return target.invoke(serivce, params);
         } catch (IllegalAccessException e) {
             log.error("service '" + getServiceName() + "' method '" + methodName + "' access illegally");
-            ExceptionUtils.log(e);
+            log.error("", e);
             throw e;
         } catch (InvocationTargetException e) {
             log.error("service '" + getServiceName() + "' method '" + methodName + "' invoke error");

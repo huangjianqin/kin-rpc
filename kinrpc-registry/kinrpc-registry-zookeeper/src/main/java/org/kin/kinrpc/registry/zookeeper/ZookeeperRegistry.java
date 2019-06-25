@@ -57,13 +57,13 @@ public class ZookeeperRegistry extends AbstractRegistry{
             });
         } catch (IOException e) {
             log.error("zookeeper client connect error");
-            ExceptionUtils.log(e);
+            log.error("", e);
         }
 
         try {
             countDownLatch.await();
         } catch (InterruptedException e) {
-            ExceptionUtils.log(e);
+            log.error("", e);
         }
 
         //一些预处理
@@ -80,7 +80,7 @@ public class ZookeeperRegistry extends AbstractRegistry{
             this.zooKeeper.create(path, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
             log.info("create persistent znode(data= '{}') successfully>>> {}", data, path);
         } catch (KeeperException | InterruptedException e) {
-            ExceptionUtils.log(e);
+            log.error("", e);
         }
     }
 
@@ -89,7 +89,7 @@ public class ZookeeperRegistry extends AbstractRegistry{
             this.zooKeeper.delete(path, -1);
             log.info("delete znode successfully>>> " + path);
         } catch (KeeperException | InterruptedException e) {
-            ExceptionUtils.log(e);
+            log.error("", e);
         }
     }
 
@@ -100,7 +100,7 @@ public class ZookeeperRegistry extends AbstractRegistry{
                 createZNode(path, data);
             }
         } catch (KeeperException | InterruptedException e) {
-            ExceptionUtils.log(e);
+            log.error("", e);
         }
     }
 
@@ -111,7 +111,7 @@ public class ZookeeperRegistry extends AbstractRegistry{
                 deleteZNode(path);
             }
         } catch (KeeperException | InterruptedException e) {
-            ExceptionUtils.log(e);
+            log.error("", e);
         }
     }
 
@@ -156,7 +156,7 @@ public class ZookeeperRegistry extends AbstractRegistry{
                 log.info("zookeeper registry destroying...");
                 zooKeeper.close();
             } catch (InterruptedException e) {
-                ExceptionUtils.log(e);
+                log.error("", e);
             }
         }
         log.info("zookeeper registry destroy successfully");

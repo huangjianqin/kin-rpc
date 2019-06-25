@@ -11,15 +11,16 @@ public class Constants {
 
     //url参数
     public static final int URL_PARAM_NUM = 6;
-    public static final String APP_NAME = "appName";
+    public static final String APP_NAME_KEY = "appName";
     //连接超时
-    public static final String TIMEOUT = "timeout";
-    public static final String REGISTRY = "registry";
-    public static final String REGISTRY_URL = "registryURL";
-    public static final String REGISTRY_PASSWORD = "registryPassword";
+    public static final String TIMEOUT_KEY = "timeout";
+    public static final String REGISTRY_KEY = "registry";
+    public static final String REGISTRY_URL_KEY = "registryURL";
+    public static final String REGISTRY_PASSWORD_KEY = "registryPassword";
     //会话超时
-    public static final String SESSION_TIMEOUT = "sessionTimeout";
-
+    public static final String SESSION_TIMEOUT_KEY = "sessionTimeout";
+    public static final String RETRY_TIMES_KEY = "retryTimes";
+    public static final String RETRY_TIMEOUT_KEY = "retryTimeout";
 //    public static final String CLAXX_KEY = "claxx";//接口名
 //    public static final String VERSION_KEY = "version";//服务版本
 //    public static final String METHOD_KEY = "method";//接口方法列表
@@ -35,10 +36,14 @@ public class Constants {
     public static final String DEFAULT_REGISTRY = "default";
     //provider Server默认配置
     public static final int SERVER_DEFAULT_PORT = 16888;
-    //限流
-    public static final int SERVER_REQUEST_THRESHOLD = 100;
     //default register url splitor
     public static final String DEFAULT_REGISTRY_URL_SPLITOR = ";";
+    //重试次数
+    public static int RETRY_TIMES = 3;
+    //等待重试时间
+    public static int RETRY_TIMEOUT = 500;
+    //限流
+    public static final int SERVER_REQUEST_THRESHOLD = 100;
 
 
 

@@ -110,6 +110,13 @@
         <appender-ref ref="asyncClusterAppender"/>
     </logger>
 
+    <logger name="error" level="ERROR" additivity="false">
+        <appender-ref ref="asyncERROR"/>
+        <appender-ref ref="asyncClusterAppender"/>
+        <appender-ref ref="asyncRouterAppender"/>
+        <appender-ref ref="asyncLoadbalanceAppender"/>
+    </logger>
+
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="asyncSTDOUT"/>

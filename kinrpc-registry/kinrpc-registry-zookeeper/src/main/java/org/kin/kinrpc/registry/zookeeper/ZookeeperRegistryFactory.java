@@ -14,16 +14,16 @@ import java.util.concurrent.ExecutionException;
 public class ZookeeperRegistryFactory extends AbstractRegistryFactory {
     @Override
     public Registry getRegistry(URL url) {
-        String address = url.getParam(Constants.REGISTRY_URL);
-        String password = url.getParam(Constants.REGISTRY_PASSWORD);
-        int sessionTimeout = Integer.valueOf(url.getParam(Constants.SESSION_TIMEOUT));
+        String address = url.getParam(Constants.REGISTRY_URL_KEY);
+        String password = url.getParam(Constants.REGISTRY_PASSWORD_KEY);
+        int sessionTimeout = Integer.valueOf(url.getParam(Constants.SESSION_TIMEOUT_KEY));
 
         try {
             Registry registry = registryCache.get(address, () -> new ZookeeperRegistry(address, password, sessionTimeout));
             registry.retain();
             return registry;
         } catch (ExecutionException e) {
-            ExceptionUtils.log(e);
+            log.error("", e);
         }
 
         return null;

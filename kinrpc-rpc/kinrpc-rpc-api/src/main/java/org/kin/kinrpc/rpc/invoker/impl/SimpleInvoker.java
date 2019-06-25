@@ -25,7 +25,7 @@ public class SimpleInvoker implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        log.info("invoke method '" + method.getName() + "'");
+        log.debug("invoke method '" + method.getName() + "'");
 
         //异步方式: consumer端必须自定义一个与service端除了返回值为Future.class或者CompletableFuture.class外,
         //方法签名相同的接口
@@ -37,7 +37,7 @@ public class SimpleInvoker implements InvocationHandler {
                 try {
                     return invoker.invokeAsync(ClassUtils.getUniqueName(method), args).get();
                 } catch (Exception e) {
-                    ExceptionUtils.log(e);
+                    log.error("", e);
                 }
 
                 return null;

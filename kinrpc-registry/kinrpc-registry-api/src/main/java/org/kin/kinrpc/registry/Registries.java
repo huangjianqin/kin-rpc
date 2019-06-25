@@ -6,6 +6,8 @@ import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.common.URL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -14,13 +16,14 @@ import java.util.concurrent.ExecutionException;
  * Created by huangjianqin on 2019/6/18.
  */
 public class Registries {
+    private static final Logger log = LoggerFactory.getLogger("registry");
     private static final Cache<String, RegistryFactory> REGISTRY_FACTORY_CACHE = CacheBuilder.newBuilder().build();
 
     private Registries() {
     }
 
     private static RegistryFactory getRegistryFactory(URL url){
-        String registryType = url.getParam(Constants.REGISTRY).toLowerCase();
+        String registryType = url.getParam(Constants.REGISTRY_KEY).toLowerCase();
 
         try {
             RegistryFactory registryFactory = REGISTRY_FACTORY_CACHE.get(registryType, () -> {
@@ -39,7 +42,7 @@ public class Registries {
 
             return registryFactory;
         } catch (ExecutionException e) {
-            ExceptionUtils.log(e);
+            log.error("", e);
         }
 
         throw new IllegalStateException("init registry error >>>" + registryType);

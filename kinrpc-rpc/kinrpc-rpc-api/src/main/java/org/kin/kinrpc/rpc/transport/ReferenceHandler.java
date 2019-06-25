@@ -57,14 +57,13 @@ public class ReferenceHandler extends AbstractConnection implements ProtocolHand
         return client.isActive();
     }
 
-    public void request(RPCRequest request) throws Exception {
+    public void request(RPCRequest request){
         try {
             byte[] data = serializer.serialize(request);
             RPCRequestProtocol protocol = new RPCRequestProtocol(data);
             client.request(protocol);
         } catch (IOException e) {
             log.error("", e);
-            throw e;
         }
     }
 

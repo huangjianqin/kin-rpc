@@ -156,7 +156,7 @@ public class RPCProvider {
         try {
             Thread.sleep(500L);
         } catch (InterruptedException e) {
-            ExceptionUtils.log(e);
+            log.error("", e);
         }
         //处理完所有进入队列的请求
         threads.shutdown();
@@ -164,7 +164,7 @@ public class RPCProvider {
         try {
             Thread.sleep(200L);
         } catch (InterruptedException e) {
-            ExceptionUtils.log(e);
+            log.error("", e);
         }
 
         //最后关闭连接
@@ -181,7 +181,7 @@ public class RPCProvider {
                 try {
                     requestsQueue.put(rpcRequest);
                 } catch (InterruptedException e) {
-                    ExceptionUtils.log(e);
+                    log.error("", e);
                 }
             });
         }
@@ -237,7 +237,7 @@ public class RPCProvider {
                         connection.resp(channel, rpcResponse);
                     });
                 } catch (InterruptedException e) {
-                    ExceptionUtils.log(e);
+                    log.error("", e);
                 }
             }
             log.info("request scanner thread state change");

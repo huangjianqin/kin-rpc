@@ -66,6 +66,11 @@
         <appender-ref ref="asyncInvokerAppender"/>
     </logger>
 
+    <logger name="error" level="ERROR" additivity="false">
+        <appender-ref ref="asyncERROR"/>
+        <appender-ref ref="asyncInvokerAppender"/>
+    </logger>
+
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="asyncSTDOUT"/>

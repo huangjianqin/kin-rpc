@@ -63,7 +63,7 @@ public class ZookeeperDirectory extends AbstractDirectory {
                         break;
                     }
                 } catch (InterruptedException e) {
-                    ExceptionUtils.log(e);
+                    log.error("", e);
                 }
             }
 
@@ -134,7 +134,7 @@ public class ZookeeperDirectory extends AbstractDirectory {
                     discover();
                 }
             } catch (InterruptedException e) {
-                ExceptionUtils.log(e);
+                log.error("", e);
             }
         }
     }

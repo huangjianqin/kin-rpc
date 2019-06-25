@@ -41,17 +41,13 @@ public class RPCReference implements ExceptionHandler, ChannelInactiveListener {
         }
     }
 
-    public Future<RPCResponse> request(RPCRequest request) throws Exception {
-        log.info("发送请求>>>" + request.toString());
-        try {
-            referenceHandler.request(request);
-            RPCFuture future = new RPCFuture(request, this);
-            pendingRPCFutureMap.put(request.getRequestId() + "", future);
-            return future;
-        } catch (Exception e) {
-            log.error("", e);
-            throw e;
-        }
+    public Future<RPCResponse> request(RPCRequest request){
+        log.debug("发送请求>>>" + request.toString());
+
+        referenceHandler.request(request);
+        RPCFuture future = new RPCFuture(request, this);
+        pendingRPCFutureMap.put(request.getRequestId() + "", future);
+        return future;
     }
 
     private void clean() {

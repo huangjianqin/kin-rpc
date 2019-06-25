@@ -6,7 +6,6 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
-import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.transport.AbstractConnection;
 import org.kin.kinrpc.transport.handler.BaseFrameCodec;
 import org.kin.kinrpc.transport.listener.*;
@@ -95,7 +94,7 @@ public class Client extends AbstractConnection {
         try {
             latch.await();
         } catch (InterruptedException e) {
-            ExceptionUtils.log(e);
+            log.error("", e);
         }
 
         channel.close();
@@ -107,7 +106,7 @@ public class Client extends AbstractConnection {
         try {
             latch.await();
         } catch (InterruptedException e) {
-            ExceptionUtils.log(e);
+            log.error("", e);
         }
         return channel.isActive();
     }
@@ -116,7 +115,7 @@ public class Client extends AbstractConnection {
         try {
             latch.await();
         } catch (InterruptedException e) {
-            ExceptionUtils.log(e);
+            log.error("", e);
         }
 
         channel.writeAndFlush(protocol);

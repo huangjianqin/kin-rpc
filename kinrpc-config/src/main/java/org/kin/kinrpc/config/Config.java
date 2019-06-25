@@ -40,19 +40,19 @@ abstract class AbstractConfig {
         sb.append(Constants.KINRPC_PROTOCOL + "://" + hostPort + "/" + serviceName + "?");
 
         Map<String, String> params = new HashMap<>(Constants.URL_PARAM_NUM);
-        params.put(Constants.APP_NAME, applicationConfig.getAppName());
+        params.put(Constants.APP_NAME_KEY, applicationConfig.getAppName());
         if(registryConfig instanceof DefaultRegistryConfig){
-            params.put(Constants.REGISTRY, Constants.DEFAULT_REGISTRY);
+            params.put(Constants.REGISTRY_KEY, Constants.DEFAULT_REGISTRY);
         }
         else if(registryConfig instanceof ZookeeperRegistryConfig){
-            params.put(Constants.REGISTRY, Constants.ZOOKEEPER_REGISTRY);
+            params.put(Constants.REGISTRY_KEY, Constants.ZOOKEEPER_REGISTRY);
         }
         else{
             throw new IllegalStateException("unknown registry");
         }
-        params.put(Constants.REGISTRY_URL, registryConfig.getUrl());
-        params.put(Constants.REGISTRY_PASSWORD, registryConfig.getPassword());
-        params.put(Constants.SESSION_TIMEOUT, registryConfig.getSessionTimeout() + "");
+        params.put(Constants.REGISTRY_URL_KEY, registryConfig.getUrl());
+        params.put(Constants.REGISTRY_PASSWORD_KEY, registryConfig.getPassword());
+        params.put(Constants.SESSION_TIMEOUT_KEY, registryConfig.getSessionTimeout() + "");
 
         params.putAll(otherParams);
 

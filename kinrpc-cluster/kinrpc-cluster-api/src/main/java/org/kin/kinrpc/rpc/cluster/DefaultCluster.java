@@ -37,14 +37,14 @@ class DefaultCluster implements Cluster {
 
     @Override
     public AbstractReferenceInvoker get() {
-        log.info("get one reference invoker from cluster");
+        log.debug("get one reference invoker from cluster");
         if (checkState()) {
             List<AbstractReferenceInvoker> availableInvokers = directory.list();
-            List<AbstractReferenceInvoker> filtedInvokers = router.router(availableInvokers);
-            AbstractReferenceInvoker realCalledInvoker = loadBalance.loadBalance(filtedInvokers);
+            List<AbstractReferenceInvoker> routeredInvokers = router.router(availableInvokers);
+            AbstractReferenceInvoker loadbalancedInvoker = loadBalance.loadBalance(routeredInvokers);
 
-            log.info("real invoker(" + realCalledInvoker.getAddress() + ")");
-            return realCalledInvoker;
+            log.debug("real invoker(" + loadbalancedInvoker.getAddress() + ")");
+            return loadbalancedInvoker;
         }
 
         return null;

@@ -7,6 +7,8 @@ import org.kin.kinrpc.common.URL;
 import org.kin.kinrpc.rpc.cluster.Clusters;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by 健勤 on 2017/2/15.
@@ -17,6 +19,8 @@ class ReferenceConfig<T> extends AbstractConfig {
     private Class<T> interfaceClass;
     private int timeout = Constants.REFERENCE_DEFAULT_CONNECT_TIMEOUT;
     private String serviceName;
+    private int retryTimes = Constants.RETRY_TIMES;
+    private int retryTimeout = Constants.RETRY_TIMEOUT;
 
     private URL url;
     private volatile T reference;
@@ -44,16 +48,20 @@ class ReferenceConfig<T> extends AbstractConfig {
         Preconditions.checkNotNull(this.applicationConfig, "consumer must need to configure application");
         Preconditions.checkNotNull(this.registryConfig, "consumer must need to configure register");
         Preconditions.checkNotNull(this.interfaceClass, "consumer subscribed interface must be not null");
-        Preconditions.checkNotNull(this.timeout < 0, "connection's timeout must greater than 0");
-
+        Preconditions.checkArgument(this.timeout <= 0, "connection's timeout must greater than 0");
+        Preconditions.checkArgument(this.retryTimeout <= 0, "retrytimeout must greater than 0");
     }
 
     public synchronized T get() {
         if(!isReference){
             check();
 
-            url = createReferenceURL(applicationConfig, registryConfig, serviceName,
-                    Collections.singletonMap(Constants.TIMEOUT, timeout + ""));
+            Map<String, String> params = new HashMap<>();
+            params.put(Constants.TIMEOUT_KEY, timeout + "");
+            params.put(Constants.RETRY_TIMES_KEY, retryTimes + "");
+            params.put(Constants.RETRY_TIMEOUT_KEY, retryTimeout + "");
+
+            url = createReferenceURL(applicationConfig, registryConfig, serviceName, params);
             Preconditions.checkNotNull(url);
 
             reference = Clusters.reference(url, interfaceClass);
@@ -116,6 +124,20 @@ class ReferenceConfig<T> extends AbstractConfig {
     public ReferenceConfig<T> serviceName(String serviceName){
         if(isReference){
             this.serviceName = serviceName;
+        }
+        return this;
+    }
+
+    public ReferenceConfig<T> retry(int retryTimes){
+        if(isReference){
+            this.retryTimes = retryTimes;
+        }
+        return this;
+    }
+
+    public ReferenceConfig<T> retryTimeout(int retryTimeout){
+        if(isReference){
+            this.retryTimeout = retryTimeout;
         }
         return this;
     }

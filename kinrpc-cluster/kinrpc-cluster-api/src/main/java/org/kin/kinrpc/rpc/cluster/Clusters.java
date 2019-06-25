@@ -10,6 +10,8 @@ import org.kin.kinrpc.common.URL;
 import org.kin.kinrpc.registry.Registries;
 import org.kin.kinrpc.registry.Registry;
 import org.kin.kinrpc.rpc.domain.RPCProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Proxy;
 
@@ -17,6 +19,7 @@ import java.lang.reflect.Proxy;
  * Created by huangjianqin on 2019/6/18.
  */
 public class Clusters {
+    private static final Logger log = LoggerFactory.getLogger("cluster");
     private static final Cache<Integer, RPCProvider> PROVIDER_CACHE = CacheBuilder.newBuilder().build();
     private static final Cache<String, ClusterInvoker> REFERENCE_CACHE = CacheBuilder.newBuilder().build();
 
@@ -42,7 +45,7 @@ public class Clusters {
                 return provider0;
             });
         } catch (Exception e) {
-            ExceptionUtils.log(e);
+            log.error("", e);
             return;
         }
 
@@ -52,7 +55,7 @@ public class Clusters {
             provider.addService(url.getServiceName(), interfaceClass, instance);
             registry.register(interfaceClass.getName(), "0.0.0.0", port);
         } catch (Exception e) {
-            ExceptionUtils.log(e);
+            log.error("", e);
             disableService(url, interfaceClass);
         }
     }
@@ -76,10 +79,12 @@ public class Clusters {
         Preconditions.checkNotNull(registry);
 
         //构建Cluster类
-        int timeout = Integer.valueOf(url.getParam(Constants.TIMEOUT));
+        int timeout = Integer.valueOf(url.getParam(Constants.TIMEOUT_KEY));
+        int retryTimes = Integer.valueOf(url.getParam(Constants.RETRY_TIMES_KEY));
+        int retryTimeout = Integer.valueOf(url.getParam(Constants.RETRY_TIMEOUT_KEY));
         Cluster cluster = new DefaultCluster(registry, url.getServiceName(), timeout);
 
-        ClusterInvoker clusterInvoker = new ClusterInvoker(cluster);
+        ClusterInvoker clusterInvoker = new ClusterInvoker(cluster, retryTimes, retryTimeout);
 
         Object jdkProxy = Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class<?>[]{interfaceClass}, clusterInvoker);
 

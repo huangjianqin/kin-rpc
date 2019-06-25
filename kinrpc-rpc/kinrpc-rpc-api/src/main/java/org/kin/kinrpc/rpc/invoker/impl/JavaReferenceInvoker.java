@@ -5,6 +5,7 @@ import org.kin.kinrpc.rpc.domain.RPCReference;
 import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequestIdGenerator;
+import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -33,30 +34,39 @@ public class JavaReferenceInvoker extends AbstractReferenceInvoker {
     @Override
     public Object invoke(String methodName, boolean isVoid, Object... params) throws Exception {
         try {
-            Future future = invoke0(methodName, params);
+            Future<RPCResponse> future = invoke0(methodName, params);
             if (!isVoid) {
-                return future.get();
+                RPCResponse rpcResponse = future.get();
+                if (rpcResponse != null) {
+                    switch (rpcResponse.getState()) {
+                        case SUCCESS:
+                            return rpcResponse.getResult();
+                        case RETRY:
+                            throw new RuntimeException("need to retry to invoke service");
+                        case ERROR:
+                            throw new RuntimeException(rpcResponse.getInfo());
+                        default:
+                            throw new RuntimeException("unknown rpc response state code");
+                    }
+                }
             }
             return null;
         } catch (InterruptedException e) {
-            log.info("pending result interrupted >>> {}", e.getMessage());
+            log.error("pending result interrupted >>> {}", e.getMessage());
             throw e;
         } catch (ExecutionException e) {
-            log.info("pending result execute error >>> {}", e.getMessage());
+            log.error("pending result execute error >>> {}", e.getMessage());
             throw e;
-        } catch (TimeoutException e) {
-            log.info("invoke time out >>> {}", e.getMessage());
-            return null;
         }
     }
 
     @Override
-    public Future invokeAsync(String methodName, Object... params) throws Exception {
+    public Future<RPCResponse> invokeAsync(String methodName, Object... params) throws Exception {
         return invoke0(methodName, params);
     }
 
-    private Future invoke0(String methodName, Object... params) throws Exception {
-        log.info("invoke method '" + methodName + "'");
+    private Future<RPCResponse> invoke0(String methodName, Object... params){
+        log.debug("invoke method '" + methodName + "'");
         RPCRequest request = createRequest(RPCRequestIdGenerator.next(), methodName, params);
         return rpcReference.request(request);
     }
