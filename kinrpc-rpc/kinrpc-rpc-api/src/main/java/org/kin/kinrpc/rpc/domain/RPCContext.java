@@ -9,13 +9,11 @@ public class RPCContext {
     private ThreadLocal<Future> rpcFuture = new ThreadLocal<>();
     private static final RPCContext INSTANCE = new RPCContext();
 
-    public static RPCContext instance() {
-        return INSTANCE;
+    private RPCContext(){
     }
 
-    public void clean(){
-        //TODO 该RPC FUTURE完成时, 要清掉
-        rpcFuture.remove();
+    public static RPCContext instance() {
+        return INSTANCE;
     }
 
     //setter && getter
