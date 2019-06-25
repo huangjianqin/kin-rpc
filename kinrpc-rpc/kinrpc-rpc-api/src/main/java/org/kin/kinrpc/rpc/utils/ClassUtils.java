@@ -6,6 +6,10 @@ import java.lang.reflect.Method;
  * Created by huangjianqin on 2019/6/12.
  */
 public class ClassUtils {
+    private ClassUtils(){
+
+    }
+
     public static String getUniqueName(Method method) {
         StringBuilder sb = new StringBuilder();
         sb.append(method.toString());

@@ -4,6 +4,10 @@ package org.kin.kinrpc.registry;
  * Created by huangjianqin on 2019/6/11.
  */
 public class RegistryConstants {
+    private RegistryConstants(){
+
+    }
+
     public static final String REGISTRY_ROOT = "/kinrpc";
     public static final String REGISTRY_PAHT_SEPARATOR = "/";
 

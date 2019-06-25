@@ -8,6 +8,10 @@ import java.net.InetSocketAddress;
  * Created by huangjianqin on 2019/6/3.
  */
 public class ChannelUtils {
+    private ChannelUtils(){
+
+    }
+
     public static String getIP(Channel channel) {
         return ((InetSocketAddress) channel.remoteAddress()).getAddress().toString().substring(1);
     }
