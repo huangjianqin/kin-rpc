@@ -53,7 +53,6 @@ public class ProtocolCodec extends MessageToMessageCodec<ByteBuf, ProtocolByteBu
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-        //对于server还是client, 直接解析成AbstractProtocol
         if (serverElseClient) {
             Request byteBufRequest = new ProtocolByteBuf(in);
             out.add(transfer.transfer(byteBufRequest));
