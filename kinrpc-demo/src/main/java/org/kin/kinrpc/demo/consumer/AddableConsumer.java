@@ -1,9 +1,9 @@
-package org.kin.kinrpc.config.test.consumer;
+package org.kin.kinrpc.demo.consumer;
 
 
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.References;
-import org.kin.kinrpc.config.test.service.Addable;
+import org.kin.kinrpc.demo.service.Addable;
 import org.kin.kinrpc.transport.statistic.InOutBoundStatisicService;
 
 /**

@@ -14,6 +14,7 @@
         <module>kinrpc-rpc</module>
         <module>kinrpc-config</module>
         <module>kinrpc</module>
+        <module>kinrpc-demo</module>
     </modules>
     <packaging>pom</packaging>
 
