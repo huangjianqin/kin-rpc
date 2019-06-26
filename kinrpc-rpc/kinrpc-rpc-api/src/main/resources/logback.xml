@@ -40,7 +40,7 @@
             <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>ERROR</level>
+            <level>INFO</level>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>logs/%d{yyyy-MM-dd}/invoker.log.%d{yyyy-MM-dd}</fileNamePattern>

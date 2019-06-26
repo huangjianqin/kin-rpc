@@ -48,10 +48,8 @@ public class ZookeeperRegistry extends AbstractRegistry{
                         countDownLatch.countDown();
                         log.info("zookeeper registry created");
                     } else if (watchedEvent.getState() == Event.KeeperState.Expired) {
-                        log.error("connect to zookeeper server timeout({})", sessionTimeOut);
                         throw new RuntimeException("connect to zookeeper server timeout(" + sessionTimeOut + ")");
                     } else if (watchedEvent.getState() == Event.KeeperState.Disconnected) {
-                        log.info("disconnect to zookeeper server");
                         throw new RuntimeException("disconnect to zookeeper server");
                     }
                 }

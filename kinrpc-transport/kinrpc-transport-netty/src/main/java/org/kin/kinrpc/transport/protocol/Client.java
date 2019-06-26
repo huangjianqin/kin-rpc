@@ -77,7 +77,6 @@ public class Client extends AbstractConnection {
                     channel = channelFuture.channel();
                     latch.countDown();
                 } else {
-                    log.error("connect to remote server time out: {}", address);
                     throw new RuntimeException("connect to remote server time out: " + address);
                 }
             }

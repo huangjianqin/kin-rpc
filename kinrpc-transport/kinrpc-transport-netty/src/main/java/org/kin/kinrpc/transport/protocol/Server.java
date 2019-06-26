@@ -91,7 +91,6 @@ public class Server extends AbstractConnection {
                     selector = channelFuture.channel();
                     latch.countDown();
                 } else {
-                    log.error("server connection bind fail: {}", address);
                     throw new RuntimeException("server connection bind fail: " + address);
                 }
             }
@@ -103,7 +102,6 @@ public class Server extends AbstractConnection {
     @Override
     public void close() {
         if (this.selector == null || this.workerGroup == null || this.bossGroup == null) {
-            log.error("server connection has not started call close");
             throw new IllegalStateException("server connection has not started");
         }
 

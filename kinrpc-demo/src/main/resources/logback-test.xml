@@ -12,7 +12,7 @@
             <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>INFO</level>
+            <level>DEBUG</level>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>logs/%d{yyyy-MM-dd}/stdout.log.%d{yyyy-MM-dd}</fileNamePattern>
@@ -40,7 +40,7 @@
             <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>ERROR</level>
+            <level>DEBUG</level>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>logs/%d{yyyy-MM-dd}/transport.log.%d{yyyy-MM-dd}</fileNamePattern>
@@ -54,7 +54,7 @@
             <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>ERROR</level>
+            <level>DEBUG</level>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>logs/%d{yyyy-MM-dd}/reqStatistic.log.%d{yyyy-MM-dd}</fileNamePattern>
@@ -68,7 +68,7 @@
             <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>ERROR</level>
+            <level>DEBUG</level>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>logs/%d{yyyy-MM-dd}/respStatistic.log.%d{yyyy-MM-dd}</fileNamePattern>
@@ -82,7 +82,7 @@
             <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>ERROR</level>
+            <level>DEBUG</level>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>logs/%d{yyyy-MM-dd}/invoker.log.%d{yyyy-MM-dd}</fileNamePattern>
@@ -96,7 +96,7 @@
             <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>ERROR</level>
+            <level>DEBUG</level>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>logs/%d{yyyy-MM-dd}/registry.log.%d{yyyy-MM-dd}</fileNamePattern>
@@ -110,7 +110,7 @@
             <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>ERROR</level>
+            <level>DEBUG</level>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>logs/%d{yyyy-MM-dd}/loadbalance.log.%d{yyyy-MM-dd}</fileNamePattern>
@@ -124,7 +124,7 @@
             <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>ERROR</level>
+            <level>DEBUG</level>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>logs/%d{yyyy-MM-dd}/router.log.%d{yyyy-MM-dd}</fileNamePattern>
@@ -138,7 +138,7 @@
             <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>ERROR</level>
+            <level>DEBUG</level>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>logs/%d{yyyy-MM-dd}/cluster.log.%d{yyyy-MM-dd}</fileNamePattern>
@@ -192,40 +192,40 @@
         <appender-ref ref="asyncERROR"/>
     </logger>
 
-    <logger name="transport" level="INFO">
+    <logger name="transport" level="DEBUG">
         <appender-ref ref="asyncTransportAppender"/>
         <appender-ref ref="asyncERROR" level="ERROR"/>
     </logger>
 
-    <logger name="reqStatistic" level="INFO">
+    <logger name="reqStatistic" level="DEBUG">
         <appender-ref ref="asyncReqStatisticAppender"/>
     </logger>
 
-    <logger name="respStatistic" level="INFO">
+    <logger name="respStatistic" level="DEBUG">
         <appender-ref ref="asyncRespStatisticAppender"/>
     </logger>
 
-    <logger name="invoker" level="INFO">
+    <logger name="invoker" level="DEBUG">
         <appender-ref ref="asyncInvokerAppender"/>
         <appender-ref ref="asyncERROR" level="ERROR"/>
     </logger>
 
-    <logger name="registry" level="INFO">
+    <logger name="registry" level="DEBUG">
         <appender-ref ref="asyncRegistryAppender"/>
         <appender-ref ref="asyncERROR" level="ERROR"/>
     </logger>
 
-    <logger name="loadbalance" level="INFO">
+    <logger name="loadbalance" level="DEBUG">
         <appender-ref ref="asyncLoadbalanceAppender"/>
         <appender-ref ref="asyncERROR" level="ERROR"/>
     </logger>
 
-    <logger name="router" level="INFO">
+    <logger name="router" level="DEBUG">
         <appender-ref ref="asyncRouterAppender"/>
         <appender-ref ref="asyncERROR" level="ERROR"/>
     </logger>
 
-    <logger name="cluster" level="INFO">
+    <logger name="cluster" level="DEBUG">
         <appender-ref ref="asyncClusterAppender"/>
         <appender-ref ref="asyncERROR" level="ERROR"/>
     </logger>

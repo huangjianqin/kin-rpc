@@ -31,9 +31,9 @@ public class RPCProvider {
     //各种服务请求处理的线程池
     private final ForkJoinPool threads;
     //保证RPCRequest按请求顺序进队
-    private final ThreadManager singleThread = new ThreadManager(
+    private final ThreadManager orderQueueRequestsThread = new ThreadManager(
             new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<>(), new SimpleThreadFactory("scan-request")));
+            new LinkedBlockingQueue<>(), new SimpleThreadFactory("order-queue-requests")));
     //RPCRequest队列,所有连接该Server的consumer发送的request都put进这个队列
     //然后由一个专门的线程不断地get,再提交到线程池去处理
     //本质上是生产者-消费者模式
@@ -99,7 +99,7 @@ public class RPCProvider {
         }
         log.info("server(port= " + port + ") starting...");
         //启动连接
-        this.connection = new ProviderHandler(new InetSocketAddress("localhost", this.port), this);
+        this.connection = new ProviderHandler(new InetSocketAddress(this.port), this);
         try {
             connection.bind();
         } catch (Exception e) {
@@ -142,11 +142,9 @@ public class RPCProvider {
             return;
         }
         if (this.connection == null || scanRequestsThread == null) {
-            log.error("Server has not started call shutdown");
             throw new IllegalStateException("Provider Server has not started");
         }
 
-        log.warn("server shutdown now(some resource may be still running)");
         //关闭扫描请求队列线程  停止将队列中的请求的放入线程池中处理,转而发送重试的RPCResponse
         scanRequestsThread.setStopped(true);
         //中断对requestsQueue的take()阻塞操作
@@ -173,7 +171,7 @@ public class RPCProvider {
 
     public void handleRequest(RPCRequest rpcRequest) {
         if(!isStopped){
-            singleThread.execute(() -> {
+            orderQueueRequestsThread.execute(() -> {
                 try {
                     requestsQueue.put(rpcRequest);
                 } catch (InterruptedException e) {
@@ -186,6 +184,10 @@ public class RPCProvider {
     private class ScanRequestsThread extends Thread {
         private final Logger log = LoggerFactory.getLogger("invoker");
         private boolean stopped = false;
+
+        public ScanRequestsThread() {
+            super("requests-scanner--thread-1");
+        }
 
         @Override
         public void run() {
@@ -249,7 +251,7 @@ public class RPCProvider {
                 channel.write(rpcResponse);
             }
             requestsQueue.clear();
-            log.info("request scanner thread stop");
+            log.info("requests scanner thread stop");
 
         }
 
