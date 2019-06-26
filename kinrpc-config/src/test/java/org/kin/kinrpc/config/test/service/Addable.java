@@ -1,4 +1,4 @@
-package org.kin.kinrpc.test.service;
+package org.kin.kinrpc.config.test.service;
 
 /**
  * Created by 健勤 on 2017/2/16.
