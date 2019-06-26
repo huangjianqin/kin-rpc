@@ -2,6 +2,7 @@ package org.kin.kinrpc.transport.protocol;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
@@ -26,7 +27,7 @@ import java.util.concurrent.CountDownLatch;
 public class Client extends AbstractConnection {
     private static final Logger log = LoggerFactory.getLogger("transport");
 
-    private EventLoopGroup eventLoopGroup;
+    private EventLoopGroup eventLoopGroup = new NioEventLoopGroup(1);
     private Channel channel;
     //建立好连接后才可以进行一些操作
     private CountDownLatch latch = new CountDownLatch(1);
@@ -90,7 +91,6 @@ public class Client extends AbstractConnection {
 
     @Override
     public void close() {
-        log.info("client closing...");
         try {
             latch.await();
         } catch (InterruptedException e) {
@@ -99,6 +99,7 @@ public class Client extends AbstractConnection {
 
         channel.close();
         eventLoopGroup.shutdownGracefully();
+        log.info("client closed");
     }
 
     @Override
@@ -118,7 +119,7 @@ public class Client extends AbstractConnection {
             log.error("", e);
         }
 
-        channel.writeAndFlush(protocol);
+        channel.writeAndFlush(protocol.write());
     }
 
     //setter

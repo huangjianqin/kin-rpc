@@ -3,7 +3,7 @@ package org.kin.kinrpc.registry;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.kin.framework.utils.ClassUtils;
-import org.kin.framework.utils.ExceptionUtils;
+import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.common.URL;
 import org.slf4j.Logger;
@@ -23,15 +23,20 @@ public class Registries {
     }
 
     private static RegistryFactory getRegistryFactory(URL url){
-        String registryType = url.getParam(Constants.REGISTRY_KEY).toLowerCase();
+        String registryType = url.getParam(Constants.REGISTRY_KEY);
+        if(StringUtils.isBlank(registryType)){
+            return null;
+        }
+        registryType = registryType.toLowerCase();
 
         try {
+            String finalRegistryType = registryType;
             RegistryFactory registryFactory = REGISTRY_FACTORY_CACHE.get(registryType, () -> {
                 Set<Class<RegistryFactory>> classes = ClassUtils.getSubClass("org.kin.kinrpc.registry", RegistryFactory.class, true);
                 if (classes.size() > 0) {
                     for (Class<RegistryFactory> claxx : classes) {
                         String className = claxx.getSimpleName().toLowerCase();
-                        if (className.startsWith(registryType)) {
+                        if (className.startsWith(finalRegistryType)) {
                             return claxx.newInstance();
                         }
                     }
@@ -50,11 +55,16 @@ public class Registries {
 
     public static synchronized Registry getRegistry(URL url){
         RegistryFactory registryFactory = getRegistryFactory(url);
-        return registryFactory.getRegistry(url);
+        if(registryFactory != null){
+            return registryFactory.getRegistry(url);
+        }
+        return null;
     }
 
     public static synchronized void closeRegistry(URL url){
         RegistryFactory registryFactory = getRegistryFactory(url);
-        registryFactory.close(url);
+        if(registryFactory != null){
+            registryFactory.close(url);
+        }
     }
 }

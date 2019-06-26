@@ -1,9 +1,9 @@
 package org.kin.kinrpc.registry;
 
 import com.google.common.net.HostAndPort;
-import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.common.URL;
+import org.kin.kinrpc.rpc.serializer.SerializerType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +16,7 @@ public class DefaultRegistryFactory extends AbstractRegistryFactory{
     @Override
     public Registry getRegistry(URL url) {
         String address = url.getParam(Constants.REGISTRY_URL_KEY);
+        SerializerType serializerType = SerializerType.getByName(url.getParam(Constants.SERIALIZE_KEY));
 
         List<HostAndPort> hostAndPorts = new ArrayList<>();
         for(String one: address.split(Constants.DEFAULT_REGISTRY_URL_SPLITOR)){
@@ -23,7 +24,7 @@ public class DefaultRegistryFactory extends AbstractRegistryFactory{
         }
 
         try {
-            Registry registry = registryCache.get(address, () -> new DefaultRegistry(hostAndPorts));
+            Registry registry = registryCache.get(address, () -> new DefaultRegistry(hostAndPorts, serializerType));
             registry.retain();
             return registry;
         } catch (ExecutionException e) {

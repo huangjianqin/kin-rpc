@@ -7,9 +7,9 @@ import org.kin.kinrpc.rpc.serializer.SerializerType;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.kin.kinrpc.transport.AbstractConnection;
+import org.kin.kinrpc.transport.protocol.AbstractSession;
 import org.kin.kinrpc.transport.protocol.ProtocolHandler;
 import org.kin.kinrpc.transport.protocol.Server;
-import org.kin.kinrpc.transport.protocol.AbstractSession;
 import org.kin.kinrpc.transport.statistic.InOutBoundStatisicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +28,7 @@ public class ProviderHandler extends AbstractConnection implements ProtocolHandl
 
     public ProviderHandler(InetSocketAddress address,
                            RPCProvider rpcProvider) {
-        this(address, rpcProvider, SerializerType.HESSION.newInstance());
+        this(address, rpcProvider, SerializerType.KRYO.newInstance());
     }
 
     public ProviderHandler(InetSocketAddress address,
@@ -68,7 +68,7 @@ public class ProviderHandler extends AbstractConnection implements ProtocolHandl
             byte[] data = protocol.getReqContent();
             RPCRequest rpcRequest = null;
             try {
-                rpcRequest = serializer.deserialize(data);
+                rpcRequest = serializer.deserialize(data, RPCRequest.class);
                 rpcRequest.setChannel(session.getChannel());
             } catch (IOException | ClassNotFoundException e) {
                 log.error("", e);
@@ -106,6 +106,6 @@ public class ProviderHandler extends AbstractConnection implements ProtocolHandl
         }
 
         RPCResponseProtocol rpcResponseProtocol = new RPCResponseProtocol(data);
-        channel.writeAndFlush(rpcResponseProtocol);
+        channel.writeAndFlush(rpcResponseProtocol.write());
     }
 }

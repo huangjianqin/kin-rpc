@@ -30,7 +30,9 @@ public class ProtocolByteBuf implements Request, Response, ReferenceCounted {
 
     public ProtocolByteBuf(ByteBuf byteBuf, boolean needReadRespSN) {
         this.byteBuf = byteBuf;
-        this.respSN = byteBuf.readInt();
+        if(needReadRespSN){
+            this.respSN = byteBuf.readInt();
+        }
         this.protocolId = byteBuf.readUnsignedShort();
         this.contentSize = byteBuf.readableBytes();
         this.mode = READ_MODE;
@@ -39,6 +41,7 @@ public class ProtocolByteBuf implements Request, Response, ReferenceCounted {
     public ProtocolByteBuf(int protocolId) {
         byteBuf = Unpooled.buffer();
         byteBuf.writeShort(protocolId);
+        this.protocolId = protocolId;
         this.mode = WRITE_MODE;
     }
 
@@ -153,43 +156,47 @@ public class ProtocolByteBuf implements Request, Response, ReferenceCounted {
 
     @Override
     public int refCnt() {
-        Preconditions.checkArgument(mode == READ_MODE);
+//        Preconditions.checkArgument(mode == READ_MODE);
         return byteBuf.refCnt();
     }
 
     @Override
     public ReferenceCounted retain() {
-        Preconditions.checkArgument(mode == READ_MODE);
-        return byteBuf.retain();
+//        Preconditions.checkArgument(mode == READ_MODE);
+        byteBuf.retain();
+        return this;
     }
 
     @Override
     public ReferenceCounted retain(int i) {
-        Preconditions.checkArgument(mode == READ_MODE);
-        return byteBuf.retain(i);
+//        Preconditions.checkArgument(mode == READ_MODE);
+        byteBuf.retain(i);
+        return this;
     }
 
     @Override
     public ReferenceCounted touch() {
-        Preconditions.checkArgument(mode == READ_MODE);
-        return byteBuf.touch();
+//        Preconditions.checkArgument(mode == READ_MODE);
+        byteBuf.touch();
+        return this;
     }
 
     @Override
     public ReferenceCounted touch(Object o) {
-        Preconditions.checkArgument(mode == READ_MODE);
-        return byteBuf.touch(o);
+//        Preconditions.checkArgument(mode == READ_MODE);
+        byteBuf.touch(o);
+        return this;
     }
 
     @Override
     public boolean release() {
-        Preconditions.checkArgument(mode == READ_MODE);
+//        Preconditions.checkArgument(mode == READ_MODE);
         return byteBuf.release();
     }
 
     @Override
     public boolean release(int i) {
-        Preconditions.checkArgument(mode == READ_MODE);
+//        Preconditions.checkArgument(mode == READ_MODE);
         return byteBuf.release(i);
     }
 
@@ -208,8 +215,7 @@ public class ProtocolByteBuf implements Request, Response, ReferenceCounted {
 
     @Override
     public int getProtocolId() {
-        Preconditions.checkArgument(mode == WRITE_MODE);
-        return byteBuf.getShort(0);
+        return protocolId;
     }
 
     @Override

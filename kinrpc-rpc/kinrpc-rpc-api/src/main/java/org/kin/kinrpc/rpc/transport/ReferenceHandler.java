@@ -25,7 +25,7 @@ public class ReferenceHandler extends AbstractConnection implements ProtocolHand
     private Client client;
 
     public ReferenceHandler(InetSocketAddress address, RPCReference rpcReference) {
-        this(address, SerializerType.HESSION.newInstance(), rpcReference);
+        this(address, SerializerType.KRYO.newInstance(), rpcReference);
     }
 
     public ReferenceHandler(InetSocketAddress address, Serializer serializer, RPCReference rpcReference) {
@@ -91,7 +91,7 @@ public class ReferenceHandler extends AbstractConnection implements ProtocolHand
         try {
             RPCResponse rpcResponse;
             try {
-                rpcResponse = serializer.deserialize(protocol.getRespContent());
+                rpcResponse = serializer.deserialize(protocol.getRespContent(), RPCResponse.class);
             } catch (IOException | ClassNotFoundException e) {
                 log.error("", e);
                 return;

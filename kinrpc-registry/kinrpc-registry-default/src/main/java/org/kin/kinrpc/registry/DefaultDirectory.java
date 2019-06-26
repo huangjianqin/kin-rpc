@@ -1,10 +1,10 @@
 package org.kin.kinrpc.registry;
 
 import com.google.common.net.HostAndPort;
-import org.kin.framework.concurrent.ThreadManager;
 import org.kin.kinrpc.rpc.domain.RPCReference;
 import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.JavaReferenceInvoker;
+import org.kin.kinrpc.rpc.serializer.SerializerType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,8 +21,8 @@ public class DefaultDirectory extends AbstractDirectory {
     private static final Logger log = LoggerFactory.getLogger("registry");
     private List<AbstractReferenceInvoker> invokers;
 
-    public DefaultDirectory(String serviceName, int connectTimeout, List<HostAndPort> hostAndPorts) {
-        super(serviceName, connectTimeout);
+    public DefaultDirectory(String serviceName, int connectTimeout, List<HostAndPort> hostAndPorts, SerializerType serializerType) {
+        super(serviceName, connectTimeout, serializerType);
 
         init(hostAndPorts);
     }
@@ -38,17 +38,15 @@ public class DefaultDirectory extends AbstractDirectory {
      * 创建新的ReferenceInvoker,连接Service Server
      */
     private void connectServer(String host, int port) {
-        ThreadManager.DEFAULT.submit(() -> {
-            //创建连接
-            RPCReference rpcReference = new RPCReference(new InetSocketAddress(host, port));
-            AbstractReferenceInvoker refereneceInvoker = new JavaReferenceInvoker(serviceName, rpcReference);
-            //真正启动连接
-            refereneceInvoker.init();
+        //创建连接
+        RPCReference rpcReference = new RPCReference(new InetSocketAddress(host, port), serializerType.newInstance());
+        AbstractReferenceInvoker refereneceInvoker = new JavaReferenceInvoker(serviceName, rpcReference);
+        //真正启动连接
+        refereneceInvoker.init();
 
-            if (refereneceInvoker.isActive()) {
-                invokers.add(refereneceInvoker);
-            }
-        });
+        if (refereneceInvoker.isActive()) {
+            invokers.add(refereneceInvoker);
+        }
     }
 
     @Override

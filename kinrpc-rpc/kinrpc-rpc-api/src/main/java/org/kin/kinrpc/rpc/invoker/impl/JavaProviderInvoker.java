@@ -1,6 +1,5 @@
 package org.kin.kinrpc.rpc.invoker.impl;
 
-import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.rpc.invoker.AbstractProviderInvoker;
 import org.kin.kinrpc.rpc.utils.ClassUtils;
@@ -18,14 +17,14 @@ public class JavaProviderInvoker extends AbstractProviderInvoker {
     }
 
     public void init(Class interfaceClass) {
-        log.info("initing service '" + getServiceName() + "'");
-
         Method[] methods = interfaceClass.getMethods();
 
         for (Method method : methods) {
             method.setAccessible(true);
             this.methodMap.put(ClassUtils.getUniqueName(method), method);
         }
+
+        log.info("service '" + getServiceName() + "' is ready to provide service");
     }
 
     @Override

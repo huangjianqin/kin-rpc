@@ -107,7 +107,6 @@ public class Server extends AbstractConnection {
             throw new IllegalStateException("server connection has not started");
         }
 
-        log.info("server connection close");
         this.selector.close();
         this.workerGroup.shutdownGracefully();
         this.bossGroup.shutdownGracefully();
@@ -115,6 +114,8 @@ public class Server extends AbstractConnection {
         this.selector = null;
         this.workerGroup = null;
         this.bossGroup = null;
+
+        log.info("server connection closed");
     }
 
     @Override

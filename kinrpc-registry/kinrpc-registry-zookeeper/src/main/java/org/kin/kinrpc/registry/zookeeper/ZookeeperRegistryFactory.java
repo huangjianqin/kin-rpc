@@ -1,10 +1,10 @@
 package org.kin.kinrpc.registry.zookeeper;
 
-import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.common.URL;
 import org.kin.kinrpc.registry.AbstractRegistryFactory;
 import org.kin.kinrpc.registry.Registry;
+import org.kin.kinrpc.rpc.serializer.SerializerType;
 
 import java.util.concurrent.ExecutionException;
 
@@ -17,9 +17,10 @@ public class ZookeeperRegistryFactory extends AbstractRegistryFactory {
         String address = url.getParam(Constants.REGISTRY_URL_KEY);
         String password = url.getParam(Constants.REGISTRY_PASSWORD_KEY);
         int sessionTimeout = Integer.valueOf(url.getParam(Constants.SESSION_TIMEOUT_KEY));
+        SerializerType serializerType = SerializerType.getByName(url.getParam(Constants.SERIALIZE_KEY));
 
         try {
-            Registry registry = registryCache.get(address, () -> new ZookeeperRegistry(address, password, sessionTimeout));
+            Registry registry = registryCache.get(address, () -> new ZookeeperRegistry(address, password, sessionTimeout, serializerType));
             registry.retain();
             return registry;
         } catch (ExecutionException e) {

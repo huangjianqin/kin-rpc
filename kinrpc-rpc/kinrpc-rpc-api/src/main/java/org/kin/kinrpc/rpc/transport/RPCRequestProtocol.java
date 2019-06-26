@@ -19,6 +19,7 @@ public class RPCRequestProtocol extends AbstractProtocol {
 
     public RPCRequestProtocol(byte[] reqContent) {
         super(RPCConstants.RPC_REQUEST_PROTOCOL_ID);
+        this.reqContent = reqContent;
     }
 
     @Override

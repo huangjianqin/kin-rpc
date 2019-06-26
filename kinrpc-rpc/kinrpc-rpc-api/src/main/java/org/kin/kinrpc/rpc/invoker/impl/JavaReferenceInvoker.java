@@ -9,7 +9,6 @@ import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Created by 健勤 on 2017/2/15.
@@ -21,14 +20,14 @@ public class JavaReferenceInvoker extends AbstractReferenceInvoker {
 
     @Override
     public void init() {
-        log.info("ReferenceInvoker initing...");
         this.rpcReference.start();
+        log.info("ReferenceInvoker inited");
     }
 
     @Override
     public void shutdown() {
-        log.info("ReferenceInvoker shutdowning...");
         rpcReference.shutdown();
+        log.info("ReferenceInvoker shutdown");
     }
 
     @Override

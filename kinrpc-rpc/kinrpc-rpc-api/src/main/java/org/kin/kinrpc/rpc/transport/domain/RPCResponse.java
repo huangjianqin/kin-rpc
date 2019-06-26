@@ -41,6 +41,9 @@ public class RPCResponse implements Serializable {
         }
     }
 
+    public RPCResponse() {
+    }
+
     public RPCResponse(int requestId, String serviceName, String method) {
         this.requestId = requestId;
         this.serviceName = serviceName;

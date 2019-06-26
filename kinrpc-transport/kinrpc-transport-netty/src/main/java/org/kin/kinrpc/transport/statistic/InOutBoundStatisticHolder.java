@@ -18,6 +18,12 @@ public class InOutBoundStatisticHolder {
     private final Object[] locks = new Object[LOCK_NUM];
     private final Partitioner<String> partitioner = new EfficientHashPartitioner<>();
 
+    public InOutBoundStatisticHolder() {
+        for(int i = 0; i < locks.length; i++){
+            locks[i] = new Object();
+        }
+    }
+
     public InOutBoundStatistic getstatistic(String uuid) {
         if (!statisticMap.containsKey(uuid)) {
             Object lock = locks[partitioner.toPartition(uuid, LOCK_NUM)];
@@ -33,6 +39,7 @@ public class InOutBoundStatisticHolder {
 
     public String logContent() {
         StringBuilder sb = new StringBuilder();
+        sb.append(System.lineSeparator());
         for (InOutBoundStatistic statistic : statisticMap.values()) {
             sb.append(statistic.toString() + System.lineSeparator());
         }

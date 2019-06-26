@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.kin.framework.JvmCloseCleaner;
-import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.common.URL;
 import org.kin.kinrpc.registry.Registries;
@@ -36,7 +35,7 @@ public class Clusters {
 
     public static synchronized void export(URL url, Class interfaceClass, Object instance){
         int port = url.getPort();
-        RPCProvider provider = null;
+        RPCProvider provider;
         try {
             provider = PROVIDER_CACHE.get(port, () -> {
                 RPCProvider provider0 = new RPCProvider(port);
@@ -50,10 +49,11 @@ public class Clusters {
         }
 
         try {
-            Registry registry = Registries.getRegistry(url);
-            Preconditions.checkNotNull(registry);
             provider.addService(url.getServiceName(), interfaceClass, instance);
-            registry.register(interfaceClass.getName(), "0.0.0.0", port);
+            Registry registry = Registries.getRegistry(url);
+            if(registry != null){
+                registry.register(interfaceClass.getName(), "0.0.0.0", port);
+            }
         } catch (Exception e) {
             log.error("", e);
             disableService(url, interfaceClass);
@@ -62,11 +62,13 @@ public class Clusters {
 
     public static synchronized void disableService(URL url, Class interfaceClass){
         Registry registry = Registries.getRegistry(url);
-        registry.unRegister(interfaceClass.getName(), "0.0.0.0", url.getPort());
-        Registries.closeRegistry(url);
+        if(registry != null){
+            registry.unRegister(interfaceClass.getName(), "0.0.0.0", url.getPort());
+            Registries.closeRegistry(url);
+        }
 
         RPCProvider provider = PROVIDER_CACHE.getIfPresent(url.getPort());
-        provider.disableService(interfaceClass.getName());
+        provider.disableService(url.getServiceName());
         if(!provider.isBusy()){
             //该端口没有提供服务, 关闭网络连接
             provider.shutdown();
@@ -96,7 +98,9 @@ public class Clusters {
     public static synchronized void disableReference(URL url){
         ClusterInvoker clusterInvoker = REFERENCE_CACHE.getIfPresent(url.getServiceName());
 
-        clusterInvoker.close();
+        if(clusterInvoker != null){
+            clusterInvoker.close();
+        }
         Registries.closeRegistry(url);
 
         REFERENCE_CACHE.invalidate(url.getServiceName());

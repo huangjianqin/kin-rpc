@@ -2,11 +2,10 @@ package org.kin.kinrpc.rpc.cluster;
 
 import org.kin.framework.Closeable;
 import org.kin.framework.concurrent.ThreadManager;
-import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.domain.RPCContext;
 import org.kin.kinrpc.rpc.future.RPCFuture;
-import org.kin.kinrpc.rpc.invoker.AsyncInvoker;
 import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
+import org.kin.kinrpc.rpc.invoker.AsyncInvoker;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.kin.kinrpc.rpc.utils.ClassUtils;
 import org.slf4j.Logger;
@@ -35,7 +34,7 @@ class ClusterInvoker implements InvocationHandler, AsyncInvoker, Closeable {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        log.info("invoke method '" + method.getName() + "'");
+        log.debug("invoke method '" + method.getName() + "'");
 
         //异步方式: consumer端必须自定义一个与service端除了返回值为Future.class或者CompletableFuture.class外,
         //方法签名相同的接口
@@ -89,11 +88,12 @@ class ClusterInvoker implements InvocationHandler, AsyncInvoker, Closeable {
                             ((RPCFuture) future).doneTimeout();
                         }
                     }catch (InterruptedException e) {
-                        log.info("pending result interrupted >>> {}", e.getMessage());
+                        log.warn("pending result interrupted >>> {}", e.getMessage());
                     } catch (ExecutionException e) {
-                        log.info("pending result execute error >>> {}", e.getMessage());
+                        log.error("pending result execute error >>> {}", e.getMessage());
                     } catch (TimeoutException e) {
-                        log.info("invoke time out >>> {}", e.getMessage());
+                        tryTimes++;
+                        log.warn("invoke time out >>> {}", e.getMessage());
                     }
                 }
             }

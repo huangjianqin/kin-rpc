@@ -6,12 +6,12 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.kin.framework.concurrent.ThreadManager;
-import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.registry.AbstractDirectory;
 import org.kin.kinrpc.registry.RegistryConstants;
 import org.kin.kinrpc.rpc.domain.RPCReference;
 import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.JavaReferenceInvoker;
+import org.kin.kinrpc.rpc.serializer.SerializerType;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -35,8 +35,8 @@ public class ZookeeperDirectory extends AbstractDirectory {
     private Condition hasInvokers = lock.newCondition();
     private volatile boolean isRunning = true;
 
-    public ZookeeperDirectory(String serviceName, int connectTimeout, ZookeeperRegistry registry) {
-        super(serviceName, connectTimeout);
+    public ZookeeperDirectory(String serviceName, int connectTimeout, ZookeeperRegistry registry, SerializerType serializerType) {
+        super(serviceName, connectTimeout, serializerType);
         this.registry = registry;
     }
 
@@ -203,7 +203,7 @@ public class ZookeeperDirectory extends AbstractDirectory {
     private void connectServer(String host, int port) {
         ThreadManager.DEFAULT.submit(() -> {
             //创建连接
-            RPCReference rpcReference = new RPCReference(new InetSocketAddress(host, port));
+            RPCReference rpcReference = new RPCReference(new InetSocketAddress(host, port), serializerType.newInstance());
             AbstractReferenceInvoker refereneceInvoker = new JavaReferenceInvoker(serviceName, rpcReference);
             //真正启动连接
             refereneceInvoker.init();
@@ -224,7 +224,6 @@ public class ZookeeperDirectory extends AbstractDirectory {
 
     @Override
     public void destroy() {
-        log.info("zookeeper directory destroy...");
         isRunning = false;
         //关闭注册中心连接,此时就不会再更新invokers列表,故不用加锁
         registry.destroy();
@@ -242,6 +241,8 @@ public class ZookeeperDirectory extends AbstractDirectory {
         }
         //释放所有等待idle invoker的线程
         this.signalAvailableInvoker();
+
+        log.info("zookeeper directory destroyed");
     }
 
 }

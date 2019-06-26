@@ -25,10 +25,6 @@ public class RPCReference implements ExceptionHandler, ChannelInactiveListener {
     private Map<String, RPCFuture> pendingRPCFutureMap = new ConcurrentHashMap<String, RPCFuture>();
     private ReferenceHandler referenceHandler;
 
-    public RPCReference(InetSocketAddress address) {
-        this.referenceHandler = new ReferenceHandler(address, this);
-    }
-
     public RPCReference(InetSocketAddress address, Serializer serializer) {
         this.referenceHandler = new ReferenceHandler(address, serializer, this);
     }

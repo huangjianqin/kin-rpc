@@ -188,44 +188,44 @@
     </appender>
 
     <!--                                       logger                                                       -->
-    <logger name="error" level="ERROR" additivity="false">
+    <logger name="error" level="ERROR">
         <appender-ref ref="asyncERROR"/>
     </logger>
 
-    <logger name="transport" level="INFO" additivity="false">
+    <logger name="transport" level="INFO">
         <appender-ref ref="asyncTransportAppender"/>
         <appender-ref ref="asyncERROR" level="ERROR"/>
     </logger>
 
-    <logger name="reqStatistic" level="INFO" additivity="false">
+    <logger name="reqStatistic" level="INFO">
         <appender-ref ref="asyncReqStatisticAppender"/>
     </logger>
 
-    <logger name="respStatistic" level="INFO" additivity="false">
+    <logger name="respStatistic" level="INFO">
         <appender-ref ref="asyncRespStatisticAppender"/>
     </logger>
 
-    <logger name="invoker" level="INFO" additivity="false">
+    <logger name="invoker" level="INFO">
         <appender-ref ref="asyncInvokerAppender"/>
         <appender-ref ref="asyncERROR" level="ERROR"/>
     </logger>
 
-    <logger name="registry" level="INFO" additivity="false">
+    <logger name="registry" level="INFO">
         <appender-ref ref="asyncRegistryAppender"/>
         <appender-ref ref="asyncERROR" level="ERROR"/>
     </logger>
 
-    <logger name="loadbalance" level="INFO" additivity="false">
+    <logger name="loadbalance" level="INFO">
         <appender-ref ref="asyncLoadbalanceAppender"/>
         <appender-ref ref="asyncERROR" level="ERROR"/>
     </logger>
 
-    <logger name="router" level="INFO" additivity="false">
+    <logger name="router" level="INFO">
         <appender-ref ref="asyncRouterAppender"/>
         <appender-ref ref="asyncERROR" level="ERROR"/>
     </logger>
 
-    <logger name="cluster" level="INFO" additivity="false">
+    <logger name="cluster" level="INFO">
         <appender-ref ref="asyncClusterAppender"/>
         <appender-ref ref="asyncERROR" level="ERROR"/>
     </logger>

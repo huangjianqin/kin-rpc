@@ -4,7 +4,6 @@ import io.netty.channel.Channel;
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadManager;
-import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.invoker.AbstractProviderInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.JavaProviderInvoker;
 import org.kin.kinrpc.rpc.transport.ProviderHandler;
@@ -107,7 +106,6 @@ public class RPCProvider {
             log.error("", e);
             System.exit(-1);
         }
-        log.info("server connection close successfully");
 
         //启动定时扫描队列,以及时处理所有consumer的请求
         this.scanRequestsThread = new ScanRequestsThread();
@@ -141,14 +139,14 @@ public class RPCProvider {
      */
     public void shutdownNow() {
         if(isStopped){
-            throw new RuntimeException("try shutdown stopped provider");
+            return;
         }
         if (this.connection == null || scanRequestsThread == null) {
             log.error("Server has not started call shutdown");
             throw new IllegalStateException("Provider Server has not started");
         }
 
-        log.info("server shutdown now(some resource may be still running)");
+        log.warn("server shutdown now(some resource may be still running)");
         //关闭扫描请求队列线程  停止将队列中的请求的放入线程池中处理,转而发送重试的RPCResponse
         scanRequestsThread.setStopped(true);
         //中断对requestsQueue的take()阻塞操作
@@ -160,7 +158,6 @@ public class RPCProvider {
         }
         //处理完所有进入队列的请求
         threads.shutdown();
-        log.info("thread pool shutdown successfully");
         try {
             Thread.sleep(200L);
         } catch (InterruptedException e) {
@@ -169,10 +166,9 @@ public class RPCProvider {
 
         //最后关闭连接
         connection.close();
-        log.info("connection stop successfully");
-        log.info("server stop successfully");
 
         isStopped = true;
+        log.info("server connection close successfully");
     }
 
     public void handleRequest(RPCRequest rpcRequest) {
@@ -193,16 +189,17 @@ public class RPCProvider {
 
         @Override
         public void run() {
-            log.info("request scanner thread started");
-            log.info("ready to handle consumer's request");
+            log.info("handling consumer's request...");
             while (!stopped) {
                 try {
                     final RPCRequest rpcRequest = requestsQueue.take();
-                    log.info("收到一个请求");
+                    log.debug("revceive a request >>> " + rpcRequest);
 
                     //因为fork-join的工作窃取机制, 会优先窃取队列靠后的task(maybe后面才来request)
                     //因此, 限制队列的任务数, 以此做到尽可能先完成早到的request
-                    while(threads.getQueuedTaskCount() > RPCConstants.POOL_TASK_NUM){
+                    long queuedTaskCount = threads.getQueuedTaskCount();
+                    while(queuedTaskCount > RPCConstants.POOL_TASK_NUM){
+                        log.warn("too many task(num={}) to execute, slow down", queuedTaskCount);
                         Thread.sleep(200);
                     }
 
@@ -237,12 +234,10 @@ public class RPCProvider {
                         connection.resp(channel, rpcResponse);
                     });
                 } catch (InterruptedException e) {
-                    log.error("", e);
+
                 }
             }
-            log.info("request scanner thread state change");
-            log.info("ready to response directly and ask client to retry service call");
-
+            log.info("response directly and ask all requests to retry");
 
             for (RPCRequest rpcRequest : requestsQueue) {
                 //创建RPCResponse,设置服务不可用请求重试标识,直接回发

@@ -22,14 +22,14 @@ public class BaseFrameCodec extends ByteToMessageCodec<ByteBuf> {
     private final int FRAME_BODY_SIZE = 4;
     private final int MAX_BODY_SIZE;
     //true = in, false = out
-    private final boolean inElseOut;
+    private final boolean serverElseClient;
 
     private final int FRAME_BASE_LENGTH;
 
 
-    public BaseFrameCodec(int maxBodySize, boolean inElseOut) {
+    public BaseFrameCodec(int maxBodySize, boolean serverElseClient) {
         this.MAX_BODY_SIZE = maxBodySize;
-        this.inElseOut = inElseOut;
+        this.serverElseClient = serverElseClient;
         this.FRAME_BASE_LENGTH = FRAME_SNO_SIZE + FRAME_MAGIC.length + FRAME_BODY_SIZE;
     }
 
@@ -55,19 +55,19 @@ public class BaseFrameCodec extends ByteToMessageCodec<ByteBuf> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, ByteBuf in, ByteBuf out) throws Exception {
-        if (!inElseOut) {
+        if (!serverElseClient) {
             out.writeBytes(FRAME_MAGIC);
             //TODO sno
             out.writeInt(0);
-            int bodySize = in.readableBytes();
-            out.writeInt(bodySize);
-            out.writeBytes(in, bodySize);
         }
+        int bodySize = in.readableBytes();
+        out.writeInt(bodySize);
+        out.writeBytes(in, bodySize);
     }
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-        if (inElseOut) {
+        if (serverElseClient) {
             if (in.readableBytes() >= FRAME_BASE_LENGTH) {
                 byte[] magic = new byte[FRAME_MAGIC.length];
                 in.readBytes(magic);
@@ -95,6 +95,12 @@ public class BaseFrameCodec extends ByteToMessageCodec<ByteBuf> {
                 frameBuf.writeBytes(in, bodySize);
                 out.add(frameBuf);
             }
+        }
+        else{
+            int bodySize = in.readInt();
+            ByteBuf frameBuf = ctx.alloc().heapBuffer(bodySize);
+            frameBuf.writeBytes(in, bodySize);
+            out.add(frameBuf);
         }
     }
 }

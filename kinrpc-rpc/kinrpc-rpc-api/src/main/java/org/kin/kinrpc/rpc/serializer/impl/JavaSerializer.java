@@ -26,7 +26,7 @@ public class JavaSerializer implements Serializer {
     }
 
     @Override
-    public <T> T deserialize(byte[] bytes) throws IOException, ClassNotFoundException {
+    public <T> T deserialize(byte[] bytes, Class<T> tagetClass) throws IOException, ClassNotFoundException {
         if (bytes == null || bytes.length <= 0) {
             throw new IllegalStateException("byte array must be not null or it's length must be greater than zero");
         }

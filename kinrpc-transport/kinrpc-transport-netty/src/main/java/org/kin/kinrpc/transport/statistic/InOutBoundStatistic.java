@@ -15,6 +15,8 @@ public class InOutBoundStatistic {
 
     public InOutBoundStatistic(String uuid) {
         this.uuid = uuid;
+        totalSize = new AtomicLong(0);
+        count = new AtomicLong(0);
     }
 
     public void incr(long size) {

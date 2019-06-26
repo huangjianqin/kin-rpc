@@ -1,27 +1,32 @@
 package org.kin.kinrpc.transport.statistic;
 
+import org.kin.framework.Closeable;
+import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Created by huangjianqin on 2019/6/3.
+ *
+ * important 要手动close
  */
-public class InOutBoundStatisicService {
+public class InOutBoundStatisicService implements Closeable{
     private static final Logger reqStatisticLog = LoggerFactory.getLogger("reqStatistic");
     private static final Logger respStatisticLog = LoggerFactory.getLogger("respStatistic");
     private static final InOutBoundStatisicService INSTANCE = new InOutBoundStatisicService();
+    static {
+        JvmCloseCleaner.DEFAULT().add(INSTANCE);
+    }
 
     private InOutBoundStatisticHolder reqHolder = new InOutBoundStatisticHolder();
     private InOutBoundStatisticHolder respHolder = new InOutBoundStatisticHolder();
-    private ThreadManager threadManager = new ThreadManager(
-            new ThreadPoolExecutor(3, 3, 60L, TimeUnit.SECONDS,
-                    new LinkedBlockingQueue<Runnable>(),
+    private ThreadManager threadManager = new ThreadManager(null,
+            new ScheduledThreadPoolExecutor(3,
                     new SimpleThreadFactory("inoutbound-statisic")));
 
     private InOutBoundStatisicService() {
@@ -35,6 +40,10 @@ public class InOutBoundStatisicService {
         return INSTANCE;
     }
 
+    @Override
+    public void close() {
+        threadManager.shutdown();
+    }
     //-------------------------------------------------------------------------------------------------------
     private void logReqStatistic() {
         InOutBoundStatisticHolder origin = reqHolder;

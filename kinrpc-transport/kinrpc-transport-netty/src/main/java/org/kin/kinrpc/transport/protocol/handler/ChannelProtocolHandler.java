@@ -79,7 +79,7 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         log.info("channel active: {}", ctx.channel());
         Attribute<AbstractSession> attr = ctx.channel().attr(ProtocolConstants.SESSION_KEY);
-        if (attr.compareAndSet(null, sessionBuilder.create(ctx.channel()))) {
+        if (!attr.compareAndSet(null, sessionBuilder.create(ctx.channel()))) {
             ctx.channel().close();
             log.error("Duplicate Session! IP: {}", ChannelUtils.getIP(ctx.channel()));
             return;

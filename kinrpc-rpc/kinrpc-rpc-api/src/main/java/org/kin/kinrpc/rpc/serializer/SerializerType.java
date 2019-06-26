@@ -67,6 +67,6 @@ public enum SerializerType {
             }
         }
 
-        return null;
+        throw new IllegalArgumentException("unknown serialize type '" + name + "'");
     }
 }

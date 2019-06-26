@@ -4,7 +4,6 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import org.kin.kinrpc.rpc.serializer.Serializer;
-import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -27,9 +26,9 @@ public class KryoSerializer implements Serializer {
     }
 
     @Override
-    public <T> T deserialize(byte[] bytes) throws IOException, ClassNotFoundException {
+    public <T> T deserialize(byte[] bytes, Class<T> tagetClass) throws IOException, ClassNotFoundException {
         Input input = new Input(new ByteArrayInputStream(bytes));
-        RPCRequest request = KRYO.readObject(input, RPCRequest.class);
+        Object request = KRYO.readObject(input, tagetClass);
         input.close();
 
         return (T) request;

@@ -22,4 +22,12 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kinrpc-registry-default</artifactId>
+            <version>0.1.0.0</version>
+        </dependency>
+    </dependencies>
+
 </project>

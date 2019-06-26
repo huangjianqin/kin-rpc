@@ -4,9 +4,9 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
+import org.kin.kinrpc.transport.protocol.AbstractSession;
 import org.kin.kinrpc.transport.protocol.Bytes2ProtocolTransfer;
 import org.kin.kinrpc.transport.protocol.ProtocolConstants;
-import org.kin.kinrpc.transport.protocol.AbstractSession;
 import org.kin.kinrpc.transport.protocol.domain.ProtocolByteBuf;
 import org.kin.kinrpc.transport.protocol.domain.Request;
 import org.kin.kinrpc.transport.statistic.InOutBoundStatisicService;
@@ -30,26 +30,24 @@ public class ProtocolCodec extends MessageToMessageCodec<ByteBuf, ProtocolByteBu
     }
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, ProtocolByteBuf protocolByteBuf, List<Object> out) throws Exception {
+    protected void encode(ChannelHandlerContext ctx, ProtocolByteBuf in, List<Object> out) throws Exception {
         if (serverElseClient) {
             //server send response
             ByteBuf outByteBuf = ctx.alloc().buffer();
-            ByteBuf byteBuf = protocolByteBuf.getByteBuf();
-            outByteBuf.writeInt(byteBuf.readableBytes() + 4);
+            ByteBuf byteBuf = in.getByteBuf();
             outByteBuf.writeInt(getRespSN(ctx.channel()));
             outByteBuf.writeBytes(byteBuf, 0, byteBuf.readableBytes());
             out.add(outByteBuf);
 
-            InOutBoundStatisicService.instance().statisticResp(protocolByteBuf.getProtocolId() + "", protocolByteBuf.getSize());
+            InOutBoundStatisicService.instance().statisticResp(in.getProtocolId() + "", in.getSize());
         } else {
             //client send request
             ByteBuf outByteBuf = ctx.alloc().buffer();
-            ByteBuf byteBuf = protocolByteBuf.getByteBuf();
-            outByteBuf.writeInt(byteBuf.readableBytes());
+            ByteBuf byteBuf = in.getByteBuf();
             outByteBuf.writeBytes(byteBuf, 0, byteBuf.readableBytes());
             out.add(outByteBuf);
 
-            InOutBoundStatisicService.instance().statisticReq(protocolByteBuf.getProtocolId() + "", protocolByteBuf.getSize());
+            InOutBoundStatisicService.instance().statisticReq(in.getProtocolId() + "", in.getSize());
         }
     }
 

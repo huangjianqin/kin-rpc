@@ -1,7 +1,7 @@
 package org.kin.kinrpc.transport.protocol.impl;
 
-import org.kin.kinrpc.transport.protocol.ProtocolHandler;
 import org.kin.kinrpc.transport.protocol.AbstractSession;
+import org.kin.kinrpc.transport.protocol.ProtocolHandler;
 import org.kin.kinrpc.transport.protocol.domain.AbstractProtocol;
 
 /**

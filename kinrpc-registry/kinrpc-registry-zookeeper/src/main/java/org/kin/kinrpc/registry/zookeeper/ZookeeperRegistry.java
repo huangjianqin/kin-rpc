@@ -2,11 +2,11 @@ package org.kin.kinrpc.registry.zookeeper;
 
 import com.google.common.net.HostAndPort;
 import org.apache.zookeeper.*;
-import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.HttpUtils;
 import org.kin.kinrpc.registry.AbstractRegistry;
 import org.kin.kinrpc.registry.Directory;
 import org.kin.kinrpc.registry.RegistryConstants;
+import org.kin.kinrpc.rpc.serializer.SerializerType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,17 +28,17 @@ public class ZookeeperRegistry extends AbstractRegistry{
 
     private ZooKeeper zooKeeper;
     private int sessionTimeOut;
+    private SerializerType serializerType;
 
-    public ZookeeperRegistry(String address, String password, int sessionTimeOut) {
+    public ZookeeperRegistry(String address, String password, int sessionTimeOut, SerializerType serializerType) {
         this.address = HostAndPort.fromString(address);
         this.password = password;
         this.sessionTimeOut = sessionTimeOut;
+        this.serializerType = serializerType;
     }
 
     @Override
     public void connect() throws DataFormatException {
-        log.info("zookeeper registry creating...");
-
         CountDownLatch countDownLatch = new CountDownLatch(1);
         try {
             this.zooKeeper = new ZooKeeper(address.getHost(), this.sessionTimeOut, new Watcher() {
@@ -46,6 +46,7 @@ public class ZookeeperRegistry extends AbstractRegistry{
                 public void process(WatchedEvent watchedEvent) {
                     if (watchedEvent.getState() == Event.KeeperState.SyncConnected) {
                         countDownLatch.countDown();
+                        log.info("zookeeper registry created");
                     } else if (watchedEvent.getState() == Event.KeeperState.Expired) {
                         log.error("connect to zookeeper server timeout({})", sessionTimeOut);
                         throw new RuntimeException("connect to zookeeper server timeout(" + sessionTimeOut + ")");
@@ -56,14 +57,12 @@ public class ZookeeperRegistry extends AbstractRegistry{
                 }
             });
         } catch (IOException e) {
-            log.error("zookeeper client connect error");
-            log.error("", e);
+            log.error("zookeeper client connect error" + System.lineSeparator() + "{}", e);
         }
 
         try {
             countDownLatch.await();
         } catch (InterruptedException e) {
-            log.error("", e);
         }
 
         //一些预处理
@@ -78,7 +77,7 @@ public class ZookeeperRegistry extends AbstractRegistry{
     private void createZNode(String path, byte[] data) {
         try {
             this.zooKeeper.create(path, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-            log.info("create persistent znode(data= '{}') successfully>>> {}", data, path);
+            log.debug("create persistent znode(data= '{}') successfully>>> {}", data, path);
         } catch (KeeperException | InterruptedException e) {
             log.error("", e);
         }
@@ -87,7 +86,7 @@ public class ZookeeperRegistry extends AbstractRegistry{
     private void deleteZNode(String path) {
         try {
             this.zooKeeper.delete(path, -1);
-            log.info("delete znode successfully>>> " + path);
+            log.debug("delete znode successfully>>> " + path);
         } catch (KeeperException | InterruptedException e) {
             log.error("", e);
         }
@@ -96,7 +95,7 @@ public class ZookeeperRegistry extends AbstractRegistry{
     private void notExistAndCreate(String path, byte[] data) {
         try {
             if (this.zooKeeper.exists(path, false) == null) {
-                log.info("znode: " + path + " >>> not exist. now create");
+                log.debug("znode: " + path + " >>> not exist. now create");
                 createZNode(path, data);
             }
         } catch (KeeperException | InterruptedException e) {
@@ -146,7 +145,7 @@ public class ZookeeperRegistry extends AbstractRegistry{
     @Override
     public Directory subscribe(String serviceName, int connectTimeout) {
         log.info("consumer subscribe service '{}' " + ">>> zookeeper registry({})", serviceName, getAddress());
-        return new ZookeeperDirectory(serviceName, connectTimeout, this);
+        return new ZookeeperDirectory(serviceName, connectTimeout, this, serializerType);
     }
 
     @Override

@@ -1,7 +1,7 @@
 package org.kin.kinrpc.registry;
 
-import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
+import org.kin.kinrpc.rpc.serializer.SerializerType;
 
 import java.util.List;
 import java.util.zip.DataFormatException;
@@ -11,9 +11,11 @@ import java.util.zip.DataFormatException;
  */
 public class DefaultRegistry extends AbstractRegistry {
     private List<HostAndPort> hostAndPorts;
+    private SerializerType serializerType;
 
-    public DefaultRegistry(List<HostAndPort> hostAndPorts) {
+    public DefaultRegistry(List<HostAndPort> hostAndPorts, SerializerType serializerType) {
         this.hostAndPorts = hostAndPorts;
+        this.serializerType = serializerType;
     }
 
     @Override
@@ -33,7 +35,7 @@ public class DefaultRegistry extends AbstractRegistry {
 
     @Override
     public Directory subscribe(String serviceName, int connectTimeout) {
-        return new DefaultDirectory(serviceName, connectTimeout, hostAndPorts);
+        return new DefaultDirectory(serviceName, connectTimeout, hostAndPorts, serializerType);
     }
 
     @Override
