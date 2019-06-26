@@ -12,6 +12,7 @@ public class Constants {
     //url参数
     public static final int URL_PARAM_NUM = 6;
     public static final String APP_NAME_KEY = "appName";
+    public static final String SERVICE_NAME_KEY = "serviceName";
     //连接超时
     public static final String TIMEOUT_KEY = "timeout";
     public static final String REGISTRY_KEY = "registry";
@@ -21,6 +22,7 @@ public class Constants {
     public static final String SESSION_TIMEOUT_KEY = "sessionTimeout";
     public static final String RETRY_TIMES_KEY = "retryTimes";
     public static final String RETRY_TIMEOUT_KEY = "retryTimeout";
+    public static final String SERIALIZE_KEY = "serialize";
 //    public static final String CLAXX_KEY = "claxx";//接口名
 //    public static final String VERSION_KEY = "version";//服务版本
 //    public static final String METHOD_KEY = "method";//接口方法列表
@@ -42,14 +44,15 @@ public class Constants {
     public static int RETRY_TIMES = 3;
     //等待重试时间
     public static int RETRY_TIMEOUT = 500;
-    //限流
+    //提供的序列化方式
+    public static final String JAVA_SERIALIZE = "java";
+    public static final String KRYO_SERIALIZE = "kryo";
+    public static final String HESSION_SERIALIZE = "hession";
+    //TODO 限流
     public static final int SERVER_REQUEST_THRESHOLD = 100;
 
 
 
     //Reference默认配置
     public static final int REFERENCE_DEFAULT_CONNECT_TIMEOUT = 5000;
-    public static final int DIRECTORY_DEFAULT_INIT_THREADNUM = 4;
-    public static final int DIRECTORY_DEFAULT_MAX_THREADNUM = 32;
-    public static final long DIRECTORY_DEFAULT_THREADS_ALIVE = 300L;
 }

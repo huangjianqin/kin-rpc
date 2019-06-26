@@ -7,44 +7,34 @@ import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.common.URL;
 import org.kin.kinrpc.rpc.cluster.Clusters;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by 健勤 on 2017/2/12.
  */
-class ServiceConfig extends AbstractConfig{
+public class ServiceConfig extends AbstractConfig{
     //配置
     private ApplicationConfig applicationConfig = new ApplicationConfig();
-    private ServerConfig serverConfig = new ServerConfig(Constants.SERVER_DEFAULT_PORT);
+    private ServerConfig serverConfig = ServerConfig.DEFAULT;
     private AbstractRegistryConfig registryConfig;
     private Object ref;
     private Class<?> interfaceClass;
     private String serviceName;
+    private String serialize = Constants.KRYO_SERIALIZE;
 
     private URL url;
     private volatile boolean isExport;
 
-    private ServiceConfig() {
-
-    }
-
-    public static class Services {
-        private Services() {
-
-        }
-
-        public static ServiceConfig service(Object ref, Class<?> interfaceClass) {
-            ServiceConfig builder = new ServiceConfig();
-            builder.ref = ref;
-            builder.interfaceClass = interfaceClass;
-            builder.serviceName = interfaceClass.getName();
-
-            return builder;
-        }
+    ServiceConfig(Object ref, Class<?> interfaceClass) {
+        this.ref = ref;
+        this.interfaceClass = interfaceClass;
+        this.serviceName = interfaceClass.getName().replaceAll("\\.", "/");
     }
 
     //---------------------------------------------------------------------------------------------------------
     @Override
-    public void check() {
-        Preconditions.checkNotNull(this.registryConfig, "provider must need to configure register");
+    void check() {
         Preconditions.checkNotNull(this.ref, "provider object must be not null");
         Preconditions.checkNotNull(this.interfaceClass, "provider object interface must be not");
 
@@ -60,7 +50,9 @@ class ServiceConfig extends AbstractConfig{
 
         this.applicationConfig.check();
         this.serverConfig.check();
-        this.registryConfig.check();
+        if(this.registryConfig != null){
+            this.registryConfig.check();
+        }
     }
 
     /**
@@ -70,7 +62,11 @@ class ServiceConfig extends AbstractConfig{
         if(!isExport){
             check();
 
-            url = createServiceURL(applicationConfig, serverConfig, registryConfig, serviceName);
+            Map<String, String> params = new HashMap<>();
+            params.put(Constants.SERVICE_NAME_KEY, serviceName);
+            params.put(Constants.SERIALIZE_KEY, serialize);
+
+            url = createURL(applicationConfig, "0.0.0.0:" + serverConfig.getPort(), registryConfig, params);
             Preconditions.checkNotNull(url);
 
             Clusters.export(url, interfaceClass, ref);
@@ -91,21 +87,21 @@ class ServiceConfig extends AbstractConfig{
 
     //---------------------------------------builder------------------------------------------------------------
     public ServiceConfig appName(String appName) {
-        if(isExport){
+        if(!isExport){
             this.applicationConfig = new ApplicationConfig(appName);
         }
         return this;
     }
 
     public ServiceConfig bind(int port){
-        if(isExport){
+        if(!isExport){
             this.serverConfig = new ServerConfig(port);
         }
         return this;
     }
 
     public ServiceConfig urls(String... urls){
-        if(isExport){
+        if(!isExport){
             this.registryConfig = new DefaultRegistryConfig(StringUtils.mkString(";", urls));
         }
         return this;
@@ -116,7 +112,7 @@ class ServiceConfig extends AbstractConfig{
     }
 
     public ServiceConfig zookeeper(String address, String password){
-        if(isExport){
+        if(!isExport){
             this.registryConfig = new DefaultRegistryConfig(address);
             this.registryConfig.setPassword(password);
         }
@@ -124,15 +120,22 @@ class ServiceConfig extends AbstractConfig{
     }
 
     public ServiceConfig sessionTimeout(int sessionTimeout){
-        if(isExport){
+        if(!isExport){
             this.registryConfig.setSessionTimeout(sessionTimeout);
         }
         return this;
     }
 
     public ServiceConfig serviceName(String serviceName){
-        if(isExport){
+        if(!isExport){
             this.serviceName = serviceName;
+        }
+        return this;
+    }
+
+    public ServiceConfig serialize(String serialize){
+        if(!isExport){
+            this.serialize = serialize;
         }
         return this;
     }

@@ -8,12 +8,12 @@ import org.kin.kinrpc.common.Constants;
  * Created by huangjianqin on 2019/6/20.
  */
 class DefaultRegistryConfig extends AbstractRegistryConfig {
-    public DefaultRegistryConfig(String adress) {
+    DefaultRegistryConfig(String adress) {
         super(adress);
     }
 
     @Override
-    public void check() {
+    void check() {
         //包含多个直连url
         for(String split: url.split(Constants.DEFAULT_REGISTRY_URL_SPLITOR)){
             Preconditions.checkArgument(HttpUtils.checkHostPort(split),

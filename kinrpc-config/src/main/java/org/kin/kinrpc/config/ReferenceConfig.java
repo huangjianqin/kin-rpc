@@ -6,50 +6,39 @@ import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.common.URL;
 import org.kin.kinrpc.rpc.cluster.Clusters;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Created by 健勤 on 2017/2/15.
  */
-class ReferenceConfig<T> extends AbstractConfig {
-    private ApplicationConfig applicationConfig;
+public class ReferenceConfig<T> extends AbstractConfig {
+    private ApplicationConfig applicationConfig = new ApplicationConfig();
     private AbstractRegistryConfig registryConfig;
     private Class<T> interfaceClass;
     private int timeout = Constants.REFERENCE_DEFAULT_CONNECT_TIMEOUT;
     private String serviceName;
     private int retryTimes = Constants.RETRY_TIMES;
     private int retryTimeout = Constants.RETRY_TIMEOUT;
+    private String serialize = Constants.KRYO_SERIALIZE;
 
     private URL url;
     private volatile T reference;
     private boolean isReference;
 
-    private ReferenceConfig(){}
-
-    public static class References{
-        private References(){
-
-        }
-
-        public static <T> ReferenceConfig<T> reference(Class<T> interfaceClass) {
-            ReferenceConfig builder = new ReferenceConfig();
-            builder.interfaceClass = interfaceClass;
-            builder.serviceName = interfaceClass.getName();
-
-            return builder;
-        }
+    ReferenceConfig(Class<T> interfaceClass){
+        this.interfaceClass = interfaceClass;
+        this.serviceName = interfaceClass.getName().replaceAll("\\.", "/");
     }
 
     //---------------------------------------------------------------------------------------------------------
     @Override
-    public void check() {
+    void check() {
         Preconditions.checkNotNull(this.applicationConfig, "consumer must need to configure application");
         Preconditions.checkNotNull(this.registryConfig, "consumer must need to configure register");
         Preconditions.checkNotNull(this.interfaceClass, "consumer subscribed interface must be not null");
-        Preconditions.checkArgument(this.timeout <= 0, "connection's timeout must greater than 0");
-        Preconditions.checkArgument(this.retryTimeout <= 0, "retrytimeout must greater than 0");
+        Preconditions.checkArgument(this.timeout > 0, "connection's timeout must greater than 0");
+        Preconditions.checkArgument(this.retryTimeout > 0, "retrytimeout must greater than 0");
     }
 
     public synchronized T get() {
@@ -60,8 +49,10 @@ class ReferenceConfig<T> extends AbstractConfig {
             params.put(Constants.TIMEOUT_KEY, timeout + "");
             params.put(Constants.RETRY_TIMES_KEY, retryTimes + "");
             params.put(Constants.RETRY_TIMEOUT_KEY, retryTimeout + "");
+            params.put(Constants.SERVICE_NAME_KEY, serviceName);
+            params.put(Constants.SERIALIZE_KEY, serialize);
 
-            url = createReferenceURL(applicationConfig, registryConfig, serviceName, params);
+            url = createURL(applicationConfig, "0.0.0.0:0", registryConfig, params);
             Preconditions.checkNotNull(url);
 
             reference = Clusters.reference(url, interfaceClass);
@@ -82,14 +73,14 @@ class ReferenceConfig<T> extends AbstractConfig {
 
     //---------------------------------------builder------------------------------------------------------------
     public ReferenceConfig<T> appName(String appName) {
-        if(isReference){
+        if(!isReference){
             this.applicationConfig = new ApplicationConfig(appName);
         }
         return this;
     }
 
     public ReferenceConfig<T> urls(String... urls){
-        if(isReference){
+        if(!isReference){
             this.registryConfig = new DefaultRegistryConfig(StringUtils.mkString(";", urls));
         }
         return this;
@@ -100,7 +91,7 @@ class ReferenceConfig<T> extends AbstractConfig {
     }
 
     public ReferenceConfig<T> zookeeper(String address, String password){
-        if(isReference){
+        if(!isReference){
             this.registryConfig = new DefaultRegistryConfig(address);
             this.registryConfig.setPassword(password);
         }
@@ -108,36 +99,43 @@ class ReferenceConfig<T> extends AbstractConfig {
     }
 
     public ReferenceConfig<T> sessionTimeout(int sessionTimeout){
-        if(isReference){
+        if(!isReference){
             this.registryConfig.setSessionTimeout(sessionTimeout);
         }
         return this;
     }
 
     public ReferenceConfig<T> timeout(int timeout){
-        if(isReference){
+        if(!isReference){
             this.timeout = timeout;
         }
         return this;
     }
 
     public ReferenceConfig<T> serviceName(String serviceName){
-        if(isReference){
+        if(!isReference){
             this.serviceName = serviceName;
         }
         return this;
     }
 
     public ReferenceConfig<T> retry(int retryTimes){
-        if(isReference){
+        if(!isReference){
             this.retryTimes = retryTimes;
         }
         return this;
     }
 
     public ReferenceConfig<T> retryTimeout(int retryTimeout){
-        if(isReference){
+        if(!isReference){
             this.retryTimeout = retryTimeout;
+        }
+        return this;
+    }
+
+    public ReferenceConfig<T> serialize(String serialize){
+        if(!isReference){
+            this.serialize = serialize;
         }
         return this;
     }

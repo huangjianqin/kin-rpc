@@ -3,13 +3,13 @@ package org.kin.kinrpc.config;
 /**
  * Created by huangjianqin on 2019/6/18.
  */
-abstract class AbstractRegistryConfig extends AbstractConfig{
+public abstract class AbstractRegistryConfig extends AbstractConfig{
     protected String url;
     protected String password;
     //连接注册中心的会话超时,以毫秒算,默认5s
     protected int sessionTimeout = -1;
 
-    public AbstractRegistryConfig(String url) {
+    AbstractRegistryConfig(String url) {
         this.url = url;
         this.password = "";
     }

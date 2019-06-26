@@ -1,21 +1,24 @@
 package org.kin.kinrpc.config;
 
 import com.google.common.base.Preconditions;
+import org.kin.kinrpc.common.Constants;
 
 /**
  * Created by 健勤 on 2017/2/12.
  */
-class ServerConfig extends AbstractConfig{
+public class ServerConfig extends AbstractConfig{
     private static final int MAX_PORT = Short.MAX_VALUE - Short.MIN_VALUE;
+    public static final ServerConfig DEFAULT = new ServerConfig(Constants.SERVER_DEFAULT_PORT);
+
     private int port;
 
-    public ServerConfig(int port) {
+    ServerConfig(int port) {
         this.port = port;
     }
 
     @Override
-    public void check() {
-        Preconditions.checkArgument(port < 0 && port > MAX_PORT,
+    void check() {
+        Preconditions.checkArgument(0 < port && port < MAX_PORT,
                 "port must be greater than 0 and lower than " + MAX_PORT);
 
     }

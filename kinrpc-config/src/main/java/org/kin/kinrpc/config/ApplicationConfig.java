@@ -6,21 +6,21 @@ import org.kin.framework.utils.StringUtils;
 /**
  * Created by 健勤 on 2017/2/12.
  */
-class ApplicationConfig extends AbstractConfig{
+public class ApplicationConfig extends AbstractConfig{
     private String appName;
 
-    public ApplicationConfig() {
+    ApplicationConfig() {
         //获取最外层调用的class name
         StackTraceElement[] elements = Thread.currentThread().getStackTrace();
         appName = elements[elements.length - 1].getClassName();
     }
 
-    public ApplicationConfig(String appName) {
+    ApplicationConfig(String appName) {
         this.appName = appName;
     }
 
     @Override
-    public void check() {
+    void check() {
         Preconditions.checkArgument(StringUtils.isNotBlank(appName));
     }
 
