@@ -47,7 +47,7 @@ public class JavaProviderInvoker extends AbstractProviderInvoker {
 
         String[] actualParamTypeStrs = new String[params.length];
         for (int i = 0; i < params.length; i++) {
-            paramTypeStrs[i] = params[i].getClass().getName();
+            actualParamTypeStrs[i] = params[i].getClass().getName();
         }
         log.debug("'" + methodName + "' method's actual params' type");
         log.debug(StringUtils.mkString(",", actualParamTypeStrs));

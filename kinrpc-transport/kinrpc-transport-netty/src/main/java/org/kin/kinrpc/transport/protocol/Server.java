@@ -58,7 +58,7 @@ public class Server extends AbstractConnection {
 
     @Override
     public void bind() throws Exception {
-        log.info("server connection binding...");
+        log.info("server({}) connection binding...", address);
         this.bossGroup = new NioEventLoopGroup(1);
         this.workerGroup = new NioEventLoopGroup();
 

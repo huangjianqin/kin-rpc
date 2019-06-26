@@ -97,7 +97,7 @@ public class RPCProvider {
         if(isStopped){
             throw new RuntimeException("try start stopped provider");
         }
-        log.info("server(port= " + port + ") starting...");
+        log.info("provider(port={}) starting...", port);
         //启动连接
         this.connection = new ProviderHandler(new InetSocketAddress(this.port), this);
         try {
@@ -111,7 +111,7 @@ public class RPCProvider {
         this.scanRequestsThread = new ScanRequestsThread();
         this.scanRequestsThread.start();
 
-        log.info("server(port= " + port + ") started");
+        log.info("provider(port={}) started", port);
     }
 
     /**
