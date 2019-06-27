@@ -1,6 +1,7 @@
-package org.kin.kinrpc.registry;
+package org.kin.kinrpc.registry.directurls;
 
 import com.google.common.net.HostAndPort;
+import org.kin.kinrpc.registry.AbstractDirectory;
 import org.kin.kinrpc.rpc.RPCReference;
 import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvokerImpl;
@@ -17,11 +18,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Created by huangjianqin on 2019/6/11.
  * direct url, 直接根据给定的host port连接并调用服务
  */
-public class DefaultDirectory extends AbstractDirectory {
+public class DirectURLsDirectory extends AbstractDirectory {
     private static final Logger log = LoggerFactory.getLogger("registry");
     private List<AbstractReferenceInvoker> invokers;
 
-    public DefaultDirectory(String serviceName, int connectTimeout, List<HostAndPort> hostAndPorts, SerializerType serializerType) {
+    public DirectURLsDirectory(String serviceName, int connectTimeout, List<HostAndPort> hostAndPorts, SerializerType serializerType) {
         super(serviceName, connectTimeout, serializerType);
 
         init(hostAndPorts);

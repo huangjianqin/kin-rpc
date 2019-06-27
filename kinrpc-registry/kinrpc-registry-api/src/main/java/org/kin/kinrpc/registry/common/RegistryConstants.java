@@ -1,4 +1,4 @@
-package org.kin.kinrpc.registry;
+package org.kin.kinrpc.registry.common;
 
 /**
  * Created by huangjianqin on 2019/6/11.

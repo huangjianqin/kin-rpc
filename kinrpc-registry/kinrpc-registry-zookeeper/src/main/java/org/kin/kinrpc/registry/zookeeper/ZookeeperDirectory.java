@@ -7,7 +7,7 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.kin.framework.concurrent.ThreadManager;
 import org.kin.kinrpc.registry.AbstractDirectory;
-import org.kin.kinrpc.registry.RegistryConstants;
+import org.kin.kinrpc.registry.common.RegistryConstants;
 import org.kin.kinrpc.rpc.RPCReference;
 import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvokerImpl;

@@ -5,7 +5,7 @@ import org.apache.zookeeper.*;
 import org.kin.framework.utils.HttpUtils;
 import org.kin.kinrpc.registry.AbstractRegistry;
 import org.kin.kinrpc.registry.Directory;
-import org.kin.kinrpc.registry.RegistryConstants;
+import org.kin.kinrpc.registry.common.RegistryConstants;
 import org.kin.kinrpc.rpc.serializer.SerializerType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
