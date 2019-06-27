@@ -7,8 +7,8 @@ import org.kin.kinrpc.rpc.serializer.Serializer;
 import org.kin.kinrpc.rpc.transport.ReferenceHandler;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
-import org.kin.kinrpc.transport.listener.ChannelInactiveListener;
 import org.kin.kinrpc.transport.ChannelExceptionHandler;
+import org.kin.kinrpc.transport.listener.ChannelInactiveListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
