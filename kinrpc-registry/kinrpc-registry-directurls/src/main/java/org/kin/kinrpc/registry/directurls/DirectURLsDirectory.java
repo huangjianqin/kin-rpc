@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
  */
 public class DirectURLsDirectory extends AbstractDirectory {
     private static final Logger log = LoggerFactory.getLogger("registry");
+    //自己会
     private List<AbstractReferenceInvoker> invokers;
 
     public DirectURLsDirectory(String serviceName, int connectTimeout, List<HostAndPort> hostAndPorts, SerializerType serializerType) {
@@ -57,9 +58,7 @@ public class DirectURLsDirectory extends AbstractDirectory {
         Map<Boolean, List<AbstractReferenceInvoker>> map = this.invokers.stream().collect(Collectors.groupingBy(AbstractReferenceInvoker::isActive));
         if(map.containsKey(Boolean.FALSE)){
             invokers.removeAll(map.get(Boolean.FALSE));
-            for (AbstractReferenceInvoker invoker : map.get(Boolean.FALSE)) {
-                invoker.shutdown();
-            }
+            //内部机制会保证shutdown, 所以此处仅仅从队列移除
         }
 
         return map.getOrDefault(Boolean.TRUE, Collections.emptyList());

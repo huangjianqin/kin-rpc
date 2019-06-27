@@ -93,8 +93,7 @@ public class RPCFuture implements Future<RPCResponse> {
     }
 
     public void doneTimeout() {
-        RPCResponse rpcResponse = RPCResponse.respWithError(request.getRequestId(),
-                request.getServiceName(), request.getMethod(), getTimeoutMessage());
+        RPCResponse rpcResponse = RPCResponse.respWithError(request, getTimeoutMessage());
         done(rpcResponse);
     }
 

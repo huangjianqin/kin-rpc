@@ -74,8 +74,7 @@ public class ProviderHandler extends AbstractConnection implements ProtocolHandl
                 rpcRequest.setChannel(session.getChannel());
             } catch (IOException | ClassNotFoundException e) {
                 log.error("", e);
-                RPCResponse rpcResponse = RPCResponse.respWithError(rpcRequest.getRequestId(),
-                        rpcRequest.getServiceName(), rpcRequest.getMethod(), e.getMessage());
+                RPCResponse rpcResponse = RPCResponse.respWithError(rpcRequest, e.getMessage());
                 session.getChannel().writeAndFlush(rpcResponse);
                 return;
             }

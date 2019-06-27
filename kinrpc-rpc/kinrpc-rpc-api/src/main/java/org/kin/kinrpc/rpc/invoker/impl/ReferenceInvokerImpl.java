@@ -21,13 +21,13 @@ public class ReferenceInvokerImpl extends AbstractReferenceInvoker {
     @Override
     public void init() {
         this.rpcReference.start();
-        log.info("ReferenceInvoker inited");
+        log.info("referenceInvoker inited");
     }
 
     @Override
     public void shutdown() {
         rpcReference.shutdown();
-        log.info("ReferenceInvoker shutdown");
+        log.info("referenceInvoker shutdown");
     }
 
     @Override

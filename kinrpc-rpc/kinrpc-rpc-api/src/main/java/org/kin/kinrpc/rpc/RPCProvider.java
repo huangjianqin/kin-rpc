@@ -39,19 +39,18 @@ public class RPCProvider {
     //本质上是生产者-消费者模式
     private BlockingQueue<RPCRequest> requestsQueue = new LinkedBlockingQueue<>();
 
-    //server配置
+    //占用端口
     private int port;
     //底层的连接
     private ProviderHandler connection;
     //扫描RPCRequest的线程
     private ScanRequestsThread scanRequestsThread;
-    //用于标识该Server是否stopped
-    private boolean isStopped = false;
+    //标识是否stopped
+    private volatile boolean isStopped = false;
 
     public RPCProvider(int port) {
         this.port = port;
 
-        //实例化一些基本变量
         this.threads = new ForkJoinPool();
         JvmCloseCleaner.DEFAULT().add(this::shutdownNow);
     }
@@ -146,7 +145,7 @@ public class RPCProvider {
         }
 
         //关闭扫描请求队列线程  停止将队列中的请求的放入线程池中处理,转而发送重试的RPCResponse
-        scanRequestsThread.setStopped(true);
+        scanRequestsThread.stopScan();
         //中断对requestsQueue的take()阻塞操作
         scanRequestsThread.interrupt();
         try {
@@ -183,7 +182,7 @@ public class RPCProvider {
 
     private class ScanRequestsThread extends Thread {
         private final Logger log = LoggerFactory.getLogger("invoker");
-        private boolean stopped = false;
+        private volatile boolean isStopped = false;
 
         public ScanRequestsThread() {
             super("requests-scanner--thread-1");
@@ -192,7 +191,7 @@ public class RPCProvider {
         @Override
         public void run() {
             log.info("handling consumer's request...");
-            while (!stopped) {
+            while (!isStopped) {
                 try {
                     final RPCRequest rpcRequest = requestsQueue.take();
                     log.debug("revceive a request >>> " + rpcRequest);
@@ -255,8 +254,8 @@ public class RPCProvider {
 
         }
 
-        public void setStopped(boolean stopped) {
-            this.stopped = stopped;
+        public void stopScan() {
+            this.isStopped = true;
         }
     }
 

@@ -56,6 +56,10 @@ public class RPCResponse implements Serializable {
         return rpcResponse;
     }
 
+    public static RPCResponse respWithError(RPCRequest request, String errorMsg) {
+        return respWithError(request.getRequestId(), request.getServiceName(), request.getMethod(), errorMsg);
+    }
+
     public void setState(State state, String info) {
         this.state = state;
         this.info = info;

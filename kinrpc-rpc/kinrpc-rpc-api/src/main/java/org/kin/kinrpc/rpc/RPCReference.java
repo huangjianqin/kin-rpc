@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
@@ -23,13 +23,18 @@ import java.util.concurrent.Future;
 public class RPCReference implements ChannelExceptionHandler, ChannelInactiveListener {
     private static final Logger log = LoggerFactory.getLogger("invoker");
     private Map<String, RPCFuture> pendingRPCFutureMap = new ConcurrentHashMap<String, RPCFuture>();
-    private ReferenceHandler referenceHandler;
+    private ReferenceHandler connection;
+    private volatile boolean isStopped;
 
     public RPCReference(InetSocketAddress address, Serializer serializer) {
-        this.referenceHandler = new ReferenceHandler(address, serializer, this);
+        this.connection = new ReferenceHandler(address, serializer, this);
     }
 
     public void handleResponse(RPCResponse rpcResponse) {
+        if(isStopped){
+            return;
+        }
+
         String requestId = rpcResponse.getRequestId() + "";
         RPCFuture pendRPCFuture = pendingRPCFutureMap.get(requestId);
         if (pendRPCFuture != null) {
@@ -38,40 +43,58 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
     }
 
     public Future<RPCResponse> request(RPCRequest request){
-        log.debug("发送请求>>>" + request.toString());
-
-        referenceHandler.request(request);
         RPCFuture future = new RPCFuture(request, this);
-        pendingRPCFutureMap.put(request.getRequestId() + "", future);
+        if(isStopped){
+            future.done(RPCResponse.respWithError(request, "client channel closed"));
+            return future;
+        }
+        log.debug("send a request>>>" + request.toString());
+
+        try {
+            connection.request(request);
+            pendingRPCFutureMap.put(request.getRequestId() + "", future);
+        } catch (Exception e) {
+            pendingRPCFutureMap.remove(request.getRequestId() + "");
+            future.done(RPCResponse.respWithError(request, "client channel closed"));
+        }
+
         return future;
     }
 
     private void clean() {
-        for (RPCFuture rpcFuture : this.pendingRPCFutureMap.values()) {
+        Collection<RPCFuture> copy = new ArrayList<>(this.pendingRPCFutureMap.values());
+        for (RPCFuture rpcFuture : copy) {
             RPCRequest rpcRequest = rpcFuture.getRequest();
-            RPCResponse rpcResponse = RPCResponse.respWithError(rpcRequest.getRequestId(),
-                    rpcRequest.getServiceName(), rpcRequest.getMethod(), "channel inactive");
+            RPCResponse rpcResponse = RPCResponse.respWithError(rpcRequest, "channel inactive");
             rpcFuture.done(rpcResponse);
         }
         this.pendingRPCFutureMap.clear();
-
-        shutdown();
     }
 
     public HostAndPort getAddress() {
-        return HostAndPort.fromString(referenceHandler.getAddress());
+        return HostAndPort.fromString(connection.getAddress());
     }
 
     public boolean isActive() {
-        return referenceHandler.isActive();
+        if(isStopped){
+            return false;
+        }
+        return connection.isActive();
     }
 
     public void start() {
-        referenceHandler.connect();
+        if(isStopped){
+            return;
+        }
+        connection.connect();
     }
 
     public void shutdown() {
-        referenceHandler.close();
+        if(isStopped){
+            return;
+        }
+        isStopped = true;
+        connection.close();
     }
 
     public void removeInvalid(RPCRequest rpcRequest) {
@@ -80,11 +103,13 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
 
     @Override
     public void handleException(Channel channel, Throwable cause) {
+        shutdown();
         clean();
     }
 
     @Override
     public void channelInactive(Channel channel) {
+        shutdown();
         clean();
     }
 
@@ -99,11 +124,11 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
 
         RPCReference that = (RPCReference) o;
 
-        return referenceHandler != null ? referenceHandler.equals(that.referenceHandler) : that.referenceHandler == null;
+        return connection != null ? connection.equals(that.connection) : that.connection == null;
     }
 
     @Override
     public int hashCode() {
-        return referenceHandler != null ? referenceHandler.hashCode() : 0;
+        return connection != null ? connection.hashCode() : 0;
     }
 }

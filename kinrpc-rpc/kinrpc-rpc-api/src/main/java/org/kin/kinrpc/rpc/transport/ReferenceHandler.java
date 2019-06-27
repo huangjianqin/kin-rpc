@@ -36,6 +36,8 @@ public class ReferenceHandler extends AbstractConnection implements ProtocolHand
         this.rpcReference = rpcReference;
 
         this.client = new Client(address, new RPCResponseProtocolTransfer(), this);
+        this.client.setChannelInactiveListener(rpcReference);
+        this.client.setChannelExceptionHandler(rpcReference);
         this.client.setTimeout(500);
     }
 
