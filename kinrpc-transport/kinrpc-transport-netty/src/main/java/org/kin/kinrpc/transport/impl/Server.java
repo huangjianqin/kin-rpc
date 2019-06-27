@@ -10,13 +10,12 @@ import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import org.kin.kinrpc.transport.*;
 import org.kin.kinrpc.transport.handler.BaseFrameCodec;
-import org.kin.kinrpc.transport.handler.ChannelIdleTimeoutHandler;
+import org.kin.kinrpc.transport.handler.ChannelIdleHandler;
 import org.kin.kinrpc.transport.handler.ChannelProtocolHandler;
 import org.kin.kinrpc.transport.handler.ProtocolCodec;
 import org.kin.kinrpc.transport.listener.ChannelActiveListener;
+import org.kin.kinrpc.transport.listener.ChannelIdleListener;
 import org.kin.kinrpc.transport.listener.ChannelInactiveListener;
-import org.kin.kinrpc.transport.listener.ChannelReadIdleListener;
-import org.kin.kinrpc.transport.listener.ChannelWriteIdleListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,8 +40,7 @@ public class Server extends AbstractConnection {
     private ChannelActiveListener channelActiveListener;
     private ChannelInactiveListener channelInactiveListener;
     private ChannelExceptionHandler channelExceptionHandler;
-    private ChannelReadIdleListener channelReadIdleListener;
-    private ChannelWriteIdleListener channelWriteIdleListener;
+    private ChannelIdleListener channelIdleListener;
 
     public Server(
             InetSocketAddress address,
@@ -74,10 +72,22 @@ public class Server extends AbstractConnection {
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) throws Exception {
+                        socketChannel.pipeline().addLast(new WriteTimeoutHandler(3));
+
+                        if(channelIdleListener != null){
+                            int readIdleTime = channelIdleListener.readIdleTime();
+                            int writeIdleTime = channelIdleListener.writeIdelTime();
+                            int allIdleTime = channelIdleListener.allIdleTime();
+                            if(readIdleTime > 0 || writeIdleTime > 0 || allIdleTime > 0){
+                                //其中一个>0就设置Handler
+                                socketChannel.pipeline()
+                                        .addLast(new IdleStateHandler(readIdleTime, writeIdleTime, allIdleTime))
+                                        .addLast(new ChannelIdleHandler(channelIdleListener));
+                            }
+
+                        }
+
                         socketChannel.pipeline()
-                                .addLast(new WriteTimeoutHandler(10))
-                                .addLast(new IdleStateHandler(300, 0, 0))
-                                .addLast(new ChannelIdleTimeoutHandler(channelReadIdleListener, channelWriteIdleListener))
                                 .addLast(BaseFrameCodec.serverFrameCodec())
                                 .addLast(new ProtocolCodec(transfer, true))
                                 .addLast(new ChannelProtocolHandler(protocolHandler, sessionBuilder, channelActiveListener, channelInactiveListener, channelExceptionHandler));
@@ -140,12 +150,8 @@ public class Server extends AbstractConnection {
         this.channelExceptionHandler = channelExceptionHandler;
     }
 
-    public void setChannelReadIdleListener(ChannelReadIdleListener channelReadIdleListener) {
-        this.channelReadIdleListener = channelReadIdleListener;
-    }
-
-    public void setChannelWriteIdleListener(ChannelWriteIdleListener channelWriteIdleListener) {
-        this.channelWriteIdleListener = channelWriteIdleListener;
+    public void setChannelIdleListener(ChannelIdleListener channelIdleListener) {
+        this.channelIdleListener = channelIdleListener;
     }
 
     @Override
