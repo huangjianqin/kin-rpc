@@ -84,7 +84,7 @@ public class Clusters {
         int timeout = Integer.valueOf(url.getParam(Constants.TIMEOUT_KEY));
         int retryTimes = Integer.valueOf(url.getParam(Constants.RETRY_TIMES_KEY));
         int retryTimeout = Integer.valueOf(url.getParam(Constants.RETRY_TIMEOUT_KEY));
-        Cluster cluster = new DefaultCluster(registry, url.getServiceName(), timeout);
+        Cluster cluster = new ClusterImpl(registry, url.getServiceName(), timeout);
 
         ClusterInvoker clusterInvoker = new ClusterInvoker(cluster, retryTimes, retryTimeout);
 
