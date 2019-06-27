@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * Created by 健勤 on 2017/2/15.
  */
-class DefaultCluster implements Cluster {
+class ClusterImpl implements Cluster {
     private static final Logger log = LoggerFactory.getLogger("cluster");
 
     //代表某service的所有ReferenceInvoker
@@ -23,13 +23,13 @@ class DefaultCluster implements Cluster {
     private final Router router;
     private final LoadBalance loadBalance;
 
-    public DefaultCluster(Registry registry, String serviceName, int connectTimeout) {
+    public ClusterImpl(Registry registry, String serviceName, int connectTimeout) {
         this.directory = registry.subscribe(serviceName, connectTimeout);
         this.router = new SimpleRouter();
         this.loadBalance = new RoundRobinLoadBalance();
     }
 
-    public DefaultCluster(Directory directory, Router router, LoadBalance loadBalance) {
+    public ClusterImpl(Directory directory, Router router, LoadBalance loadBalance) {
         this.directory = directory;
         this.router = router;
         this.loadBalance = loadBalance;

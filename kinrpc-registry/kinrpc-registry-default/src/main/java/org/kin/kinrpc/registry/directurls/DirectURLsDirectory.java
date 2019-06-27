@@ -11,8 +11,11 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 /**
  * Created by huangjianqin on 2019/6/11.
@@ -52,7 +55,15 @@ public class DirectURLsDirectory extends AbstractDirectory {
 
     @Override
     public List<AbstractReferenceInvoker> list() {
-        return new ArrayList<>(this.invokers);
+        Map<Boolean, List<AbstractReferenceInvoker>> map = this.invokers.stream().collect(Collectors.groupingBy(AbstractReferenceInvoker::isActive));
+        if(map.containsKey(Boolean.FALSE)){
+            invokers.removeAll(map.get(Boolean.FALSE));
+            for (AbstractReferenceInvoker invoker : map.get(Boolean.FALSE)) {
+                invoker.shutdown();
+            }
+        }
+
+        return map.getOrDefault(Boolean.TRUE, Collections.emptyList());
     }
 
     @Override
