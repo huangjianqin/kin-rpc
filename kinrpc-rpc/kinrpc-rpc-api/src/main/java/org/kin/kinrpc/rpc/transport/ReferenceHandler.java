@@ -1,5 +1,6 @@
 package org.kin.kinrpc.rpc.transport;
 
+import org.kin.framework.utils.TimeUtils;
 import org.kin.kinrpc.rpc.RPCReference;
 import org.kin.kinrpc.rpc.serializer.Serializer;
 import org.kin.kinrpc.rpc.serializer.SerializerType;
@@ -63,6 +64,7 @@ public class ReferenceHandler extends AbstractConnection implements ProtocolHand
 
     public void request(RPCRequest request){
         try {
+            request.setCreateTime(System.currentTimeMillis());
             byte[] data = serializer.serialize(request);
             RPCRequestProtocol protocol = new RPCRequestProtocol(data);
             client.request(protocol);
@@ -96,6 +98,7 @@ public class ReferenceHandler extends AbstractConnection implements ProtocolHand
             RPCResponse rpcResponse;
             try {
                 rpcResponse = serializer.deserialize(protocol.getRespContent(), RPCResponse.class);
+                rpcResponse.setEventTime(System.currentTimeMillis());
             } catch (IOException | ClassNotFoundException e) {
                 log.error("", e);
                 return;

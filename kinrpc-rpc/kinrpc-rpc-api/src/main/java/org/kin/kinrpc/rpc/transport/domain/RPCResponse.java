@@ -41,6 +41,13 @@ public class RPCResponse implements Serializable {
         }
     }
 
+    //request创建时间
+    private long createTime;
+    //request事件时间即, 到达service端的时间
+    private long eventTime;
+    //request处理时间
+    private long handleTime;
+
     public RPCResponse() {
     }
 
@@ -57,7 +64,9 @@ public class RPCResponse implements Serializable {
     }
 
     public static RPCResponse respWithError(RPCRequest request, String errorMsg) {
-        return respWithError(request.getRequestId(), request.getServiceName(), request.getMethod(), errorMsg);
+        RPCResponse rpcResponse = respWithError(request.getRequestId(), request.getServiceName(), request.getMethod(), errorMsg);
+        rpcResponse.setCreateTime(System.currentTimeMillis());
+        return rpcResponse;
     }
 
     public void setState(State state, String info) {
@@ -94,6 +103,30 @@ public class RPCResponse implements Serializable {
         return method;
     }
 
+    public long getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(long createTime) {
+        this.createTime = createTime;
+    }
+
+    public long getEventTime() {
+        return eventTime;
+    }
+
+    public void setEventTime(long eventTime) {
+        this.eventTime = eventTime;
+    }
+
+    public long getHandleTime() {
+        return handleTime;
+    }
+
+    public void setHandleTime(long handleTime) {
+        this.handleTime = handleTime;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -118,8 +151,14 @@ public class RPCResponse implements Serializable {
     public String toString() {
         return "RPCResponse{" +
                 "requestId=" + requestId +
+                ", serviceName='" + serviceName + '\'' +
+                ", method='" + method + '\'' +
+                ", result=" + result +
                 ", info='" + info + '\'' +
                 ", state=" + state +
+                ", createTime=" + createTime +
+                ", eventTime=" + eventTime +
+                ", handleTime=" + handleTime +
                 '}';
     }
 }

@@ -72,6 +72,7 @@ public class ProviderHandler extends AbstractConnection implements ProtocolHandl
             try {
                 rpcRequest = serializer.deserialize(data, RPCRequest.class);
                 rpcRequest.setChannel(session.getChannel());
+                rpcRequest.setEventTime(System.currentTimeMillis());
             } catch (IOException | ClassNotFoundException e) {
                 log.error("", e);
                 RPCResponse rpcResponse = RPCResponse.respWithError(rpcRequest, e.getMessage());

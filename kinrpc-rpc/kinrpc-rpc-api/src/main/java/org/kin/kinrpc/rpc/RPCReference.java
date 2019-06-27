@@ -36,7 +36,9 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
         if(isStopped){
             return;
         }
+        log.debug("revceive a response >>> " + System.lineSeparator() + rpcResponse);
 
+        rpcResponse.setHandleTime(System.currentTimeMillis());
         String requestId = rpcResponse.getRequestId() + "";
         RPCFuture pendRPCFuture = pendingRPCFutureMap.get(requestId);
         if (pendRPCFuture != null) {
@@ -50,7 +52,7 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
             future.done(RPCResponse.respWithError(request, "client channel closed"));
             return future;
         }
-        log.debug("send a request>>>" + request.toString());
+        log.debug("send a request>>>" + System.lineSeparator() + request);
 
         try {
             connection.request(request);

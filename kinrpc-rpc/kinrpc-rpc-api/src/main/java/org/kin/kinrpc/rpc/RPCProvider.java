@@ -197,7 +197,7 @@ public class RPCProvider {
             while (!isStopped) {
                 try {
                     final RPCRequest rpcRequest = requestsQueue.take();
-                    log.debug("revceive a request >>> " + rpcRequest);
+                    log.debug("revceive a request >>> " + System.lineSeparator() + rpcRequest);
 
                     //因为fork-join的工作窃取机制, 会优先窃取队列靠后的task(maybe后面才来request)
                     //因此, 限制队列的任务数, 以此做到尽可能先完成早到的request
@@ -209,6 +209,7 @@ public class RPCProvider {
 
                     //提交线程池处理服务执行
                     threads.execute(() -> {
+                        rpcRequest.setHandleTime(System.currentTimeMillis());
                         String serviceName = rpcRequest.getServiceName();
                         String methodName = rpcRequest.getMethod();
                         Object[] params = rpcRequest.getParams();
@@ -235,6 +236,7 @@ public class RPCProvider {
                             log.error("can not find service>>> {}", rpcRequest);
                             rpcResponse.setState(RPCResponse.State.ERROR, "unknown service");
                         }
+                        rpcResponse.setCreateTime(System.currentTimeMillis());
                         //write back to consumer
                         connection.resp(channel, rpcResponse);
                     });
