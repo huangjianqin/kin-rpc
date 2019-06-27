@@ -4,6 +4,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.kin.framework.JvmCloseCleaner;
+import org.kin.framework.concurrent.SimpleThreadFactory;
+import org.kin.framework.concurrent.ThreadManager;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.common.URL;
 import org.kin.kinrpc.registry.Registries;
@@ -13,6 +15,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by huangjianqin on 2019/6/18.
@@ -21,13 +28,33 @@ public class Clusters {
     private static final Logger log = LoggerFactory.getLogger("cluster");
     private static final Cache<Integer, RPCProvider> PROVIDER_CACHE = CacheBuilder.newBuilder().build();
     private static final Cache<String, ClusterInvoker> REFERENCE_CACHE = CacheBuilder.newBuilder().build();
+    private static final ThreadManager threadManager = new ThreadManager(
+            new ThreadPoolExecutor(1, 1, 60L, TimeUnit.SECONDS,
+                    new LinkedBlockingQueue<>(), new SimpleThreadFactory("provider-unregister-executor")),
+            new ScheduledThreadPoolExecutor(2, new SimpleThreadFactory("provider-heartbeat")));
 
     static {
         JvmCloseCleaner.DEFAULT().add(() -> {
             for(RPCProvider provider: PROVIDER_CACHE.asMap().values()){
                 provider.shutdown();
             }
+            threadManager.shutdown();
         });
+        //心跳检查, 每隔一定时间检查provider是否异常, 并取消服务注册
+        threadManager.scheduleAtFixedRate(() -> {
+            for(RPCProvider provider: new ArrayList<>(PROVIDER_CACHE.asMap().values())){
+                if(!provider.isAlive()){
+                    int port = provider.getPort();
+                    PROVIDER_CACHE.invalidate(port);
+                    threadManager.execute(() -> {
+                        provider.shutdown();
+                        for (URL url : provider.getAvailableServices()) {
+                            unRegisterService(url);
+                        }
+                    });
+                }
+            }
+        }, 3, 3, TimeUnit.SECONDS);
     }
 
     private Clusters(){
@@ -49,10 +76,10 @@ public class Clusters {
         }
 
         try {
-            provider.addService(url.getServiceName(), interfaceClass, instance);
+            provider.addService(url, interfaceClass, instance);
             Registry registry = Registries.getRegistry(url);
             if(registry != null){
-                registry.register(interfaceClass.getName(), "0.0.0.0", port);
+                registry.register(url.getServiceName(), "0.0.0.0", port);
             }
         } catch (Exception e) {
             log.error("", e);
@@ -60,15 +87,19 @@ public class Clusters {
         }
     }
 
-    public static synchronized void disableService(URL url, Class interfaceClass){
+    private static void unRegisterService(URL url){
         Registry registry = Registries.getRegistry(url);
         if(registry != null){
-            registry.unRegister(interfaceClass.getName(), "0.0.0.0", url.getPort());
+            registry.unRegister(url.getServiceName(), "0.0.0.0", url.getPort());
             Registries.closeRegistry(url);
         }
+    }
+
+    public static synchronized void disableService(URL url, Class interfaceClass){
+        unRegisterService(url);
 
         RPCProvider provider = PROVIDER_CACHE.getIfPresent(url.getPort());
-        provider.disableService(url.getServiceName());
+        provider.disableService(url);
         if(!provider.isBusy()){
             //该端口没有提供服务, 关闭网络连接
             provider.shutdown();

@@ -4,6 +4,7 @@ import io.netty.channel.Channel;
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadManager;
+import org.kin.kinrpc.common.URL;
 import org.kin.kinrpc.rpc.invoker.AbstractProviderInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.ProviderInvokerImpl;
 import org.kin.kinrpc.rpc.transport.ProviderHandler;
@@ -14,9 +15,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by 健勤 on 2017/2/10.
@@ -27,7 +28,7 @@ public class RPCProvider {
 
     //只有get的时候没有同步,其余都同步了
     //大部分情况下get调用的频率比其他方法都多,没有必要使用同步容器,提供一丢丢性能
-    private Map<String, AbstractProviderInvoker> serviceMap = new HashMap<String, AbstractProviderInvoker>();
+    private Map<String, ProviderInvokerWrapper> serviceMap = new ConcurrentHashMap<>();
     //各种服务请求处理的线程池
     private ForkJoinPool threads;
     //保证RPCRequest按请求顺序进队
@@ -58,17 +59,16 @@ public class RPCProvider {
     /**
      * 支持动态添加服务
      */
-    public void addService(String serviceName, Class<?> interfaceClass, Object service) {
+    public void addService(URL url, Class<?> interfaceClass, Object service) {
         if(!isStopped){
+            String serviceName = url.getServiceName();
             ProviderInvokerImpl invoker = new ProviderInvokerImpl(serviceName, service);
             invoker.init(interfaceClass);
 
-            synchronized (serviceMap) {
-                if (!serviceMap.containsKey(serviceName)) {
-                    serviceMap.put(serviceName, invoker);
-                } else {
-                    throw new IllegalStateException("service'" + serviceName + "' has registered. can not register again");
-                }
+            if (!serviceMap.containsKey(serviceName)) {
+                serviceMap.put(serviceName, new ProviderInvokerWrapper(url, invoker));
+            } else {
+                throw new IllegalStateException("service'" + serviceName + "' has registered. can not register again");
             }
         }
     }
@@ -76,18 +76,31 @@ public class RPCProvider {
     /**
      * 支持动态移除服务
      */
-    public void disableService(String serviceName) {
-        synchronized (serviceMap) {
-            serviceMap.remove(serviceName);
-        }
+    public void disableService(URL url) {
+        String serviceName = url.getServiceName();
+        serviceMap.remove(serviceName);
     }
 
     public boolean isBusy(){
-        synchronized (serviceMap) {
+        if(isAlive()){
             return !serviceMap.isEmpty();
         }
+
+        return false;
     }
 
+    public boolean isAlive(){
+        return connection.isActive();
+    }
+
+    public Collection<URL> getAvailableServices(){
+        List<ProviderInvokerWrapper> copy = new ArrayList<>(serviceMap.values());
+        return copy.stream().map(ProviderInvokerWrapper::getUrl).collect(Collectors.toList());
+    }
+
+    public int getPort() {
+        return port;
+    }
 
     /**
      * 启动Server
@@ -121,15 +134,6 @@ public class RPCProvider {
         if(isStopped){
             throw new RuntimeException("try shutdown stopped provider");
         }
-        log.info("server(port= " + port + ") shutdowning...");
-        synchronized (serviceMap) {
-            int refCounter = serviceMap.size();
-            if (refCounter > 0) {
-                log.info("server still has service to server, don't stop");
-                return;
-            }
-        }
-
         shutdownNow();
     }
 
@@ -143,28 +147,24 @@ public class RPCProvider {
         if (this.connection == null || scanRequestsThread == null) {
             throw new IllegalStateException("Provider Server has not started");
         }
+        log.info("server(port= " + port + ") shutdowning...");
+        isStopped = true;
 
         //关闭扫描请求队列线程  停止将队列中的请求的放入线程池中处理,转而发送重试的RPCResponse
         scanRequestsThread.stopScan();
         //中断对requestsQueue的take()阻塞操作
         scanRequestsThread.interrupt();
-        try {
-            Thread.sleep(500L);
-        } catch (InterruptedException e) {
-            log.error("", e);
-        }
         //处理完所有进入队列的请求
         threads.shutdown();
         try {
-            Thread.sleep(200L);
+            //等待所有response成功返回
+            Thread.sleep(500L);
         } catch (InterruptedException e) {
             log.error("", e);
         }
 
         //最后关闭连接
         connection.close();
-
-        isStopped = true;
         log.info("server connection close successfully");
     }
 
@@ -211,27 +211,28 @@ public class RPCProvider {
                         Object[] params = rpcRequest.getParams();
                         Channel channel = rpcRequest.getChannel();
 
-                        AbstractProviderInvoker invoker = serviceMap.get(serviceName);
-
                         RPCResponse rpcResponse = new RPCResponse(rpcRequest.getRequestId(),
                                 rpcRequest.getServiceName(), rpcRequest.getMethod());
-                        Object result = null;
-                        if (invoker != null) {
+                        if(serviceMap.containsKey(serviceName)){
+                            AbstractProviderInvoker invoker = serviceMap.get(serviceName).getInvoker();
+
+                            Object result = null;
                             try {
                                 result = invoker.invoke(methodName, false, params);
+                                rpcResponse.setState(RPCResponse.State.SUCCESS, "");
                             } catch (Throwable throwable) {
                                 //服务调用报错, 将异常信息返回
                                 rpcResponse.setState(RPCResponse.State.ERROR, throwable.getMessage());
                                 log.error("", throwable);
                             }
-                            rpcResponse.setState(RPCResponse.State.SUCCESS, "");
-                        } else {
-                            log.error("can not find rpcRequest(id= " + rpcRequest.getRequestId() + ")'s service");
-                            rpcResponse.setState(RPCResponse.State.ERROR, "can not find service '" + serviceName + "'");
-                        }
 
-                        rpcResponse.setResult(result);
-                        //写回给消费者
+                            rpcResponse.setResult(result);
+                        }
+                        else{
+                            log.error("can not find service>>> {}", rpcRequest);
+                            rpcResponse.setState(RPCResponse.State.ERROR, "unknown service");
+                        }
+                        //write back to consumer
                         connection.resp(channel, rpcResponse);
                     });
                 } catch (InterruptedException e) {
@@ -259,4 +260,22 @@ public class RPCProvider {
         }
     }
 
+    private class ProviderInvokerWrapper {
+        private URL url;
+        private AbstractProviderInvoker invoker;
+
+        public ProviderInvokerWrapper(URL url, AbstractProviderInvoker invoker) {
+            this.url = url;
+            this.invoker = invoker;
+        }
+
+        //getter
+        public URL getUrl() {
+            return url;
+        }
+
+        public AbstractProviderInvoker getInvoker() {
+            return invoker;
+        }
+    }
 }

@@ -91,7 +91,6 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
                 log.error("", e);
             }
         }
-        super.channelActive(ctx);
     }
 
     @Override
@@ -104,7 +103,6 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
                 log.error("", e);
             }
         }
-        super.channelInactive(ctx);
     }
 
     @Override
@@ -121,6 +119,5 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
                 log.error("", e);
             }
         }
-        super.exceptionCaught(ctx, cause);
     }
 }
