@@ -8,7 +8,7 @@ import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.common.URL;
 import org.kin.kinrpc.registry.Registries;
 import org.kin.kinrpc.registry.Registry;
-import org.kin.kinrpc.rpc.domain.RPCProvider;
+import org.kin.kinrpc.rpc.RPCProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

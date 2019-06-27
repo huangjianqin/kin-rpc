@@ -2,7 +2,7 @@ package org.kin.kinrpc.rpc.future;
 
 
 import org.kin.framework.concurrent.ThreadManager;
-import org.kin.kinrpc.rpc.domain.RPCReference;
+import org.kin.kinrpc.rpc.RPCReference;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.slf4j.Logger;

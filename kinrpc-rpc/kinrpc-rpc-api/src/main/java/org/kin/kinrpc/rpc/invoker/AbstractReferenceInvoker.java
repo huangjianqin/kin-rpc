@@ -1,7 +1,7 @@
 package org.kin.kinrpc.rpc.invoker;
 
 import com.google.common.net.HostAndPort;
-import org.kin.kinrpc.rpc.domain.RPCReference;
+import org.kin.kinrpc.rpc.RPCReference;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractReferenceInvoker extends AbstractInvoker implements AsyncInvoker {
     protected static final Logger log = LoggerFactory.getLogger("invoker");
-    //该invoker代表的连接
     protected RPCReference rpcReference;
 
     public AbstractReferenceInvoker(String serviceName, RPCReference rpcReference) {

@@ -1,10 +1,12 @@
 package org.kin.kinrpc.rpc.transport;
 
-import org.kin.kinrpc.rpc.domain.RPCReference;
+import org.kin.kinrpc.rpc.RPCReference;
 import org.kin.kinrpc.rpc.serializer.Serializer;
 import org.kin.kinrpc.rpc.serializer.SerializerType;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
+import org.kin.kinrpc.rpc.transport.domain.RPCRequestProtocol;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
+import org.kin.kinrpc.rpc.transport.domain.RPCResponseProtocol;
 import org.kin.kinrpc.transport.AbstractConnection;
 import org.kin.kinrpc.transport.AbstractSession;
 import org.kin.kinrpc.transport.impl.Client;

@@ -2,7 +2,7 @@ package org.kin.kinrpc.rpc.cluster;
 
 import org.kin.framework.Closeable;
 import org.kin.framework.concurrent.ThreadManager;
-import org.kin.kinrpc.rpc.domain.RPCContext;
+import org.kin.kinrpc.rpc.RPCContext;
 import org.kin.kinrpc.rpc.future.RPCFuture;
 import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
 import org.kin.kinrpc.rpc.invoker.AsyncInvoker;

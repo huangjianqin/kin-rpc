@@ -1,13 +1,13 @@
-package org.kin.kinrpc.rpc.domain;
+package org.kin.kinrpc.rpc;
 
 import io.netty.channel.Channel;
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadManager;
 import org.kin.kinrpc.rpc.invoker.AbstractProviderInvoker;
-import org.kin.kinrpc.rpc.invoker.impl.JavaProviderInvoker;
+import org.kin.kinrpc.rpc.invoker.impl.ProviderInvokerImpl;
 import org.kin.kinrpc.rpc.transport.ProviderHandler;
-import org.kin.kinrpc.rpc.transport.RPCConstants;
+import org.kin.kinrpc.rpc.transport.common.RPCConstants;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.slf4j.Logger;
@@ -27,20 +27,20 @@ public class RPCProvider {
 
     //只有get的时候没有同步,其余都同步了
     //大部分情况下get调用的频率比其他方法都多,没有必要使用同步容器,提供一丢丢性能
-    private final Map<String, AbstractProviderInvoker> serviceMap = new HashMap<String, AbstractProviderInvoker>();
+    private Map<String, AbstractProviderInvoker> serviceMap = new HashMap<String, AbstractProviderInvoker>();
     //各种服务请求处理的线程池
-    private final ForkJoinPool threads;
+    private ForkJoinPool threads;
     //保证RPCRequest按请求顺序进队
-    private final ThreadManager orderQueueRequestsThread = new ThreadManager(
+    private ThreadManager orderQueueRequestsThread = new ThreadManager(
             new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<>(), new SimpleThreadFactory("order-queue-requests")));
     //RPCRequest队列,所有连接该Server的consumer发送的request都put进这个队列
     //然后由一个专门的线程不断地get,再提交到线程池去处理
     //本质上是生产者-消费者模式
-    private final BlockingQueue<RPCRequest> requestsQueue = new LinkedBlockingQueue<>();
+    private BlockingQueue<RPCRequest> requestsQueue = new LinkedBlockingQueue<>();
 
     //server配置
-    private final int port;
+    private int port;
     //底层的连接
     private ProviderHandler connection;
     //扫描RPCRequest的线程
@@ -61,7 +61,7 @@ public class RPCProvider {
      */
     public void addService(String serviceName, Class<?> interfaceClass, Object service) {
         if(!isStopped){
-            JavaProviderInvoker invoker = new JavaProviderInvoker(serviceName, service);
+            ProviderInvokerImpl invoker = new ProviderInvokerImpl(serviceName, service);
             invoker.init(interfaceClass);
 
             synchronized (serviceMap) {

@@ -1,5 +1,6 @@
 package org.kin.kinrpc.rpc.transport;
 
+import org.kin.kinrpc.rpc.transport.domain.RPCResponseProtocol;
 import org.kin.kinrpc.transport.Bytes2ProtocolTransfer;
 import org.kin.kinrpc.transport.domain.Request;
 

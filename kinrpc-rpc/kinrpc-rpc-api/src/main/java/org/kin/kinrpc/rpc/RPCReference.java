@@ -1,4 +1,4 @@
-package org.kin.kinrpc.rpc.domain;
+package org.kin.kinrpc.rpc;
 
 import com.google.common.net.HostAndPort;
 import io.netty.channel.Channel;

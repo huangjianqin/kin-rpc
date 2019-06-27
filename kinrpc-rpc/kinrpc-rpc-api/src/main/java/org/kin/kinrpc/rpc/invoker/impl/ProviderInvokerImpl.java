@@ -10,8 +10,8 @@ import java.lang.reflect.Method;
 /**
  * Created by 健勤 on 2017/2/12.
  */
-public class JavaProviderInvoker extends AbstractProviderInvoker {
-    public JavaProviderInvoker(String serviceName, Object service) {
+public class ProviderInvokerImpl extends AbstractProviderInvoker {
+    public ProviderInvokerImpl(String serviceName, Object service) {
         super(serviceName);
         this.serivce = service;
     }

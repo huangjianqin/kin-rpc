@@ -8,9 +8,9 @@ import org.apache.zookeeper.ZooKeeper;
 import org.kin.framework.concurrent.ThreadManager;
 import org.kin.kinrpc.registry.AbstractDirectory;
 import org.kin.kinrpc.registry.RegistryConstants;
-import org.kin.kinrpc.rpc.domain.RPCReference;
+import org.kin.kinrpc.rpc.RPCReference;
 import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
-import org.kin.kinrpc.rpc.invoker.impl.JavaReferenceInvoker;
+import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvokerImpl;
 import org.kin.kinrpc.rpc.serializer.SerializerType;
 
 import java.net.InetSocketAddress;
@@ -204,7 +204,7 @@ public class ZookeeperDirectory extends AbstractDirectory {
         ThreadManager.DEFAULT.submit(() -> {
             //创建连接
             RPCReference rpcReference = new RPCReference(new InetSocketAddress(host, port), serializerType.newInstance());
-            AbstractReferenceInvoker refereneceInvoker = new JavaReferenceInvoker(serviceName, rpcReference);
+            AbstractReferenceInvoker refereneceInvoker = new ReferenceInvokerImpl(serviceName, rpcReference);
             //真正启动连接
             refereneceInvoker.init();
 

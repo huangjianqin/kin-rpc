@@ -1,6 +1,7 @@
-package org.kin.kinrpc.rpc.transport;
+package org.kin.kinrpc.rpc.transport.domain;
 
 import com.google.common.base.Preconditions;
+import org.kin.kinrpc.rpc.transport.common.RPCConstants;
 import org.kin.kinrpc.transport.domain.AbstractProtocol;
 import org.kin.kinrpc.transport.domain.Request;
 import org.kin.kinrpc.transport.domain.Response;
