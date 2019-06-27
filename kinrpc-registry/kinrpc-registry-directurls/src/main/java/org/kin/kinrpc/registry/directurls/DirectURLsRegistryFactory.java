@@ -21,7 +21,7 @@ public class DirectURLsRegistryFactory extends AbstractRegistryFactory {
         SerializerType serializerType = SerializerType.getByName(url.getParam(Constants.SERIALIZE_KEY));
 
         List<HostAndPort> hostAndPorts = new ArrayList<>();
-        for(String one: address.split(Constants.DEFAULT_REGISTRY_URL_SPLITOR)){
+        for(String one: address.split(Constants.DIRECT_URLS_REGISTRY_SPLITOR)){
             hostAndPorts.add(HostAndPort.fromString(one));
         }
 

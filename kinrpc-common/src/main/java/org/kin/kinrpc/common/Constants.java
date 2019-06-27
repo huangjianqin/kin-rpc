@@ -35,11 +35,11 @@ public class Constants {
     public static final String KINRPC_PROTOCOL = "kinrpc";
     //url可选值, 或默认值
     public static final String ZOOKEEPER_REGISTRY = "zookeeper";
-    public static final String DEFAULT_REGISTRY = "default";
+    public static final String DIRECT_URLS_REGISTRY = "directURLs";
     //provider Server默认配置
     public static final int SERVER_DEFAULT_PORT = 16888;
-    //default register url splitor
-    public static final String DEFAULT_REGISTRY_URL_SPLITOR = ";";
+    //directURLs register url splitor
+    public static final String DIRECT_URLS_REGISTRY_SPLITOR = ";";
     //重试次数
     public static int RETRY_TIMES = 3;
     //等待重试时间

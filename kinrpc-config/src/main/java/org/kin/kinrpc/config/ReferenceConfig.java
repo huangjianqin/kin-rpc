@@ -81,7 +81,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
     public ReferenceConfig<T> urls(String... urls){
         if(!isReference){
-            this.registryConfig = new DefaultRegistryConfig(StringUtils.mkString(";", urls));
+            this.registryConfig = new DirectURLsRegistryConfig(StringUtils.mkString(";", urls));
         }
         return this;
     }
@@ -92,7 +92,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
     public ReferenceConfig<T> zookeeper(String address, String password){
         if(!isReference){
-            this.registryConfig = new DefaultRegistryConfig(address);
+            this.registryConfig = new DirectURLsRegistryConfig(address);
             this.registryConfig.setPassword(password);
         }
         return this;

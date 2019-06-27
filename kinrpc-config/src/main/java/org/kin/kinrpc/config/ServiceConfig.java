@@ -102,7 +102,7 @@ public class ServiceConfig extends AbstractConfig{
 
     public ServiceConfig urls(String... urls){
         if(!isExport){
-            this.registryConfig = new DefaultRegistryConfig(StringUtils.mkString(";", urls));
+            this.registryConfig = new DirectURLsRegistryConfig(StringUtils.mkString(";", urls));
         }
         return this;
     }
@@ -113,7 +113,7 @@ public class ServiceConfig extends AbstractConfig{
 
     public ServiceConfig zookeeper(String address, String password){
         if(!isExport){
-            this.registryConfig = new DefaultRegistryConfig(address);
+            this.registryConfig = new DirectURLsRegistryConfig(address);
             this.registryConfig.setPassword(password);
         }
         return this;

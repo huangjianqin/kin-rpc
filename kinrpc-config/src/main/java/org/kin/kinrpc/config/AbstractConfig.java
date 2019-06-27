@@ -28,8 +28,8 @@ abstract class AbstractConfig {
         Map<String, String> params = new HashMap<>(Constants.URL_PARAM_NUM);
         params.put(Constants.APP_NAME_KEY, applicationConfig.getAppName());
         if(registryConfig != null){
-            if(registryConfig instanceof DefaultRegistryConfig){
-                params.put(Constants.REGISTRY_KEY, Constants.DEFAULT_REGISTRY);
+            if(registryConfig instanceof DirectURLsRegistryConfig){
+                params.put(Constants.REGISTRY_KEY, Constants.DIRECT_URLS_REGISTRY);
             }
             else if(registryConfig instanceof ZookeeperRegistryConfig){
                 params.put(Constants.REGISTRY_KEY, Constants.ZOOKEEPER_REGISTRY);

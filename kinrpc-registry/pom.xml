@@ -14,7 +14,7 @@
     <modules>
         <module>kinrpc-registry-zookeeper</module>
         <module>kinrpc-registry-api</module>
-        <module>kinrpc-registry-default</module>
+        <module>kinrpc-registry-directurls</module>
         <module>kinrpc-registry-redis</module>
     </modules>
     <packaging>pom</packaging>
