@@ -1,13 +1,14 @@
-package org.kin.kinrpc.transport.protocol;
+package org.kin.kinrpc.transport.common;
 
 import io.netty.channel.Channel;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
+import org.kin.kinrpc.transport.AbstractSession;
 
 /**
  * Created by huangjianqin on 2019/6/3.
  */
-public final class ProtocolConstants {
+public class ProtocolConstants {
     private ProtocolConstants(){
 
     }

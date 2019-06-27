@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Created by huangjianqin on 2019/6/4.
  */
-public class InOutBoundStatistic {
+class InOutBoundStatistic {
     /**
      * serviceName+method || protocolId
      */
@@ -13,13 +13,13 @@ public class InOutBoundStatistic {
     private AtomicLong totalSize;
     private AtomicLong count;
 
-    public InOutBoundStatistic(String uuid) {
+    InOutBoundStatistic(String uuid) {
         this.uuid = uuid;
         totalSize = new AtomicLong(0);
         count = new AtomicLong(0);
     }
 
-    public void incr(long size) {
+    void incr(long size) {
         totalSize.addAndGet(size);
         count.incrementAndGet();
     }

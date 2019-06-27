@@ -6,9 +6,9 @@ import org.kin.kinrpc.rpc.serializer.SerializerType;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.kin.kinrpc.transport.AbstractConnection;
-import org.kin.kinrpc.transport.protocol.AbstractSession;
-import org.kin.kinrpc.transport.protocol.Client;
-import org.kin.kinrpc.transport.protocol.ProtocolHandler;
+import org.kin.kinrpc.transport.AbstractSession;
+import org.kin.kinrpc.transport.impl.Client;
+import org.kin.kinrpc.transport.ProtocolHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

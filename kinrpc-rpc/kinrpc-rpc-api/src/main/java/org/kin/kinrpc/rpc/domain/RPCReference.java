@@ -8,7 +8,7 @@ import org.kin.kinrpc.rpc.transport.ReferenceHandler;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.kin.kinrpc.transport.listener.ChannelInactiveListener;
-import org.kin.kinrpc.transport.listener.ExceptionHandler;
+import org.kin.kinrpc.transport.ChannelExceptionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +20,7 @@ import java.util.concurrent.Future;
 /**
  * Created by huangjianqin on 2019/6/14.
  */
-public class RPCReference implements ExceptionHandler, ChannelInactiveListener {
+public class RPCReference implements ChannelExceptionHandler, ChannelInactiveListener {
     private static final Logger log = LoggerFactory.getLogger("invoker");
     private Map<String, RPCFuture> pendingRPCFutureMap = new ConcurrentHashMap<String, RPCFuture>();
     private ReferenceHandler referenceHandler;

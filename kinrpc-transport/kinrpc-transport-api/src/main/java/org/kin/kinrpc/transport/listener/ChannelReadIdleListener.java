@@ -6,7 +6,7 @@ import io.netty.channel.Channel;
  * Created by huangjianqin on 2019/6/3.
  */
 @FunctionalInterface
-public interface ReadIdleListener {
+public interface ChannelReadIdleListener {
     /**
      * 在channel线程调用
      */

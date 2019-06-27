@@ -1,4 +1,4 @@
-package org.kin.kinrpc.transport.protocol.domain;
+package org.kin.kinrpc.transport.domain;
 
 import io.netty.buffer.ByteBuf;
 

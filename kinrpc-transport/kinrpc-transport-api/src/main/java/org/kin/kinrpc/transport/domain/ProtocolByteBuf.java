@@ -1,4 +1,4 @@
-package org.kin.kinrpc.transport.protocol.domain;
+package org.kin.kinrpc.transport.domain;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;

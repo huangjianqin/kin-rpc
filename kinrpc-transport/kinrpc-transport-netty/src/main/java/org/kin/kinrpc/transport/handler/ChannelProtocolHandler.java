@@ -1,17 +1,17 @@
-package org.kin.kinrpc.transport.protocol.handler;
+package org.kin.kinrpc.transport.handler;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.Attribute;
+import org.kin.kinrpc.transport.AbstractSession;
+import org.kin.kinrpc.transport.common.ProtocolConstants;
+import org.kin.kinrpc.transport.ProtocolHandler;
+import org.kin.kinrpc.transport.SessionBuilder;
 import org.kin.kinrpc.transport.listener.ChannelActiveListener;
 import org.kin.kinrpc.transport.listener.ChannelInactiveListener;
-import org.kin.kinrpc.transport.listener.ExceptionHandler;
-import org.kin.kinrpc.transport.protocol.AbstractSession;
-import org.kin.kinrpc.transport.protocol.ProtocolConstants;
-import org.kin.kinrpc.transport.protocol.ProtocolHandler;
-import org.kin.kinrpc.transport.protocol.SessionBuilder;
-import org.kin.kinrpc.transport.protocol.domain.AbstractProtocol;
+import org.kin.kinrpc.transport.ChannelExceptionHandler;
+import org.kin.kinrpc.transport.domain.AbstractProtocol;
 import org.kin.kinrpc.transport.utils.ChannelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,18 +27,18 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
     private final SessionBuilder sessionBuilder;
     private ChannelActiveListener channelActiveListener;
     private ChannelInactiveListener channelInactiveListener;
-    private ExceptionHandler exceptionHandler;
+    private ChannelExceptionHandler channelExceptionHandler;
 
     public ChannelProtocolHandler(ProtocolHandler protocolHandler,
                                   SessionBuilder sessionBuilder,
                                   ChannelActiveListener channelActiveListener,
                                   ChannelInactiveListener channelInactiveListener,
-                                  ExceptionHandler exceptionHandler) {
+                                  ChannelExceptionHandler channelExceptionHandler) {
         this.protocolHandler = protocolHandler;
         this.sessionBuilder = sessionBuilder;
         this.channelActiveListener = channelActiveListener;
         this.channelInactiveListener = channelInactiveListener;
-        this.exceptionHandler = exceptionHandler;
+        this.channelExceptionHandler = channelExceptionHandler;
     }
 
     public ChannelProtocolHandler(ProtocolHandler protocolHandler, SessionBuilder sessionBuilder) {
@@ -59,8 +59,8 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
 
     public ChannelProtocolHandler(ProtocolHandler protocolHandler,
                                   SessionBuilder sessionBuilder,
-                                  ExceptionHandler exceptionHandler) {
-        this(protocolHandler, sessionBuilder, null, null, exceptionHandler);
+                                  ChannelExceptionHandler channelExceptionHandler) {
+        this(protocolHandler, sessionBuilder, null, null, channelExceptionHandler);
     }
 
     @Override
@@ -114,9 +114,9 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
         if (channel.isOpen() || channel.isActive()) {
             ctx.close();
         }
-        if (exceptionHandler != null) {
+        if (channelExceptionHandler != null) {
             try {
-                exceptionHandler.handleException(ctx.channel(), cause);
+                channelExceptionHandler.handleException(ctx.channel(), cause);
             } catch (Exception e) {
                 log.error("", e);
             }

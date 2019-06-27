@@ -1,10 +1,10 @@
-package org.kin.kinrpc.transport.protocol;
+package org.kin.kinrpc.transport;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
-import org.kin.kinrpc.transport.protocol.domain.AbstractProtocol;
-import org.kin.kinrpc.transport.protocol.domain.Response;
+import org.kin.kinrpc.transport.domain.Response;
+import org.kin.kinrpc.transport.domain.AbstractProtocol;
 import org.kin.kinrpc.transport.utils.ChannelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

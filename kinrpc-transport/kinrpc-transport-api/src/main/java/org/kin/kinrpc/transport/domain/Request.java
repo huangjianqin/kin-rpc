@@ -1,4 +1,4 @@
-package org.kin.kinrpc.transport.protocol.domain;
+package org.kin.kinrpc.transport.domain;
 
 /**
  * Created by huangjianqin on 2019/5/30.

@@ -1,4 +1,4 @@
-package org.kin.kinrpc.transport.listener;
+package org.kin.kinrpc.transport;
 
 import io.netty.channel.Channel;
 
@@ -6,7 +6,7 @@ import io.netty.channel.Channel;
  * Created by huangjianqin on 2019/6/3.
  */
 @FunctionalInterface
-public interface ExceptionHandler {
+public interface ChannelExceptionHandler {
     /**
      * 在channel线程调用
      */

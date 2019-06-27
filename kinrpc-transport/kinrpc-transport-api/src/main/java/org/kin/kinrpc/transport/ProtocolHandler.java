@@ -1,6 +1,6 @@
-package org.kin.kinrpc.transport.protocol;
+package org.kin.kinrpc.transport;
 
-import org.kin.kinrpc.transport.protocol.domain.AbstractProtocol;
+import org.kin.kinrpc.transport.domain.AbstractProtocol;
 
 /**
  * Created by huangjianqin on 2019/5/30.
