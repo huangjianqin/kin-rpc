@@ -1,6 +1,8 @@
 package org.kin.kinrpc.rpc.transport;
 
+import com.google.common.util.concurrent.RateLimiter;
 import io.netty.channel.Channel;
+import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.rpc.RPCProvider;
 import org.kin.kinrpc.rpc.serializer.Serializer;
 import org.kin.kinrpc.rpc.serializer.SerializerType;
@@ -27,6 +29,7 @@ public class ProviderHandler extends AbstractConnection implements ProtocolHandl
     private final RPCProvider rpcProvider;
     private Serializer serializer;
     private Server server;
+    private RateLimiter rateLimiter = RateLimiter.create(Constants.SERVER_REQUEST_THRESHOLD);
 
     public ProviderHandler(InetSocketAddress address,
                            RPCProvider rpcProvider) {
@@ -68,9 +71,23 @@ public class ProviderHandler extends AbstractConnection implements ProtocolHandl
     public void handleProtocol(AbstractSession session, RPCRequestProtocol protocol) {
         try {
             byte[] data = protocol.getReqContent();
+
             RPCRequest rpcRequest = null;
             try {
                 rpcRequest = serializer.deserialize(data, RPCRequest.class);
+
+                InOutBoundStatisicService.instance().statisticReq(
+                        rpcRequest.getServiceName() + "-" + rpcRequest.getServiceName(), data.length
+                );
+
+                //限流
+                if(!rateLimiter.tryAcquire(data.length)){
+                    RPCResponse rpcResponse = RPCResponse.respWithError(rpcRequest, "server rate limited, just reject");
+                    session.getChannel().writeAndFlush(rpcResponse);
+
+                    return;
+                }
+
                 rpcRequest.setChannel(session.getChannel());
                 rpcRequest.setEventTime(System.currentTimeMillis());
             } catch (IOException | ClassNotFoundException e) {
@@ -79,10 +96,6 @@ public class ProviderHandler extends AbstractConnection implements ProtocolHandl
                 session.getChannel().writeAndFlush(rpcResponse);
                 return;
             }
-
-            InOutBoundStatisicService.instance().statisticReq(
-                    rpcRequest.getServiceName() + "-" + rpcRequest.getServiceName(), data.length
-            );
 
             //简单地添加到任务队列交由上层的线程池去完成服务调用
             rpcProvider.handleRequest(rpcRequest);

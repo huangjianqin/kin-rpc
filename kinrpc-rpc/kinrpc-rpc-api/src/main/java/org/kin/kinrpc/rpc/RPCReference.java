@@ -105,6 +105,10 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
         this.pendingRPCFutureMap.remove(rpcRequest.getRequestId() + "");
     }
 
+    public void setRate(double rate){
+        connection.setRate(rate);
+    }
+
     @Override
     public void handleException(Channel channel, Throwable cause) {
         shutdown();

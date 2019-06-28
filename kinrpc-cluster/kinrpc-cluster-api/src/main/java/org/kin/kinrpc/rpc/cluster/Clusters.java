@@ -136,4 +136,8 @@ public class Clusters {
 
         REFERENCE_CACHE.invalidate(url.getServiceName());
     }
+
+    public static synchronized void shutdownHeartBeat(){
+        threadManager.shutdown();
+    }
 }

@@ -4,6 +4,7 @@ package org.kin.kinrpc.demo.consumer;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.References;
 import org.kin.kinrpc.demo.service.Addable;
+import org.kin.kinrpc.rpc.cluster.Clusters;
 import org.kin.kinrpc.transport.statistic.InOutBoundStatisicService;
 
 /**
@@ -17,6 +18,7 @@ public class AddableConsumer {
         System.out.println("结果" + service.add(1, 1));
         referenceConfig.disable();
         InOutBoundStatisicService.instance().close();
+        Clusters.shutdownHeartBeat();
         Thread.sleep(5000);
     }
 }

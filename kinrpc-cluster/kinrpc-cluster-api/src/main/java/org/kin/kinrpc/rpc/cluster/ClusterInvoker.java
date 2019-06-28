@@ -1,5 +1,6 @@
 package org.kin.kinrpc.rpc.cluster;
 
+import com.google.common.net.HostAndPort;
 import org.kin.framework.Closeable;
 import org.kin.framework.concurrent.ThreadManager;
 import org.kin.kinrpc.rpc.RPCContext;
@@ -13,6 +14,9 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.*;
 
 /**
@@ -65,8 +69,12 @@ class ClusterInvoker implements InvocationHandler, AsyncInvoker, Closeable {
     private Object invoke0(String methodName, boolean isVoid, Object... params) throws Exception {
         if(retryTimes > 0){
             int tryTimes = 0;
+
+            //单次请求曾经fail的service 访问地址
+            Set<HostAndPort> failureHostAndPorts = new HashSet<>();
+
             while (tryTimes < retryTimes) {
-                AbstractReferenceInvoker invoker = cluster.get();
+                AbstractReferenceInvoker invoker = cluster.get(failureHostAndPorts);
                 if (invoker != null) {
                     Future<RPCResponse> future = invoker.invokeAsync(methodName, params);
                     try {
@@ -77,6 +85,7 @@ class ClusterInvoker implements InvocationHandler, AsyncInvoker, Closeable {
                                     return rpcResponse.getResult();
                                 case RETRY:
                                     tryTimes++;
+                                    failureHostAndPorts.add(invoker.getAddress());
                                     break;
                                 case ERROR:
                                     throw new RuntimeException(rpcResponse.getInfo());
@@ -86,6 +95,7 @@ class ClusterInvoker implements InvocationHandler, AsyncInvoker, Closeable {
                         } else {
                             tryTimes++;
                             ((RPCFuture) future).doneTimeout();
+                            failureHostAndPorts.add(invoker.getAddress());
                         }
                     }catch (InterruptedException e) {
                         log.warn("pending result interrupted >>> {}", e.getMessage());
@@ -93,6 +103,7 @@ class ClusterInvoker implements InvocationHandler, AsyncInvoker, Closeable {
                         log.error("pending result execute error >>> {}", e.getMessage());
                     } catch (TimeoutException e) {
                         tryTimes++;
+                        failureHostAndPorts.add(invoker.getAddress());
                         log.warn("invoke time out >>> {}", e.getMessage());
                     }
                 }
@@ -102,7 +113,7 @@ class ClusterInvoker implements InvocationHandler, AsyncInvoker, Closeable {
             throw new RuntimeException("invoke get unvalid response more than " + retryTimes + " times");
         }
         else{
-            AbstractReferenceInvoker invoker = cluster.get();
+            AbstractReferenceInvoker invoker = cluster.get(Collections.EMPTY_LIST);
             if (invoker != null) {
                 return invoker.invoke(methodName, isVoid, params);
             }

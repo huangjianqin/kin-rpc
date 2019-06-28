@@ -1,6 +1,8 @@
 package org.kin.kinrpc.rpc.invoker.impl;
 
 
+import com.google.common.util.concurrent.RateLimiter;
+import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.rpc.RPCReference;
 import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
@@ -14,6 +16,8 @@ import java.util.concurrent.Future;
  * Created by 健勤 on 2017/2/15.
  */
 public class ReferenceInvokerImpl extends AbstractReferenceInvoker {
+    private RateLimiter rateLimiter = RateLimiter.create(Constants.REFERENCE_REQUEST_THRESHOLD);
+
     public ReferenceInvokerImpl(String serviceName, RPCReference rpcReference) {
         super(serviceName, rpcReference);
     }
@@ -68,5 +72,15 @@ public class ReferenceInvokerImpl extends AbstractReferenceInvoker {
         log.debug("invoke method '" + methodName + "'");
         RPCRequest request = createRequest(RPCRequestIdGenerator.next(), methodName, params);
         return rpcReference.request(request);
+    }
+
+    @Override
+    public void setRate(double rate) {
+        rateLimiter.setRate(rate);
+    }
+
+    @Override
+    public double getRate() {
+        return rateLimiter.getRate();
     }
 }

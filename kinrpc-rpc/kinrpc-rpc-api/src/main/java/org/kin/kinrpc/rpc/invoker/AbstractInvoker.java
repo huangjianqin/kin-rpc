@@ -10,6 +10,8 @@ abstract class AbstractInvoker implements Invoker {
         this.serviceName = serviceName;
     }
 
+    public abstract void setRate(double rate);
+    public abstract double getRate();
     //getter
     public String getServiceName() {
         return serviceName;

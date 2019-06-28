@@ -48,8 +48,13 @@ public class Constants {
     public static final String JAVA_SERIALIZE = "java";
     public static final String KRYO_SERIALIZE = "kryo";
     public static final String HESSION_SERIALIZE = "hession";
-    //TODO 限流
-    public static final int SERVER_REQUEST_THRESHOLD = 100;
+    //限流
+    //每秒n次
+    public static final int PROVIDER_REQUEST_THRESHOLD = 5;
+    //每秒n次
+    public static final int REFERENCE_REQUEST_THRESHOLD = 5;
+    //每秒所有channel请求访问量Byte
+    public static final int SERVER_REQUEST_THRESHOLD = 20000;
 
 
 

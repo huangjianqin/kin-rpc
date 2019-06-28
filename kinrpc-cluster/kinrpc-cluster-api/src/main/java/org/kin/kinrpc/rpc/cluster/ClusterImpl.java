@@ -1,5 +1,6 @@
 package org.kin.kinrpc.rpc.cluster;
 
+import com.google.common.net.HostAndPort;
 import org.kin.kinrpc.registry.Directory;
 import org.kin.kinrpc.registry.Registry;
 import org.kin.kinrpc.rpc.cluster.loadbalance.LoadBalance;
@@ -10,7 +11,9 @@ import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by 健勤 on 2017/2/15.
@@ -36,10 +39,14 @@ class ClusterImpl implements Cluster {
     }
 
     @Override
-    public AbstractReferenceInvoker get() {
+    public AbstractReferenceInvoker get(Collection<HostAndPort> excludes) {
         log.debug("get one reference invoker from cluster");
         if (checkState()) {
             List<AbstractReferenceInvoker> availableInvokers = directory.list();
+            //过滤掉单次请求曾经fail的service 访问地址
+            availableInvokers = availableInvokers.stream().filter(invoker -> !excludes.contains(invoker.getAddress()))
+                    .collect(Collectors.toList());
+
             List<AbstractReferenceInvoker> routeredInvokers = router.router(availableInvokers);
             AbstractReferenceInvoker loadbalancedInvoker = loadBalance.loadBalance(routeredInvokers);
 

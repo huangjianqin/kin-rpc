@@ -5,6 +5,7 @@ import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadManager;
 import org.kin.kinrpc.common.URL;
+import org.kin.kinrpc.rpc.exception.RateLimitException;
 import org.kin.kinrpc.rpc.invoker.AbstractProviderInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.ProviderInvokerImpl;
 import org.kin.kinrpc.rpc.transport.ProviderHandler;
@@ -224,6 +225,8 @@ public class RPCProvider {
                             try {
                                 result = invoker.invoke(methodName, false, params);
                                 rpcResponse.setState(RPCResponse.State.SUCCESS, "");
+                            } catch (RateLimitException e) {
+                                rpcResponse.setState(RPCResponse.State.RETRY, "service rate limited, just reject");
                             } catch (Throwable throwable) {
                                 //服务调用报错, 将异常信息返回
                                 rpcResponse.setState(RPCResponse.State.ERROR, throwable.getMessage());
@@ -251,7 +254,7 @@ public class RPCProvider {
                 Channel channel = rpcRequest.getChannel();
 
                 RPCResponse rpcResponse = new RPCResponse(rpcRequest.getRequestId(), rpcRequest.getServiceName(), rpcRequest.getMethod());
-                rpcResponse.setState(RPCResponse.State.RETRY, "server unavailable");
+                rpcResponse.setState(RPCResponse.State.RETRY, "service unavailable");
 
                 channel.write(rpcResponse);
             }

@@ -1,6 +1,9 @@
 package org.kin.kinrpc.rpc.invoker.impl;
 
+import com.google.common.util.concurrent.RateLimiter;
 import org.kin.framework.utils.StringUtils;
+import org.kin.kinrpc.common.Constants;
+import org.kin.kinrpc.rpc.exception.RateLimitException;
 import org.kin.kinrpc.rpc.invoker.AbstractProviderInvoker;
 import org.kin.kinrpc.rpc.utils.ClassUtils;
 
@@ -11,6 +14,8 @@ import java.lang.reflect.Method;
  * Created by 健勤 on 2017/2/12.
  */
 public class ProviderInvokerImpl extends AbstractProviderInvoker {
+    private RateLimiter rateLimiter = RateLimiter.create(Constants.PROVIDER_REQUEST_THRESHOLD);
+
     public ProviderInvokerImpl(String serviceName, Object service) {
         super(serviceName);
         this.serivce = service;
@@ -30,6 +35,12 @@ public class ProviderInvokerImpl extends AbstractProviderInvoker {
     @Override
     public Object invoke(String methodName, boolean isVoid, Object... params) throws Exception {
         log.debug("service '" + getServiceName() + "' method '" + methodName + "' invoking...");
+        //限流
+        if(!rateLimiter.tryAcquire()){
+            //抛异常, 外部捕获异常并立即返回给reference, 让其重试
+            throw new RateLimitException();
+        }
+
         Method target = methodMap.get(methodName);
 
         if (target == null) {
@@ -65,4 +76,13 @@ public class ProviderInvokerImpl extends AbstractProviderInvoker {
     }
 
 
+    @Override
+    public void setRate(double rate) {
+        rateLimiter.setRate(rate);
+    }
+
+    @Override
+    public double getRate() {
+        return rateLimiter.getRate();
+    }
 }

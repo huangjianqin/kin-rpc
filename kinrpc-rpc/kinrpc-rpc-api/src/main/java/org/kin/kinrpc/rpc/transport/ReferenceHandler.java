@@ -1,6 +1,6 @@
 package org.kin.kinrpc.rpc.transport;
 
-import org.kin.framework.utils.TimeUtils;
+import com.google.common.util.concurrent.RateLimiter;
 import org.kin.kinrpc.rpc.RPCReference;
 import org.kin.kinrpc.rpc.serializer.Serializer;
 import org.kin.kinrpc.rpc.serializer.SerializerType;
@@ -26,6 +26,8 @@ public class ReferenceHandler extends AbstractConnection implements ProtocolHand
     private Serializer serializer;
     private final RPCReference rpcReference;
     private Client client;
+    //reference 端限流
+    private RateLimiter rateLimiter = RateLimiter.create(org.kin.kinrpc.common.Constants.REFERENCE_REQUEST_THRESHOLD);
 
     public ReferenceHandler(InetSocketAddress address, RPCReference rpcReference) {
         this(address, SerializerType.KRYO.newInstance(), rpcReference);
@@ -66,11 +68,18 @@ public class ReferenceHandler extends AbstractConnection implements ProtocolHand
         try {
             request.setCreateTime(System.currentTimeMillis());
             byte[] data = serializer.serialize(request);
+            //限流
+            rateLimiter.acquire();
+
             RPCRequestProtocol protocol = new RPCRequestProtocol(data);
             client.request(protocol);
         } catch (IOException e) {
             log.error("", e);
         }
+    }
+
+    public void setRate(double rate){
+        rateLimiter.setRate(rate);
     }
 
     @Override
