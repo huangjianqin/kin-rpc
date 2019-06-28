@@ -18,7 +18,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
     private Class<T> interfaceClass;
     private int timeout = Constants.REFERENCE_DEFAULT_CONNECT_TIMEOUT;
     private String serviceName;
-    private int retryTimes = Constants.RETRY_TIMES;
+    private int retryTimes;
     private int retryTimeout = Constants.RETRY_TIMEOUT;
     private String serialize = Constants.KRYO_SERIALIZE;
 

@@ -40,8 +40,6 @@ public class Constants {
     public static final int SERVER_DEFAULT_PORT = 16888;
     //directURLs register url splitor
     public static final String DIRECT_URLS_REGISTRY_SPLITOR = ";";
-    //重试次数
-    public static int RETRY_TIMES = 3;
     //等待重试时间
     public static int RETRY_TIMEOUT = 500;
     //提供的序列化方式
