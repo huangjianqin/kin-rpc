@@ -194,10 +194,6 @@ public class ZookeeperRegistry extends AbstractRegistry{
         return sessionTimeOut;
     }
 
-    public ZooKeeper getConnection() {
-        return this.zooKeeper;
-    }
-
     public HostAndPort getAddress() {
         return address;
     }
