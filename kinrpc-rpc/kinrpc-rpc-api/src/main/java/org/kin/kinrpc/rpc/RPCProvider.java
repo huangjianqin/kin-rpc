@@ -1,7 +1,6 @@
 package org.kin.kinrpc.rpc;
 
 import io.netty.channel.Channel;
-import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadManager;
 import org.kin.kinrpc.common.URL;

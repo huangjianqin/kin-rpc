@@ -10,10 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -22,47 +21,47 @@ import java.util.stream.Collectors;
  */
 public class DirectURLsDirectory extends AbstractDirectory {
     private static final Logger log = LoggerFactory.getLogger("registry");
-    //自己会
-    private List<AbstractReferenceInvoker> invokers;
 
-    public DirectURLsDirectory(String serviceName, int connectTimeout, List<HostAndPort> hostAndPorts, SerializerType serializerType) {
+    public DirectURLsDirectory(String serviceName, int connectTimeout, SerializerType serializerType) {
         super(serviceName, connectTimeout, serializerType);
-
-        init(hostAndPorts);
-    }
-
-    private void init(List<HostAndPort> hostAndPorts) {
-        invokers = new CopyOnWriteArrayList<>();
-        for (HostAndPort hostAndPort : hostAndPorts) {
-            connectServer(hostAndPort.getHost(), hostAndPort.getPort());
-        }
-    }
-
-    /**
-     * 创建新的ReferenceInvoker,连接Service Server
-     */
-    private void connectServer(String host, int port) {
-        //创建连接
-        RPCReference rpcReference = new RPCReference(new InetSocketAddress(host, port), serializerType.newInstance(), connectTimeout);
-        AbstractReferenceInvoker refereneceInvoker = new ReferenceInvokerImpl(serviceName, rpcReference);
-        //真正启动连接
-        refereneceInvoker.init();
-
-        if (refereneceInvoker.isActive()) {
-            invokers.add(refereneceInvoker);
-        }
     }
 
     @Override
     public List<AbstractReferenceInvoker> list() {
-        return this.invokers.stream().filter(AbstractReferenceInvoker::isActive).collect(Collectors.toList());
+        if(!isStopped){
+            return invokers.stream().filter(AbstractReferenceInvoker::isActive).collect(Collectors.toList());
+        }
+        return Collections.emptyList();
     }
 
     @Override
-    public void destroy() {
-        for (AbstractReferenceInvoker invoker : invokers) {
-            invoker.shutdown();
+    protected void doDiscover(List<String> addresses) {
+        if(!isStopped){
+            List<AbstractReferenceInvoker> invokers = new ArrayList<>();
+            for (String address: addresses) {
+                HostAndPort hostAndPort = HostAndPort.fromString(address);
+
+                //创建新的ReferenceInvoker,连接Service Server
+                RPCReference rpcReference = new RPCReference(new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPort()),
+                        serializerType.newInstance(), connectTimeout);
+                AbstractReferenceInvoker refereneceInvoker = new ReferenceInvokerImpl(serviceName, rpcReference);
+                //真正启动连接
+                refereneceInvoker.init();
+                invokers.add(refereneceInvoker);
+            }
+            super.invokers = invokers;
         }
-        invokers.clear();
+    }
+
+    @Override
+    protected void doDestroy() {
+        if(!isStopped){
+            isStopped = true;
+            for (AbstractReferenceInvoker invoker : invokers) {
+                invoker.shutdown();
+            }
+            invokers.clear();
+            invokers = null;
+        }
     }
 }

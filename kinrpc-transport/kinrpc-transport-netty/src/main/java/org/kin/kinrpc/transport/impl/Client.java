@@ -16,7 +16,6 @@ import org.kin.kinrpc.transport.handler.ProtocolCodec;
 import org.kin.kinrpc.transport.listener.ChannelActiveListener;
 import org.kin.kinrpc.transport.listener.ChannelIdleListener;
 import org.kin.kinrpc.transport.listener.ChannelInactiveListener;
-import org.kin.kinrpc.transport.utils.ChannelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

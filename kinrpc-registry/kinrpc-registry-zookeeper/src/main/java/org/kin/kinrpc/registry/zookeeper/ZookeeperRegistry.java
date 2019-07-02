@@ -63,7 +63,7 @@ public class ZookeeperRegistry extends AbstractRegistry{
         } catch (InterruptedException e) {
         }
 
-        //一些预处理
+        //创建节点等一些预处理
         initRootZNode();
     }
 
@@ -142,8 +142,38 @@ public class ZookeeperRegistry extends AbstractRegistry{
 
     @Override
     public Directory subscribe(String serviceName, int connectTimeout) {
-        log.info("consumer subscribe service '{}' " + ">>> zookeeper registry({})", serviceName, getAddress());
-        return new ZookeeperDirectory(serviceName, connectTimeout, this, serializerType);
+        log.info("reference subscribe service '{}' " + ">>> zookeeper registry({})", serviceName, getAddress());
+        Directory directory = new ZookeeperDirectory(serviceName, connectTimeout, serializerType);
+        watch(directory);
+        return directory;
+    }
+
+    private void watch(Directory directory){
+        List<String> znodeList = null;
+        try {
+            znodeList = zooKeeper.getChildren(RegistryConstants.getPath(directory.getServiceName()),
+                    (WatchedEvent watchedEvent) -> {
+                        if (watchedEvent.getType() == Watcher.Event.EventType.NodeChildrenChanged) {
+                            log.info("service '" + directory.getServiceName() + "' server node changed");
+                            watch(directory);
+                        }
+                    });
+            directory.discover(znodeList);
+        } catch (KeeperException e) {
+            //如果不存在该节点,则表明服务取消注册了
+            if (e.code().equals(KeeperException.Code.NONODE)) {
+                log.error("service '" + directory.getServiceName() + "' unregisted");
+                //等待一段时间
+                try {
+                    Thread.sleep(5 * 1000L);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+                watch(directory);
+            }
+        } catch (InterruptedException e) {
+
+        }
     }
 
     @Override

@@ -29,6 +29,7 @@ public class Registries {
         }
         registryType = registryType.toLowerCase();
 
+        //TODO 考虑从META-INF读取自定义实现的注册中心并允许加载
         try {
             String finalRegistryType = registryType;
             RegistryFactory registryFactory = REGISTRY_FACTORY_CACHE.get(registryType, () -> {

@@ -5,7 +5,6 @@ import org.kin.framework.concurrent.ThreadManager;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.rpc.RPCReference;
 import org.kin.kinrpc.rpc.serializer.Serializer;
-import org.kin.kinrpc.rpc.serializer.SerializerType;
 import org.kin.kinrpc.rpc.transport.domain.*;
 import org.kin.kinrpc.transport.AbstractConnection;
 import org.kin.kinrpc.transport.AbstractSession;

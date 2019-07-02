@@ -1,6 +1,5 @@
 package org.kin.kinrpc.registry.directurls;
 
-import com.google.common.net.HostAndPort;
 import org.kin.kinrpc.registry.AbstractRegistry;
 import org.kin.kinrpc.registry.Directory;
 import org.kin.kinrpc.rpc.serializer.SerializerType;
@@ -12,10 +11,10 @@ import java.util.zip.DataFormatException;
  * Created by huangjianqin on 2019/6/18.
  */
 public class DirectURLsRegistry extends AbstractRegistry {
-    private List<HostAndPort> hostAndPorts;
+    private List<String> hostAndPorts;
     private SerializerType serializerType;
 
-    public DirectURLsRegistry(List<HostAndPort> hostAndPorts, SerializerType serializerType) {
+    public DirectURLsRegistry(List<String> hostAndPorts, SerializerType serializerType) {
         this.hostAndPorts = hostAndPorts;
         this.serializerType = serializerType;
     }
@@ -37,7 +36,9 @@ public class DirectURLsRegistry extends AbstractRegistry {
 
     @Override
     public Directory subscribe(String serviceName, int connectTimeout) {
-        return new DirectURLsDirectory(serviceName, connectTimeout, hostAndPorts, serializerType);
+        Directory directory = new DirectURLsDirectory(serviceName, connectTimeout, serializerType);
+        directory.discover(hostAndPorts);
+        return directory;
     }
 
     @Override

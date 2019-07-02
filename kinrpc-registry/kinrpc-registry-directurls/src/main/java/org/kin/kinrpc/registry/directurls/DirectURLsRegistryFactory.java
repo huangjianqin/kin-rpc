@@ -1,6 +1,5 @@
 package org.kin.kinrpc.registry.directurls;
 
-import com.google.common.net.HostAndPort;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.common.URL;
 import org.kin.kinrpc.registry.AbstractRegistryFactory;
@@ -20,9 +19,9 @@ public class DirectURLsRegistryFactory extends AbstractRegistryFactory {
         String address = url.getParam(Constants.REGISTRY_URL_KEY);
         SerializerType serializerType = SerializerType.getByName(url.getParam(Constants.SERIALIZE_KEY));
 
-        List<HostAndPort> hostAndPorts = new ArrayList<>();
+        List<String> hostAndPorts = new ArrayList<>();
         for(String one: address.split(Constants.DIRECT_URLS_REGISTRY_SPLITOR)){
-            hostAndPorts.add(HostAndPort.fromString(one));
+            hostAndPorts.add(one);
         }
 
         try {

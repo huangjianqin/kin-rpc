@@ -10,7 +10,7 @@ import java.util.List;
  */
 public interface Directory {
     List<AbstractReferenceInvoker> list();
-
+    void discover(List<String> addresses);
     String getServiceName();
 
     void destroy();
