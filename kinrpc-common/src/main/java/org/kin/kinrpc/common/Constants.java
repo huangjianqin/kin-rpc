@@ -34,6 +34,7 @@ public class Constants {
     public static final String KINRPC_PROTOCOL = "kinrpc";
     //url可选值, 或默认值
     public static final String ZOOKEEPER_REGISTRY = "zookeeper";
+    public static final String ZOOKEEPER2_REGISTRY = "zookeeper2";
     public static final String DIRECT_URLS_REGISTRY = "directURLs";
     //provider Server默认配置
     public static final int SERVER_DEFAULT_PORT = 16888;
