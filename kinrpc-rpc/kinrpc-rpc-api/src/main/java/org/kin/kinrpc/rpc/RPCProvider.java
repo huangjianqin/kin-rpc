@@ -39,7 +39,7 @@ public class RPCProvider {
     private ThreadManager orderQueueRequestsThread = new ThreadManager(
             new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<>(), new SimpleThreadFactory("order-queue-requests")));
-    //RPCRequest队列,所有连接该Server的consumer发送的request都put进这个队列
+    //RPCRequest队列,所有连接该Server的reference发送的request都put进这个队列
     //然后由一个专门的线程不断地get,再提交到线程池去处理
     //本质上是生产者-消费者模式
     private BlockingQueue<RPCRequest> requestsQueue = new LinkedBlockingQueue<>();
@@ -125,7 +125,7 @@ public class RPCProvider {
             System.exit(-1);
         }
 
-        //启动定时扫描队列,以及时处理所有consumer的请求
+        //启动定时扫描队列,以及时处理所有reference的请求
         this.scanRequestsThread = new ScanRequestsThread();
         this.scanRequestsThread.start();
 
@@ -196,7 +196,7 @@ public class RPCProvider {
 
         @Override
         public void run() {
-            log.info("handling consumer's request...");
+            log.info("handling reference's request...");
             while (!isStopped) {
                 try {
                     final RPCRequest rpcRequest = requestsQueue.take();
@@ -242,7 +242,7 @@ public class RPCProvider {
                             rpcResponse.setState(RPCResponse.State.ERROR, "unknown service");
                         }
                         rpcResponse.setCreateTime(System.currentTimeMillis());
-                        //write back to consumer
+                        //write back to reference
                         connection.resp(channel, rpcResponse);
                     });
                 } catch (InterruptedException e) {

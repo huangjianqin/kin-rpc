@@ -47,7 +47,7 @@ class ClusterInvoker implements InvocationHandler, Closeable {
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         log.debug("invoke method '" + method.getName() + "'");
 
-        //异步方式: consumer端必须自定义一个与service端除了返回值为Future.class或者CompletableFuture.class外,
+        //异步方式: reference端必须自定义一个与service端除了返回值为Future.class或者CompletableFuture.class外,
         //方法签名相同的接口
         Class returnType = method.getReturnType();
         if (Future.class.equals(returnType)) {

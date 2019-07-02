@@ -34,9 +34,9 @@ public class ReferenceConfig<T> extends AbstractConfig {
     //---------------------------------------------------------------------------------------------------------
     @Override
     void check() {
-        Preconditions.checkNotNull(this.applicationConfig, "consumer must need to configure application");
-        Preconditions.checkNotNull(this.registryConfig, "consumer must need to configure register");
-        Preconditions.checkNotNull(this.interfaceClass, "consumer subscribed interface must be not null");
+        Preconditions.checkNotNull(this.applicationConfig, "reference must need to configure application");
+        Preconditions.checkNotNull(this.registryConfig, "reference must need to configure register");
+        Preconditions.checkNotNull(this.interfaceClass, "reference subscribed interface must be not null");
         Preconditions.checkArgument(this.timeout > 0, "connection's timeout must greater than 0");
         Preconditions.checkArgument(this.retryTimeout > 0, "retrytimeout must greater than 0");
     }

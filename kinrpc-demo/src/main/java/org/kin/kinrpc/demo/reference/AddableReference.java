@@ -1,4 +1,4 @@
-package org.kin.kinrpc.demo.consumer;
+package org.kin.kinrpc.demo.reference;
 
 
 import org.kin.kinrpc.config.ReferenceConfig;
@@ -10,7 +10,7 @@ import org.kin.kinrpc.transport.statistic.InOutBoundStatisicService;
 /**
  * Created by 健勤 on 2017/2/16.
  */
-public class AddableConsumer {
+public class AddableReference {
     public static void main(String[] args) throws InterruptedException {
         ReferenceConfig<Addable> referenceConfig =
                 References.reference(Addable.class).urls("0.0.0.0:16888");

@@ -1,4 +1,4 @@
-package org.kin.kinrpc.demo.consumer;
+package org.kin.kinrpc.demo.reference;
 
 import exception.CannotFindInvokerException;
 import org.kin.kinrpc.config.ReferenceConfig;
@@ -15,7 +15,7 @@ import java.util.concurrent.Future;
  * @author huangjianqin
  * @date 2019/7/1
  */
-public class AlwaysAddableConsumer {
+public class AlwaysAddableReference {
     public static void main(String[] args) throws InterruptedException {
         ReferenceConfig<Addable> referenceConfig =
                 References.reference(Addable.class).serviceName("org/kin/kinrpc/demo/service/Addable").urls("0.0.0.0:16888");
