@@ -23,16 +23,14 @@ import java.util.zip.DataFormatException;
 public class ZookeeperRegistry extends AbstractRegistry{
     private static final Logger log = LoggerFactory.getLogger("registry");
 
-    protected final HostAndPort address;
-    protected String password;
+    protected String address;
 
     private ZooKeeper zooKeeper;
     private int sessionTimeOut;
     private SerializerType serializerType;
 
-    public ZookeeperRegistry(String address, String password, int sessionTimeOut, SerializerType serializerType) {
-        this.address = HostAndPort.fromString(address);
-        this.password = password;
+    public ZookeeperRegistry(String address, int sessionTimeOut, SerializerType serializerType) {
+        this.address = address;
         this.sessionTimeOut = sessionTimeOut;
         this.serializerType = serializerType;
     }
@@ -41,7 +39,7 @@ public class ZookeeperRegistry extends AbstractRegistry{
     public void connect() throws DataFormatException {
         CountDownLatch countDownLatch = new CountDownLatch(1);
         try {
-            this.zooKeeper = new ZooKeeper(address.getHost(), this.sessionTimeOut, new Watcher() {
+            this.zooKeeper = new ZooKeeper(address, this.sessionTimeOut, new Watcher() {
                 @Override
                 public void process(WatchedEvent watchedEvent) {
                     if (watchedEvent.getState() == Event.KeeperState.SyncConnected) {
@@ -154,7 +152,7 @@ public class ZookeeperRegistry extends AbstractRegistry{
             znodeList = zooKeeper.getChildren(RegistryConstants.getPath(directory.getServiceName()),
                     (WatchedEvent watchedEvent) -> {
                         if (watchedEvent.getType() == Watcher.Event.EventType.NodeChildrenChanged) {
-                            log.info("service '" + directory.getServiceName() + "' server node changed");
+                            log.info("service '" + directory.getServiceName() + "' node changed");
                             watch(directory);
                         }
                     });
@@ -194,11 +192,7 @@ public class ZookeeperRegistry extends AbstractRegistry{
         return sessionTimeOut;
     }
 
-    public HostAndPort getAddress() {
+    public String getAddress() {
         return address;
-    }
-
-    public String getPassword() {
-        return password;
     }
 }
