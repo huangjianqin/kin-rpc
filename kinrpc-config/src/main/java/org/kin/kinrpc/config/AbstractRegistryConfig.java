@@ -4,27 +4,17 @@ package org.kin.kinrpc.config;
  * Created by huangjianqin on 2019/6/18.
  */
 public abstract class AbstractRegistryConfig extends AbstractConfig{
-    protected String url;
-    protected String password;
+    protected String address;
     //连接注册中心的会话超时,以毫秒算,默认5s
     protected int sessionTimeout = -1;
 
-    AbstractRegistryConfig(String url) {
-        this.url = url;
-        this.password = "";
+    AbstractRegistryConfig(String address) {
+        this.address = address;
     }
 
     //setter && getter
-    public String getUrl() {
-        return url;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    void setPassword(String password) {
-        this.password = password;
+    public String getAddress() {
+        return address;
     }
 
     public int getSessionTimeout() {

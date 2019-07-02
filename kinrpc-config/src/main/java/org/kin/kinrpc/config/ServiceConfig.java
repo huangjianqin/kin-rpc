@@ -108,13 +108,8 @@ public class ServiceConfig extends AbstractConfig{
     }
 
     public ServiceConfig zookeeper(String address){
-        return zookeeper(address, "");
-    }
-
-    public ServiceConfig zookeeper(String address, String password){
         if(!isExport){
-            this.registryConfig = new DirectURLsRegistryConfig(address);
-            this.registryConfig.setPassword(password);
+            this.registryConfig = new ZookeeperRegistryConfig(address);
         }
         return this;
     }

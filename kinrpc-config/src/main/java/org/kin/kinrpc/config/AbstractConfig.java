@@ -37,8 +37,7 @@ abstract class AbstractConfig {
             else{
                 throw new IllegalStateException("unknown registry");
             }
-            params.put(Constants.REGISTRY_URL_KEY, registryConfig.getUrl());
-            params.put(Constants.REGISTRY_PASSWORD_KEY, registryConfig.getPassword());
+            params.put(Constants.REGISTRY_URL_KEY, registryConfig.getAddress());
             params.put(Constants.SESSION_TIMEOUT_KEY, registryConfig.getSessionTimeout() + "");
         }
 

@@ -17,7 +17,6 @@ public class Constants {
     public static final String TIMEOUT_KEY = "timeout";
     public static final String REGISTRY_KEY = "registry";
     public static final String REGISTRY_URL_KEY = "registryURL";
-    public static final String REGISTRY_PASSWORD_KEY = "registryPassword";
     //会话超时
     public static final String SESSION_TIMEOUT_KEY = "sessionTimeout";
     public static final String RETRY_TIMES_KEY = "retryTimes";

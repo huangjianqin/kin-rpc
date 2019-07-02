@@ -15,12 +15,11 @@ public class ZookeeperRegistryFactory extends AbstractRegistryFactory {
     @Override
     public Registry getRegistry(URL url) {
         String address = url.getParam(Constants.REGISTRY_URL_KEY);
-        String password = url.getParam(Constants.REGISTRY_PASSWORD_KEY);
         int sessionTimeout = Integer.valueOf(url.getParam(Constants.SESSION_TIMEOUT_KEY));
         SerializerType serializerType = SerializerType.getByName(url.getParam(Constants.SERIALIZE_KEY));
 
         try {
-            Registry registry = registryCache.get(address, () -> new ZookeeperRegistry(address, password, sessionTimeout, serializerType));
+            Registry registry = registryCache.get(address, () -> new ZookeeperRegistry(address, sessionTimeout, serializerType));
             registry.retain();
             return registry;
         } catch (ExecutionException e) {

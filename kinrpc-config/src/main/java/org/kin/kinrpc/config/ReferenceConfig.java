@@ -87,13 +87,8 @@ public class ReferenceConfig<T> extends AbstractConfig {
     }
 
     public ReferenceConfig<T> zookeeper(String address){
-        return zookeeper(address, "");
-    }
-
-    public ReferenceConfig<T> zookeeper(String address, String password){
         if(!isReference){
-            this.registryConfig = new DirectURLsRegistryConfig(address);
-            this.registryConfig.setPassword(password);
+            this.registryConfig = new ZookeeperRegistryConfig(address);
         }
         return this;
     }

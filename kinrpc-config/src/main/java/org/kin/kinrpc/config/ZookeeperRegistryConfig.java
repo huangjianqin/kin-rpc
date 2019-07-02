@@ -13,7 +13,7 @@ class ZookeeperRegistryConfig extends AbstractRegistryConfig {
 
     @Override
     void check() {
-        Preconditions.checkArgument(HttpUtils.checkHostPort(url),
-                "zookeeper registry's host '" + url + "' format error");
+        Preconditions.checkArgument(HttpUtils.checkHostPort(address),
+                "zookeeper registry's host '" + address + "' format error");
     }
 }

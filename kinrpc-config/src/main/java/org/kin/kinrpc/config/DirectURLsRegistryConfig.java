@@ -15,9 +15,9 @@ class DirectURLsRegistryConfig extends AbstractRegistryConfig {
     @Override
     void check() {
         //包含多个直连url
-        for(String split: url.split(Constants.DIRECT_URLS_REGISTRY_SPLITOR)){
+        for(String split: address.split(Constants.DIRECT_URLS_REGISTRY_SPLITOR)){
             Preconditions.checkArgument(HttpUtils.checkHostPort(split),
-                    "service's url '" + split + "' format error");
+                    "service's address '" + split + "' format error");
         }
     }
 }
