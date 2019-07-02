@@ -26,15 +26,15 @@ public class ProviderInvokerImpl extends AbstractProviderInvoker {
 
         for (Method method : methods) {
             method.setAccessible(true);
-            this.methodMap.put(ClassUtils.getUniqueName(method), method);
+            String uniqueName = ClassUtils.getUniqueName(method);
+            this.methodMap.put(uniqueName, method);
+            log.info("service '{}'s method '{}'/'{}' is ready to provide service", getServiceName(), uniqueName, method.toString());
         }
-
-        log.info("service '" + getServiceName() + "' is ready to provide service");
     }
 
     @Override
-    public Object invoke(String methodName, boolean isVoid, Object... params) throws Exception {
-        log.debug("service '" + getServiceName() + "' method '" + methodName + "' invoking...");
+    public Object invoke(String methodName, boolean isVoid, Object... params) throws Throwable {
+        log.debug("service '{}' method '{}' invoking...", getServiceName(), methodName);
         //限流
         if(!rateLimiter.tryAcquire()){
             //抛异常, 外部捕获异常并立即返回给reference, 让其重试
@@ -50,28 +50,29 @@ public class ProviderInvokerImpl extends AbstractProviderInvoker {
         //打印日志信息
         Class<?>[] paramTypes = target.getParameterTypes();
         String[] paramTypeStrs = new String[paramTypes.length];
-        for (int i = 0; i < paramTypes.length; i++) {
+        for (int i = 0; i < paramTypeStrs.length; i++) {
             paramTypeStrs[i] = paramTypes[i].getName();
         }
-        log.debug("'" + methodName + "' method's params' type");
-        log.debug(StringUtils.mkString(",", paramTypeStrs));
+        log.debug("'{}' method's params' type", methodName);
+        log.debug(StringUtils.mkString(paramTypeStrs));
 
-        String[] actualParamTypeStrs = new String[params.length];
-        for (int i = 0; i < params.length; i++) {
+        int paramLength = params == null ? 0 : params.length;
+        String[] actualParamTypeStrs = new String[paramLength];
+        for (int i = 0; i < actualParamTypeStrs.length; i++) {
             actualParamTypeStrs[i] = params[i].getClass().getName();
         }
-        log.debug("'" + methodName + "' method's actual params' type");
-        log.debug(StringUtils.mkString(",", actualParamTypeStrs));
+        log.debug("'{}' method's actual params' type", methodName);
+        log.debug(StringUtils.mkString(actualParamTypeStrs));
 
         try {
             return target.invoke(serivce, params);
         } catch (IllegalAccessException e) {
-            log.error("service '" + getServiceName() + "' method '" + methodName + "' access illegally");
+            log.error("service '{}' method '{}' access illegally", getServiceName(), methodName);
             log.error("", e);
             throw e;
         } catch (InvocationTargetException e) {
-            log.error("service '" + getServiceName() + "' method '" + methodName + "' invoke error");
-            throw e;
+            log.error("service '{}' method '{}' invoke error", getServiceName(), methodName);
+            throw e.getCause();
         }
     }
 

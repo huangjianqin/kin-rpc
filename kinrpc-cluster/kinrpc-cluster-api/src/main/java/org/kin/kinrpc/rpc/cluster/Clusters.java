@@ -11,6 +11,7 @@ import org.kin.kinrpc.common.URL;
 import org.kin.kinrpc.registry.Registries;
 import org.kin.kinrpc.registry.Registry;
 import org.kin.kinrpc.rpc.RPCProvider;
+import org.kin.kinrpc.rpc.serializer.SerializerType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +30,7 @@ public class Clusters {
     private static final Cache<Integer, RPCProvider> PROVIDER_CACHE = CacheBuilder.newBuilder().build();
     private static final Cache<String, ClusterInvoker> REFERENCE_CACHE = CacheBuilder.newBuilder().build();
     private static final ThreadManager threadManager = new ThreadManager(
-            new ThreadPoolExecutor(1, 1, 60L, TimeUnit.SECONDS,
+            new ThreadPoolExecutor(0, 2, 60L, TimeUnit.SECONDS,
                     new LinkedBlockingQueue<>(), new SimpleThreadFactory("provider-unregister-executor")),
             new ScheduledThreadPoolExecutor(2, new SimpleThreadFactory("provider-heartbeat")));
 
@@ -37,6 +38,10 @@ public class Clusters {
         JvmCloseCleaner.DEFAULT().add(() -> {
             for(RPCProvider provider: PROVIDER_CACHE.asMap().values()){
                 provider.shutdown();
+            }
+            for(ClusterInvoker clusterInvoker: REFERENCE_CACHE.asMap().values()){
+                clusterInvoker.close();
+                Registries.closeRegistry(clusterInvoker.getUrl());
             }
             threadManager.shutdown();
         });
@@ -62,10 +67,11 @@ public class Clusters {
 
     public static synchronized void export(URL url, Class interfaceClass, Object instance){
         int port = url.getPort();
+        SerializerType serializerType = SerializerType.getByName(url.getParam(Constants.SERIALIZE_KEY));
         RPCProvider provider;
         try {
             provider = PROVIDER_CACHE.get(port, () -> {
-                RPCProvider provider0 = new RPCProvider(port);
+                RPCProvider provider0 = new RPCProvider(port, serializerType.newInstance());
                 provider0.start();
 
                 return provider0;
@@ -117,7 +123,7 @@ public class Clusters {
         int retryTimeout = Integer.valueOf(url.getParam(Constants.RETRY_TIMEOUT_KEY));
         Cluster cluster = new ClusterImpl(registry, url.getServiceName(), timeout);
 
-        ClusterInvoker clusterInvoker = new ClusterInvoker(cluster, retryTimes, retryTimeout);
+        ClusterInvoker clusterInvoker = new ClusterInvoker(cluster, retryTimes, retryTimeout, url);
 
         Object jdkProxy = Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class<?>[]{interfaceClass}, clusterInvoker);
 

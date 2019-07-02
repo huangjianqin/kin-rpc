@@ -50,7 +50,9 @@ class ClusterImpl implements Cluster {
             List<AbstractReferenceInvoker> routeredInvokers = router.router(availableInvokers);
             AbstractReferenceInvoker loadbalancedInvoker = loadBalance.loadBalance(routeredInvokers);
 
-            log.debug("real invoker(" + loadbalancedInvoker.getAddress() + ")");
+            if(loadbalancedInvoker != null){
+                log.debug("real invoker(" + loadbalancedInvoker.getAddress() + ")");
+            }
             return loadbalancedInvoker;
         }
 

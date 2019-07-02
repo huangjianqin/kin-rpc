@@ -1,12 +1,17 @@
 package org.kin.kinrpc.rpc.cluster;
 
 import com.google.common.net.HostAndPort;
+import exception.CannotFindInvokerException;
 import org.kin.framework.Closeable;
 import org.kin.framework.concurrent.ThreadManager;
+import org.kin.kinrpc.common.URL;
 import org.kin.kinrpc.rpc.RPCContext;
+import org.kin.kinrpc.rpc.exception.RPCCallErrorException;
+import org.kin.kinrpc.rpc.exception.RPCRetryException;
+import org.kin.kinrpc.rpc.exception.RPCRetryOutException;
+import org.kin.kinrpc.rpc.exception.UnknownRPCResponseStateCodeException;
 import org.kin.kinrpc.rpc.future.RPCFuture;
 import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
-import org.kin.kinrpc.rpc.invoker.AsyncInvoker;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.kin.kinrpc.rpc.utils.ClassUtils;
 import org.slf4j.Logger;
@@ -22,18 +27,20 @@ import java.util.concurrent.*;
 /**
  * Created by 健勤 on 2017/2/15.
  */
-class ClusterInvoker implements InvocationHandler, AsyncInvoker, Closeable {
+class ClusterInvoker implements InvocationHandler, Closeable {
     private static final Logger log = LoggerFactory.getLogger("cluster");
     private static final ThreadManager THREADS = ThreadManager.forkJoinPoolThreadManager();
 
     private final Cluster cluster;
     private final int retryTimes;
     private final int retryTimeout;
+    private final URL url;
 
-    public ClusterInvoker(Cluster cluster, int retryTimes, int retryTimeout) {
+    public ClusterInvoker(Cluster cluster, int retryTimes, int retryTimeout, URL url) {
         this.cluster = cluster;
         this.retryTimes = retryTimes;
         this.retryTimeout = retryTimeout;
+        this.url = url;
     }
 
     @Override
@@ -43,30 +50,26 @@ class ClusterInvoker implements InvocationHandler, AsyncInvoker, Closeable {
         //异步方式: consumer端必须自定义一个与service端除了返回值为Future.class或者CompletableFuture.class外,
         //方法签名相同的接口
         Class returnType = method.getReturnType();
-        boolean isVoid = Void.class.equals(returnType);
         if (Future.class.equals(returnType)) {
-            return invokeAsync(ClassUtils.getUniqueName(method), args);
+            return invokeAsync(method, args);
         } else if (CompletableFuture.class.equals(returnType)) {
-            return CompletableFuture.supplyAsync(() -> {
-                try {
-                    return invoke0(ClassUtils.getUniqueName(method), isVoid, args);
-                } catch (Exception e) {
-                    log.error("", e);
-                }
-
-                return null;
-            });
+            return CompletableFuture.supplyAsync(() -> invoke0(method, args));
         }
 
-        return invoke(ClassUtils.getUniqueName(method), isVoid, args);
+        return invoke0(method, args);
     }
 
-    @Override
-    public Object invoke(String methodName, boolean isVoid, Object... params) throws Exception {
-        return invoke0(methodName, isVoid, params);
+    private Future invokeAsync(Method method, Object... params){
+        Callable callable = () -> invoke0(method, params);
+        Future future = THREADS.submit(callable);
+        RPCContext.instance().setFuture(future);
+        return future;
     }
 
-    private Object invoke0(String methodName, boolean isVoid, Object... params) throws Exception {
+    private Object invoke0(Method method, Object... params){
+        String methodName = ClassUtils.getUniqueName(method);
+        Class returnType = method.getReturnType();
+        boolean isVoid = Void.class.equals(returnType);
         if(retryTimes > 0){
             int tryTimes = 0;
 
@@ -76,8 +79,8 @@ class ClusterInvoker implements InvocationHandler, AsyncInvoker, Closeable {
             while (tryTimes < retryTimes) {
                 AbstractReferenceInvoker invoker = cluster.get(failureHostAndPorts);
                 if (invoker != null) {
-                    Future<RPCResponse> future = invoker.invokeAsync(methodName, params);
                     try {
+                        Future<RPCResponse> future = invoker.invokeAsync(methodName, params);
                         RPCResponse rpcResponse = future.get(retryTimeout, TimeUnit.MILLISECONDS);
                         if (rpcResponse != null) {
                             switch (rpcResponse.getState()) {
@@ -88,51 +91,59 @@ class ClusterInvoker implements InvocationHandler, AsyncInvoker, Closeable {
                                     failureHostAndPorts.add(invoker.getAddress());
                                     break;
                                 case ERROR:
-                                    throw new RuntimeException(rpcResponse.getInfo());
+                                    throw new RPCCallErrorException(rpcResponse.getInfo());
                                 default:
-                                    throw new RuntimeException("unknown rpc response state code");
+                                    throw new UnknownRPCResponseStateCodeException(rpcResponse.getState().getCode());
                             }
                         } else {
                             tryTimes++;
                             ((RPCFuture) future).doneTimeout();
                             failureHostAndPorts.add(invoker.getAddress());
                         }
-                    }catch (InterruptedException e) {
-                        log.warn("pending result interrupted >>> {}", e.getMessage());
+                    } catch (InterruptedException e) {
+
                     } catch (ExecutionException e) {
                         log.error("pending result execute error >>> {}", e.getMessage());
                     } catch (TimeoutException e) {
                         tryTimes++;
                         failureHostAndPorts.add(invoker.getAddress());
                         log.warn("invoke time out >>> {}", e.getMessage());
+                    } catch (RPCRetryException e) {
+                        tryTimes++;
+                        failureHostAndPorts.add(invoker.getAddress());
+                        log.warn(e.getMessage());
+                    } catch (Throwable e) {
+                        log.error("", e);
                     }
                 }
             }
 
             //超过重试次数, 抛弃异常
-            throw new RuntimeException("invoke get unvalid response more than " + retryTimes + " times");
+            throw new RPCRetryOutException(retryTimes);
         }
         else{
             AbstractReferenceInvoker invoker = cluster.get(Collections.EMPTY_LIST);
             if (invoker != null) {
-                return invoker.invoke(methodName, isVoid, params);
+                try {
+                    return invoker.invoke(methodName, isVoid, params);
+                } catch (Throwable e) {
+                    log.error("", e);
+                }
             }
         }
 
-        return null;
-    }
-
-    @Override
-    public Future invokeAsync(String methodName, Object... params) throws Exception {
-        Callable callable = () -> invoke0(methodName, false, params);
-        Future future = THREADS.submit(callable);
-        RPCContext.instance().setFuture(future);
-        return future;
+        //抛异常, 等待外部程序处理
+        throw new CannotFindInvokerException();
     }
 
 
     @Override
     public void close() {
         cluster.shutdown();
+    }
+
+    //getter
+    public URL getUrl() {
+        return url;
     }
 }

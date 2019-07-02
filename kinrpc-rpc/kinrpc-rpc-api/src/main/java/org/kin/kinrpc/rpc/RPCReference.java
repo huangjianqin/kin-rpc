@@ -2,6 +2,7 @@ package org.kin.kinrpc.rpc;
 
 import com.google.common.net.HostAndPort;
 import io.netty.channel.Channel;
+import org.kin.framework.concurrent.ThreadManager;
 import org.kin.kinrpc.rpc.future.RPCFuture;
 import org.kin.kinrpc.rpc.serializer.Serializer;
 import org.kin.kinrpc.rpc.transport.ReferenceHandler;
@@ -28,8 +29,8 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
     private ReferenceHandler connection;
     private volatile boolean isStopped;
 
-    public RPCReference(InetSocketAddress address, Serializer serializer) {
-        this.connection = new ReferenceHandler(address, serializer, this);
+    public RPCReference(InetSocketAddress address, Serializer serializer, int connectTimeout) {
+        this.connection = new ReferenceHandler(address, serializer, this, connectTimeout);
     }
 
     public void handleResponse(RPCResponse rpcResponse) {
@@ -69,7 +70,7 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
         Collection<RPCFuture> copy = new ArrayList<>(this.pendingRPCFutureMap.values());
         for (RPCFuture rpcFuture : copy) {
             RPCRequest rpcRequest = rpcFuture.getRequest();
-            RPCResponse rpcResponse = RPCResponse.respWithError(rpcRequest, "channel inactive");
+            RPCResponse rpcResponse = RPCResponse.respWithRetry(rpcRequest, "channel inactive");
             rpcFuture.done(rpcResponse);
         }
         this.pendingRPCFutureMap.clear();
@@ -111,14 +112,19 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
 
     @Override
     public void handleException(Channel channel, Throwable cause) {
-        shutdown();
         clean();
     }
 
     @Override
     public void channelInactive(Channel channel) {
-        shutdown();
         clean();
+        try {
+            ThreadManager.DEFAULT.execute(() -> {
+                connection.connect();
+            });
+        } catch (Exception e) {
+
+        }
     }
 
     @Override

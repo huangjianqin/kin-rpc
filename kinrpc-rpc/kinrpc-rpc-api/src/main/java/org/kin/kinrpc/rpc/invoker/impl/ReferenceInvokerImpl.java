@@ -4,6 +4,9 @@ package org.kin.kinrpc.rpc.invoker.impl;
 import com.google.common.util.concurrent.RateLimiter;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.rpc.RPCReference;
+import org.kin.kinrpc.rpc.exception.RPCCallErrorException;
+import org.kin.kinrpc.rpc.exception.RPCRetryException;
+import org.kin.kinrpc.rpc.exception.UnknownRPCResponseStateCodeException;
 import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequestIdGenerator;
@@ -45,11 +48,11 @@ public class ReferenceInvokerImpl extends AbstractReferenceInvoker {
                         case SUCCESS:
                             return rpcResponse.getResult();
                         case RETRY:
-                            throw new RuntimeException("need to retry to invoke service");
+                            throw new RPCRetryException(rpcResponse.getInfo(), serviceName, methodName, params);
                         case ERROR:
-                            throw new RuntimeException(rpcResponse.getInfo());
+                            throw new RPCCallErrorException(rpcResponse.getInfo());
                         default:
-                            throw new RuntimeException("unknown rpc response state code");
+                            throw new UnknownRPCResponseStateCodeException(rpcResponse.getState().getCode());
                     }
                 }
             }

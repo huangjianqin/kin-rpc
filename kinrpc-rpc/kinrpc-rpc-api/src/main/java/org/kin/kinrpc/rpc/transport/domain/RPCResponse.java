@@ -57,14 +57,31 @@ public class RPCResponse implements Serializable {
         this.method = method;
     }
 
-    public static RPCResponse respWithError(int requestId, String serviceName, String method, String errorMsg) {
+    private static RPCResponse respWith(int requestId, String serviceName, String method) {
         RPCResponse rpcResponse = new RPCResponse(requestId, serviceName, method);
+        return rpcResponse;
+    }
+
+    public static RPCResponse respWithError(int requestId, String serviceName, String method, String errorMsg) {
+        RPCResponse rpcResponse = respWith(requestId, serviceName, method);
         rpcResponse.setState(RPCResponse.State.ERROR, errorMsg);
         return rpcResponse;
     }
 
     public static RPCResponse respWithError(RPCRequest request, String errorMsg) {
         RPCResponse rpcResponse = respWithError(request.getRequestId(), request.getServiceName(), request.getMethod(), errorMsg);
+        rpcResponse.setCreateTime(System.currentTimeMillis());
+        return rpcResponse;
+    }
+
+    public static RPCResponse respWithRetry(int requestId, String serviceName, String method, String retryMsg) {
+        RPCResponse rpcResponse = respWith(requestId, serviceName, method);
+        rpcResponse.setState(State.RETRY, retryMsg);
+        return rpcResponse;
+    }
+
+    public static RPCResponse respWithRetry(RPCRequest request, String errorMsg) {
+        RPCResponse rpcResponse = respWithRetry(request.getRequestId(), request.getServiceName(), request.getMethod(), errorMsg);
         rpcResponse.setCreateTime(System.currentTimeMillis());
         return rpcResponse;
     }

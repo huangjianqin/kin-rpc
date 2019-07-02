@@ -6,13 +6,11 @@ import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.rpc.RPCProvider;
 import org.kin.kinrpc.rpc.serializer.Serializer;
 import org.kin.kinrpc.rpc.serializer.SerializerType;
-import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
-import org.kin.kinrpc.rpc.transport.domain.RPCRequestProtocol;
-import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
-import org.kin.kinrpc.rpc.transport.domain.RPCResponseProtocol;
+import org.kin.kinrpc.rpc.transport.domain.*;
 import org.kin.kinrpc.transport.AbstractConnection;
 import org.kin.kinrpc.transport.AbstractSession;
 import org.kin.kinrpc.transport.ProtocolHandler;
+import org.kin.kinrpc.transport.domain.AbstractProtocol;
 import org.kin.kinrpc.transport.impl.Server;
 import org.kin.kinrpc.transport.statistic.InOutBoundStatisicService;
 import org.slf4j.Logger;
@@ -24,7 +22,7 @@ import java.net.InetSocketAddress;
 /**
  * Created by 健勤 on 2017/2/10.
  */
-public class ProviderHandler extends AbstractConnection implements ProtocolHandler<RPCRequestProtocol> {
+public class ProviderHandler extends AbstractConnection implements ProtocolHandler {
     private static final Logger log = LoggerFactory.getLogger("transport");
     private final RPCProvider rpcProvider;
     private Serializer serializer;
@@ -44,7 +42,7 @@ public class ProviderHandler extends AbstractConnection implements ProtocolHandl
         this.serializer = serializer;
 
         this.server = new Server(address,
-                new RPCRequestProtocolTransfer(), this);
+                new ProviderProtocolTransfer(), this);
     }
 
     @Override
@@ -68,39 +66,54 @@ public class ProviderHandler extends AbstractConnection implements ProtocolHandl
     }
 
     @Override
-    public void handleProtocol(AbstractSession session, RPCRequestProtocol protocol) {
-        try {
-            byte[] data = protocol.getReqContent();
-
-            RPCRequest rpcRequest = null;
+    public void handleProtocol(AbstractSession session, AbstractProtocol protocol) {
+        if(protocol == null){
+            return;
+        }
+        if(protocol instanceof RPCRequestProtocol){
             try {
-                rpcRequest = serializer.deserialize(data, RPCRequest.class);
+                RPCRequestProtocol requestProtocol = (RPCRequestProtocol) protocol;
+                byte[] data = requestProtocol.getReqContent();
 
-                InOutBoundStatisicService.instance().statisticReq(
-                        rpcRequest.getServiceName() + "-" + rpcRequest.getServiceName(), data.length
-                );
+                RPCRequest rpcRequest = null;
+                try {
+                    rpcRequest = serializer.deserialize(data, RPCRequest.class);
 
-                //限流
-                if(!rateLimiter.tryAcquire(data.length)){
-                    RPCResponse rpcResponse = RPCResponse.respWithError(rpcRequest, "server rate limited, just reject");
+                    InOutBoundStatisicService.instance().statisticReq(
+                            rpcRequest.getServiceName() + "-" + rpcRequest.getServiceName(), data.length
+                    );
+
+                    //限流
+                    if(!rateLimiter.tryAcquire(data.length)){
+                        RPCResponse rpcResponse = RPCResponse.respWithError(rpcRequest, "server rate limited, just reject");
+                        session.getChannel().writeAndFlush(rpcResponse);
+
+                        return;
+                    }
+
+                    rpcRequest.setChannel(session.getChannel());
+                    rpcRequest.setEventTime(System.currentTimeMillis());
+                } catch (IOException | ClassNotFoundException e) {
+                    log.error("", e);
+                    RPCResponse rpcResponse = RPCResponse.respWithError(rpcRequest, e.getMessage());
                     session.getChannel().writeAndFlush(rpcResponse);
-
                     return;
                 }
 
-                rpcRequest.setChannel(session.getChannel());
-                rpcRequest.setEventTime(System.currentTimeMillis());
-            } catch (IOException | ClassNotFoundException e) {
+                //简单地添加到任务队列交由上层的线程池去完成服务调用
+                rpcProvider.handleRequest(rpcRequest);
+            } catch (Exception e) {
                 log.error("", e);
-                RPCResponse rpcResponse = RPCResponse.respWithError(rpcRequest, e.getMessage());
-                session.getChannel().writeAndFlush(rpcResponse);
-                return;
             }
-
-            //简单地添加到任务队列交由上层的线程池去完成服务调用
-            rpcProvider.handleRequest(rpcRequest);
-        } catch (Exception e) {
-            log.error("", e);
+        }
+        else if(protocol instanceof RPCHeartbeat){
+            RPCHeartbeat heartbeat = (RPCHeartbeat) protocol;
+            log.info("client heartbeat ip:{}, content:{}", heartbeat.getIp(), heartbeat.getContent());
+            RPCHeartbeat heartbeatResp = new RPCHeartbeat(getAddress(), "");
+            session.getChannel().writeAndFlush(heartbeatResp.write());
+        }
+        else{
+            log.error("unknown protocol >>>> {}", protocol);
         }
     }
 

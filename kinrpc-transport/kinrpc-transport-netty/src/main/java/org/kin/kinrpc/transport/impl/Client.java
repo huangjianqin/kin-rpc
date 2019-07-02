@@ -16,6 +16,7 @@ import org.kin.kinrpc.transport.handler.ProtocolCodec;
 import org.kin.kinrpc.transport.listener.ChannelActiveListener;
 import org.kin.kinrpc.transport.listener.ChannelIdleListener;
 import org.kin.kinrpc.transport.listener.ChannelInactiveListener;
+import org.kin.kinrpc.transport.utils.ChannelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,9 +30,8 @@ public class Client extends AbstractConnection {
     private static final Logger log = LoggerFactory.getLogger("transport");
 
     private EventLoopGroup eventLoopGroup = new NioEventLoopGroup(1);
-    private Channel channel;
-    //建立好连接后才可以进行一些操作
-    private CountDownLatch latch = new CountDownLatch(1);
+    private volatile Channel channel;
+    private volatile boolean isStopped;
     //连接超时毫秒数
     private int timeout;
 
@@ -52,8 +52,12 @@ public class Client extends AbstractConnection {
     @Override
     public void connect() {
         log.info("client connecting...");
+        CountDownLatch latch = new CountDownLatch(1);
         Bootstrap bootstrap = new Bootstrap();
-        bootstrap.group(eventLoopGroup).channel(NioSocketChannel.class).handler(new ChannelInitializer<SocketChannel>() {
+        bootstrap.group(eventLoopGroup)
+                .channel(NioSocketChannel.class)
+                .option(ChannelOption.TCP_NODELAY, true)
+                .handler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel socketChannel) throws Exception {
                 socketChannel.pipeline().addLast(new WriteTimeoutHandler(3));
@@ -88,10 +92,16 @@ public class Client extends AbstractConnection {
                     channel = channelFuture.channel();
                     latch.countDown();
                 } else {
+                    latch.countDown();
                     throw new RuntimeException("connect to remote server time out: " + address);
                 }
             }
         });
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+
+        }
     }
 
     @Override
@@ -101,38 +111,33 @@ public class Client extends AbstractConnection {
 
     @Override
     public void close() {
-        try {
-            latch.await();
-        } catch (InterruptedException e) {
-            log.error("", e);
+        isStopped = true;
+        if(channel != null){
+            channel.close();
         }
-
-        channel.close();
         eventLoopGroup.shutdownGracefully();
         log.info("client closed");
     }
 
     @Override
     public boolean isActive() {
-        try {
-            latch.await();
-        } catch (InterruptedException e) {
-            log.error("", e);
-        }
-        return channel.isActive();
+        return !isStopped && channel != null && channel.isActive();
     }
 
     public void request(AbstractProtocol protocol) {
-        try {
-            latch.await();
-        } catch (InterruptedException e) {
-            log.error("", e);
+        if(isActive()){
+            channel.writeAndFlush(protocol.write());
         }
-
-        channel.writeAndFlush(protocol.write());
     }
 
-    //setter
+    public String getLocalAddress(){
+        if(channel != null){
+            return channel.localAddress().toString();
+        }
+        return "";
+    }
+
+    //setter && getter
     public void setTimeout(int timeout) {
         this.timeout = timeout;
     }
@@ -155,6 +160,10 @@ public class Client extends AbstractConnection {
 
     public void setChannelIdleListener(ChannelIdleListener channelIdleListener) {
         this.channelIdleListener = channelIdleListener;
+    }
+
+    public boolean isStopped() {
+        return isStopped;
     }
 
     @Override

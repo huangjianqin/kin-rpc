@@ -30,6 +30,7 @@ public class InOutBoundStatisicService implements Closeable{
                     new SimpleThreadFactory("inoutbound-statisic")));
 
     private InOutBoundStatisicService() {
+        //一分钟打印一次
         threadManager.scheduleAtFixedRate(() -> {
             logReqStatistic();
             logRespStatistic();

@@ -43,7 +43,7 @@ public class DirectURLsDirectory extends AbstractDirectory {
      */
     private void connectServer(String host, int port) {
         //创建连接
-        RPCReference rpcReference = new RPCReference(new InetSocketAddress(host, port), serializerType.newInstance());
+        RPCReference rpcReference = new RPCReference(new InetSocketAddress(host, port), serializerType.newInstance(), connectTimeout);
         AbstractReferenceInvoker refereneceInvoker = new ReferenceInvokerImpl(serviceName, rpcReference);
         //真正启动连接
         refereneceInvoker.init();
@@ -55,13 +55,7 @@ public class DirectURLsDirectory extends AbstractDirectory {
 
     @Override
     public List<AbstractReferenceInvoker> list() {
-        Map<Boolean, List<AbstractReferenceInvoker>> map = this.invokers.stream().collect(Collectors.groupingBy(AbstractReferenceInvoker::isActive));
-        if(map.containsKey(Boolean.FALSE)){
-            invokers.removeAll(map.get(Boolean.FALSE));
-            //内部机制会保证shutdown, 所以此处仅仅从队列移除
-        }
-
-        return map.getOrDefault(Boolean.TRUE, Collections.emptyList());
+        return this.invokers.stream().filter(AbstractReferenceInvoker::isActive).collect(Collectors.toList());
     }
 
     @Override

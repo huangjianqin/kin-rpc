@@ -209,7 +209,7 @@ public class ZookeeperDirectory extends AbstractDirectory {
     private void connectServer(String host, int port) {
         ThreadManager.DEFAULT.submit(() -> {
             //创建连接
-            RPCReference rpcReference = new RPCReference(new InetSocketAddress(host, port), serializerType.newInstance());
+            RPCReference rpcReference = new RPCReference(new InetSocketAddress(host, port), serializerType.newInstance(), connectTimeout);
             AbstractReferenceInvoker refereneceInvoker = new ReferenceInvokerImpl(serviceName, rpcReference);
             //真正启动连接
             refereneceInvoker.init();

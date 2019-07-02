@@ -19,7 +19,7 @@ public abstract class AbstractConnection {
     public abstract void close();
 
     public String getAddress() {
-        return address.getHostName() + address.getPort();
+        return address.getHostName() + ":" + address.getPort();
     }
 
     public abstract boolean isActive();

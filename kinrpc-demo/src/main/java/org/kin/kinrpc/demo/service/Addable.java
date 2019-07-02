@@ -5,4 +5,8 @@ package org.kin.kinrpc.demo.service;
  */
 public interface Addable {
     int add(int a, int b);
+    void print(String content);
+    int get(int a);
+    String get(String a);
+    void throwException();
 }

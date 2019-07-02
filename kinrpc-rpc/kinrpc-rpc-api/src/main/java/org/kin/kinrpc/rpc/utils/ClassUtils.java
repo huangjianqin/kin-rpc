@@ -12,7 +12,16 @@ public class ClassUtils {
 
     public static String getUniqueName(Method method) {
         StringBuilder sb = new StringBuilder();
-        sb.append(method.toString());
+        sb.append(method.getName());
+        sb.append("(");
+        Class[] paramTypes = method.getParameterTypes();
+        for(Class paramType: paramTypes){
+            sb.append(paramType.getTypeName() + ",");
+        }
+        if(paramTypes.length > 0){
+            sb.replace(sb.length() - 1, sb.length(), "");
+        }
+        sb.append(")");
         return sb.toString();
     }
 }

@@ -8,6 +8,7 @@ import org.kin.kinrpc.common.URL;
 import org.kin.kinrpc.rpc.exception.RateLimitException;
 import org.kin.kinrpc.rpc.invoker.AbstractProviderInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.ProviderInvokerImpl;
+import org.kin.kinrpc.rpc.serializer.Serializer;
 import org.kin.kinrpc.rpc.transport.ProviderHandler;
 import org.kin.kinrpc.rpc.transport.common.RPCConstants;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
@@ -46,6 +47,8 @@ public class RPCProvider {
 
     //占用端口
     private int port;
+    //序列化方式
+    private Serializer serializer;
     //底层的连接
     private ProviderHandler connection;
     //扫描RPCRequest的线程
@@ -53,11 +56,11 @@ public class RPCProvider {
     //标识是否stopped
     private volatile boolean isStopped = false;
 
-    public RPCProvider(int port) {
+    public RPCProvider(int port, Serializer serializer) {
         this.port = port;
+        this.serializer = serializer;
 
         this.threads = new ForkJoinPool();
-        JvmCloseCleaner.DEFAULT().add(this::shutdownNow);
     }
 
     /**
@@ -115,7 +118,7 @@ public class RPCProvider {
         }
         log.info("provider(port={}) starting...", port);
         //启动连接
-        this.connection = new ProviderHandler(new InetSocketAddress(this.port), this);
+        this.connection = new ProviderHandler(new InetSocketAddress(this.port), this, serializer);
         try {
             connection.bind();
         } catch (Exception e) {
@@ -224,7 +227,7 @@ public class RPCProvider {
                             Object result = null;
                             try {
                                 result = invoker.invoke(methodName, false, params);
-                                rpcResponse.setState(RPCResponse.State.SUCCESS, "");
+                                rpcResponse.setState(RPCResponse.State.SUCCESS, "success");
                             } catch (RateLimitException e) {
                                 rpcResponse.setState(RPCResponse.State.RETRY, "service rate limited, just reject");
                             } catch (Throwable throwable) {
