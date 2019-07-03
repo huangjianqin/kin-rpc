@@ -28,6 +28,12 @@
             <artifactId>kinrpc</artifactId>
             <version>0.1.0.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kinrpc-registry-zookeeper</artifactId>
+            <version>0.1.0.0</version>
+        </dependency>
     </dependencies>
 
 </project>
