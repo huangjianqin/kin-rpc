@@ -11,8 +11,12 @@ public class RegistryConstants {
     public static final String REGISTRY_ROOT = "kinrpc";
     public static final String REGISTRY_PAHT_SEPARATOR = "/";
 
+    public static String root() {
+        return RegistryConstants.REGISTRY_PAHT_SEPARATOR + RegistryConstants.REGISTRY_ROOT;
+    }
+
     public static String getPath(String serviceName) {
-        return RegistryConstants.REGISTRY_PAHT_SEPARATOR + RegistryConstants.REGISTRY_ROOT + RegistryConstants.REGISTRY_PAHT_SEPARATOR + serviceName;
+        return root() + RegistryConstants.REGISTRY_PAHT_SEPARATOR + serviceName;
     }
 
     public static String getPath(String serviceName, String address) {

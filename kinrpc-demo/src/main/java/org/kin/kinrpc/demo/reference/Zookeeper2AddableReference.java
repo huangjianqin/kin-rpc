@@ -20,7 +20,7 @@ public class Zookeeper2AddableReference {
         ReferenceConfig<AddableReference.Addable> referenceConfig =
                 References.reference(AddableReference.Addable.class)
                         .serviceName("test/Add")
-                        .zookeeper2("127.0.0.1:2181").registrySessionTimeout(60 * 1000);
+                        .zookeeper2("127.0.0.1:2181").registrySessionTimeout(1000);
 
         AddableReference.Addable service = referenceConfig.get();
         int count = 0;

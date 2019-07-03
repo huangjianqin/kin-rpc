@@ -3,8 +3,10 @@ package org.kin.kinrpc.registry.zookeeper2;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.*;
+import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.utils.HttpUtils;
 import org.kin.kinrpc.registry.AbstractRegistry;
 import org.kin.kinrpc.registry.Directory;
@@ -41,18 +43,35 @@ public class Zookeeper2Registry extends AbstractRegistry{
     public void connect(){
         //同步创建zk client，原生api是异步的
         //RetryNTimes  RetryOneTime  RetryForever  RetryUntilElapsed
-        RetryPolicy retryPolicy = new ExponentialBackoffRetry(2000, 5);
+        RetryPolicy retryPolicy = new ExponentialBackoffRetry(200, 5);
         client = CuratorFrameworkFactory
                 .builder()
                 .connectString(address)
                 .sessionTimeoutMs(sessionTimeOut)
                 .retryPolicy(retryPolicy)
+                .threadFactory(new SimpleThreadFactory("curator"))
                 //根节点会多出一个以命名空间名称所命名的节点
 //                .namespace(RegistryConstants.REGISTRY_ROOT)
                 .build();
+        client.getConnectionStateListenable().addListener((curatorFramework, connectionState) -> {
+            if(ConnectionState.CONNECTED.equals(connectionState)){
+                log.info("zookeeper registry created");
+            }else if(ConnectionState.RECONNECTED.equals(connectionState)){
+                log.info("zookeeper registry reconnected");
+                //重连时重新订阅
+                for(Directory directory: DIRECTORY_CACHE.asMap().values()){
+                    watch(directory);
+                }
+            }else if(ConnectionState.LOST.equals(connectionState)){
+                log.info("disconnect to zookeeper server");
+                handleConnectError();
+            }else if(ConnectionState.SUSPENDED.equals(connectionState)){
+                log.error("connect to zookeeper server timeout '{}'", sessionTimeOut);
+                handleConnectError();
+            }
+        });
 
         client.start();
-        log.info("zookeeper registry created");
     }
 
     private void createZNode(String path, byte[] data) {
@@ -118,6 +137,7 @@ public class Zookeeper2Registry extends AbstractRegistry{
         log.info("reference subscribe service '{}' ", serviceName);
         Directory directory = new ZookeeperDirectory(serviceName, connectTimeout, serializerType);
         watch(directory);
+        DIRECTORY_CACHE.put(serviceName, directory);
         return directory;
     }
 
@@ -192,6 +212,13 @@ public class Zookeeper2Registry extends AbstractRegistry{
 
         } catch (Exception e) {
             log.error("", e);
+        }
+    }
+
+    private void handleConnectError(){
+        //断连时, 让所有directory持有的invoker失效
+        for(Directory directory: DIRECTORY_CACHE.asMap().values()){
+            directory.discover(Collections.emptyList());
         }
     }
 

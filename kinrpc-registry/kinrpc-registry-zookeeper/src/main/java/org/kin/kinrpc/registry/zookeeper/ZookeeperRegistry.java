@@ -23,7 +23,7 @@ import java.util.concurrent.CountDownLatch;
 public class ZookeeperRegistry extends AbstractRegistry{
     protected String address;
 
-    private ZooKeeper zooKeeper;
+    private volatile ZooKeeper zooKeeper;
     private int sessionTimeOut;
     private SerializerType serializerType;
 
@@ -42,15 +42,18 @@ public class ZookeeperRegistry extends AbstractRegistry{
                 public void process(WatchedEvent watchedEvent) {
                     if (watchedEvent.getState() == Event.KeeperState.SyncConnected) {
                         countDownLatch.countDown();
+                        //首次连接Cache不会有内容
+                        //重连时重新订阅
+                        for(Directory directory: DIRECTORY_CACHE.asMap().values()){
+                            watch(directory);
+                        }
                         log.info("zookeeper registry created");
                     } else if (watchedEvent.getState() == Event.KeeperState.Expired) {
-                        throw new RuntimeException("connect to zookeeper server timeout(" + sessionTimeOut + ")");
+                        log.error("connect to zookeeper server timeout '{}'", sessionTimeOut);
+                        reconnect();
                     } else if (watchedEvent.getState() == Event.KeeperState.Disconnected) {
-                        //断连时, 让所有directory持有的invoker失效
-                        for(Directory directory: DIRECTORY_CACHE.asMap().values()){
-                            directory.discover(Collections.emptyList());
-                        }
-                        throw new RuntimeException("disconnect to zookeeper server");
+                        log.info("disconnect to zookeeper server");
+                        reconnect();
                     }
                 }
             });
@@ -231,10 +234,26 @@ public class ZookeeperRegistry extends AbstractRegistry{
                     });
             directory.discover(addresses);
         } catch (KeeperException e) {
-
+            log.error("", e);
         } catch (InterruptedException e) {
 
         }
+    }
+
+    private void reconnect(){
+        //断连时, 让所有directory持有的invoker失效
+        for(Directory directory: DIRECTORY_CACHE.asMap().values()){
+            directory.discover(Collections.emptyList());
+        }
+        //关闭原连接
+        try {
+            zooKeeper.close();
+        } catch (InterruptedException e) {
+
+        }
+        zooKeeper = null;
+        //重连
+        connect();
     }
 
     @Override
@@ -248,7 +267,7 @@ public class ZookeeperRegistry extends AbstractRegistry{
                 }
                 DIRECTORY_CACHE.invalidateAll();
             } catch (InterruptedException e) {
-                log.error("", e);
+
             }
         }
         log.info("zookeeper registry destroy successfully");
