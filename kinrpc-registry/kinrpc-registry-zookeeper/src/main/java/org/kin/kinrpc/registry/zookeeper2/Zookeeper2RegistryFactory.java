@@ -22,6 +22,7 @@ public class Zookeeper2RegistryFactory extends AbstractRegistryFactory {
 
         try {
             Registry registry = registryCache.get(address, () -> new Zookeeper2Registry(address, sessionTimeout, serializerType));
+            registry.connect();
             registry.retain();
             return registry;
         } catch (ExecutionException e) {

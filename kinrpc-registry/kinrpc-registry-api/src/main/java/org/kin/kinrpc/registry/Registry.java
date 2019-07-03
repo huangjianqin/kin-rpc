@@ -8,13 +8,15 @@ import java.util.zip.DataFormatException;
  */
 
 public interface Registry {
-    void connect() throws DataFormatException;
+    void connect();
 
-    void register(String serviceName, String host, int port) throws DataFormatException;
+    void register(String serviceName, String host, int port);
 
     void unRegister(String serviceName, String host, int port);
 
     Directory subscribe(String serviceName, int connectTimeout);
+
+    void unSubscribe(String serviceName);
 
     void retain();
     boolean release();

@@ -5,7 +5,6 @@ import org.kin.kinrpc.registry.Directory;
 import org.kin.kinrpc.rpc.serializer.SerializerType;
 
 import java.util.List;
-import java.util.zip.DataFormatException;
 
 /**
  * Created by huangjianqin on 2019/6/18.
@@ -20,12 +19,12 @@ public class DirectURLsRegistry extends AbstractRegistry {
     }
 
     @Override
-    public void connect() throws DataFormatException {
+    public void connect(){
         //do nothing
     }
 
     @Override
-    public void register(String serviceName, String host, int port) throws DataFormatException {
+    public void register(String serviceName, String host, int port){
         //do nothing
     }
 
@@ -36,14 +35,29 @@ public class DirectURLsRegistry extends AbstractRegistry {
 
     @Override
     public Directory subscribe(String serviceName, int connectTimeout) {
+        log.info("reference subscribe service '{}' ", serviceName);
         Directory directory = new DirectURLsDirectory(serviceName, connectTimeout, serializerType);
         directory.discover(hostAndPorts);
         return directory;
     }
 
     @Override
+    public void unSubscribe(String serviceName) {
+        log.info("reference unsubscribe service '{}' ", serviceName);
+        Directory directory = DIRECTORY_CACHE.getIfPresent(serviceName);
+        if(directory != null){
+            directory.destroy();
+        }
+        DIRECTORY_CACHE.invalidate(serviceName);
+    }
+
+    @Override
     public void destroy() {
         hostAndPorts.clear();
         hostAndPorts = null;
+        for(Directory directory: DIRECTORY_CACHE.asMap().values()){
+            directory.destroy();
+        }
+        DIRECTORY_CACHE.invalidateAll();
     }
 }

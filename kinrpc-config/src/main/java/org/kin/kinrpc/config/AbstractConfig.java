@@ -34,6 +34,9 @@ abstract class AbstractConfig {
             else if(registryConfig instanceof ZookeeperRegistryConfig){
                 params.put(Constants.REGISTRY_KEY, Constants.ZOOKEEPER_REGISTRY);
             }
+            else if(registryConfig instanceof Zookeeper2RegistryConfig){
+                params.put(Constants.REGISTRY_KEY, Constants.ZOOKEEPER2_REGISTRY);
+            }
             else{
                 throw new IllegalStateException("unknown registry");
             }

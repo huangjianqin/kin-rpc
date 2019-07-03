@@ -28,7 +28,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
     ReferenceConfig(Class<T> interfaceClass){
         this.interfaceClass = interfaceClass;
-        this.serviceName = interfaceClass.getName().replaceAll("\\.", "/");
+        this.serviceName = interfaceClass.getName();
     }
 
     //---------------------------------------------------------------------------------------------------------
@@ -93,7 +93,14 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return this;
     }
 
-    public ReferenceConfig<T> sessionTimeout(int sessionTimeout){
+    public ReferenceConfig<T> zookeeper2(String address){
+        if(!isReference){
+            this.registryConfig = new Zookeeper2RegistryConfig(address);
+        }
+        return this;
+    }
+
+    public ReferenceConfig<T> registrySessionTimeout(int sessionTimeout){
         if(!isReference){
             this.registryConfig.setSessionTimeout(sessionTimeout);
         }

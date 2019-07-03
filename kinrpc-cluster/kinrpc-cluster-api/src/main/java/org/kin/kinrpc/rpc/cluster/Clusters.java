@@ -38,6 +38,9 @@ public class Clusters {
         JvmCloseCleaner.DEFAULT().add(() -> {
             for(RPCProvider provider: PROVIDER_CACHE.asMap().values()){
                 provider.shutdown();
+                for (URL url : provider.getAvailableServices()) {
+                    unRegisterService(url);
+                }
             }
             for(ClusterInvoker clusterInvoker: REFERENCE_CACHE.asMap().values()){
                 clusterInvoker.close();
@@ -138,6 +141,8 @@ public class Clusters {
         if(clusterInvoker != null){
             clusterInvoker.close();
         }
+        Registry registry = Registries.getRegistry(url);
+        registry.unSubscribe(url.getServiceName());
         Registries.closeRegistry(url);
 
         REFERENCE_CACHE.invalidate(url.getServiceName());

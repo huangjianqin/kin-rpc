@@ -17,7 +17,7 @@ public class Constants {
     public static final String TIMEOUT_KEY = "timeout";
     public static final String REGISTRY_KEY = "registry";
     public static final String REGISTRY_URL_KEY = "registryURL";
-    //会话超时
+    //注册中心会话超时
     public static final String SESSION_TIMEOUT_KEY = "sessionTimeout";
     public static final String RETRY_TIMES_KEY = "retryTimes";
     public static final String RETRY_TIMEOUT_KEY = "retryTimeout";
@@ -36,6 +36,8 @@ public class Constants {
     public static final String ZOOKEEPER_REGISTRY = "zookeeper";
     public static final String ZOOKEEPER2_REGISTRY = "zookeeper2";
     public static final String DIRECT_URLS_REGISTRY = "directURLs";
+    //zookeeper注册中心会话超时
+    public static final int ZOOKEEPER_SESSION_TIMEOUT = 5000;
     //provider Server默认配置
     public static final int SERVER_DEFAULT_PORT = 16888;
     //directURLs register url splitor

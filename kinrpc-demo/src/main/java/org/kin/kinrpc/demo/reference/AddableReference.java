@@ -18,7 +18,7 @@ import java.util.concurrent.Future;
 public class AddableReference {
     public static void main(String[] args) throws InterruptedException {
         ReferenceConfig<Addable> referenceConfig =
-                References.reference(Addable.class).serviceName("org/kin/kinrpc/demo/service/Addable").urls("0.0.0.0:16888");
+                References.reference(Addable.class).serviceName("org.kin.kinrpc.demo.service.Addable").urls("0.0.0.0:16888");
 
         Addable service = referenceConfig.get();
         int count = 0;
@@ -33,15 +33,15 @@ public class AddableReference {
 //                System.out.println(completableFuture.handleAsync((s, t) -> s + s).get());
 //                service.throwException();
             } catch (RPCRetryException e) {
-                System.err.println(e);
+
             } catch (CannotFindInvokerException e) {
-                System.err.println(e);
+
             } catch (RPCCallErrorException e) {
-                System.err.println(e);
+
             } catch (UnknownRPCResponseStateCodeException e) {
-                System.err.println(e);
+
             } catch (ExecutionException e) {
-                System.err.println(e);
+
             }
 
             Thread.sleep(5000);

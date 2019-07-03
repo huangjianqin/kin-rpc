@@ -29,7 +29,7 @@ public class ServiceConfig extends AbstractConfig{
     ServiceConfig(Object ref, Class<?> interfaceClass) {
         this.ref = ref;
         this.interfaceClass = interfaceClass;
-        this.serviceName = interfaceClass.getName().replaceAll("\\.", "/");
+        this.serviceName = interfaceClass.getName();
     }
 
     //---------------------------------------------------------------------------------------------------------
@@ -77,6 +77,30 @@ public class ServiceConfig extends AbstractConfig{
     }
 
     /**
+     * 暴露服务
+     */
+    public void exportSync() {
+        if(!isExport){
+            check();
+
+            Map<String, String> params = new HashMap<>();
+            params.put(Constants.SERVICE_NAME_KEY, serviceName);
+            params.put(Constants.SERIALIZE_KEY, serialize);
+
+            url = createURL(applicationConfig, "0.0.0.0:" + serverConfig.getPort(), registryConfig, params);
+            Preconditions.checkNotNull(url);
+
+            Clusters.export(url, interfaceClass, ref);
+
+            isExport = true;
+        }
+
+        while (true) {
+
+        }
+    }
+
+    /**
      * 取消服务注册
      */
     public void disable() {
@@ -114,7 +138,14 @@ public class ServiceConfig extends AbstractConfig{
         return this;
     }
 
-    public ServiceConfig sessionTimeout(int sessionTimeout){
+    public ServiceConfig zookeeper2(String address){
+        if(!isExport){
+            this.registryConfig = new Zookeeper2RegistryConfig(address);
+        }
+        return this;
+    }
+
+    public ServiceConfig registrySessionTimeout(int sessionTimeout){
         if(!isExport){
             this.registryConfig.setSessionTimeout(sessionTimeout);
         }

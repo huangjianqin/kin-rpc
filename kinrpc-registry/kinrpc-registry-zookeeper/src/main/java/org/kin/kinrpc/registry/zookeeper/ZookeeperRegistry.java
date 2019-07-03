@@ -1,19 +1,19 @@
 package org.kin.kinrpc.registry.zookeeper;
 
-import com.google.common.net.HostAndPort;
 import org.apache.zookeeper.*;
 import org.kin.framework.utils.HttpUtils;
 import org.kin.kinrpc.registry.AbstractRegistry;
 import org.kin.kinrpc.registry.Directory;
 import org.kin.kinrpc.registry.common.RegistryConstants;
+import org.kin.kinrpc.registry.exception.AddressFormatErrorException;
 import org.kin.kinrpc.rpc.serializer.SerializerType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.zip.DataFormatException;
 
 /**
  * Created by 健勤 on 2016/10/10.
@@ -21,8 +21,6 @@ import java.util.zip.DataFormatException;
  * zookeeper作为注册中心, 操作zookeeper node
  */
 public class ZookeeperRegistry extends AbstractRegistry{
-    private static final Logger log = LoggerFactory.getLogger("registry");
-
     protected String address;
 
     private ZooKeeper zooKeeper;
@@ -36,10 +34,10 @@ public class ZookeeperRegistry extends AbstractRegistry{
     }
 
     @Override
-    public void connect() throws DataFormatException {
+    public void connect(){
         CountDownLatch countDownLatch = new CountDownLatch(1);
         try {
-            this.zooKeeper = new ZooKeeper(address, this.sessionTimeOut, new Watcher() {
+            zooKeeper = new ZooKeeper(address, sessionTimeOut, new Watcher() {
                 @Override
                 public void process(WatchedEvent watchedEvent) {
                     if (watchedEvent.getState() == Event.KeeperState.SyncConnected) {
@@ -48,6 +46,10 @@ public class ZookeeperRegistry extends AbstractRegistry{
                     } else if (watchedEvent.getState() == Event.KeeperState.Expired) {
                         throw new RuntimeException("connect to zookeeper server timeout(" + sessionTimeOut + ")");
                     } else if (watchedEvent.getState() == Event.KeeperState.Disconnected) {
+                        //断连时, 让所有directory持有的invoker失效
+                        for(Directory directory: DIRECTORY_CACHE.asMap().values()){
+                            directory.discover(Collections.emptyList());
+                        }
                         throw new RuntimeException("disconnect to zookeeper server");
                     }
                 }
@@ -71,11 +73,36 @@ public class ZookeeperRegistry extends AbstractRegistry{
     }
 
     private void createZNode(String path, byte[] data) {
+        //支持递归创建
+        StringBuilder sb = new StringBuilder();
+        String[] splits = path.split("/");
+        for(int i = 1; i < splits.length; i++){
+            sb.append("/" + splits[i]);
+            try {
+                this.zooKeeper.create(sb.toString(), data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+            } catch (KeeperException e) {
+                if(!(e instanceof KeeperException.NodeExistsException)){
+                    log.error("", e);
+                }
+            } catch (InterruptedException e) {
+
+            }
+        }
+
+        log.debug("create persistent znode(data= '{}') successfully>>> {}", data, path);
+
+    }
+
+    private void notExistAndCreate(String path, byte[] data) {
         try {
-            this.zooKeeper.create(path, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-            log.debug("create persistent znode(data= '{}') successfully>>> {}", data, path);
-        } catch (KeeperException | InterruptedException e) {
+            if (this.zooKeeper.exists(path, false) == null) {
+                log.debug("znode: '{}' not exist. now create", path);
+                createZNode(path, data);
+            }
+        } catch (KeeperException e) {
             log.error("", e);
+        } catch (InterruptedException e) {
+
         }
     }
 
@@ -83,19 +110,10 @@ public class ZookeeperRegistry extends AbstractRegistry{
         try {
             this.zooKeeper.delete(path, -1);
             log.debug("delete znode successfully>>> " + path);
-        } catch (KeeperException | InterruptedException e) {
+        } catch (KeeperException e) {
             log.error("", e);
-        }
-    }
+        } catch (InterruptedException e) {
 
-    private void notExistAndCreate(String path, byte[] data) {
-        try {
-            if (this.zooKeeper.exists(path, false) == null) {
-                log.debug("znode: " + path + " >>> not exist. now create");
-                createZNode(path, data);
-            }
-        } catch (KeeperException | InterruptedException e) {
-            log.error("", e);
         }
     }
 
@@ -105,30 +123,30 @@ public class ZookeeperRegistry extends AbstractRegistry{
             if (childs == null || childs.size() <= 0) {
                 deleteZNode(path);
             }
-        } catch (KeeperException | InterruptedException e) {
+        } catch (KeeperException e) {
             log.error("", e);
+        } catch (InterruptedException e) {
+
         }
     }
 
     @Override
-    public void register(String serviceName, String host, int port) throws DataFormatException {
-        log.info("provider register service '{}' " + ">>> zookeeper registry({})", serviceName, getAddress());
+    public void register(String serviceName, String host, int port){
+        log.info("provider register service '{}' ", serviceName);
         String address = host + ":" + port;
 
         if (!HttpUtils.checkHostPort(address)) {
-            throw new DataFormatException("zookeeper registry address('" + address + "') format error");
+            throw new AddressFormatErrorException(address);
         }
 
-        String servicePath = RegistryConstants.getPath(serviceName);
         String serviceHostPath = RegistryConstants.getPath(serviceName, address);
 
-        notExistAndCreate(servicePath, null);
         createZNode(serviceHostPath, null);
     }
 
     @Override
     public void unRegister(String serviceName, String host, int port) {
-        log.info("provider unregister service '{}' " + ">>> zookeeper registry({})", serviceName, getAddress());
+        log.info("provider unregister service '{}' ", serviceName);
         String address = host + ":" + port;
 
         String servicePath = RegistryConstants.getPath(serviceName);
@@ -140,35 +158,80 @@ public class ZookeeperRegistry extends AbstractRegistry{
 
     @Override
     public Directory subscribe(String serviceName, int connectTimeout) {
-        log.info("reference subscribe service '{}' " + ">>> zookeeper registry({})", serviceName, getAddress());
+        log.info("reference subscribe service '{}' ", serviceName);
         Directory directory = new ZookeeperDirectory(serviceName, connectTimeout, serializerType);
         watch(directory);
+        DIRECTORY_CACHE.put(serviceName, directory);
         return directory;
     }
 
+    @Override
+    public void unSubscribe(String serviceName) {
+        log.info("reference unsubscribe service '{}' ", serviceName);
+        Directory directory = DIRECTORY_CACHE.getIfPresent(serviceName);
+        if(directory != null){
+            directory.destroy();
+        }
+        DIRECTORY_CACHE.invalidate(serviceName);
+    }
+
     private void watch(Directory directory){
-        List<String> znodeList = null;
+        watchServiveNode(directory);
+        watchServiveNodeChilds(directory);
+    }
+
+    /**
+     * 监听服务根节点
+     */
+    private void watchServiveNode(Directory directory){
         try {
-            znodeList = zooKeeper.getChildren(RegistryConstants.getPath(directory.getServiceName()),
-                    (WatchedEvent watchedEvent) -> {
-                        if (watchedEvent.getType() == Watcher.Event.EventType.NodeChildrenChanged) {
-                            log.info("service '" + directory.getServiceName() + "' node changed");
-                            watch(directory);
-                        }
-                    });
-            directory.discover(znodeList);
+            zooKeeper.exists(RegistryConstants.getPath(directory.getServiceName()), (WatchedEvent watchedEvent) -> {
+                if (watchedEvent.getType() == Watcher.Event.EventType.NodeCreated) {
+                    log.info("service '" + directory.getServiceName() + "' node created");
+                    watch(directory);
+                }
+
+                if (watchedEvent.getType() == Watcher.Event.EventType.NodeDeleted) {
+                    log.info("service '" + directory.getServiceName() + "' node deleted");
+                    directory.discover(Collections.emptyList());
+                    //监控服务节点即可, 等待服务重新注册
+                    watchServiveNode(directory);
+                }
+            });
         } catch (KeeperException e) {
-            //如果不存在该节点,则表明服务取消注册了
+            //服务还未注册或者因异常取消注册
             if (e.code().equals(KeeperException.Code.NONODE)) {
-                log.error("service '" + directory.getServiceName() + "' unregisted");
                 //等待一段时间
                 try {
-                    Thread.sleep(5 * 1000L);
+                    Thread.sleep(1000L);
                 } catch (InterruptedException e1) {
-                    e1.printStackTrace();
                 }
+                //尝试重新订阅服务
                 watch(directory);
             }
+            else{
+                log.error("", e);
+            }
+        } catch (InterruptedException e) {
+
+        }
+    }
+
+    /**
+     * 监听服务子节点
+     */
+    private void watchServiveNodeChilds(Directory directory){
+        try {
+            List<String> addresses = zooKeeper.getChildren(RegistryConstants.getPath(directory.getServiceName()),
+                    (WatchedEvent watchedEvent) -> {
+                        if (watchedEvent.getType() == Watcher.Event.EventType.NodeChildrenChanged) {
+                            log.info("service '" + directory.getServiceName() + "' node childs changed");
+                            watchServiveNodeChilds(directory);
+                        }
+                    });
+            directory.discover(addresses);
+        } catch (KeeperException e) {
+
         } catch (InterruptedException e) {
 
         }
@@ -180,6 +243,10 @@ public class ZookeeperRegistry extends AbstractRegistry{
             try {
                 log.info("zookeeper registry destroying...");
                 zooKeeper.close();
+                for(Directory directory: DIRECTORY_CACHE.asMap().values()){
+                    directory.destroy();
+                }
+                DIRECTORY_CACHE.invalidateAll();
             } catch (InterruptedException e) {
                 log.error("", e);
             }

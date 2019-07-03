@@ -61,7 +61,6 @@ class ClusterImpl implements Cluster {
 
     @Override
     public void shutdown() {
-        directory.destroy();
     }
 
     protected boolean checkState() {

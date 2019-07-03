@@ -5,10 +5,11 @@ import org.kin.framework.utils.HttpUtils;
 import org.kin.kinrpc.common.Constants;
 
 /**
- * Created by 健勤 on 2017/2/13.
+ * @author huangjianqin
+ * @date 2019/7/3
  */
-class ZookeeperRegistryConfig extends AbstractRegistryConfig {
-    ZookeeperRegistryConfig(String adress) {
+public class Zookeeper2RegistryConfig extends AbstractRegistryConfig {
+    Zookeeper2RegistryConfig(String adress) {
         super(adress);
         //连接注册中心的会话超时,以毫秒算,默认5s
         setSessionTimeout(Constants.ZOOKEEPER_SESSION_TIMEOUT);
@@ -17,6 +18,6 @@ class ZookeeperRegistryConfig extends AbstractRegistryConfig {
     @Override
     void check() {
         Preconditions.checkArgument(HttpUtils.checkHostPort(address),
-                "zookeeper registry's host '" + address + "' format error");
+                "zookeeper2 registry's host '" + address + "' format error");
     }
 }

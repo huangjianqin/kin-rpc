@@ -9,6 +9,7 @@ import org.kin.kinrpc.rpc.serializer.SerializerType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.zip.DataFormatException;
 
 /**
  * Created by huangjianqin on 2019/6/18.
@@ -26,6 +27,7 @@ public class DirectURLsRegistryFactory extends AbstractRegistryFactory {
 
         try {
             Registry registry = registryCache.get(address, () -> new DirectURLsRegistry(hostAndPorts, serializerType));
+            registry.connect();
             registry.retain();
             return registry;
         } catch (ExecutionException e) {

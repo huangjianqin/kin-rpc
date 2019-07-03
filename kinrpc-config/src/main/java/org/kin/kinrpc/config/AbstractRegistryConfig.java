@@ -5,8 +5,7 @@ package org.kin.kinrpc.config;
  */
 public abstract class AbstractRegistryConfig extends AbstractConfig{
     protected String address;
-    //连接注册中心的会话超时,以毫秒算,默认5s
-    protected int sessionTimeout = -1;
+    protected int sessionTimeout;
 
     AbstractRegistryConfig(String address) {
         this.address = address;

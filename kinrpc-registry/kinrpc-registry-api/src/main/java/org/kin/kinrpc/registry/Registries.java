@@ -31,13 +31,13 @@ public class Registries {
 
         //TODO 考虑从META-INF读取自定义实现的注册中心并允许加载
         try {
-            String finalRegistryType = registryType;
+            String registryName = (registryType + "registryfactory").toLowerCase();
             RegistryFactory registryFactory = REGISTRY_FACTORY_CACHE.get(registryType, () -> {
                 Set<Class<RegistryFactory>> classes = ClassUtils.getSubClass("org.kin.kinrpc.registry", RegistryFactory.class, true);
                 if (classes.size() > 0) {
                     for (Class<RegistryFactory> claxx : classes) {
                         String className = claxx.getSimpleName().toLowerCase();
-                        if (className.startsWith(finalRegistryType)) {
+                        if (className.equals(registryName)) {
                             return claxx.newInstance();
                         }
                     }
