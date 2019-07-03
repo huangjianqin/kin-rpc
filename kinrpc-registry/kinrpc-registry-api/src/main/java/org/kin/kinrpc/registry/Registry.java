@@ -1,8 +1,6 @@
 package org.kin.kinrpc.registry;
 
 
-import java.util.zip.DataFormatException;
-
 /**
  * Created by 健勤 on 2016/10/9.
  */

@@ -1,4 +1,8 @@
-package org.kin.kinrpc.transport.domain;
+package org.kin.kinrpc.transport.protocol;
+
+import org.kin.kinrpc.transport.domain.ProtocolByteBuf;
+import org.kin.kinrpc.transport.domain.Request;
+import org.kin.kinrpc.transport.domain.Response;
 
 /**
  * Created by huangjianqin on 2019/5/30.

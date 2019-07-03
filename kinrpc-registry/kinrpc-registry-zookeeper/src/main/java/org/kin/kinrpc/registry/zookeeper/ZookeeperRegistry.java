@@ -7,8 +7,6 @@ import org.kin.kinrpc.registry.Directory;
 import org.kin.kinrpc.registry.common.RegistryConstants;
 import org.kin.kinrpc.registry.exception.AddressFormatErrorException;
 import org.kin.kinrpc.rpc.serializer.SerializerType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collections;

@@ -1,10 +1,10 @@
-package org.kin.kinrpc.rpc.transport.domain;
+package org.kin.kinrpc.rpc.transport.protocol;
 
 import com.google.common.base.Preconditions;
 import org.kin.kinrpc.rpc.transport.common.RPCConstants;
-import org.kin.kinrpc.transport.domain.AbstractProtocol;
 import org.kin.kinrpc.transport.domain.Request;
 import org.kin.kinrpc.transport.domain.Response;
+import org.kin.kinrpc.transport.protocol.AbstractProtocol;
 
 /**
  * Created by huangjianqin on 2019/6/14.

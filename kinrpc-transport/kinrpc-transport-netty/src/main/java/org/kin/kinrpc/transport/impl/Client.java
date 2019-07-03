@@ -8,7 +8,6 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import org.kin.kinrpc.transport.*;
-import org.kin.kinrpc.transport.domain.AbstractProtocol;
 import org.kin.kinrpc.transport.handler.BaseFrameCodec;
 import org.kin.kinrpc.transport.handler.ChannelIdleHandler;
 import org.kin.kinrpc.transport.handler.ChannelProtocolHandler;
@@ -16,6 +15,7 @@ import org.kin.kinrpc.transport.handler.ProtocolCodec;
 import org.kin.kinrpc.transport.listener.ChannelActiveListener;
 import org.kin.kinrpc.transport.listener.ChannelIdleListener;
 import org.kin.kinrpc.transport.listener.ChannelInactiveListener;
+import org.kin.kinrpc.transport.protocol.AbstractProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

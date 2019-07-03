@@ -4,7 +4,6 @@ import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.common.URL;
 import org.kin.kinrpc.registry.AbstractRegistryFactory;
 import org.kin.kinrpc.registry.Registry;
-import org.kin.kinrpc.registry.zookeeper.ZookeeperRegistry;
 import org.kin.kinrpc.rpc.serializer.SerializerType;
 
 import java.util.concurrent.ExecutionException;
