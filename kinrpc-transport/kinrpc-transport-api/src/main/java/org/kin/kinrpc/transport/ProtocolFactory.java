@@ -3,7 +3,6 @@ package org.kin.kinrpc.transport;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.kin.framework.utils.ClassUtils;
-import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.transport.exception.UnknowProtocolException;
 import org.kin.kinrpc.transport.protocol.AbstractProtocol;
 import org.kin.kinrpc.transport.protocol.Protocol;

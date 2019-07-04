@@ -1,6 +1,5 @@
 package org.kin.kinrpc.transport;
 
-import org.kin.kinrpc.transport.domain.Request;
 import org.kin.kinrpc.transport.domain.Response;
 import org.kin.kinrpc.transport.protocol.AbstractProtocol;
 
