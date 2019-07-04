@@ -1,7 +1,7 @@
 package org.kin.kinrpc.rpc.transport.protocol;
 
-import com.google.common.base.Preconditions;
 import org.kin.kinrpc.rpc.transport.common.RPCConstants;
+import org.kin.kinrpc.transport.protocol.Protocol;
 import org.kin.kinrpc.transport.domain.Request;
 import org.kin.kinrpc.transport.domain.Response;
 import org.kin.kinrpc.transport.protocol.AbstractProtocol;
@@ -10,18 +10,9 @@ import org.kin.kinrpc.transport.protocol.AbstractProtocol;
  * Created by huangjianqin on 2019/6/14.
  * 相对server而言
  */
+@Protocol(id = RPCConstants.RPC_RESPONSE_PROTOCOL_ID)
 public class RPCResponseProtocol extends AbstractProtocol {
     private byte[] respContent;
-
-    public RPCResponseProtocol(int protocolId) {
-        super(protocolId);
-        Preconditions.checkArgument(protocolId == RPCConstants.RPC_RESPONSE_PROTOCOL_ID);
-    }
-
-    public RPCResponseProtocol(byte[] respContent) {
-        super(RPCConstants.RPC_RESPONSE_PROTOCOL_ID);
-        this.respContent = respContent;
-    }
 
     @Override
     public void read(Request request) {

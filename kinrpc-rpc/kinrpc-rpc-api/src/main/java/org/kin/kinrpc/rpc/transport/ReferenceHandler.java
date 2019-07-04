@@ -5,6 +5,7 @@ import org.kin.framework.concurrent.ThreadManager;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.rpc.RPCReference;
 import org.kin.kinrpc.rpc.serializer.Serializer;
+import org.kin.kinrpc.rpc.transport.common.RPCConstants;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.kin.kinrpc.rpc.transport.protocol.RPCHeartbeat;
@@ -12,6 +13,7 @@ import org.kin.kinrpc.rpc.transport.protocol.RPCRequestProtocol;
 import org.kin.kinrpc.rpc.transport.protocol.RPCResponseProtocol;
 import org.kin.kinrpc.transport.AbstractConnection;
 import org.kin.kinrpc.transport.AbstractSession;
+import org.kin.kinrpc.transport.ProtocolFactory;
 import org.kin.kinrpc.transport.ProtocolHandler;
 import org.kin.kinrpc.transport.impl.Client;
 import org.kin.kinrpc.transport.protocol.AbstractProtocol;
@@ -73,7 +75,7 @@ public class ReferenceHandler extends AbstractConnection implements ProtocolHand
 
         if(!client.isStopped() && heartbeatFuture == null){
             heartbeatFuture = ThreadManager.DEFAULT.scheduleAtFixedRate(() -> {
-                RPCHeartbeat heartbeat = new RPCHeartbeat(client.getLocalAddress(), "");
+                RPCHeartbeat heartbeat = ProtocolFactory.createProtocol(RPCConstants.RPC_HEARTBEAT_PROTOCOL_ID, client.getLocalAddress(), "");
                 client.request(heartbeat);
             }, 10, 10, TimeUnit.SECONDS);
         }
@@ -102,7 +104,7 @@ public class ReferenceHandler extends AbstractConnection implements ProtocolHand
             //限流
             rateLimiter.acquire();
 
-            RPCRequestProtocol protocol = new RPCRequestProtocol(data);
+            RPCRequestProtocol protocol = ProtocolFactory.createProtocol(RPCConstants.RPC_REQUEST_PROTOCOL_ID, data);
             client.request(protocol);
         } catch (IOException e) {
             log.error("", e);

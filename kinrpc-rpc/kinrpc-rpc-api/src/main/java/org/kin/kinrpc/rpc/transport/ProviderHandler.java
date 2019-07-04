@@ -6,6 +6,7 @@ import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.rpc.RPCProvider;
 import org.kin.kinrpc.rpc.serializer.Serializer;
 import org.kin.kinrpc.rpc.serializer.SerializerType;
+import org.kin.kinrpc.rpc.transport.common.RPCConstants;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.kin.kinrpc.rpc.transport.protocol.RPCHeartbeat;
@@ -13,6 +14,7 @@ import org.kin.kinrpc.rpc.transport.protocol.RPCRequestProtocol;
 import org.kin.kinrpc.rpc.transport.protocol.RPCResponseProtocol;
 import org.kin.kinrpc.transport.AbstractConnection;
 import org.kin.kinrpc.transport.AbstractSession;
+import org.kin.kinrpc.transport.ProtocolFactory;
 import org.kin.kinrpc.transport.ProtocolHandler;
 import org.kin.kinrpc.transport.impl.Server;
 import org.kin.kinrpc.transport.protocol.AbstractProtocol;
@@ -113,7 +115,7 @@ public class ProviderHandler extends AbstractConnection implements ProtocolHandl
         else if(protocol instanceof RPCHeartbeat){
             RPCHeartbeat heartbeat = (RPCHeartbeat) protocol;
             log.info("client heartbeat ip:{}, content:{}", heartbeat.getIp(), heartbeat.getContent());
-            RPCHeartbeat heartbeatResp = new RPCHeartbeat(getAddress(), "");
+            RPCHeartbeat heartbeatResp = ProtocolFactory.createProtocol(RPCConstants.RPC_HEARTBEAT_PROTOCOL_ID, getAddress(), "");
             session.getChannel().writeAndFlush(heartbeatResp.write());
         }
         else{
@@ -137,7 +139,7 @@ public class ProviderHandler extends AbstractConnection implements ProtocolHandl
             }
         }
 
-        RPCResponseProtocol rpcResponseProtocol = new RPCResponseProtocol(data);
+        RPCResponseProtocol rpcResponseProtocol = ProtocolFactory.createProtocol(RPCConstants.RPC_RESPONSE_PROTOCOL_ID, data);
         channel.writeAndFlush(rpcResponseProtocol.write());
     }
 }

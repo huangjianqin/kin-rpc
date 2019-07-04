@@ -4,6 +4,7 @@ import org.kin.kinrpc.rpc.transport.common.RPCConstants;
 import org.kin.kinrpc.rpc.transport.protocol.RPCHeartbeat;
 import org.kin.kinrpc.rpc.transport.protocol.RPCResponseProtocol;
 import org.kin.kinrpc.transport.Bytes2ProtocolTransfer;
+import org.kin.kinrpc.transport.ProtocolFactory;
 import org.kin.kinrpc.transport.domain.Request;
 import org.kin.kinrpc.transport.protocol.AbstractProtocol;
 
@@ -13,16 +14,7 @@ import org.kin.kinrpc.transport.protocol.AbstractProtocol;
 public class ReferenceProtocolTransfer implements Bytes2ProtocolTransfer {
     @Override
     public AbstractProtocol transfer(Request request) {
-        AbstractProtocol protocol;
-        if(request.getProtocolId() == RPCConstants.RPC_RESPONSE_PROTOCOL_ID){
-            protocol = new RPCResponseProtocol(request.getProtocolId());
-        }
-        else if(request.getProtocolId() == RPCConstants.RPC_HEARTBEAT_PROTOCOL_ID){
-            protocol = new RPCHeartbeat(request.getProtocolId());
-        }
-        else{
-            return null;
-        }
+        AbstractProtocol protocol = ProtocolFactory.createProtocol(request.getProtocolId());
         protocol.read(request);
         return protocol;
     }

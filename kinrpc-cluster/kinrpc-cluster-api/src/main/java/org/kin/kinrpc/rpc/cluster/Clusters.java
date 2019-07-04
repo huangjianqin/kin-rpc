@@ -12,6 +12,7 @@ import org.kin.kinrpc.registry.Registries;
 import org.kin.kinrpc.registry.Registry;
 import org.kin.kinrpc.rpc.RPCProvider;
 import org.kin.kinrpc.rpc.serializer.SerializerType;
+import org.kin.kinrpc.transport.ProtocolFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +36,7 @@ public class Clusters {
             new ScheduledThreadPoolExecutor(2, new SimpleThreadFactory("provider-heartbeat")));
 
     static {
+        ProtocolFactory.init("org.kin.kinrpc.rpc");
         JvmCloseCleaner.DEFAULT().add(() -> {
             for(RPCProvider provider: PROVIDER_CACHE.asMap().values()){
                 provider.shutdown();
