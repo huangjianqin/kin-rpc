@@ -1,7 +1,7 @@
 package org.kin.kinrpc.config;
 
 import com.google.common.base.Preconditions;
-import org.kin.framework.utils.HttpUtils;
+import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.common.Constants;
 
 /**
@@ -17,7 +17,7 @@ public class Zookeeper2RegistryConfig extends AbstractRegistryConfig {
 
     @Override
     void check() {
-        Preconditions.checkArgument(HttpUtils.checkHostPort(address),
+        Preconditions.checkArgument(NetUtils.checkHostPort(address),
                 "zookeeper2 registry's host '" + address + "' format error");
     }
 }

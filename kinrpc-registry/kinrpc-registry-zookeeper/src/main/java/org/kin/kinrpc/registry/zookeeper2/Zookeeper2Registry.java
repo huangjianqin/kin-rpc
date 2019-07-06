@@ -7,7 +7,7 @@ import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.*;
 import org.kin.framework.concurrent.SimpleThreadFactory;
-import org.kin.framework.utils.HttpUtils;
+import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.registry.AbstractRegistry;
 import org.kin.kinrpc.registry.Directory;
 import org.kin.kinrpc.registry.common.RegistryConstants;
@@ -116,7 +116,7 @@ public class Zookeeper2Registry extends AbstractRegistry{
         log.info("provider register service '{}' ", serviceName);
         String address = host + ":" + port;
 
-        if (!HttpUtils.checkHostPort(address)) {
+        if (!NetUtils.checkHostPort(address)) {
             throw new AddressFormatErrorException(address);
         }
 
