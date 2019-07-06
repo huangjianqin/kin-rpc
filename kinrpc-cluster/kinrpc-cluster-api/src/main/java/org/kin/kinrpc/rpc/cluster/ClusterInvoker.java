@@ -13,7 +13,7 @@ import org.kin.kinrpc.rpc.exception.UnknownRPCResponseStateCodeException;
 import org.kin.kinrpc.rpc.future.RPCFuture;
 import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
-import org.kin.kinrpc.rpc.utils.ClassUtil;
+import org.kin.kinrpc.rpc.utils.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,7 +67,7 @@ class ClusterInvoker implements InvocationHandler, Closeable {
     }
 
     private Object invoke0(Method method, Object... params){
-        String methodName = ClassUtil.getUniqueName(method);
+        String methodName = ClassUtils.getUniqueName(method);
         Class returnType = method.getReturnType();
         boolean isVoid = Void.class.equals(returnType);
         if(retryTimes > 0){

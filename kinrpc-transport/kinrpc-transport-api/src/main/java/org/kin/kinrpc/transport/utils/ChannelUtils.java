@@ -7,8 +7,8 @@ import java.net.InetSocketAddress;
 /**
  * Created by huangjianqin on 2019/6/3.
  */
-public class ChannelUtil {
-    private ChannelUtil(){
+public class ChannelUtils {
+    private ChannelUtils(){
 
     }
 

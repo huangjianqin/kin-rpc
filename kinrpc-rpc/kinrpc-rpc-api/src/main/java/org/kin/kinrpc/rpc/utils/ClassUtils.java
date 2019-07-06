@@ -5,8 +5,8 @@ import java.lang.reflect.Method;
 /**
  * Created by huangjianqin on 2019/6/12.
  */
-public class ClassUtil {
-    private ClassUtil(){
+public class ClassUtils {
+    private ClassUtils(){
 
     }
 
