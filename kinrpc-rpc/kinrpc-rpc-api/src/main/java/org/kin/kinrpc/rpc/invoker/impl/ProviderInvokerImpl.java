@@ -5,7 +5,7 @@ import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.rpc.exception.RateLimitException;
 import org.kin.kinrpc.rpc.invoker.AbstractProviderInvoker;
-import org.kin.kinrpc.rpc.utils.ClassUtils;
+import org.kin.kinrpc.rpc.utils.ClassUtil;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -26,7 +26,7 @@ public class ProviderInvokerImpl extends AbstractProviderInvoker {
 
         for (Method method : methods) {
             method.setAccessible(true);
-            String uniqueName = ClassUtils.getUniqueName(method);
+            String uniqueName = ClassUtil.getUniqueName(method);
             this.methodMap.put(uniqueName, method);
             log.info("service '{}'s method '{}'/'{}' is ready to provide service", getServiceName(), uniqueName, method.toString());
         }

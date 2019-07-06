@@ -5,7 +5,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import org.kin.kinrpc.transport.domain.Response;
 import org.kin.kinrpc.transport.protocol.AbstractProtocol;
-import org.kin.kinrpc.transport.utils.ChannelUtils;
+import org.kin.kinrpc.transport.utils.ChannelUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,8 +32,8 @@ public abstract class AbstractSession {
 
     public AbstractSession(Channel channel, boolean isFlush) {
         this.channel = channel;
-        this.ip = ChannelUtils.getIP(channel);
-        this.ipHashCode = ChannelUtils.ipHashCode(ip);
+        this.ip = ChannelUtil.getIP(channel);
+        this.ipHashCode = ChannelUtil.ipHashCode(ip);
         this.isFlush = isFlush;
     }
 
@@ -41,8 +41,8 @@ public abstract class AbstractSession {
         if (!isClosed) {
             Channel old = this.channel;
             this.channel = channel;
-            this.ip = ChannelUtils.getIP(channel);
-            this.ipHashCode = ChannelUtils.ipHashCode(ip);
+            this.ip = ChannelUtil.getIP(channel);
+            this.ipHashCode = ChannelUtil.ipHashCode(ip);
             return old;
         }
 

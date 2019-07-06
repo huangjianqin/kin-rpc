@@ -12,7 +12,7 @@ import org.kin.kinrpc.transport.common.ProtocolConstants;
 import org.kin.kinrpc.transport.listener.ChannelActiveListener;
 import org.kin.kinrpc.transport.listener.ChannelInactiveListener;
 import org.kin.kinrpc.transport.protocol.AbstractProtocol;
-import org.kin.kinrpc.transport.utils.ChannelUtils;
+import org.kin.kinrpc.transport.utils.ChannelUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,7 +81,7 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
         Attribute<AbstractSession> attr = ctx.channel().attr(ProtocolConstants.SESSION_KEY);
         if (!attr.compareAndSet(null, sessionBuilder.create(ctx.channel()))) {
             ctx.channel().close();
-            log.error("Duplicate Session! IP: {}", ChannelUtils.getIP(ctx.channel()));
+            log.error("Duplicate Session! IP: {}", ChannelUtil.getIP(ctx.channel()));
             return;
         }
         if (channelActiveListener != null) {
@@ -108,7 +108,7 @@ public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         Channel channel = ctx.channel();
-        log.error("server('{}') throw exception:{}", ChannelUtils.getIP(channel), cause);
+        log.error("server('{}') throw exception:{}", ChannelUtil.getIP(channel), cause);
         if (channel.isOpen() || channel.isActive()) {
             ctx.close();
         }
