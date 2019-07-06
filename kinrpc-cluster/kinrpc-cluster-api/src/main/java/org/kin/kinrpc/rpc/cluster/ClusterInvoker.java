@@ -113,7 +113,7 @@ class ClusterInvoker implements InvocationHandler, Closeable {
                         failureHostAndPorts.add(invoker.getAddress());
                         log.warn(e.getMessage());
                     } catch (Throwable e) {
-                        log.error("", e);
+                        log.error(e.getMessage(), e);
                     }
                 }
             }
@@ -127,7 +127,7 @@ class ClusterInvoker implements InvocationHandler, Closeable {
                 try {
                     return invoker.invoke(methodName, isVoid, params);
                 } catch (Throwable e) {
-                    log.error("", e);
+                    log.error(e.getMessage(), e);
                 }
             }
         }

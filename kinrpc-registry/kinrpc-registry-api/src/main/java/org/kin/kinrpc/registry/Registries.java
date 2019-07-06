@@ -48,7 +48,7 @@ public class Registries {
 
             return registryFactory;
         } catch (ExecutionException e) {
-            log.error("", e);
+            log.error(e.getMessage(), e);
         }
 
         throw new IllegalStateException("init registry error >>>" + registryType);

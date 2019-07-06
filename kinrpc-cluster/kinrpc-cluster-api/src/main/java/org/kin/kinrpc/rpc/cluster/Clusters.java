@@ -82,7 +82,7 @@ public class Clusters {
                 return provider0;
             });
         } catch (Exception e) {
-            log.error("", e);
+            log.error(e.getMessage(), e);
             return;
         }
 
@@ -93,7 +93,7 @@ public class Clusters {
                 registry.register(url.getServiceName(), "0.0.0.0", port);
             }
         } catch (Exception e) {
-            log.error("", e);
+            log.error(e.getMessage(), e);
             disableService(url, interfaceClass);
         }
     }

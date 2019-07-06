@@ -59,7 +59,7 @@ public class ReferenceHandler extends AbstractConnection implements ProtocolHand
             try {
                 client.connect();
             } catch (Exception e) {
-                log.error("", e);
+                log.error(e.getMessage(), e);
             }
             if(client.isActive()){
                break;
@@ -107,7 +107,7 @@ public class ReferenceHandler extends AbstractConnection implements ProtocolHand
             RPCRequestProtocol protocol = ProtocolFactory.createProtocol(RPCConstants.RPC_REQUEST_PROTOCOL_ID, data);
             client.request(protocol);
         } catch (IOException e) {
-            log.error("", e);
+            log.error(e.getMessage(), e);
         }
     }
 
@@ -128,13 +128,13 @@ public class ReferenceHandler extends AbstractConnection implements ProtocolHand
                     rpcResponse = serializer.deserialize(responseProtocol.getRespContent(), RPCResponse.class);
                     rpcResponse.setEventTime(System.currentTimeMillis());
                 } catch (IOException | ClassNotFoundException e) {
-                    log.error("", e);
+                    log.error(e.getMessage(), e);
                     return;
                 }
 
                 rpcReference.handleResponse(rpcResponse);
             } catch (Exception e) {
-                log.error("", e);
+                log.error(e.getMessage(), e);
             }
         }
         else if(protocol instanceof RPCHeartbeat){

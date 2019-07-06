@@ -24,7 +24,7 @@ public class ZookeeperRegistryFactory extends AbstractRegistryFactory {
             registry.retain();
             return registry;
         } catch (ExecutionException e) {
-            log.error("", e);
+            log.error(e.getMessage(), e);
         }
 
         return null;

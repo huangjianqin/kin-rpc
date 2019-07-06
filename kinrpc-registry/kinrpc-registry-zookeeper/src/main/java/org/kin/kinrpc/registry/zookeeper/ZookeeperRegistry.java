@@ -83,7 +83,7 @@ public class ZookeeperRegistry extends AbstractRegistry{
                 this.zooKeeper.create(sb.toString(), data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
             } catch (KeeperException e) {
                 if(!(e instanceof KeeperException.NodeExistsException)){
-                    log.error("", e);
+                    log.error(e.getMessage(), e);
                 }
             } catch (InterruptedException e) {
 
@@ -101,7 +101,7 @@ public class ZookeeperRegistry extends AbstractRegistry{
                 createZNode(path, data);
             }
         } catch (KeeperException e) {
-            log.error("", e);
+            log.error(e.getMessage(), e);
         } catch (InterruptedException e) {
 
         }
@@ -112,7 +112,7 @@ public class ZookeeperRegistry extends AbstractRegistry{
             this.zooKeeper.delete(path, -1);
             log.debug("delete znode successfully>>> " + path);
         } catch (KeeperException e) {
-            log.error("", e);
+            log.error(e.getMessage(), e);
         } catch (InterruptedException e) {
 
         }
@@ -125,7 +125,7 @@ public class ZookeeperRegistry extends AbstractRegistry{
                 deleteZNode(path);
             }
         } catch (KeeperException e) {
-            log.error("", e);
+            log.error(e.getMessage(), e);
         } catch (InterruptedException e) {
 
         }
@@ -211,7 +211,7 @@ public class ZookeeperRegistry extends AbstractRegistry{
                 watch(directory);
             }
             else{
-                log.error("", e);
+                log.error(e.getMessage(), e);
             }
         } catch (InterruptedException e) {
 
@@ -232,7 +232,7 @@ public class ZookeeperRegistry extends AbstractRegistry{
                     });
             directory.discover(addresses);
         } catch (KeeperException e) {
-            log.error("", e);
+            log.error(e.getMessage(), e);
         } catch (InterruptedException e) {
 
         }

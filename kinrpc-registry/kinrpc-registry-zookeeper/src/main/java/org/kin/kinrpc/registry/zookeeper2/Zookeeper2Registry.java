@@ -84,7 +84,7 @@ public class Zookeeper2Registry extends AbstractRegistry{
                     .forPath(path, data);
             log.debug("create persistent znode(data= '{}') successfully>>> {}", data, path);
         } catch (Exception e) {
-            log.error("", e);
+            log.error(e.getMessage(), e);
         }
     }
 
@@ -98,7 +98,7 @@ public class Zookeeper2Registry extends AbstractRegistry{
                     .forPath(path);
             log.debug("delete znode successfully>>> " + path);
         } catch (Exception e) {
-            log.error("", e);
+            log.error(e.getMessage(), e);
         }
     }
 
@@ -107,7 +107,7 @@ public class Zookeeper2Registry extends AbstractRegistry{
             client.delete().forPath(path);
             log.debug("delete znode successfully>>> " + path);
         } catch (Exception e) {
-            log.error("", e);
+            log.error(e.getMessage(), e);
         }
     }
 
@@ -186,10 +186,10 @@ public class Zookeeper2Registry extends AbstractRegistry{
                 watch(directory);
             }
             else{
-                log.error("", e);
+                log.error(e.getMessage(), e);
             }
         } catch (Exception e) {
-            log.error("", e);
+            log.error(e.getMessage(), e);
         }
     }
 
@@ -207,11 +207,11 @@ public class Zookeeper2Registry extends AbstractRegistry{
                     }).forPath(RegistryConstants.getPath(directory.getServiceName()));
             directory.discover(addresses);
         } catch (KeeperException e) {
-            log.error("", e);
+            log.error(e.getMessage(), e);
         } catch (InterruptedException e) {
 
         } catch (Exception e) {
-            log.error("", e);
+            log.error(e.getMessage(), e);
         }
     }
 

@@ -121,7 +121,7 @@ public class RPCProvider {
         try {
             connection.bind();
         } catch (Exception e) {
-            log.error("", e);
+            log.error(e.getMessage(), e);
             System.exit(-1);
         }
 
@@ -166,7 +166,7 @@ public class RPCProvider {
             //等待所有response成功返回
             Thread.sleep(500L);
         } catch (InterruptedException e) {
-            log.error("", e);
+            log.error(e.getMessage(), e);
         }
 
         //最后关闭连接
@@ -180,7 +180,7 @@ public class RPCProvider {
                 try {
                     requestsQueue.put(rpcRequest);
                 } catch (InterruptedException e) {
-                    log.error("", e);
+                    log.error(e.getMessage(), e);
                 }
             });
         }
@@ -232,7 +232,7 @@ public class RPCProvider {
                             } catch (Throwable throwable) {
                                 //服务调用报错, 将异常信息返回
                                 rpcResponse.setState(RPCResponse.State.ERROR, throwable.getMessage());
-                                log.error("", throwable);
+                                log.error(throwable.getMessage(), throwable);
                             }
 
                             rpcResponse.setResult(result);

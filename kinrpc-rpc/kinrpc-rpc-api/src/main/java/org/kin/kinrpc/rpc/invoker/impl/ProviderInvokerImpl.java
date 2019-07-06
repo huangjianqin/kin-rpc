@@ -68,7 +68,7 @@ public class ProviderInvokerImpl extends AbstractProviderInvoker {
             return target.invoke(serivce, params);
         } catch (IllegalAccessException e) {
             log.error("service '{}' method '{}' access illegally", getServiceName(), methodName);
-            log.error("", e);
+            log.error(e.getMessage(), e);
             throw e;
         } catch (InvocationTargetException e) {
             log.error("service '{}' method '{}' invoke error", getServiceName(), methodName);

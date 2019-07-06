@@ -100,7 +100,7 @@ public class ProviderHandler extends AbstractConnection implements ProtocolHandl
                     rpcRequest.setChannel(session.getChannel());
                     rpcRequest.setEventTime(System.currentTimeMillis());
                 } catch (IOException | ClassNotFoundException e) {
-                    log.error("", e);
+                    log.error(e.getMessage(), e);
                     RPCResponse rpcResponse = RPCResponse.respWithError(rpcRequest, e.getMessage());
                     session.getChannel().writeAndFlush(rpcResponse);
                     return;
@@ -109,7 +109,7 @@ public class ProviderHandler extends AbstractConnection implements ProtocolHandl
                 //简单地添加到任务队列交由上层的线程池去完成服务调用
                 rpcProvider.handleRequest(rpcRequest);
             } catch (Exception e) {
-                log.error("", e);
+                log.error(e.getMessage(), e);
             }
         }
         else if(protocol instanceof RPCHeartbeat){
@@ -128,13 +128,13 @@ public class ProviderHandler extends AbstractConnection implements ProtocolHandl
         try {
             data = serializer.serialize(rpcResponse);
         } catch (IOException e) {
-            log.error("", e);
+            log.error(e.getMessage(), e);
             rpcResponse.setState(RPCResponse.State.ERROR, e.getMessage());
             rpcResponse.setResult(null);
             try {
                 data = serializer.serialize(rpcResponse);
             } catch (IOException e1) {
-                log.error("", e);
+                log.error(e1.getMessage(), e1);
                 return;
             }
         }
