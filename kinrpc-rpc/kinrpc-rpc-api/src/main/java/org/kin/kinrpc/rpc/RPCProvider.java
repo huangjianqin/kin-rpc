@@ -164,7 +164,7 @@ public class RPCProvider {
         threads.shutdown();
         try {
             //等待所有response成功返回
-            Thread.sleep(500L);
+            TimeUnit.MILLISECONDS.sleep(500);
         } catch (InterruptedException e) {
             log.error(e.getMessage(), e);
         }
@@ -207,7 +207,7 @@ public class RPCProvider {
                     long queuedTaskCount = threads.getQueuedTaskCount();
                     while(queuedTaskCount > RPCConstants.POOL_TASK_NUM){
                         log.warn("too many task(num={}) to execute, slow down", queuedTaskCount);
-                        Thread.sleep(200);
+                        TimeUnit.MILLISECONDS.sleep(200);
                     }
 
                     //提交线程池处理服务执行

@@ -67,7 +67,7 @@ public class ReferenceHandler extends AbstractConnection implements ProtocolHand
 
             try {
                 //10s后重试
-                Thread.sleep(10000);
+                TimeUnit.SECONDS.sleep(10);
             } catch (InterruptedException e) {
 
             }

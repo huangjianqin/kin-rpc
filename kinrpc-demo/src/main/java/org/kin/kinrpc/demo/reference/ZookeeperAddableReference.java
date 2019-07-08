@@ -10,6 +10,7 @@ import org.kin.kinrpc.rpc.exception.UnknownRPCResponseStateCodeException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author huangjianqin
@@ -46,7 +47,7 @@ public class ZookeeperAddableReference {
 
             }
 
-            Thread.sleep(5000);
+            TimeUnit.SECONDS.sleep(5);
         }
     }
 

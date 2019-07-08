@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author huangjianqin
@@ -179,7 +180,7 @@ public class Zookeeper2Registry extends AbstractRegistry{
             if (e.code().equals(KeeperException.Code.NONODE)) {
                 //等待一段时间
                 try {
-                    Thread.sleep(1000L);
+                    TimeUnit.SECONDS.sleep(1);
                 } catch (InterruptedException e1) {
                 }
                 //尝试重新订阅服务

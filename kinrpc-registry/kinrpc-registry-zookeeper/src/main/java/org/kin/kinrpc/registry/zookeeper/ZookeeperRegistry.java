@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by 健勤 on 2016/10/10.
@@ -204,7 +205,7 @@ public class ZookeeperRegistry extends AbstractRegistry{
             if (e.code().equals(KeeperException.Code.NONODE)) {
                 //等待一段时间
                 try {
-                    Thread.sleep(1000L);
+                    TimeUnit.SECONDS.sleep(1);
                 } catch (InterruptedException e1) {
                 }
                 //尝试重新订阅服务
