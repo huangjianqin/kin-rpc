@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -32,8 +31,9 @@ public class Clusters {
     private static final Cache<String, ClusterInvoker> REFERENCE_CACHE = CacheBuilder.newBuilder().build();
     private static final ThreadManager threadManager = new ThreadManager(
             new ThreadPoolExecutor(0, 2, 60L, TimeUnit.SECONDS,
-                    new LinkedBlockingQueue<>(), new SimpleThreadFactory("provider-unregister-executor")),
-            new ScheduledThreadPoolExecutor(2, new SimpleThreadFactory("provider-heartbeat")));
+                    new LinkedBlockingQueue<>(), new SimpleThreadFactory("provider-unregister-executor")));
+    private static volatile boolean isStopped = false;
+    private static final int HEARTBEAT_INTERVAL = 3;
 
     static {
         ProtocolFactory.init("org.kin.kinrpc.rpc");
@@ -51,20 +51,29 @@ public class Clusters {
             threadManager.shutdown();
         });
         //心跳检查, 每隔一定时间检查provider是否异常, 并取消服务注册
-        threadManager.scheduleAtFixedRate(() -> {
-            for(RPCProvider provider: new ArrayList<>(PROVIDER_CACHE.asMap().values())){
-                if(!provider.isAlive()){
-                    int port = provider.getPort();
-                    PROVIDER_CACHE.invalidate(port);
-                    threadManager.execute(() -> {
-                        provider.shutdown();
-                        for (URL url : provider.getAvailableServices()) {
-                            unRegisterService(url);
-                        }
-                    });
+        threadManager.execute(() -> {
+            while(!isStopped){
+                long sleepTime = HEARTBEAT_INTERVAL - System.currentTimeMillis() % HEARTBEAT_INTERVAL;
+                try {
+                    TimeUnit.SECONDS.sleep(sleepTime);
+                } catch (InterruptedException e) {
+
+                }
+
+                for(RPCProvider provider: new ArrayList<>(PROVIDER_CACHE.asMap().values())){
+                    if(!provider.isAlive()){
+                        int port = provider.getPort();
+                        PROVIDER_CACHE.invalidate(port);
+                        threadManager.execute(() -> {
+                            provider.shutdown();
+                            for (URL url : provider.getAvailableServices()) {
+                                unRegisterService(url);
+                            }
+                        });
+                    }
                 }
             }
-        }, 3, 3, TimeUnit.SECONDS);
+        });
     }
 
     private Clusters(){
