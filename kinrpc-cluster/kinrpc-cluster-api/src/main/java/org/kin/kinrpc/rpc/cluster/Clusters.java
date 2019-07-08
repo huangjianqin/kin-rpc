@@ -6,6 +6,7 @@ import com.google.common.cache.CacheBuilder;
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadManager;
+import org.kin.framework.utils.TimeUtils;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.common.URL;
 import org.kin.kinrpc.registry.Registries;
@@ -53,7 +54,7 @@ public class Clusters {
         //心跳检查, 每隔一定时间检查provider是否异常, 并取消服务注册
         threadManager.execute(() -> {
             while(!isStopped){
-                long sleepTime = HEARTBEAT_INTERVAL - System.currentTimeMillis() % HEARTBEAT_INTERVAL;
+                long sleepTime = HEARTBEAT_INTERVAL - TimeUtils.timestamp() % HEARTBEAT_INTERVAL;
                 try {
                     TimeUnit.SECONDS.sleep(sleepTime);
                 } catch (InterruptedException e) {
