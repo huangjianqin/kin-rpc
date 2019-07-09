@@ -54,24 +54,28 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
      * 其他线程
      */
     public Future<RPCResponse> request(RPCRequest request){
-        synchronized (pendingRPCFutureMap){
-            RPCFuture future = new RPCFuture(request, this);
-            if(!isActive()){
+        RPCFuture future = new RPCFuture(request, this);
+        if(!isActive()){
+            synchronized (pendingRPCFutureMap) {
                 future.done(RPCResponse.respWithError(request, "client channel closed"));
-                return future;
             }
-            log.debug("send a request>>>" + System.lineSeparator() + request);
+            return future;
+        }
+        log.debug("send a request>>>" + System.lineSeparator() + request);
 
-            try {
-                connection.request(request);
+        try {
+            connection.request(request);
+            synchronized (pendingRPCFutureMap){
                 pendingRPCFutureMap.put(request.getRequestId() + "", future);
-            } catch (Exception e) {
+            }
+        } catch (Exception e) {
+            synchronized (pendingRPCFutureMap){
                 pendingRPCFutureMap.remove(request.getRequestId() + "");
                 future.done(RPCResponse.respWithError(request, "client channel closed"));
             }
-
-            return future;
         }
+
+        return future;
     }
 
     private void clean() {
