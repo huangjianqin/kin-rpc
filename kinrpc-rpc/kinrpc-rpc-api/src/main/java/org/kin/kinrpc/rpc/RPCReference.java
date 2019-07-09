@@ -14,10 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
 /**
@@ -25,7 +23,7 @@ import java.util.concurrent.Future;
  */
 public class RPCReference implements ChannelExceptionHandler, ChannelInactiveListener {
     private static final Logger log = LoggerFactory.getLogger("invoker");
-    private Map<String, RPCFuture> pendingRPCFutureMap = new ConcurrentHashMap<String, RPCFuture>();
+    private Map<String, RPCFuture> pendingRPCFutureMap = new HashMap<>();
     private ReferenceHandler connection;
     private volatile boolean isStopped;
 
@@ -33,6 +31,9 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
         this.connection = new ReferenceHandler(address, serializer, this, connectTimeout);
     }
 
+    /**
+     * channel线程
+     */
     public void handleResponse(RPCResponse rpcResponse) {
         if(isStopped){
             return;
@@ -41,39 +42,47 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
 
         rpcResponse.setHandleTime(System.currentTimeMillis());
         String requestId = rpcResponse.getRequestId() + "";
-        RPCFuture pendRPCFuture = pendingRPCFutureMap.get(requestId);
-        if (pendRPCFuture != null) {
-            pendRPCFuture.done(rpcResponse);
+        synchronized (pendingRPCFutureMap){
+            RPCFuture pendRPCFuture = pendingRPCFutureMap.get(requestId);
+            if (pendRPCFuture != null) {
+                pendRPCFuture.done(rpcResponse);
+            }
         }
     }
 
+    /**
+     * 其他线程
+     */
     public Future<RPCResponse> request(RPCRequest request){
-        RPCFuture future = new RPCFuture(request, this);
-        if(isStopped){
-            future.done(RPCResponse.respWithError(request, "client channel closed"));
+        synchronized (pendingRPCFutureMap){
+            RPCFuture future = new RPCFuture(request, this);
+            if(!isActive()){
+                future.done(RPCResponse.respWithError(request, "client channel closed"));
+                return future;
+            }
+            log.debug("send a request>>>" + System.lineSeparator() + request);
+
+            try {
+                connection.request(request);
+                pendingRPCFutureMap.put(request.getRequestId() + "", future);
+            } catch (Exception e) {
+                pendingRPCFutureMap.remove(request.getRequestId() + "");
+                future.done(RPCResponse.respWithError(request, "client channel closed"));
+            }
+
             return future;
         }
-        log.debug("send a request>>>" + System.lineSeparator() + request);
-
-        try {
-            connection.request(request);
-            pendingRPCFutureMap.put(request.getRequestId() + "", future);
-        } catch (Exception e) {
-            pendingRPCFutureMap.remove(request.getRequestId() + "");
-            future.done(RPCResponse.respWithError(request, "client channel closed"));
-        }
-
-        return future;
     }
 
     private void clean() {
-        Collection<RPCFuture> copy = new ArrayList<>(this.pendingRPCFutureMap.values());
-        for (RPCFuture rpcFuture : copy) {
-            RPCRequest rpcRequest = rpcFuture.getRequest();
-            RPCResponse rpcResponse = RPCResponse.respWithRetry(rpcRequest, "channel inactive");
-            rpcFuture.done(rpcResponse);
+        synchronized (pendingRPCFutureMap){
+            for (RPCFuture rpcFuture : pendingRPCFutureMap.values()) {
+                RPCRequest rpcRequest = rpcFuture.getRequest();
+                RPCResponse rpcResponse = RPCResponse.respWithRetry(rpcRequest, "channel inactive");
+                rpcFuture.done(rpcResponse);
+            }
+            this.pendingRPCFutureMap.clear();
         }
-        this.pendingRPCFutureMap.clear();
     }
 
     public HostAndPort getAddress() {
@@ -100,8 +109,12 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
         }
         isStopped = true;
         connection.close();
+        clean();
     }
 
+    /**
+     * 已在pendingRPCFutureMap锁内执行
+     */
     public void removeInvalid(RPCRequest rpcRequest) {
         this.pendingRPCFutureMap.remove(rpcRequest.getRequestId() + "");
     }
@@ -110,21 +123,25 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
         connection.setRate(rate);
     }
 
+    /**
+     * channel线程
+     */
     @Override
     public void handleException(Channel channel, Throwable cause) {
-        clean();
+        ThreadManager.DEFAULT.execute(() -> {
+            clean();
+        });
     }
 
+    /**
+     * channel线程
+     */
     @Override
     public void channelInactive(Channel channel) {
-        clean();
-        try {
-            ThreadManager.DEFAULT.execute(() -> {
-                connection.connect();
-            });
-        } catch (Exception e) {
-
-        }
+        ThreadManager.DEFAULT.execute(() -> {
+            clean();
+            connection.connect();
+        });
     }
 
     @Override
