@@ -43,7 +43,7 @@ public class Constants {
     //directURLs register url splitor
     public static final String DIRECT_URLS_REGISTRY_SPLITOR = ";";
     //等待重试时间
-    public static int RETRY_TIMEOUT = 500;
+    public static final int RETRY_TIMEOUT = 500;
     //提供的序列化方式
     public static final String JAVA_SERIALIZE = "java";
     public static final String KRYO_SERIALIZE = "kryo";
