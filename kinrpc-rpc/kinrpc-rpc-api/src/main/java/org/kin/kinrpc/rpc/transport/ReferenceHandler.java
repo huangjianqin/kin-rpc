@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
  * Created by 健勤 on 2017/2/15.
  */
 public class ReferenceHandler extends AbstractConnection implements ProtocolHandler {
-    private static final Logger log = LoggerFactory.getLogger("transport");
+    private static final Logger log = LoggerFactory.getLogger(ReferenceHandler.class);
     private Serializer serializer;
     private final RPCReference rpcReference;
     private Client client;

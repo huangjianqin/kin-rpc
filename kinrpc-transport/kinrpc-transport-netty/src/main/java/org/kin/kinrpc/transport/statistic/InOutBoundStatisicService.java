@@ -16,8 +16,8 @@ import java.util.concurrent.TimeUnit;
  * important 要手动close
  */
 public class InOutBoundStatisicService implements Closeable{
-    private static final Logger reqStatisticLog = LoggerFactory.getLogger("reqStatistic");
-    private static final Logger respStatisticLog = LoggerFactory.getLogger("respStatistic");
+    private static final Logger reqStatisticLog = LoggerFactory.getLogger("org.kin.kinrpc.transport.reqStatistic");
+    private static final Logger respStatisticLog = LoggerFactory.getLogger("org.kin.kinrpc.transport.respStatistic");
     private static final InOutBoundStatisicService INSTANCE = new InOutBoundStatisicService();
     static {
         JvmCloseCleaner.DEFAULT().add(INSTANCE);

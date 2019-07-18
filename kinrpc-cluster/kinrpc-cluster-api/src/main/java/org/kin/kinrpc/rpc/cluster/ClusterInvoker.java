@@ -28,7 +28,7 @@ import java.util.concurrent.*;
  * Created by 健勤 on 2017/2/15.
  */
 class ClusterInvoker implements InvocationHandler, Closeable {
-    private static final Logger log = LoggerFactory.getLogger("cluster");
+    private static final Logger log = LoggerFactory.getLogger(ClusterInvoker.class);
     private static final ThreadManager THREADS = ThreadManager.forkJoinPoolThreadManager();
 
     private final Cluster cluster;

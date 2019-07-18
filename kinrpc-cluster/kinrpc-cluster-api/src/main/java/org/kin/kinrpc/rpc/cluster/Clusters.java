@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
  * Created by huangjianqin on 2019/6/18.
  */
 public class Clusters {
-    private static final Logger log = LoggerFactory.getLogger("cluster");
+    private static final Logger log = LoggerFactory.getLogger(Clusters.class);
     private static final Cache<Integer, RPCProvider> PROVIDER_CACHE = CacheBuilder.newBuilder().build();
     private static final Cache<String, ClusterInvoker> REFERENCE_CACHE = CacheBuilder.newBuilder().build();
     private static final ThreadManager threadManager = new ThreadManager(

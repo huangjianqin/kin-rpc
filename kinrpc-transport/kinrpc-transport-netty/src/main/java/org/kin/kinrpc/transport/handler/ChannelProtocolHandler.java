@@ -22,7 +22,7 @@ import java.util.Arrays;
  * Created by huangjianqin on 2019/6/3.
  */
 public class ChannelProtocolHandler extends ChannelInboundHandlerAdapter {
-    private static final Logger log = LoggerFactory.getLogger("transport");
+    private static final Logger log = LoggerFactory.getLogger(ChannelProtocolHandler.class);
     private final ProtocolHandler protocolHandler;
     private final SessionBuilder sessionBuilder;
     private ChannelActiveListener channelActiveListener;

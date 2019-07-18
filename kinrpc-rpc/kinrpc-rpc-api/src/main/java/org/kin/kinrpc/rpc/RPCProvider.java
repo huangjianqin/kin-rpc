@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  * 可以作为多个服务的Server
  */
 public class RPCProvider {
-    private static final Logger log = LoggerFactory.getLogger("invoker");
+    private static final Logger log = LoggerFactory.getLogger(RPCProvider.class);
 
     //只有get的时候没有同步,其余都同步了
     //大部分情况下get调用的频率比其他方法都多,没有必要使用同步容器,提供一丢丢性能
@@ -184,7 +184,7 @@ public class RPCProvider {
     }
 
     private class ScanRequestsThread extends Thread {
-        private final Logger log = LoggerFactory.getLogger("invoker");
+        private final Logger log = LoggerFactory.getLogger(ScanRequestsThread.class);
         private volatile boolean isStopped = false;
 
         public ScanRequestsThread() {

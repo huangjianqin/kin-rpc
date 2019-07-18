@@ -16,7 +16,7 @@ import java.util.List;
  * 主要是校验协议头
  */
 public class BaseFrameCodec extends ByteToMessageCodec<ByteBuf> {
-    private static final Logger log = LoggerFactory.getLogger("transport");
+    private static final Logger log = LoggerFactory.getLogger(BaseFrameCodec.class);
     private static final byte[] FRAME_MAGIC = "kin-rpc".getBytes();
     private final int FRAME_SNO_SIZE = 4;
     private final int FRAME_BODY_SIZE = 4;

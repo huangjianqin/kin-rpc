@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
  * Created by huangjianqin on 2019/6/11.
  */
 public abstract class AbstractDirectory implements Directory {
-    protected static final Logger log = LoggerFactory.getLogger("registry");
+    protected static final Logger log = LoggerFactory.getLogger(AbstractDirectory.class);
     //所有directory的discover和destroy操作都是单线程操作, 利用copy-on-write思想更新可用invokers, 提高list效率
     private static final ThreadManager EXECUTOR = new ThreadManager(
             new ThreadPoolExecutor(0, 1, 60L, TimeUnit.SECONDS,

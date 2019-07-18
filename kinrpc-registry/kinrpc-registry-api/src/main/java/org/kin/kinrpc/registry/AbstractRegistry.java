@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by huangjianqin on 2019/6/25.
  */
 public abstract class AbstractRegistry implements Registry {
-    protected static final Logger log = LoggerFactory.getLogger("registry");
+    protected static final Logger log = LoggerFactory.getLogger(AbstractRegistry.class);
     protected static final Cache<String, Directory> DIRECTORY_CACHE = CacheBuilder.newBuilder().build();
 
     private AtomicInteger ref = new AtomicInteger(0);

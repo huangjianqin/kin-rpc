@@ -29,7 +29,7 @@ import java.net.InetSocketAddress;
  * Created by 健勤 on 2017/2/10.
  */
 public class ProviderHandler extends AbstractConnection implements ProtocolHandler {
-    private static final Logger log = LoggerFactory.getLogger("transport");
+    private static final Logger log = LoggerFactory.getLogger(ProviderHandler.class);
     private final RPCProvider rpcProvider;
     private Serializer serializer;
     private Server server;

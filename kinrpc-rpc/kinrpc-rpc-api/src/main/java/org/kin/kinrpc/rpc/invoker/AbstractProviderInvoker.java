@@ -12,7 +12,7 @@ import java.util.Map;
  * Created by 健勤 on 2017/2/14.
  */
 public abstract class AbstractProviderInvoker extends AbstractInvoker {
-    protected static final Logger log = LoggerFactory.getLogger("invoker");
+    protected static final Logger log = LoggerFactory.getLogger(AbstractProviderInvoker.class);
 
     //服务类
     protected Object serivce;

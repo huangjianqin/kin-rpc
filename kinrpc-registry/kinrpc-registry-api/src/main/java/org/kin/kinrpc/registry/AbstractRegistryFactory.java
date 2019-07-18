@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
  * Created by huangjianqin on 2019/6/18.
  */
 public abstract class AbstractRegistryFactory implements RegistryFactory{
-    protected static final Logger log = LoggerFactory.getLogger("registry");
+    protected static final Logger log = LoggerFactory.getLogger(AbstractRegistryFactory.class);
     protected static final Cache<String, Registry> registryCache = CacheBuilder.newBuilder().build();
 
     @Override

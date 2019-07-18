@@ -16,7 +16,7 @@ import java.util.concurrent.ExecutionException;
  * Created by huangjianqin on 2019/6/18.
  */
 public class Registries {
-    private static final Logger log = LoggerFactory.getLogger("registry");
+    private static final Logger log = LoggerFactory.getLogger(Registries.class);
     private static final Cache<String, RegistryFactory> REGISTRY_FACTORY_CACHE = CacheBuilder.newBuilder().build();
 
     private Registries() {

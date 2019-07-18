@@ -22,7 +22,7 @@ import java.util.concurrent.Future;
  * Created by huangjianqin on 2019/6/14.
  */
 public class RPCReference implements ChannelExceptionHandler, ChannelInactiveListener {
-    private static final Logger log = LoggerFactory.getLogger("invoker");
+    private static final Logger log = LoggerFactory.getLogger(RPCReference.class);
     private Map<String, RPCFuture> pendingRPCFutureMap = new HashMap<>();
     private ReferenceHandler connection;
     private volatile boolean isStopped;

@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2019/7/2
  */
 public class Zookeeper2Registry extends AbstractRegistry{
-    private static final Logger log = LoggerFactory.getLogger("registry");
+    private static final Logger log = LoggerFactory.getLogger(Zookeeper2Registry.class);
 
     protected String address;
 

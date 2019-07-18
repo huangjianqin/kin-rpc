@@ -26,7 +26,7 @@ import java.util.concurrent.CountDownLatch;
  * Created by huangjianqin on 2019/5/30.
  */
 public class Client extends AbstractConnection {
-    private static final Logger log = LoggerFactory.getLogger("transport");
+    private static final Logger log = LoggerFactory.getLogger(Client.class);
 
     private EventLoopGroup eventLoopGroup = new NioEventLoopGroup(1);
     private volatile Channel channel;

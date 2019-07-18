@@ -19,7 +19,7 @@ import java.util.List;
  * Created by huangjianqin on 2019/5/29.
  */
 public class ProtocolCodec extends MessageToMessageCodec<ByteBuf, ProtocolByteBuf> {
-    private static final Logger log = LoggerFactory.getLogger("transport");
+    private static final Logger log = LoggerFactory.getLogger(ProtocolCodec.class);
     private final Bytes2ProtocolTransfer transfer;
     //true = server, false = client
     private boolean serverElseClient;

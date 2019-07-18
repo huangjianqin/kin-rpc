@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by huangjianqin on 2019/5/30.
  */
 public abstract class AbstractSession {
-    private static final Logger log = LoggerFactory.getLogger("transport");
+    private static final Logger log = LoggerFactory.getLogger(AbstractSession.class);
 
     private volatile Channel channel;
     private boolean isFlush;

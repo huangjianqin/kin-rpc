@@ -20,7 +20,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  * Created by 健勤 on 2017/2/15.
  */
 public class RPCFuture implements Future<RPCResponse> {
-    private static final Logger log = LoggerFactory.getLogger("transport");
+    private static final Logger log = LoggerFactory.getLogger(RPCFuture.class);
     //所有RPCFuture实例共用一个线程池
     private static final ThreadManager THREADS = ThreadManager.forkJoinPoolThreadManager();
 

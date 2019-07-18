@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  * direct url, 直接根据给定的host port连接并调用服务
  */
 public class DirectURLsDirectory extends AbstractDirectory {
-    private static final Logger log = LoggerFactory.getLogger("registry");
+    private static final Logger log = LoggerFactory.getLogger(DirectURLsDirectory.class);
 
     public DirectURLsDirectory(String serviceName, int connectTimeout, SerializerType serializerType) {
         super(serviceName, connectTimeout, serializerType);

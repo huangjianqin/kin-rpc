@@ -17,7 +17,7 @@ import java.util.Set;
  * @date 2019/7/4
  */
 public class ProtocolFactory {
-    private static final Logger log = LoggerFactory.getLogger("transport");
+    private static final Logger log = LoggerFactory.getLogger(ProtocolFactory.class);
     private static final Cache<Integer, Class<AbstractProtocol>> PROTOCOL_CACHE = CacheBuilder.newBuilder().build();
 
     private ProtocolFactory() {
