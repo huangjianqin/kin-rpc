@@ -2,9 +2,9 @@ package org.kin.kinrpc.config;
 
 import com.google.common.base.Preconditions;
 import org.kin.framework.utils.StringUtils;
+import org.kin.kinrpc.cluster.Clusters;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.common.URL;
-import org.kin.kinrpc.rpc.cluster.Clusters;
 
 import java.util.HashMap;
 import java.util.Map;

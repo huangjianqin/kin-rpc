@@ -1,6 +1,6 @@
 package org.kin.kinrpc.demo.reference;
 
-import exception.CannotFindInvokerException;
+import org.kin.kinrpc.cluster.exception.CannotFindInvokerException;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.References;
 import org.kin.kinrpc.rpc.exception.RPCCallErrorException;

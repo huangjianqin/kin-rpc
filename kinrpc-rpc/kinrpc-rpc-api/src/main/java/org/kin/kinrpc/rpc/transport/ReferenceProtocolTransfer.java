@@ -1,9 +1,9 @@
 package org.kin.kinrpc.rpc.transport;
 
-import org.kin.kinrpc.transport.Bytes2ProtocolTransfer;
-import org.kin.kinrpc.transport.ProtocolFactory;
-import org.kin.kinrpc.transport.domain.Request;
-import org.kin.kinrpc.transport.protocol.AbstractProtocol;
+import org.kin.kinrpc.transport.netty.Bytes2ProtocolTransfer;
+import org.kin.kinrpc.transport.netty.ProtocolFactory;
+import org.kin.kinrpc.transport.netty.domain.Request;
+import org.kin.kinrpc.transport.netty.protocol.AbstractProtocol;
 
 /**
  * Created by huangjianqin on 2019/6/14.
