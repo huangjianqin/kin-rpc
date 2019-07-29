@@ -12,13 +12,10 @@ import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.kin.kinrpc.rpc.transport.protocol.RPCHeartbeat;
 import org.kin.kinrpc.rpc.transport.protocol.RPCRequestProtocol;
 import org.kin.kinrpc.rpc.transport.protocol.RPCResponseProtocol;
-import org.kin.kinrpc.transport.netty.AbstractConnection;
-import org.kin.kinrpc.transport.netty.AbstractSession;
-import org.kin.kinrpc.transport.netty.ProtocolFactory;
-import org.kin.kinrpc.transport.netty.ProtocolHandler;
-import org.kin.kinrpc.transport.netty.impl.Server;
-import org.kin.kinrpc.transport.netty.protocol.AbstractProtocol;
-import org.kin.kinrpc.transport.netty.statistic.InOutBoundStatisicService;
+import org.kin.kinrpc.transport.*;
+import org.kin.kinrpc.transport.netty.Server;
+import org.kin.kinrpc.transport.protocol.AbstractProtocol;
+import org.kin.kinrpc.transport.statistic.InOutBoundStatisicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,8 +44,7 @@ public class ProviderHandler extends AbstractConnection implements ProtocolHandl
         this.rpcProvider = rpcProvider;
         this.serializer = serializer;
 
-        this.server = new Server(address,
-                new ProviderProtocolTransfer(), this);
+        this.server = new Server(address, DefaultProtocolTransfer.instance(), this);
     }
 
     @Override

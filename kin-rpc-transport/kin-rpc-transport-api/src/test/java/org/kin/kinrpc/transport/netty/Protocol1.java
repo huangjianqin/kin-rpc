@@ -1,9 +1,9 @@
 package org.kin.kinrpc.transport.netty;
 
-import org.kin.kinrpc.transport.netty.domain.Request;
-import org.kin.kinrpc.transport.netty.domain.Response;
-import org.kin.kinrpc.transport.netty.protocol.AbstractProtocol;
-import org.kin.kinrpc.transport.netty.protocol.Protocol;
+import org.kin.kinrpc.transport.domain.Request;
+import org.kin.kinrpc.transport.domain.Response;
+import org.kin.kinrpc.transport.protocol.AbstractProtocol;
+import org.kin.kinrpc.transport.protocol.Protocol;
 
 /**
  * @author huangjianqin

@@ -11,12 +11,9 @@ import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.kin.kinrpc.rpc.transport.protocol.RPCHeartbeat;
 import org.kin.kinrpc.rpc.transport.protocol.RPCRequestProtocol;
 import org.kin.kinrpc.rpc.transport.protocol.RPCResponseProtocol;
-import org.kin.kinrpc.transport.netty.AbstractConnection;
-import org.kin.kinrpc.transport.netty.AbstractSession;
-import org.kin.kinrpc.transport.netty.ProtocolFactory;
-import org.kin.kinrpc.transport.netty.ProtocolHandler;
-import org.kin.kinrpc.transport.netty.impl.Client;
-import org.kin.kinrpc.transport.netty.protocol.AbstractProtocol;
+import org.kin.kinrpc.transport.*;
+import org.kin.kinrpc.transport.netty.Client;
+import org.kin.kinrpc.transport.protocol.AbstractProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +44,7 @@ public class ReferenceHandler extends AbstractConnection implements ProtocolHand
         this.serializer = serializer;
         this.rpcReference = rpcReference;
 
-        this.client = new Client(address, new ReferenceProtocolTransfer(), this);
+        this.client = new Client(address, DefaultProtocolTransfer.instance(), this);
         this.client.setChannelInactiveListener(rpcReference);
         this.client.setChannelExceptionHandler(rpcReference);
         this.client.setTimeout(connectTimeout);

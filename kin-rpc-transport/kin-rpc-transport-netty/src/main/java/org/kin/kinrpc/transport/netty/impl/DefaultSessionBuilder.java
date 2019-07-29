@@ -1,8 +1,8 @@
 package org.kin.kinrpc.transport.netty.impl;
 
 import io.netty.channel.Channel;
-import org.kin.kinrpc.transport.netty.AbstractSession;
-import org.kin.kinrpc.transport.netty.SessionBuilder;
+import org.kin.kinrpc.transport.AbstractSession;
+import org.kin.kinrpc.transport.SessionBuilder;
 
 /**
  * Created by huangjianqin on 2019/6/4.

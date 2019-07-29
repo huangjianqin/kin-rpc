@@ -3,7 +3,7 @@ package org.kin.kinrpc.transport.netty.common;
 import io.netty.channel.Channel;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
-import org.kin.kinrpc.transport.netty.AbstractSession;
+import org.kin.kinrpc.transport.AbstractSession;
 
 /**
  * Created by huangjianqin on 2019/6/3.

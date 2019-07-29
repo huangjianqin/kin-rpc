@@ -1,8 +1,8 @@
 package org.kin.kinrpc.transport.netty.impl;
 
-import org.kin.kinrpc.transport.netty.AbstractSession;
-import org.kin.kinrpc.transport.netty.ProtocolHandler;
-import org.kin.kinrpc.transport.netty.protocol.AbstractProtocol;
+import org.kin.kinrpc.transport.AbstractSession;
+import org.kin.kinrpc.transport.ProtocolHandler;
+import org.kin.kinrpc.transport.protocol.AbstractProtocol;
 
 /**
  * Created by huangjianqin on 2019/6/5.

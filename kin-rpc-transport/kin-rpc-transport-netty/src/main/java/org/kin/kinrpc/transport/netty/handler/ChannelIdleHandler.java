@@ -4,7 +4,7 @@ import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
-import org.kin.kinrpc.transport.netty.listener.ChannelIdleListener;
+import org.kin.kinrpc.transport.listener.ChannelIdleListener;
 
 /**
  * Created by huangjianqin on 2019/6/3.
