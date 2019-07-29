@@ -1,6 +1,8 @@
 package org.kin.kinrpc.rpc;
 
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelOption;
 import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadManager;
 import org.kin.kinrpc.common.URL;
@@ -12,6 +14,7 @@ import org.kin.kinrpc.rpc.transport.ProviderHandler;
 import org.kin.kinrpc.rpc.transport.common.RPCConstants;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
+import org.kin.kinrpc.transport.domain.NettyTransportOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,10 +116,16 @@ public class RPCProvider {
             throw new RuntimeException("try start stopped provider");
         }
         log.info("provider(port={}) starting...", port);
+
         //启动连接
         this.connection = new ProviderHandler(new InetSocketAddress(this.port), this, serializer);
+        NettyTransportOption transportOption = NettyTransportOption.create()
+                .channelOption(ChannelOption.TCP_NODELAY, true)
+                .channelOption(ChannelOption.SO_KEEPALIVE, true)
+                .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                .protocolHandler(connection);
         try {
-            connection.bind();
+            connection.bind(transportOption);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             System.exit(-1);

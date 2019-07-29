@@ -2,6 +2,7 @@ package org.kin.kinrpc.rpc;
 
 import com.google.common.net.HostAndPort;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelOption;
 import org.kin.framework.concurrent.ThreadManager;
 import org.kin.kinrpc.rpc.future.RPCFuture;
 import org.kin.kinrpc.rpc.serializer.Serializer;
@@ -9,6 +10,7 @@ import org.kin.kinrpc.rpc.transport.ReferenceHandler;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.kin.kinrpc.transport.ChannelExceptionHandler;
+import org.kin.kinrpc.transport.domain.NettyTransportOption;
 import org.kin.kinrpc.transport.listener.ChannelInactiveListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,12 +25,22 @@ import java.util.concurrent.Future;
  */
 public class RPCReference implements ChannelExceptionHandler, ChannelInactiveListener {
     private static final Logger log = LoggerFactory.getLogger(RPCReference.class);
-    private Map<String, RPCFuture> pendingRPCFutureMap = new HashMap<>();
-    private ReferenceHandler connection;
     private volatile boolean isStopped;
 
+    private Map<String, RPCFuture> pendingRPCFutureMap = new HashMap<>();
+
+    private NettyTransportOption clientTransportOption;
+    private ReferenceHandler connection;
+
     public RPCReference(InetSocketAddress address, Serializer serializer, int connectTimeout) {
-        this.connection = new ReferenceHandler(address, serializer, this, connectTimeout);
+        this.connection = new ReferenceHandler(address, serializer, this);
+        this.clientTransportOption =
+                NettyTransportOption.create()
+                        .channelOption(ChannelOption.TCP_NODELAY, true)
+                        .channelOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout)
+                        .channelInactiveListener(this)
+                        .channelExceptionHandler(this)
+                        .protocolHandler(connection);
     }
 
     /**
@@ -104,7 +116,7 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
         if(isStopped){
             return;
         }
-        connection.connect();
+        connection.connect(clientTransportOption);
     }
 
     public void shutdown() {
@@ -144,7 +156,7 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
     public void channelInactive(Channel channel) {
         ThreadManager.DEFAULT.execute(() -> {
             clean();
-            connection.connect();
+            connection.connect(clientTransportOption);
         });
     }
 

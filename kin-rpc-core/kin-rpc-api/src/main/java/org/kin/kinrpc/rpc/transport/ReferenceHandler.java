@@ -2,7 +2,6 @@ package org.kin.kinrpc.rpc.transport;
 
 import com.google.common.util.concurrent.RateLimiter;
 import org.kin.framework.concurrent.ThreadManager;
-import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.rpc.RPCReference;
 import org.kin.kinrpc.rpc.serializer.Serializer;
 import org.kin.kinrpc.rpc.transport.common.RPCConstants;
@@ -11,7 +10,11 @@ import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.kin.kinrpc.rpc.transport.protocol.RPCHeartbeat;
 import org.kin.kinrpc.rpc.transport.protocol.RPCRequestProtocol;
 import org.kin.kinrpc.rpc.transport.protocol.RPCResponseProtocol;
-import org.kin.kinrpc.transport.*;
+import org.kin.kinrpc.transport.AbstractConnection;
+import org.kin.kinrpc.transport.AbstractSession;
+import org.kin.kinrpc.transport.ProtocolFactory;
+import org.kin.kinrpc.transport.ProtocolHandler;
+import org.kin.kinrpc.transport.domain.NettyTransportOption;
 import org.kin.kinrpc.transport.netty.Client;
 import org.kin.kinrpc.transport.protocol.AbstractProtocol;
 import org.slf4j.Logger;
@@ -25,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by 健勤 on 2017/2/15.
  */
-public class ReferenceHandler extends AbstractConnection implements ProtocolHandler {
+public class ReferenceHandler extends AbstractConnection<NettyTransportOption> implements ProtocolHandler {
     private static final Logger log = LoggerFactory.getLogger(ReferenceHandler.class);
     private Serializer serializer;
     private final RPCReference rpcReference;
@@ -36,25 +39,18 @@ public class ReferenceHandler extends AbstractConnection implements ProtocolHand
     private volatile Future heartbeatFuture;
 
     public ReferenceHandler(InetSocketAddress address, Serializer serializer, RPCReference rpcReference) {
-        this(address, serializer, rpcReference, Constants.REFERENCE_DEFAULT_CONNECT_TIMEOUT);
-    }
-
-    public ReferenceHandler(InetSocketAddress address, Serializer serializer, RPCReference rpcReference, int connectTimeout) {
         super(address);
         this.serializer = serializer;
         this.rpcReference = rpcReference;
 
-        this.client = new Client(address, DefaultProtocolTransfer.instance(), this);
-        this.client.setChannelInactiveListener(rpcReference);
-        this.client.setChannelExceptionHandler(rpcReference);
-        this.client.setTimeout(connectTimeout);
+        this.client = new Client(address);
     }
 
     @Override
-    public void connect() {
+    public void connect(NettyTransportOption  transportOption) {
         while(!client.isStopped() && !client.isActive()){
             try {
-                client.connect();
+                client.connect(transportOption);
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
@@ -79,8 +75,8 @@ public class ReferenceHandler extends AbstractConnection implements ProtocolHand
     }
 
     @Override
-    public void bind() throws Exception {
-        client.bind();
+    public void bind(NettyTransportOption transportOption) throws Exception {
+        client.bind(transportOption);
     }
 
     @Override

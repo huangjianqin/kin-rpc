@@ -1,81 +1,74 @@
 package org.kin.kinrpc.transport.netty;
 
+import com.google.common.base.Preconditions;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
-import org.kin.kinrpc.transport.*;
-import org.kin.kinrpc.transport.listener.ChannelActiveListener;
+import org.kin.kinrpc.transport.AbstractConnection;
+import org.kin.kinrpc.transport.domain.NettyTransportOption;
 import org.kin.kinrpc.transport.listener.ChannelIdleListener;
-import org.kin.kinrpc.transport.listener.ChannelInactiveListener;
 import org.kin.kinrpc.transport.netty.handler.BaseFrameCodec;
 import org.kin.kinrpc.transport.netty.handler.ChannelIdleHandler;
 import org.kin.kinrpc.transport.netty.handler.ChannelProtocolHandler;
 import org.kin.kinrpc.transport.netty.handler.ProtocolCodec;
-import org.kin.kinrpc.transport.netty.impl.DefaultSessionBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 /**
  * Created by huangjianqin on 2019/5/30.
  */
-public class Server extends AbstractConnection {
+public class Server extends AbstractConnection<NettyTransportOption> {
     private static final Logger log = LoggerFactory.getLogger(Server.class);
 
-    //连接相关属性
+    //连接相关线程池
     private NioEventLoopGroup bossGroup;
     private NioEventLoopGroup workerGroup;
     private Channel selector;
-
-    //各种处理器
-    private final Bytes2ProtocolTransfer transfer;
-    private final ProtocolHandler protocolHandler;
-    private SessionBuilder sessionBuilder = new DefaultSessionBuilder();
-    private ChannelActiveListener channelActiveListener;
-    private ChannelInactiveListener channelInactiveListener;
-    private ChannelExceptionHandler channelExceptionHandler;
-    private ChannelIdleListener channelIdleListener;
-
-    public Server(
-            InetSocketAddress address,
-            Bytes2ProtocolTransfer transfer,
-            ProtocolHandler protocolHandler) {
+    public Server(InetSocketAddress address) {
         super(address);
-        this.transfer = transfer;
-        this.protocolHandler = protocolHandler;
     }
 
     @Override
-    public void connect() {
+    public void connect(NettyTransportOption transportOption) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void bind() throws Exception {
+    public void bind(NettyTransportOption transportOption) throws Exception {
         log.info("server({}) connection binding...", address);
+
+        Preconditions.checkArgument(bossGroup == null);
+        Preconditions.checkArgument(workerGroup == null);
+        Preconditions.checkArgument(transportOption.getProtocolHandler() != null);
+
         this.bossGroup = new NioEventLoopGroup(1);
         this.workerGroup = new NioEventLoopGroup();
 
         CountDownLatch latch = new CountDownLatch(1);
 
         ServerBootstrap bootstrap = new ServerBootstrap();
-        bootstrap.group(this.bossGroup, this.workerGroup)
-                .channel(NioServerSocketChannel.class)
-                .childOption(ChannelOption.TCP_NODELAY, true)
-                .childOption(ChannelOption.SO_KEEPALIVE, true)
-                .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                .childHandler(new ChannelInitializer<SocketChannel>() {
+        bootstrap.group(this.bossGroup, this.workerGroup).channel(NioServerSocketChannel.class);
+
+        for(Map.Entry<ChannelOption, Object> entry: transportOption.getChannelOptions().entrySet()){
+            bootstrap.option(entry.getKey(), entry.getValue());
+        }
+
+        bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) throws Exception {
                         socketChannel.pipeline().addLast(new WriteTimeoutHandler(3));
-
+                        ChannelIdleListener channelIdleListener = transportOption.getChannelIdleListener();
                         if(channelIdleListener != null){
                             int readIdleTime = channelIdleListener.readIdleTime();
                             int writeIdleTime = channelIdleListener.writeIdelTime();
@@ -91,22 +84,24 @@ public class Server extends AbstractConnection {
 
                         socketChannel.pipeline()
                                 .addLast(BaseFrameCodec.serverFrameCodec())
-                                .addLast(new ProtocolCodec(transfer, true))
-                                .addLast(new ChannelProtocolHandler(protocolHandler, sessionBuilder, channelActiveListener, channelInactiveListener, channelExceptionHandler));
+                                .addLast(new ProtocolCodec(transportOption.getProtocolTransfer(), true))
+                                .addLast(new ChannelProtocolHandler(
+                                        transportOption.getProtocolHandler(),
+                                        transportOption.getSessionBuilder(),
+                                        transportOption.getChannelActiveListener(),
+                                        transportOption.getChannelInactiveListener(),
+                                        transportOption.getChannelExceptionHandler()));
 
                     }
                 });
         ChannelFuture cf = bootstrap.bind(super.address);
-        cf.addListener(new ChannelFutureListener() {
-            @Override
-            public void operationComplete(ChannelFuture channelFuture) throws Exception {
-                if (channelFuture.isSuccess()) {
-                    log.info("server connection binded: {}", address);
-                    selector = channelFuture.channel();
-                    latch.countDown();
-                } else {
-                    throw new RuntimeException("server connection bind fail: " + address);
-                }
+        cf.addListener((ChannelFuture channelFuture) -> {
+            if (channelFuture.isSuccess()) {
+                log.info("server connection binded: {}", address);
+                selector = channelFuture.channel();
+                latch.countDown();
+            } else {
+                throw new RuntimeException("server connection bind fail: " + address);
             }
         });
 
@@ -133,27 +128,6 @@ public class Server extends AbstractConnection {
     @Override
     public boolean isActive() {
         return selector.isActive();
-    }
-
-    //setter && getter
-    public void setSessionBuilder(SessionBuilder sessionBuilder) {
-        this.sessionBuilder = sessionBuilder;
-    }
-
-    public void setChannelActiveListener(ChannelActiveListener channelActiveListener) {
-        this.channelActiveListener = channelActiveListener;
-    }
-
-    public void setChannelInactiveListener(ChannelInactiveListener channelInactiveListener) {
-        this.channelInactiveListener = channelInactiveListener;
-    }
-
-    public void setChannelExceptionHandler(ChannelExceptionHandler channelExceptionHandler) {
-        this.channelExceptionHandler = channelExceptionHandler;
-    }
-
-    public void setChannelIdleListener(ChannelIdleListener channelIdleListener) {
-        this.channelIdleListener = channelIdleListener;
     }
 
     @Override

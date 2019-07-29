@@ -12,7 +12,11 @@ import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.kin.kinrpc.rpc.transport.protocol.RPCHeartbeat;
 import org.kin.kinrpc.rpc.transport.protocol.RPCRequestProtocol;
 import org.kin.kinrpc.rpc.transport.protocol.RPCResponseProtocol;
-import org.kin.kinrpc.transport.*;
+import org.kin.kinrpc.transport.AbstractConnection;
+import org.kin.kinrpc.transport.AbstractSession;
+import org.kin.kinrpc.transport.ProtocolFactory;
+import org.kin.kinrpc.transport.ProtocolHandler;
+import org.kin.kinrpc.transport.domain.NettyTransportOption;
 import org.kin.kinrpc.transport.netty.Server;
 import org.kin.kinrpc.transport.protocol.AbstractProtocol;
 import org.kin.kinrpc.transport.statistic.InOutBoundStatisicService;
@@ -25,7 +29,7 @@ import java.net.InetSocketAddress;
 /**
  * Created by 健勤 on 2017/2/10.
  */
-public class ProviderHandler extends AbstractConnection implements ProtocolHandler {
+public class ProviderHandler extends AbstractConnection<NettyTransportOption> implements ProtocolHandler {
     private static final Logger log = LoggerFactory.getLogger(ProviderHandler.class);
     private final RPCProvider rpcProvider;
     private Serializer serializer;
@@ -44,17 +48,17 @@ public class ProviderHandler extends AbstractConnection implements ProtocolHandl
         this.rpcProvider = rpcProvider;
         this.serializer = serializer;
 
-        this.server = new Server(address, DefaultProtocolTransfer.instance(), this);
+        this.server = new Server(address);
     }
 
     @Override
-    public void connect() {
-        server.connect();
+    public void connect(NettyTransportOption transportOption) {
+        server.connect(transportOption);
     }
 
     @Override
-    public void bind() throws Exception {
-        server.bind();
+    public void bind(NettyTransportOption transportOption) throws Exception {
+        server.bind(transportOption);
     }
 
     @Override

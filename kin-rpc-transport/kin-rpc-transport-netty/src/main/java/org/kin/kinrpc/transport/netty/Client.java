@@ -7,60 +7,51 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
-import org.kin.kinrpc.transport.*;
-import org.kin.kinrpc.transport.listener.ChannelActiveListener;
+import org.kin.kinrpc.transport.AbstractConnection;
+import org.kin.kinrpc.transport.domain.NettyTransportOption;
 import org.kin.kinrpc.transport.listener.ChannelIdleListener;
-import org.kin.kinrpc.transport.listener.ChannelInactiveListener;
 import org.kin.kinrpc.transport.netty.handler.BaseFrameCodec;
 import org.kin.kinrpc.transport.netty.handler.ChannelIdleHandler;
 import org.kin.kinrpc.transport.netty.handler.ChannelProtocolHandler;
 import org.kin.kinrpc.transport.netty.handler.ProtocolCodec;
-import org.kin.kinrpc.transport.netty.impl.DefaultSessionBuilder;
 import org.kin.kinrpc.transport.protocol.AbstractProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 /**
  * Created by huangjianqin on 2019/5/30.
  */
-public class Client extends AbstractConnection {
+public class Client extends AbstractConnection<NettyTransportOption> {
     private static final Logger log = LoggerFactory.getLogger(Client.class);
 
     private EventLoopGroup eventLoopGroup = new NioEventLoopGroup(1);
     private volatile Channel channel;
     private volatile boolean isStopped;
-    //连接超时毫秒数
-    private int timeout;
 
-    private final Bytes2ProtocolTransfer transfer;
-    private final ProtocolHandler protocolHandler;
-    private SessionBuilder sessionBuilder = new DefaultSessionBuilder();
-    private ChannelActiveListener channelActiveListener;
-    private ChannelInactiveListener channelInactiveListener;
-    private ChannelExceptionHandler channelExceptionHandler;
-    private ChannelIdleListener channelIdleListener;
-
-    public Client(InetSocketAddress address, Bytes2ProtocolTransfer transfer, ProtocolHandler protocolHandler) {
+    public Client(InetSocketAddress address) {
         super(address);
-        this.transfer = transfer;
-        this.protocolHandler = protocolHandler;
     }
 
     @Override
-    public void connect() {
+    public void connect(NettyTransportOption transportOption) {
         log.info("client connecting...");
         CountDownLatch latch = new CountDownLatch(1);
         Bootstrap bootstrap = new Bootstrap();
-        bootstrap.group(eventLoopGroup)
-                .channel(NioSocketChannel.class)
-                .option(ChannelOption.TCP_NODELAY, true)
-                .handler(new ChannelInitializer<SocketChannel>() {
+        bootstrap.group(eventLoopGroup).channel(NioSocketChannel.class);
+
+        for(Map.Entry<ChannelOption, Object> entry: transportOption.getChannelOptions().entrySet()){
+            bootstrap.option(entry.getKey(), entry.getValue());
+        }
+
+        bootstrap.handler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel socketChannel) throws Exception {
                 socketChannel.pipeline().addLast(new WriteTimeoutHandler(3));
+                ChannelIdleListener channelIdleListener = transportOption.getChannelIdleListener();
                 if(channelIdleListener != null){
                     int readIdleTime = channelIdleListener.readIdleTime();
                     int writeIdleTime = channelIdleListener.writeIdelTime();
@@ -76,25 +67,24 @@ public class Client extends AbstractConnection {
 
                 socketChannel.pipeline()
                         .addLast(BaseFrameCodec.clientFrameCodec())
-                        .addLast(new ProtocolCodec(transfer, false))
-                        .addLast(new ChannelProtocolHandler(protocolHandler, sessionBuilder, channelActiveListener, channelInactiveListener, channelExceptionHandler));
+                        .addLast(new ProtocolCodec(transportOption.getProtocolTransfer(), false))
+                        .addLast(new ChannelProtocolHandler(
+                                transportOption.getProtocolHandler(),
+                                transportOption.getSessionBuilder(),
+                                transportOption.getChannelActiveListener(),
+                                transportOption.getChannelInactiveListener(),
+                                transportOption.getChannelExceptionHandler()));
             }
         });
-        if (timeout > 0) {
-            bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeout);
-        }
         ChannelFuture cf = bootstrap.connect(address);
-        cf.addListener(new ChannelFutureListener() {
-            @Override
-            public void operationComplete(ChannelFuture channelFuture) throws Exception {
-                if (channelFuture.isSuccess()) {
-                    log.info("connect to remote server success: {}", address);
-                    channel = channelFuture.channel();
-                    latch.countDown();
-                } else {
-                    latch.countDown();
-                    throw new RuntimeException("connect to remote server time out: " + address);
-                }
+        cf.addListener((ChannelFuture channelFuture) -> {
+            if (channelFuture.isSuccess()) {
+                log.info("connect to remote server success: {}", address);
+                channel = channelFuture.channel();
+                latch.countDown();
+            } else {
+                latch.countDown();
+                throw new RuntimeException("connect to remote server time out: " + address);
             }
         });
         try {
@@ -105,7 +95,7 @@ public class Client extends AbstractConnection {
     }
 
     @Override
-    public void bind() throws Exception {
+    public void bind(NettyTransportOption transportOption) throws Exception {
         throw new UnsupportedOperationException();
     }
 
@@ -135,31 +125,6 @@ public class Client extends AbstractConnection {
             return channel.localAddress().toString();
         }
         return "";
-    }
-
-    //setter && getter
-    public void setTimeout(int timeout) {
-        this.timeout = timeout;
-    }
-
-    public void setSessionBuilder(SessionBuilder sessionBuilder) {
-        this.sessionBuilder = sessionBuilder;
-    }
-
-    public void setChannelActiveListener(ChannelActiveListener channelActiveListener) {
-        this.channelActiveListener = channelActiveListener;
-    }
-
-    public void setChannelInactiveListener(ChannelInactiveListener channelInactiveListener) {
-        this.channelInactiveListener = channelInactiveListener;
-    }
-
-    public void setChannelExceptionHandler(ChannelExceptionHandler channelExceptionHandler) {
-        this.channelExceptionHandler = channelExceptionHandler;
-    }
-
-    public void setChannelIdleListener(ChannelIdleListener channelIdleListener) {
-        this.channelIdleListener = channelIdleListener;
     }
 
     public boolean isStopped() {
