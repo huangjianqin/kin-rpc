@@ -7,12 +7,17 @@ import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadManager;
 import org.kin.framework.utils.TimeUtils;
+import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
+import org.kin.kinrpc.cluster.loadbalance.LoadBalances;
+import org.kin.kinrpc.cluster.router.Router;
+import org.kin.kinrpc.cluster.router.Routers;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.common.URL;
 import org.kin.kinrpc.registry.Registries;
 import org.kin.kinrpc.registry.Registry;
 import org.kin.kinrpc.rpc.RPCProvider;
-import org.kin.kinrpc.rpc.serializer.SerializerType;
+import org.kin.kinrpc.rpc.serializer.Serializer;
+import org.kin.kinrpc.rpc.serializer.Serializers;
 import org.kin.kinrpc.transport.ProtocolFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,11 +87,13 @@ public class Clusters {
 
     public static synchronized void export(URL url, Class interfaceClass, Object instance){
         int port = url.getPort();
-        SerializerType serializerType = SerializerType.getByName(url.getParam(Constants.SERIALIZE_KEY));
+        String serializerType = url.getParam(Constants.SERIALIZE_KEY);
+        Serializer serializer = Serializers.getSerializer(serializerType);
+        Preconditions.checkNotNull(serializer, "unvalid serializer type: [" + serializerType + "]");
         RPCProvider provider;
         try {
             provider = PROVIDER_CACHE.get(port, () -> {
-                RPCProvider provider0 = new RPCProvider(port, serializerType.newInstance());
+                RPCProvider provider0 = new RPCProvider(port, serializer);
                 provider0.start();
 
                 return provider0;
@@ -136,7 +143,15 @@ public class Clusters {
         int timeout = Integer.valueOf(url.getParam(Constants.TIMEOUT_KEY));
         int retryTimes = Integer.valueOf(url.getParam(Constants.RETRY_TIMES_KEY));
         int retryTimeout = Integer.valueOf(url.getParam(Constants.RETRY_TIMEOUT_KEY));
-        Cluster cluster = new ClusterImpl(registry, url.getServiceName(), timeout);
+        String loadBalanceType = url.getParam(Constants.LOADBALANCE_KEY);
+        LoadBalance loadBalance = LoadBalances.getLoadBalance(loadBalanceType);
+        String routerType = url.getParam(Constants.ROUTER_KEY);
+        Router router = Routers.getRouter(routerType);
+
+        Preconditions.checkNotNull(loadBalance, "unvalid loadbalance type: [" + loadBalanceType + "]");
+        Preconditions.checkNotNull(router, "unvalid router type: [" + routerType + "]");
+
+        Cluster cluster = new ClusterImpl(registry, url.getServiceName(), timeout, router, loadBalance);
 
         ClusterInvoker clusterInvoker = new ClusterInvoker(cluster, retryTimes, retryTimeout, url);
 

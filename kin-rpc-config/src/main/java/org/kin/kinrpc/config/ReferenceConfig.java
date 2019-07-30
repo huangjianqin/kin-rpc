@@ -20,7 +20,9 @@ public class ReferenceConfig<T> extends AbstractConfig {
     private String serviceName;
     private int retryTimes;
     private int retryTimeout = Constants.RETRY_TIMEOUT;
-    private String serialize = Constants.KRYO_SERIALIZE;
+    private String serialize = SerializerType.KRYO.getType();
+    private String loadBalanceType = LoadBalanceType.ROUND_ROBIN.getType();
+    private String routerType = RouterType.NONE.getType();
 
     private URL url;
     private volatile T reference;
@@ -51,6 +53,8 @@ public class ReferenceConfig<T> extends AbstractConfig {
             params.put(Constants.RETRY_TIMEOUT_KEY, retryTimeout + "");
             params.put(Constants.SERVICE_NAME_KEY, serviceName);
             params.put(Constants.SERIALIZE_KEY, serialize);
+            params.put(Constants.LOADBALANCE_KEY, loadBalanceType);
+            params.put(Constants.ROUTER_KEY, routerType);
 
             url = createURL(applicationConfig, "0.0.0.0:0", registryConfig, params);
             Preconditions.checkNotNull(url);
@@ -142,6 +146,41 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return this;
     }
 
+    public ReferenceConfig<T> serialize(SerializerType serializerType){
+        if(!isReference){
+            this.serialize = serializerType.getType();
+        }
+        return this;
+    }
+
+    public ReferenceConfig<T> loadbalance(String loadbalance){
+        if(!isReference){
+            this.loadBalanceType = loadbalance;
+        }
+        return this;
+    }
+
+    public ReferenceConfig<T> loadbalance(LoadBalanceType loadBalanceType){
+        if(!isReference){
+            this.loadBalanceType = loadBalanceType.getType();
+        }
+        return this;
+    }
+
+    public ReferenceConfig<T> router(String router){
+        if(!isReference){
+            this.routerType = router;
+        }
+        return this;
+    }
+
+    public ReferenceConfig<T> router(RouterType routerType){
+        if(!isReference){
+            this.routerType = routerType.getType();
+        }
+        return this;
+    }
+
     //setter && getter
     public ApplicationConfig getApplicationConfig() {
         return applicationConfig;
@@ -157,5 +196,29 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
     public int getTimeout() {
         return timeout;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public int getRetryTimes() {
+        return retryTimes;
+    }
+
+    public int getRetryTimeout() {
+        return retryTimeout;
+    }
+
+    public String getSerialize() {
+        return serialize;
+    }
+
+    public String getLoadBalanceType() {
+        return loadBalanceType;
+    }
+
+    public String getRouterType() {
+        return routerType;
     }
 }

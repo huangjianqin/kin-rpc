@@ -1,10 +1,11 @@
 package org.kin.kinrpc.registry.directurls;
 
+import com.google.common.base.Preconditions;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.common.URL;
 import org.kin.kinrpc.registry.AbstractRegistryFactory;
 import org.kin.kinrpc.registry.Registry;
-import org.kin.kinrpc.rpc.serializer.SerializerType;
+import org.kin.kinrpc.rpc.serializer.Serializers;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +18,9 @@ public class DirectURLsRegistryFactory extends AbstractRegistryFactory {
     @Override
     public Registry getRegistry(URL url) {
         String address = url.getParam(Constants.REGISTRY_URL_KEY);
-        SerializerType serializerType = SerializerType.getByName(url.getParam(Constants.SERIALIZE_KEY));
+        String serializerType = url.getParam(Constants.SERIALIZE_KEY);
+        //先校验, 顺便初始化
+        Preconditions.checkNotNull(Serializers.getSerializer(serializerType), "unvalid serializer type: [" + serializerType + "]");
 
         List<String> hostAndPorts = new ArrayList<>();
         for(String one: address.split(Constants.DIRECT_URLS_REGISTRY_SPLITOR)){
@@ -25,7 +28,7 @@ public class DirectURLsRegistryFactory extends AbstractRegistryFactory {
         }
 
         try {
-            Registry registry = registryCache.get(address, () -> new DirectURLsRegistry(hostAndPorts, serializerType));
+            Registry registry = REGISTRY_CACHE.get(address, () -> new DirectURLsRegistry(hostAndPorts, serializerType));
             registry.connect();
             registry.retain();
             return registry;

@@ -29,11 +29,11 @@ public class Registries {
         }
         registryType = registryType.toLowerCase();
 
-        //TODO 考虑从META-INF读取自定义实现的注册中心并允许加载
+        //从整个classpath寻找RegistryFactory子类
         try {
-            String registryName = (registryType + "registryfactory").toLowerCase();
+            String registryName = (registryType + RegistryFactory.class.getSimpleName()).toLowerCase();
             RegistryFactory registryFactory = REGISTRY_FACTORY_CACHE.get(registryType, () -> {
-                Set<Class<RegistryFactory>> classes = ClassUtils.getSubClass("org.kin.kinrpc.registry", RegistryFactory.class, true);
+                Set<Class<RegistryFactory>> classes = ClassUtils.getSubClass("", RegistryFactory.class, true);
                 if (classes.size() > 0) {
                     for (Class<RegistryFactory> claxx : classes) {
                         String className = claxx.getSimpleName().toLowerCase();

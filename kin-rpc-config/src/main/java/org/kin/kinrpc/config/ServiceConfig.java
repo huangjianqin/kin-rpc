@@ -21,7 +21,7 @@ public class ServiceConfig extends AbstractConfig{
     private Object ref;
     private Class<?> interfaceClass;
     private String serviceName;
-    private String serialize = Constants.KRYO_SERIALIZE;
+    private String serialize = SerializerType.KRYO.getType();
 
     private URL url;
     private volatile boolean isExport;
@@ -185,5 +185,13 @@ public class ServiceConfig extends AbstractConfig{
 
     public Class<?> getInterfaceClass() {
         return interfaceClass;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public String getSerialize() {
+        return serialize;
     }
 }

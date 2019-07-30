@@ -12,15 +12,15 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractRegistryFactory implements RegistryFactory{
     protected static final Logger log = LoggerFactory.getLogger(AbstractRegistryFactory.class);
-    protected static final Cache<String, Registry> registryCache = CacheBuilder.newBuilder().build();
+    protected static final Cache<String, Registry> REGISTRY_CACHE = CacheBuilder.newBuilder().build();
 
     @Override
     public void close(URL url) {
         String address = url.getParam(Constants.REGISTRY_URL_KEY);
-        Registry registry = registryCache.getIfPresent(address);
+        Registry registry = REGISTRY_CACHE.getIfPresent(address);
 
         if(registry.release()){
-            registryCache.invalidate(address);
+            REGISTRY_CACHE.invalidate(address);
             registry.destroy();
         }
     }

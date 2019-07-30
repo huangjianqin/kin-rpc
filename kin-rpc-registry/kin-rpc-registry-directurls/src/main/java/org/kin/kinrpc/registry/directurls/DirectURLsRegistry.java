@@ -2,7 +2,6 @@ package org.kin.kinrpc.registry.directurls;
 
 import org.kin.kinrpc.registry.AbstractRegistry;
 import org.kin.kinrpc.registry.Directory;
-import org.kin.kinrpc.rpc.serializer.SerializerType;
 
 import java.util.List;
 
@@ -11,9 +10,9 @@ import java.util.List;
  */
 public class DirectURLsRegistry extends AbstractRegistry {
     private List<String> hostAndPorts;
-    private SerializerType serializerType;
+    private String serializerType;
 
-    public DirectURLsRegistry(List<String> hostAndPorts, SerializerType serializerType) {
+    public DirectURLsRegistry(List<String> hostAndPorts, String serializerType) {
         this.hostAndPorts = hostAndPorts;
         this.serializerType = serializerType;
     }

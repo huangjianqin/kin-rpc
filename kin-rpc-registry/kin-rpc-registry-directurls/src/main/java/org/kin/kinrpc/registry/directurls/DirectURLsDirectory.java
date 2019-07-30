@@ -5,7 +5,7 @@ import org.kin.kinrpc.registry.AbstractDirectory;
 import org.kin.kinrpc.rpc.RPCReference;
 import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvokerImpl;
-import org.kin.kinrpc.rpc.serializer.SerializerType;
+import org.kin.kinrpc.rpc.serializer.Serializers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class DirectURLsDirectory extends AbstractDirectory {
     private static final Logger log = LoggerFactory.getLogger(DirectURLsDirectory.class);
 
-    public DirectURLsDirectory(String serviceName, int connectTimeout, SerializerType serializerType) {
+    public DirectURLsDirectory(String serviceName, int connectTimeout, String serializerType) {
         super(serviceName, connectTimeout, serializerType);
     }
 
@@ -43,7 +43,7 @@ public class DirectURLsDirectory extends AbstractDirectory {
 
                 //创建新的ReferenceInvoker,连接Service Server
                 RPCReference rpcReference = new RPCReference(new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPort()),
-                        serializerType.newInstance(), connectTimeout);
+                        Serializers.getSerializer(serializerType), connectTimeout);
                 AbstractReferenceInvoker refereneceInvoker = new ReferenceInvokerImpl(serviceName, rpcReference);
                 //真正启动连接
                 refereneceInvoker.init();

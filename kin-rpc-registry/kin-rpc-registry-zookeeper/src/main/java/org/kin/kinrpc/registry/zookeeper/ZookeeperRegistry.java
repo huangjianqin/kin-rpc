@@ -6,7 +6,6 @@ import org.kin.kinrpc.registry.AbstractRegistry;
 import org.kin.kinrpc.registry.Directory;
 import org.kin.kinrpc.registry.common.RegistryConstants;
 import org.kin.kinrpc.registry.exception.AddressFormatErrorException;
-import org.kin.kinrpc.rpc.serializer.SerializerType;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -24,9 +23,9 @@ public class ZookeeperRegistry extends AbstractRegistry{
 
     private volatile ZooKeeper zooKeeper;
     private int sessionTimeOut;
-    private SerializerType serializerType;
+    private String serializerType;
 
-    public ZookeeperRegistry(String address, int sessionTimeOut, SerializerType serializerType) {
+    public ZookeeperRegistry(String address, int sessionTimeOut, String serializerType) {
         this.address = address;
         this.sessionTimeOut = sessionTimeOut;
         this.serializerType = serializerType;

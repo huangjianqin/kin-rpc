@@ -2,9 +2,7 @@ package org.kin.kinrpc.cluster;
 
 import com.google.common.net.HostAndPort;
 import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
-import org.kin.kinrpc.cluster.loadbalance.impl.RoundRobinLoadBalance;
 import org.kin.kinrpc.cluster.router.Router;
-import org.kin.kinrpc.cluster.router.impl.SimpleRouter;
 import org.kin.kinrpc.registry.Directory;
 import org.kin.kinrpc.registry.Registry;
 import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
@@ -26,10 +24,8 @@ class ClusterImpl implements Cluster {
     private final Router router;
     private final LoadBalance loadBalance;
 
-    public ClusterImpl(Registry registry, String serviceName, int connectTimeout) {
-        this.directory = registry.subscribe(serviceName, connectTimeout);
-        this.router = new SimpleRouter();
-        this.loadBalance = new RoundRobinLoadBalance();
+    public ClusterImpl(Registry registry, String serviceName, int connectTimeout, Router router, LoadBalance loadBalance) {
+        this(registry.subscribe(serviceName, connectTimeout), router, loadBalance);
     }
 
     public ClusterImpl(Directory directory, Router router, LoadBalance loadBalance) {

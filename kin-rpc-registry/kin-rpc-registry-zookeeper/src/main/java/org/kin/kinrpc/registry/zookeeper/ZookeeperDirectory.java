@@ -5,7 +5,7 @@ import org.kin.kinrpc.registry.AbstractDirectory;
 import org.kin.kinrpc.rpc.RPCReference;
 import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvokerImpl;
-import org.kin.kinrpc.rpc.serializer.SerializerType;
+import org.kin.kinrpc.rpc.serializer.Serializers;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  * 无效invoker由zookeeper注册中心控制, 所以可能会存在list有无效invoker(zookeeper没有及时更新到)
  */
 public class ZookeeperDirectory extends AbstractDirectory {
-    public ZookeeperDirectory(String serviceName, int connectTimeout, SerializerType serializerType) {
+    public ZookeeperDirectory(String serviceName, int connectTimeout, String serializerType) {
         super(serviceName, connectTimeout, serializerType);
     }
 
@@ -83,7 +83,7 @@ public class ZookeeperDirectory extends AbstractDirectory {
         for (HostAndPort hostAndPort : hostAndPorts) {
             //address有效,创建新的ReferenceInvoker,连接Service Server
             RPCReference rpcReference = new RPCReference(
-                    new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPort()), serializerType.newInstance(), connectTimeout);
+                    new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPort()), Serializers.getSerializer(serializerType), connectTimeout);
             AbstractReferenceInvoker refereneceInvoker = new ReferenceInvokerImpl(serviceName, rpcReference);
             //真正启动连接
             refereneceInvoker.init();

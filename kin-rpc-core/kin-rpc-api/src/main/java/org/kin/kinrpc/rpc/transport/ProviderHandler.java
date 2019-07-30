@@ -5,7 +5,6 @@ import io.netty.channel.Channel;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.rpc.RPCProvider;
 import org.kin.kinrpc.rpc.serializer.Serializer;
-import org.kin.kinrpc.rpc.serializer.SerializerType;
 import org.kin.kinrpc.rpc.transport.common.RPCConstants;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
@@ -35,11 +34,6 @@ public class ProviderHandler extends AbstractConnection<NettyTransportOption> im
     private Serializer serializer;
     private Server server;
     private RateLimiter rateLimiter = RateLimiter.create(Constants.SERVER_REQUEST_THRESHOLD);
-
-    public ProviderHandler(InetSocketAddress address,
-                           RPCProvider rpcProvider) {
-        this(address, rpcProvider, SerializerType.KRYO.newInstance());
-    }
 
     public ProviderHandler(InetSocketAddress address,
                            RPCProvider rpcProvider,

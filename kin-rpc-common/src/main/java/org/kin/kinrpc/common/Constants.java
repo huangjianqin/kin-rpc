@@ -22,7 +22,9 @@ public class Constants {
     public static final String RETRY_TIMES_KEY = "retryTimes";
     public static final String RETRY_TIMEOUT_KEY = "retryTimeout";
     public static final String SERIALIZE_KEY = "serialize";
-//    public static final String CLAXX_KEY = "claxx";//接口名
+    public static final String ROUTER_KEY = "router";
+    public static final String LOADBALANCE_KEY = "loadbalance";
+    //    public static final String CLAXX_KEY = "claxx";//接口名
 //    public static final String VERSION_KEY = "version";//服务版本
 //    public static final String METHOD_KEY = "method";//接口方法列表
 //    public static final String CALLED_METHOD_KEY = "calledMethod";//被调用方法,参数不显示
@@ -32,10 +34,6 @@ public class Constants {
 
 
     public static final String KINRPC_PROTOCOL = "kinrpc";
-    //url可选值, 或默认值
-    public static final String ZOOKEEPER_REGISTRY = "zookeeper";
-    public static final String ZOOKEEPER2_REGISTRY = "zookeeper2";
-    public static final String DIRECT_URLS_REGISTRY = "directURLs";
     //zookeeper注册中心会话超时
     public static final int ZOOKEEPER_SESSION_TIMEOUT = 5000;
     //provider Server默认配置
@@ -44,10 +42,6 @@ public class Constants {
     public static final String DIRECT_URLS_REGISTRY_SPLITOR = ";";
     //等待重试时间
     public static final int RETRY_TIMEOUT = 500;
-    //提供的序列化方式
-    public static final String JAVA_SERIALIZE = "java";
-    public static final String KRYO_SERIALIZE = "kryo";
-    public static final String HESSION_SERIALIZE = "hession";
     //限流
     //每秒n次
     public static final int PROVIDER_REQUEST_THRESHOLD = 5;

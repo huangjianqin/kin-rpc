@@ -10,7 +10,7 @@ import java.util.List;
  * 一个默认的实现
  * 不进行任何过滤
  */
-public class SimpleRouter implements Router {
+public class NoneRouter implements Router {
     @Override
     public List<AbstractReferenceInvoker> router(List<AbstractReferenceInvoker> invokers) {
         return invokers;

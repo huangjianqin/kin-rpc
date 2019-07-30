@@ -13,7 +13,6 @@ import org.kin.kinrpc.registry.Directory;
 import org.kin.kinrpc.registry.common.RegistryConstants;
 import org.kin.kinrpc.registry.exception.AddressFormatErrorException;
 import org.kin.kinrpc.registry.zookeeper.ZookeeperDirectory;
-import org.kin.kinrpc.rpc.serializer.SerializerType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,9 +31,9 @@ public class Zookeeper2Registry extends AbstractRegistry{
 
     private CuratorFramework client;
     private int sessionTimeOut;
-    private SerializerType serializerType;
+    private String serializerType;
 
-    public Zookeeper2Registry(String address, int sessionTimeOut, SerializerType serializerType) {
+    public Zookeeper2Registry(String address, int sessionTimeOut, String serializerType) {
         this.address = address;
         this.sessionTimeOut = sessionTimeOut;
         this.serializerType = serializerType;

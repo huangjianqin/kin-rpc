@@ -29,13 +29,13 @@ abstract class AbstractConfig {
         params.put(Constants.APP_NAME_KEY, applicationConfig.getAppName());
         if(registryConfig != null){
             if(registryConfig instanceof DirectURLsRegistryConfig){
-                params.put(Constants.REGISTRY_KEY, Constants.DIRECT_URLS_REGISTRY);
+                params.put(Constants.REGISTRY_KEY, RegistryType.DIRECTURLS.getType());
             }
             else if(registryConfig instanceof ZookeeperRegistryConfig){
-                params.put(Constants.REGISTRY_KEY, Constants.ZOOKEEPER_REGISTRY);
+                params.put(Constants.REGISTRY_KEY, RegistryType.ZOOKEEPER.getType());
             }
             else if(registryConfig instanceof Zookeeper2RegistryConfig){
-                params.put(Constants.REGISTRY_KEY, Constants.ZOOKEEPER2_REGISTRY);
+                params.put(Constants.REGISTRY_KEY, RegistryType.ZOOKEEPER2.getType());
             }
             else{
                 throw new IllegalStateException("unknown registry");

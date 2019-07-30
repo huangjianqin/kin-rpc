@@ -4,7 +4,6 @@ import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadManager;
 import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
-import org.kin.kinrpc.rpc.serializer.SerializerType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,11 +30,11 @@ public abstract class AbstractDirectory implements Directory {
 
     protected final String serviceName;
     protected final int connectTimeout;
-    protected final SerializerType serializerType;
+    protected final String serializerType;
     protected volatile List<AbstractReferenceInvoker> invokers = Collections.emptyList();
     protected volatile boolean isStopped;
 
-    protected AbstractDirectory(String serviceName, int connectTimeout, SerializerType serializerType) {
+    protected AbstractDirectory(String serviceName, int connectTimeout, String serializerType) {
         this.serviceName = serviceName;
         this.connectTimeout = connectTimeout;
         this.serializerType = serializerType;
