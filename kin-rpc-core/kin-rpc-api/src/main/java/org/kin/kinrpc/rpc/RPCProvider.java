@@ -14,7 +14,7 @@ import org.kin.kinrpc.rpc.transport.ProviderHandler;
 import org.kin.kinrpc.rpc.transport.common.RPCConstants;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
-import org.kin.kinrpc.transport.domain.NettyTransportOption;
+import org.kin.kinrpc.transport.netty.TransportOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,7 +119,7 @@ public class RPCProvider {
 
         //启动连接
         this.connection = new ProviderHandler(new InetSocketAddress(this.port), this, serializer);
-        NettyTransportOption transportOption = NettyTransportOption.create()
+        TransportOption transportOption = TransportOption.create()
                 .channelOption(ChannelOption.TCP_NODELAY, true)
                 .channelOption(ChannelOption.SO_KEEPALIVE, true)
                 .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)

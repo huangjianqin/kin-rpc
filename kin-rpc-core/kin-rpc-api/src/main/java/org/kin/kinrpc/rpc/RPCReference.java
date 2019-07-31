@@ -9,9 +9,9 @@ import org.kin.kinrpc.rpc.serializer.Serializer;
 import org.kin.kinrpc.rpc.transport.ReferenceHandler;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
-import org.kin.kinrpc.transport.ChannelExceptionHandler;
-import org.kin.kinrpc.transport.domain.NettyTransportOption;
-import org.kin.kinrpc.transport.listener.ChannelInactiveListener;
+import org.kin.kinrpc.transport.netty.ChannelExceptionHandler;
+import org.kin.kinrpc.transport.netty.TransportOption;
+import org.kin.kinrpc.transport.netty.listener.ChannelInactiveListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,13 +29,13 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
 
     private Map<String, RPCFuture> pendingRPCFutureMap = new HashMap<>();
 
-    private NettyTransportOption clientTransportOption;
+    private TransportOption clientTransportOption;
     private ReferenceHandler connection;
 
     public RPCReference(InetSocketAddress address, Serializer serializer, int connectTimeout) {
         this.connection = new ReferenceHandler(address, serializer, this);
         this.clientTransportOption =
-                NettyTransportOption.create()
+                TransportOption.create()
                         .channelOption(ChannelOption.TCP_NODELAY, true)
                         .channelOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout)
                         .channelInactiveListener(this)

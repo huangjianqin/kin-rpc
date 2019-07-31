@@ -18,7 +18,7 @@ import org.kin.kinrpc.registry.Registry;
 import org.kin.kinrpc.rpc.RPCProvider;
 import org.kin.kinrpc.rpc.serializer.Serializer;
 import org.kin.kinrpc.rpc.serializer.Serializers;
-import org.kin.kinrpc.transport.ProtocolFactory;
+import org.kin.kinrpc.transport.netty.ProtocolFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

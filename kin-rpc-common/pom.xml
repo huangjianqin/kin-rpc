@@ -20,7 +20,7 @@
         <dependency>
             <groupId>org.kin</groupId>
             <artifactId>kin-framework</artifactId>
-            <version>${project.version}</version>
+            <version>${kin-framework.version}</version>
         </dependency>
     </dependencies>
 

@@ -30,10 +30,28 @@
     </dependencyManagement>
 
     <dependencies>
+        <!-- 序列化包-->
+        <dependency>
+            <groupId>com.caucho</groupId>
+            <artifactId>hessian</artifactId>
+            <version>${hessian.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.esotericsoftware</groupId>
+            <artifactId>kryo</artifactId>
+            <version>${kryo.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-transport-netty</artifactId>
+            <artifactId>kin-rpc-common</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-transport-netty</artifactId>
+            <version>${kin-transport-netty.version}</version>
         </dependency>
     </dependencies>
 </project>

@@ -10,13 +10,8 @@ import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.kin.kinrpc.rpc.transport.protocol.RPCHeartbeat;
 import org.kin.kinrpc.rpc.transport.protocol.RPCRequestProtocol;
 import org.kin.kinrpc.rpc.transport.protocol.RPCResponseProtocol;
-import org.kin.kinrpc.transport.AbstractConnection;
-import org.kin.kinrpc.transport.AbstractSession;
-import org.kin.kinrpc.transport.ProtocolFactory;
-import org.kin.kinrpc.transport.ProtocolHandler;
-import org.kin.kinrpc.transport.domain.NettyTransportOption;
-import org.kin.kinrpc.transport.netty.Client;
-import org.kin.kinrpc.transport.protocol.AbstractProtocol;
+import org.kin.kinrpc.transport.netty.*;
+import org.kin.kinrpc.transport.netty.protocol.AbstractProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by 健勤 on 2017/2/15.
  */
-public class ReferenceHandler extends AbstractConnection<NettyTransportOption> implements ProtocolHandler {
+public class ReferenceHandler extends AbstractConnection implements ProtocolHandler {
     private static final Logger log = LoggerFactory.getLogger(ReferenceHandler.class);
     private Serializer serializer;
     private final RPCReference rpcReference;
@@ -47,7 +42,7 @@ public class ReferenceHandler extends AbstractConnection<NettyTransportOption> i
     }
 
     @Override
-    public void connect(NettyTransportOption  transportOption) {
+    public void connect(TransportOption transportOption) {
         while(!client.isStopped() && !client.isActive()){
             try {
                 client.connect(transportOption);
@@ -75,7 +70,7 @@ public class ReferenceHandler extends AbstractConnection<NettyTransportOption> i
     }
 
     @Override
-    public void bind(NettyTransportOption transportOption) throws Exception {
+    public void bind(TransportOption transportOption) throws Exception {
         client.bind(transportOption);
     }
 
