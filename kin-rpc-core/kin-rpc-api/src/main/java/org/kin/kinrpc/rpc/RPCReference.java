@@ -16,8 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
 /**
@@ -27,7 +27,7 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
     private static final Logger log = LoggerFactory.getLogger(RPCReference.class);
     private volatile boolean isStopped;
 
-    private Map<String, RPCFuture> pendingRPCFutureMap = new HashMap<>();
+    private Map<String, RPCFuture> pendingRPCFutureMap = new ConcurrentHashMap<>();
 
     private TransportOption clientTransportOption;
     private ReferenceHandler connection;
@@ -54,11 +54,9 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
 
         rpcResponse.setHandleTime(System.currentTimeMillis());
         String requestId = rpcResponse.getRequestId() + "";
-        synchronized (pendingRPCFutureMap){
-            RPCFuture pendRPCFuture = pendingRPCFutureMap.get(requestId);
-            if (pendRPCFuture != null) {
-                pendRPCFuture.done(rpcResponse);
-            }
+        RPCFuture pendRPCFuture = pendingRPCFutureMap.get(requestId);
+        if (pendRPCFuture != null) {
+            pendRPCFuture.done(rpcResponse);
         }
     }
 
@@ -68,37 +66,29 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
     public Future<RPCResponse> request(RPCRequest request){
         RPCFuture future = new RPCFuture(request, this);
         if(!isActive()){
-            synchronized (pendingRPCFutureMap) {
-                future.done(RPCResponse.respWithError(request, "client channel closed"));
-            }
+            future.done(RPCResponse.respWithError(request, "client channel closed"));
             return future;
         }
         log.debug("send a request>>>" + System.lineSeparator() + request);
 
         try {
             connection.request(request);
-            synchronized (pendingRPCFutureMap){
-                pendingRPCFutureMap.put(request.getRequestId() + "", future);
-            }
+            pendingRPCFutureMap.put(request.getRequestId() + "", future);
         } catch (Exception e) {
-            synchronized (pendingRPCFutureMap){
-                pendingRPCFutureMap.remove(request.getRequestId() + "");
-                future.done(RPCResponse.respWithError(request, "client channel closed"));
-            }
+            pendingRPCFutureMap.remove(request.getRequestId() + "");
+            future.done(RPCResponse.respWithError(request, "client channel closed"));
         }
 
         return future;
     }
 
     private void clean() {
-        synchronized (pendingRPCFutureMap){
-            for (RPCFuture rpcFuture : pendingRPCFutureMap.values()) {
-                RPCRequest rpcRequest = rpcFuture.getRequest();
-                RPCResponse rpcResponse = RPCResponse.respWithRetry(rpcRequest, "channel inactive");
-                rpcFuture.done(rpcResponse);
-            }
-            this.pendingRPCFutureMap.clear();
+        for (RPCFuture rpcFuture : pendingRPCFutureMap.values()) {
+            RPCRequest rpcRequest = rpcFuture.getRequest();
+            RPCResponse rpcResponse = RPCResponse.respWithRetry(rpcRequest, "channel inactive");
+            rpcFuture.done(rpcResponse);
         }
+        this.pendingRPCFutureMap.clear();
     }
 
     public HostAndPort getAddress() {
