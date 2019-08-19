@@ -38,7 +38,7 @@ public class RPCProvider {
     private ForkJoinPool threads;
     //保证RPCRequest按请求顺序进队
     private ThreadManager orderQueueRequestsThread = new ThreadManager(
-            new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
+            new ThreadPoolExecutor(0, 1, 0L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<>(), new SimpleThreadFactory("order-queue-requests")));
     //RPCRequest队列,所有连接该Server的reference发送的request都put进这个队列
     //然后由一个专门的线程不断地get,再提交到线程池去处理
