@@ -29,7 +29,7 @@ import java.util.concurrent.*;
  */
 class ClusterInvoker implements InvocationHandler, Closeable {
     private static final Logger log = LoggerFactory.getLogger(ClusterInvoker.class);
-    private static final ThreadManager THREADS = ThreadManager.forkJoinPoolThreadManager();
+    private static final ThreadManager THREADS = ThreadManager.commonThreadManager();
 
     private final Cluster cluster;
     private final int retryTimes;
