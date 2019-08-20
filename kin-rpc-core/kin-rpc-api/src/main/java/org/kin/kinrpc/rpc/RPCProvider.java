@@ -197,7 +197,7 @@ public class RPCProvider {
         private volatile boolean isStopped = false;
 
         public ScanRequestsThread() {
-            super("requests-scanner--thread-1");
+            super("requests-scanner--thread");
         }
 
         @Override
