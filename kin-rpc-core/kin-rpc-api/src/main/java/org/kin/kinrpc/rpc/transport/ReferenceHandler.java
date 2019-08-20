@@ -3,6 +3,7 @@ package org.kin.kinrpc.rpc.transport;
 import com.google.common.util.concurrent.RateLimiter;
 import org.kin.framework.concurrent.ThreadManager;
 import org.kin.kinrpc.rpc.RPCReference;
+import org.kin.kinrpc.rpc.RPCReferenceThreadPool;
 import org.kin.kinrpc.rpc.serializer.Serializer;
 import org.kin.kinrpc.rpc.transport.common.RPCConstants;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
@@ -62,7 +63,7 @@ public class ReferenceHandler extends AbstractConnection implements ProtocolHand
         }
 
         if(!client.isStopped() && heartbeatFuture == null){
-            heartbeatFuture = ThreadManager.DEFAULT.scheduleAtFixedRate(() -> {
+            heartbeatFuture = RPCReferenceThreadPool.THREADS.scheduleAtFixedRate(() -> {
                 RPCHeartbeat heartbeat = ProtocolFactory.createProtocol(RPCConstants.RPC_HEARTBEAT_PROTOCOL_ID, client.getLocalAddress(), "");
                 client.request(heartbeat);
             }, 10, 10, TimeUnit.SECONDS);

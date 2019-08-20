@@ -35,7 +35,7 @@ public class Clusters {
     private static final Logger log = LoggerFactory.getLogger(Clusters.class);
     private static final Cache<Integer, RPCProvider> PROVIDER_CACHE = CacheBuilder.newBuilder().build();
     private static final Cache<String, ClusterInvoker> REFERENCE_CACHE = CacheBuilder.newBuilder().build();
-    private static final ThreadManager threadManager = new ThreadManager(
+    private static final ThreadManager THREADS = new ThreadManager(
             new ThreadPoolExecutor(0, 2, 60L, TimeUnit.SECONDS,
                     new LinkedBlockingQueue<>(), new SimpleThreadFactory("provider-unregister-executor")));
     private static volatile boolean isStopped = false;
@@ -54,10 +54,10 @@ public class Clusters {
                 clusterInvoker.close();
                 Registries.closeRegistry(clusterInvoker.getUrl());
             }
-            threadManager.shutdown();
+            THREADS.shutdown();
         });
         //心跳检查, 每隔一定时间检查provider是否异常, 并取消服务注册
-        threadManager.execute(() -> {
+        THREADS.execute(() -> {
             while(!isStopped){
                 long sleepTime = HEARTBEAT_INTERVAL - TimeUtils.timestamp() % HEARTBEAT_INTERVAL;
                 try {
@@ -70,7 +70,7 @@ public class Clusters {
                     if(!provider.isAlive()){
                         int port = provider.getPort();
                         PROVIDER_CACHE.invalidate(port);
-                        threadManager.execute(() -> {
+                        THREADS.execute(() -> {
                             provider.shutdown();
                             for (URL url : provider.getAvailableServices()) {
                                 unRegisterService(url);
@@ -176,6 +176,6 @@ public class Clusters {
     }
 
     public static synchronized void shutdownHeartBeat(){
-        threadManager.shutdown();
+        THREADS.shutdown();
     }
 }

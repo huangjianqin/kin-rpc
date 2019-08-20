@@ -134,7 +134,7 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
      */
     @Override
     public void handleException(Channel channel, Throwable cause) {
-        ThreadManager.DEFAULT.execute(() -> {
+        RPCReferenceThreadPool.THREADS.execute(() -> {
             clean();
         });
     }
@@ -144,7 +144,7 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
      */
     @Override
     public void channelInactive(Channel channel) {
-        ThreadManager.DEFAULT.execute(() -> {
+        RPCReferenceThreadPool.THREADS.execute(() -> {
             clean();
             connection.connect(clientTransportOption);
         });
