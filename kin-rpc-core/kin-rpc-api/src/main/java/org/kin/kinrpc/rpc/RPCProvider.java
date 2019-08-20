@@ -3,6 +3,8 @@ package org.kin.kinrpc.rpc;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
+import org.kin.framework.actor.Keeper;
+import org.kin.framework.actor.KeeperAction;
 import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadManager;
 import org.kin.kinrpc.common.URL;
@@ -11,7 +13,6 @@ import org.kin.kinrpc.rpc.invoker.AbstractProviderInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.ProviderInvokerImpl;
 import org.kin.kinrpc.rpc.serializer.Serializer;
 import org.kin.kinrpc.rpc.transport.ProviderHandler;
-import org.kin.kinrpc.rpc.transport.common.RPCConstants;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.kin.kinrpc.transport.netty.TransportOption;
@@ -19,7 +20,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
@@ -52,7 +55,7 @@ public class RPCProvider {
     //底层的连接
     private ProviderHandler connection;
     //扫描RPCRequest的线程
-    private ScanRequestsThread scanRequestsThread;
+    private Keeper.KeeperStopper scanRequestsStopper;
     //标识是否stopped
     private volatile boolean isStopped = false;
 
@@ -132,8 +135,7 @@ public class RPCProvider {
         }
 
         //启动定时扫描队列,以及时处理所有reference的请求
-        this.scanRequestsThread = new ScanRequestsThread();
-        this.scanRequestsThread.start();
+        this.scanRequestsStopper = Keeper.keep(new ScanRequestsAction());
 
         log.info("provider(port={}) started", port);
     }
@@ -156,16 +158,14 @@ public class RPCProvider {
         if(isStopped){
             return;
         }
-        if (this.connection == null || scanRequestsThread == null) {
+        if (this.connection == null || scanRequestsStopper == null) {
             throw new IllegalStateException("Provider Server has not started");
         }
         log.info("server(port= " + port + ") shutdowning...");
         isStopped = true;
 
         //关闭扫描请求队列线程  停止将队列中的请求的放入线程池中处理,转而发送重试的RPCResponse
-        scanRequestsThread.stopScan();
-        //中断对requestsQueue的take()阻塞操作
-        scanRequestsThread.interrupt();
+        scanRequestsStopper.stopKeeper();
         //处理完所有进入队列的请求
         threads.shutdown();
         try {
@@ -192,40 +192,35 @@ public class RPCProvider {
         }
     }
 
-    private class ScanRequestsThread extends Thread {
-        private final Logger log = LoggerFactory.getLogger(ScanRequestsThread.class);
-        private volatile boolean isStopped = false;
+    private class ScanRequestsAction implements KeeperAction {
+        private final Logger log = LoggerFactory.getLogger(ScanRequestsAction.class);
 
-        public ScanRequestsThread() {
-            super("requests-scanner--thread");
+        @Override
+        public void preAction() {
+            log.info("handling reference's request...");
         }
 
         @Override
-        public void run() {
-            log.info("handling reference's request...");
-            while (!isStopped) {
-                try {
-                    final RPCRequest rpcRequest = requestsQueue.take();
-                    log.debug("revceive a request >>> " + System.lineSeparator() + rpcRequest);
+        public void action() {
+            try {
+                final RPCRequest rpcRequest = requestsQueue.take();
+                List<RPCRequest> rpcRequests = new ArrayList<>();
+                requestsQueue.drainTo(rpcRequests);
+                rpcRequests.add(rpcRequest);
 
-                    //因为fork-join的工作窃取机制, 会优先窃取队列靠后的task(maybe后面才来request)
-                    //因此, 限制队列的任务数, 以此做到尽可能先完成早到的request
-                    long queuedTaskCount = threads.getQueuedTaskCount();
-                    while(queuedTaskCount > RPCConstants.POOL_TASK_NUM){
-                        log.warn("too many task(num={}) to execute, slow down", queuedTaskCount);
-                        TimeUnit.MILLISECONDS.sleep(200);
-                    }
+                for (RPCRequest one : rpcRequests) {
+                    log.debug("revceive a request >>> " + one);
 
                     //提交线程池处理服务执行
                     threads.execute(() -> {
-                        rpcRequest.setHandleTime(System.currentTimeMillis());
-                        String serviceName = rpcRequest.getServiceName();
-                        String methodName = rpcRequest.getMethod();
-                        Object[] params = rpcRequest.getParams();
-                        Channel channel = rpcRequest.getChannel();
+                        one.setHandleTime(System.currentTimeMillis());
+                        String serviceName = one.getServiceName();
+                        String methodName = one.getMethod();
+                        Object[] params = one.getParams();
+                        Channel channel = one.getChannel();
 
-                        RPCResponse rpcResponse = new RPCResponse(rpcRequest.getRequestId(),
-                                rpcRequest.getServiceName(), rpcRequest.getMethod());
+                        RPCResponse rpcResponse = new RPCResponse(one.getRequestId(),
+                                one.getServiceName(), one.getMethod());
                         if(serviceMap.containsKey(serviceName)){
                             AbstractProviderInvoker invoker = serviceMap.get(serviceName).getInvoker();
 
@@ -244,17 +239,21 @@ public class RPCProvider {
                             rpcResponse.setResult(result);
                         }
                         else{
-                            log.error("can not find service>>> {}", rpcRequest);
+                            log.error("can not find service>>> {}", one);
                             rpcResponse.setState(RPCResponse.State.ERROR, "unknown service");
                         }
                         rpcResponse.setCreateTime(System.currentTimeMillis());
                         //write back to reference
                         connection.resp(channel, rpcResponse);
                     });
-                } catch (InterruptedException e) {
-
                 }
+            } catch (InterruptedException e) {
+
             }
+        }
+
+        @Override
+        public void postAction() {
             log.info("response directly and ask all requests to retry");
 
             for (RPCRequest rpcRequest : requestsQueue) {
@@ -268,11 +267,6 @@ public class RPCProvider {
             }
             requestsQueue.clear();
             log.info("requests scanner thread stop");
-
-        }
-
-        public void stopScan() {
-            this.isStopped = true;
         }
     }
 
