@@ -3,7 +3,6 @@ package org.kin.kinrpc.rpc;
 import com.google.common.net.HostAndPort;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
-import org.kin.framework.concurrent.ThreadManager;
 import org.kin.kinrpc.rpc.future.RPCFuture;
 import org.kin.kinrpc.rpc.serializer.Serializer;
 import org.kin.kinrpc.rpc.transport.ReferenceHandler;
@@ -134,7 +133,7 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
      */
     @Override
     public void handleException(Channel channel, Throwable cause) {
-        RPCReferenceThreadPool.THREADS.execute(() -> {
+        RPCThreadPool.THREADS.execute(() -> {
             clean();
         });
     }
@@ -144,7 +143,7 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
      */
     @Override
     public void channelInactive(Channel channel) {
-        RPCReferenceThreadPool.THREADS.execute(() -> {
+        RPCThreadPool.THREADS.execute(() -> {
             clean();
             connection.connect(clientTransportOption);
         });

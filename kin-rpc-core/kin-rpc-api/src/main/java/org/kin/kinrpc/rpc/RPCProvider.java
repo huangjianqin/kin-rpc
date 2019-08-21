@@ -3,10 +3,12 @@ package org.kin.kinrpc.rpc;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
+import org.kin.framework.actor.ActorLike;
 import org.kin.framework.actor.Keeper;
 import org.kin.framework.actor.KeeperAction;
 import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadManager;
+import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.common.URL;
 import org.kin.kinrpc.rpc.exception.RateLimitException;
 import org.kin.kinrpc.rpc.invoker.AbstractProviderInvoker;
@@ -38,7 +40,11 @@ public class RPCProvider {
     //大部分情况下get调用的频率比其他方法都多,没有必要使用同步容器,提供一丢丢性能
     private Map<String, ProviderInvokerWrapper> serviceMap = new ConcurrentHashMap<>();
     //各种服务请求处理的线程池
-    private ForkJoinPool threads;
+    private ForkJoinPool threads = new ForkJoinPool(SysUtils.getSuitableThreadNum() * 2 -1,
+            ForkJoinPool.defaultForkJoinWorkerThreadFactory,
+            null,
+            true
+    );
     //保证RPCRequest按请求顺序进队
     private ThreadManager orderQueueRequestsThread = new ThreadManager(
             new ThreadPoolExecutor(0, 1, 0L, TimeUnit.MILLISECONDS,
@@ -62,8 +68,6 @@ public class RPCProvider {
     public RPCProvider(int port, Serializer serializer) {
         this.port = port;
         this.serializer = serializer;
-
-        this.threads = new ForkJoinPool();
     }
 
     /**
@@ -270,7 +274,7 @@ public class RPCProvider {
         }
     }
 
-    private class ProviderInvokerWrapper {
+    private class ProviderInvokerWrapper{
         private URL url;
         private AbstractProviderInvoker invoker;
 
