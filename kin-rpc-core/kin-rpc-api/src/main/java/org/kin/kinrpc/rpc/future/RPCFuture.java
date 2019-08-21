@@ -1,8 +1,8 @@
 package org.kin.kinrpc.rpc.future;
 
 
-import org.kin.framework.concurrent.ThreadManager;
 import org.kin.kinrpc.rpc.RPCReference;
+import org.kin.kinrpc.rpc.RPCThreadPool;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.slf4j.Logger;
@@ -21,15 +21,6 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  */
 public class RPCFuture implements Future<RPCResponse> {
     private static final Logger log = LoggerFactory.getLogger(RPCFuture.class);
-    //所有RPCFuture实例共用一个线程池
-    private static final ThreadManager THREADS = ThreadManager.forkJoinPoolThreadManager();
-
-    //添加JVM关闭钩子,以确保释放该静态线程池
-    static {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            THREADS.shutdown();
-        }));
-    }
 
     //用于记录服务调用的耗时(毫秒),衡量负载
     private long startTime;
@@ -104,7 +95,7 @@ public class RPCFuture implements Future<RPCResponse> {
         this.response = response;
         rpcReference.removeInvalid(request);
         sync.release(1);
-        THREADS.submit(() -> {
+        RPCThreadPool.THREADS.submit(() -> {
             for (AsyncRPCCallback callback : this.callbacks) {
                 switch (response.getState()) {
                     case SUCCESS:

@@ -2,10 +2,10 @@ package org.kin.kinrpc.cluster;
 
 import com.google.common.net.HostAndPort;
 import org.kin.framework.Closeable;
-import org.kin.framework.concurrent.ThreadManager;
 import org.kin.kinrpc.cluster.exception.CannotFindInvokerException;
 import org.kin.kinrpc.common.URL;
 import org.kin.kinrpc.rpc.RPCContext;
+import org.kin.kinrpc.rpc.RPCThreadPool;
 import org.kin.kinrpc.rpc.exception.RPCCallErrorException;
 import org.kin.kinrpc.rpc.exception.RPCRetryException;
 import org.kin.kinrpc.rpc.exception.RPCRetryOutException;
@@ -29,7 +29,6 @@ import java.util.concurrent.*;
  */
 class ClusterInvoker implements InvocationHandler, Closeable {
     private static final Logger log = LoggerFactory.getLogger(ClusterInvoker.class);
-    private static final ThreadManager THREADS = ThreadManager.commonThreadManager();
 
     private final Cluster cluster;
     private final int retryTimes;
@@ -61,7 +60,7 @@ class ClusterInvoker implements InvocationHandler, Closeable {
 
     private Future invokeAsync(Method method, Object... params){
         Callable callable = () -> invoke0(method, params);
-        Future future = THREADS.submit(callable);
+        Future future = RPCThreadPool.THREADS.submit(callable);
         RPCContext.instance().setFuture(future);
         return future;
     }
