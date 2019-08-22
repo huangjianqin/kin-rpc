@@ -165,6 +165,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
             log.info("server(port= " + port + ") shutdowning...");
             isStopped = true;
 
+            /** 让所有请求都拒绝返回时, 才关闭channel */
             tell(rpcProvider2 -> {
                 //最后关闭连接
                 connection.close();

@@ -12,7 +12,7 @@ import java.util.concurrent.ForkJoinPool;
  * @date 2019-08-20
  */
 public class RPCThreadPool {
-    /** 公用线程池, 除了服务请求处理以外, 都用这个线程池 */
+    /** 公用线程池, 除了服务请求处理和netty线程池以外, 都用这个线程池 */
     public static final ThreadManager THREADS = new ThreadManager(
             new ForkJoinPool(SysUtils.getSuitableThreadNum() * 2 - 1,
                     ForkJoinPool.defaultForkJoinWorkerThreadFactory,
