@@ -1,6 +1,5 @@
 package org.kin.kinrpc.rpc.transport;
 
-import com.google.common.util.concurrent.RateLimiter;
 import org.kin.kinrpc.rpc.RPCReference;
 import org.kin.kinrpc.rpc.RPCThreadPool;
 import org.kin.kinrpc.rpc.serializer.Serializer;
@@ -28,8 +27,6 @@ public class ReferenceHandler extends AbstractConnection implements ProtocolHand
     private Serializer serializer;
     private final RPCReference rpcReference;
     private Client client;
-    //reference 端限流
-    private RateLimiter rateLimiter = RateLimiter.create(org.kin.kinrpc.common.Constants.REFERENCE_REQUEST_THRESHOLD);
 
     private volatile Future heartbeatFuture;
 
@@ -81,21 +78,17 @@ public class ReferenceHandler extends AbstractConnection implements ProtocolHand
     }
 
     public void request(RPCRequest request){
-        try {
-            request.setCreateTime(System.currentTimeMillis());
-            byte[] data = serializer.serialize(request);
-            //限流
-            rateLimiter.acquire();
+        if(isActive()){
+            try {
+                request.setCreateTime(System.currentTimeMillis());
+                byte[] data = serializer.serialize(request);
 
-            RPCRequestProtocol protocol = ProtocolFactory.createProtocol(RPCConstants.RPC_REQUEST_PROTOCOL_ID, data);
-            client.request(protocol);
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
+                RPCRequestProtocol protocol = ProtocolFactory.createProtocol(RPCConstants.RPC_REQUEST_PROTOCOL_ID, data);
+                client.request(protocol);
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+            }
         }
-    }
-
-    public void setRate(double rate){
-        rateLimiter.setRate(rate);
     }
 
     @Override
