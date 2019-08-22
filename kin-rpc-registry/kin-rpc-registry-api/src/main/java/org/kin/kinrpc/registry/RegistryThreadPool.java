@@ -18,7 +18,7 @@ public class RegistryThreadPool {
                     ForkJoinPool.defaultForkJoinWorkerThreadFactory,
                     null,
                     true
-            ));
+            ),1, new SimpleThreadFactory("registry-schedule"));
     //添加JVM关闭钩子,以确保释放该静态线程池
     static {
         JvmCloseCleaner.DEFAULT().add(() -> THREADS.shutdown());
