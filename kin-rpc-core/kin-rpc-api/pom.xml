@@ -24,14 +24,6 @@
             <version>${fastjson.version}</version>
         </dependency>
 
-        <!-- 字节码生成技术, 性能比asm差, 但使用方便-->
-        <dependency>
-            <groupId>org.javassist</groupId>
-            <artifactId>javassist</artifactId>
-            <version>3.25.0-GA</version>
-            <scope>provided</scope>
-        </dependency>
-
         <!-- java微基准测试工具   用于较细粒度测试-->
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
