@@ -26,6 +26,7 @@ import java.util.concurrent.*;
 
 /**
  * Created by 健勤 on 2017/2/15.
+ * reference端没有必要使用字节码生成技术, 因为本来代码的实现就是把服务接口必要的参数传给provider, 仅此而已.
  */
 class ClusterInvoker implements InvocationHandler, Closeable {
     private static final Logger log = LoggerFactory.getLogger(ClusterInvoker.class);
