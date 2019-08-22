@@ -1,7 +1,7 @@
 package org.kin.kinrpc.cluster.loadbalance.impl;
 
 import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
-import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
+import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
 
 import java.util.List;
 import java.util.Random;
@@ -11,7 +11,7 @@ import java.util.Random;
  */
 public class RandomLoadBalance implements LoadBalance {
     @Override
-    public AbstractReferenceInvoker loadBalance(List<AbstractReferenceInvoker> invokers) {
+    public ReferenceInvoker loadBalance(List<ReferenceInvoker> invokers) {
         if (invokers != null && invokers.size() > 0) {
             if (invokers.size() == 1) {
                 return invokers.get(0);

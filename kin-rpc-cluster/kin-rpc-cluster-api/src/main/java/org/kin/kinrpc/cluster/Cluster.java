@@ -2,7 +2,7 @@ package org.kin.kinrpc.cluster;
 
 
 import com.google.common.net.HostAndPort;
-import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
+import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
 
 import java.util.Collection;
 
@@ -15,7 +15,7 @@ public interface Cluster {
      * 从注册中心中多个invoker中选择一个,包含router, loadbalance
      * @param excludes
      */
-    AbstractReferenceInvoker get(Collection<HostAndPort> excludes);
+    ReferenceInvoker get(Collection<HostAndPort> excludes);
 
     void shutdown();
 }

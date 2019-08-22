@@ -1,22 +1,25 @@
 package org.kin.kinrpc.rpc.invoker.impl;
 
-import com.google.common.util.concurrent.RateLimiter;
 import org.kin.framework.utils.StringUtils;
-import org.kin.kinrpc.common.Constants;
-import org.kin.kinrpc.rpc.exception.RateLimitException;
-import org.kin.kinrpc.rpc.invoker.AbstractProviderInvoker;
+import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
 import org.kin.kinrpc.rpc.utils.ClassUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by 健勤 on 2017/2/12.
  */
-public class ProviderInvokerImpl extends AbstractProviderInvoker {
-    private RateLimiter rateLimiter = RateLimiter.create(Constants.PROVIDER_REQUEST_THRESHOLD);
+public class ReflectProviderInvoker extends ProviderInvoker {
+    /** 服务类 */
+    private Object serivce;
+    /** 方法调用入口 */
+    private Map<String, Method> methodMap = new HashMap<String, Method>();
 
-    public ProviderInvokerImpl(String serviceName, Object service) {
+
+    public ReflectProviderInvoker(String serviceName, Object service) {
         super(serviceName);
         this.serivce = service;
     }
@@ -33,14 +36,7 @@ public class ProviderInvokerImpl extends AbstractProviderInvoker {
     }
 
     @Override
-    public Object invoke(String methodName, boolean isVoid, Object... params) throws Throwable {
-        log.debug("service '{}' method '{}' invoking...", getServiceName(), methodName);
-        //限流
-        if(!rateLimiter.tryAcquire()){
-            //抛异常, 外部捕获异常并立即返回给reference, 让其重试
-            throw new RateLimitException();
-        }
-
+    public Object doInvoke(String methodName, boolean isVoid, Object... params) throws Throwable {
         Method target = methodMap.get(methodName);
 
         if (target == null) {
@@ -74,16 +70,5 @@ public class ProviderInvokerImpl extends AbstractProviderInvoker {
             log.error("service '{}' method '{}' invoke error", getServiceName(), methodName);
             throw e.getCause();
         }
-    }
-
-
-    @Override
-    public void setRate(double rate) {
-        rateLimiter.setRate(rate);
-    }
-
-    @Override
-    public double getRate() {
-        return rateLimiter.getRate();
     }
 }

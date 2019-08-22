@@ -1,7 +1,7 @@
 package org.kin.kinrpc.cluster.router.impl;
 
 import org.kin.kinrpc.cluster.router.Router;
-import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
+import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
 
 import java.util.List;
 
@@ -12,7 +12,7 @@ import java.util.List;
  */
 public class NoneRouter implements Router {
     @Override
-    public List<AbstractReferenceInvoker> router(List<AbstractReferenceInvoker> invokers) {
+    public List<ReferenceInvoker> router(List<ReferenceInvoker> invokers) {
         return invokers;
     }
 }

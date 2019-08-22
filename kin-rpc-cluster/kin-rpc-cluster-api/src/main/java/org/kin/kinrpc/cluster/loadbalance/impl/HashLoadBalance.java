@@ -2,7 +2,7 @@ package org.kin.kinrpc.cluster.loadbalance.impl;
 
 import org.kin.framework.utils.HashUtils;
 import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
-import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
+import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
 
 import java.util.List;
 import java.util.TreeMap;
@@ -15,9 +15,9 @@ public class HashLoadBalance implements LoadBalance {
     private static final int LIMIT = 9;
 
     @Override
-    public AbstractReferenceInvoker loadBalance(List<AbstractReferenceInvoker> invokers) {
-        TreeMap<Integer, AbstractReferenceInvoker> map = new TreeMap<>();
-        for(AbstractReferenceInvoker invoker: invokers){
+    public ReferenceInvoker loadBalance(List<ReferenceInvoker> invokers) {
+        TreeMap<Integer, ReferenceInvoker> map = new TreeMap<>();
+        for(ReferenceInvoker invoker: invokers){
             map.put(HashUtils.efficientHash(invoker, LIMIT), invoker);
         }
 

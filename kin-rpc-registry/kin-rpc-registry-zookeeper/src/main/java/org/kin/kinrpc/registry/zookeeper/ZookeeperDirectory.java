@@ -3,8 +3,7 @@ package org.kin.kinrpc.registry.zookeeper;
 import com.google.common.net.HostAndPort;
 import org.kin.kinrpc.registry.AbstractDirectory;
 import org.kin.kinrpc.rpc.RPCReference;
-import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
-import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvokerImpl;
+import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
 import org.kin.kinrpc.rpc.serializer.Serializers;
 
 import java.net.InetSocketAddress;
@@ -28,10 +27,10 @@ public class ZookeeperDirectory extends AbstractDirectory {
      * 获取当前可用invokers
      */
     @Override
-    public List<AbstractReferenceInvoker> list() {
+    public List<ReferenceInvoker> list() {
         //Directory关闭中调用该方法会返回一个size=0的列表
         if(!isStopped){
-            return super.invokers.stream().filter(AbstractReferenceInvoker::isActive).collect(Collectors.toList());
+            return super.invokers.stream().filter(ReferenceInvoker::isActive).collect(Collectors.toList());
         }
         return Collections.emptyList();
     }
@@ -57,11 +56,11 @@ public class ZookeeperDirectory extends AbstractDirectory {
         }
         log.info("discover service '{}'..." + System.lineSeparator() + "current service address: " + sb.toString(), getServiceName());
 
-        List<AbstractReferenceInvoker> newInvokerList = new ArrayList<>(invokers);
-        List<AbstractReferenceInvoker> invalidInvokers = new ArrayList<>();
+        List<ReferenceInvoker> newInvokerList = new ArrayList<>(invokers);
+        List<ReferenceInvoker> invalidInvokers = new ArrayList<>();
         if (hostAndPorts.size() > 0) {
             //该循环处理完后,addresses里面的都是新的
-            for (AbstractReferenceInvoker invoker : newInvokerList) {
+            for (ReferenceInvoker invoker : newInvokerList) {
                 //不包含该连接,而是连接变为无用,shutdown
                 HostAndPort invokerHostAndPort = invoker.getAddress();
                 if (!hostAndPorts.contains(invokerHostAndPort)) {
@@ -84,7 +83,7 @@ public class ZookeeperDirectory extends AbstractDirectory {
             //address有效,创建新的ReferenceInvoker,连接Service Server
             RPCReference rpcReference = new RPCReference(
                     new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPort()), Serializers.getSerializer(serializerType), connectTimeout);
-            AbstractReferenceInvoker refereneceInvoker = new ReferenceInvokerImpl(serviceName, rpcReference);
+            ReferenceInvoker refereneceInvoker = new ReferenceInvoker(serviceName, rpcReference);
             //真正启动连接
             refereneceInvoker.init();
 
@@ -94,7 +93,7 @@ public class ZookeeperDirectory extends AbstractDirectory {
         super.invokers = newInvokerList;
 
         //remove invalid ReferenceInvokers
-        for (AbstractReferenceInvoker invoker : invalidInvokers) {
+        for (ReferenceInvoker invoker : invalidInvokers) {
             invoker.shutdown();
         }
 
@@ -107,7 +106,7 @@ public class ZookeeperDirectory extends AbstractDirectory {
             isStopped = true;
             //关闭所有当前连接
             if (invokers != null && invokers.size() > 0) {
-                for (AbstractReferenceInvoker invoker : invokers) {
+                for (ReferenceInvoker invoker : invokers) {
                     invoker.shutdown();
                 }
                 invokers.clear();

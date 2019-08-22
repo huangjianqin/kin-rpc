@@ -5,7 +5,7 @@ import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
 import org.kin.kinrpc.cluster.router.Router;
 import org.kin.kinrpc.registry.Directory;
 import org.kin.kinrpc.registry.Registry;
-import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
+import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,16 +35,16 @@ class ClusterImpl implements Cluster {
     }
 
     @Override
-    public AbstractReferenceInvoker get(Collection<HostAndPort> excludes) {
+    public ReferenceInvoker get(Collection<HostAndPort> excludes) {
         log.debug("get one reference invoker from cluster");
         if (checkState()) {
-            List<AbstractReferenceInvoker> availableInvokers = directory.list();
+            List<ReferenceInvoker> availableInvokers = directory.list();
             //过滤掉单次请求曾经fail的service 访问地址
             availableInvokers = availableInvokers.stream().filter(invoker -> !excludes.contains(invoker.getAddress()))
                     .collect(Collectors.toList());
 
-            List<AbstractReferenceInvoker> routeredInvokers = router.router(availableInvokers);
-            AbstractReferenceInvoker loadbalancedInvoker = loadBalance.loadBalance(routeredInvokers);
+            List<ReferenceInvoker> routeredInvokers = router.router(availableInvokers);
+            ReferenceInvoker loadbalancedInvoker = loadBalance.loadBalance(routeredInvokers);
 
             if(loadbalancedInvoker != null){
                 log.debug("real invoker(" + loadbalancedInvoker.getAddress() + ")");

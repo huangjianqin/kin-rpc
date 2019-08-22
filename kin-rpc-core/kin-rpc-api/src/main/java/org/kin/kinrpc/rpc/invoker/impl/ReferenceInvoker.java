@@ -1,40 +1,56 @@
 package org.kin.kinrpc.rpc.invoker.impl;
 
 
-import com.google.common.util.concurrent.RateLimiter;
-import org.kin.kinrpc.common.Constants;
+import com.google.common.net.HostAndPort;
 import org.kin.kinrpc.rpc.RPCReference;
 import org.kin.kinrpc.rpc.exception.RPCCallErrorException;
 import org.kin.kinrpc.rpc.exception.RPCRetryException;
 import org.kin.kinrpc.rpc.exception.UnknownRPCResponseStateCodeException;
-import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
+import org.kin.kinrpc.rpc.invoker.AbstractInvoker;
+import org.kin.kinrpc.rpc.invoker.AsyncInvoker;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequestIdGenerator;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 /**
  * Created by 健勤 on 2017/2/15.
  */
-public class ReferenceInvokerImpl extends AbstractReferenceInvoker {
-    private RateLimiter rateLimiter = RateLimiter.create(Constants.REFERENCE_REQUEST_THRESHOLD);
+public class ReferenceInvoker extends AbstractInvoker implements AsyncInvoker {
+    protected static final Logger log = LoggerFactory.getLogger(ReferenceInvoker.class);
+    protected RPCReference rpcReference;
 
-    public ReferenceInvokerImpl(String serviceName, RPCReference rpcReference) {
-        super(serviceName, rpcReference);
+    public ReferenceInvoker(String serviceName, RPCReference rpcReference) {
+        super(serviceName);
+        this.rpcReference = rpcReference;
     }
 
-    @Override
     public void init() {
         this.rpcReference.start();
         log.info("referenceInvoker inited");
     }
 
-    @Override
     public void shutdown() {
         rpcReference.shutdown();
         log.info("referenceInvoker shutdown");
+    }
+
+    protected RPCRequest createRequest(int requestId, String methodName, Object... params) {
+        RPCRequest request = new RPCRequest(requestId, super.getServiceName(), methodName, params);
+        return request;
+    }
+
+    public HostAndPort getAddress() {
+        return rpcReference.getAddress();
+    }
+
+    public boolean isActive() {
+        return rpcReference.isActive();
     }
 
     @Override
@@ -78,12 +94,16 @@ public class ReferenceInvokerImpl extends AbstractReferenceInvoker {
     }
 
     @Override
-    public void setRate(double rate) {
-        rateLimiter.setRate(rate);
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        ReferenceInvoker that = (ReferenceInvoker) o;
+        return Objects.equals(rpcReference, that.rpcReference);
     }
 
     @Override
-    public double getRate() {
-        return rateLimiter.getRate();
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), rpcReference);
     }
 }

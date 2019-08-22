@@ -11,7 +11,7 @@ import org.kin.kinrpc.rpc.exception.RPCRetryException;
 import org.kin.kinrpc.rpc.exception.RPCRetryOutException;
 import org.kin.kinrpc.rpc.exception.UnknownRPCResponseStateCodeException;
 import org.kin.kinrpc.rpc.future.RPCFuture;
-import org.kin.kinrpc.rpc.invoker.AbstractReferenceInvoker;
+import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.kin.kinrpc.rpc.utils.ClassUtils;
 import org.slf4j.Logger;
@@ -77,7 +77,7 @@ class ClusterInvoker implements InvocationHandler, Closeable {
             Set<HostAndPort> failureHostAndPorts = new HashSet<>();
 
             while (tryTimes < retryTimes) {
-                AbstractReferenceInvoker invoker = cluster.get(failureHostAndPorts);
+                ReferenceInvoker invoker = cluster.get(failureHostAndPorts);
                 if (invoker != null) {
                     try {
                         Future<RPCResponse> future = invoker.invokeAsync(methodName, params);
@@ -122,7 +122,7 @@ class ClusterInvoker implements InvocationHandler, Closeable {
             throw new RPCRetryOutException(retryTimes);
         }
         else{
-            AbstractReferenceInvoker invoker = cluster.get(Collections.EMPTY_LIST);
+            ReferenceInvoker invoker = cluster.get(Collections.EMPTY_LIST);
             if (invoker != null) {
                 try {
                     return invoker.invoke(methodName, isVoid, params);
