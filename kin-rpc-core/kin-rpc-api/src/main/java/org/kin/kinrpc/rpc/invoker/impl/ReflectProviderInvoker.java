@@ -19,17 +19,28 @@ public class ReflectProviderInvoker extends ProviderInvoker {
     private Map<String, Method> methodMap = new HashMap<String, Method>();
 
 
-    public ReflectProviderInvoker(String serviceName, Object service) {
+    public ReflectProviderInvoker(String serviceName, Object service, Class interfaceClass) {
         super(serviceName);
         this.serivce = service;
+        init(interfaceClass);
     }
 
-    public void init(Class interfaceClass) {
+    private void init(Class interfaceClass) {
         Method[] methods = interfaceClass.getMethods();
 
         for (Method method : methods) {
-            method.setAccessible(true);
             String uniqueName = ClassUtils.getUniqueName(method);
+
+            //打印日志信息
+            Class<?>[] paramTypes = method.getParameterTypes();
+            String[] paramTypeStrs = new String[paramTypes.length];
+            for (int i = 0; i < paramTypeStrs.length; i++) {
+                paramTypeStrs[i] = paramTypes[i].getName();
+            }
+            log.debug("'{}' method's params' type", uniqueName);
+            log.debug(StringUtils.mkString(paramTypeStrs));
+
+            method.setAccessible(true);
             this.methodMap.put(uniqueName, method);
             log.info("service '{}'s method '{}'/'{}' is ready to provide service", getServiceName(), uniqueName, method.toString());
         }
@@ -44,14 +55,6 @@ public class ReflectProviderInvoker extends ProviderInvoker {
         }
 
         //打印日志信息
-        Class<?>[] paramTypes = target.getParameterTypes();
-        String[] paramTypeStrs = new String[paramTypes.length];
-        for (int i = 0; i < paramTypeStrs.length; i++) {
-            paramTypeStrs[i] = paramTypes[i].getName();
-        }
-        log.debug("'{}' method's params' type", methodName);
-        log.debug(StringUtils.mkString(paramTypeStrs));
-
         int paramLength = params == null ? 0 : params.length;
         String[] actualParamTypeStrs = new String[paramLength];
         for (int i = 0; i < actualParamTypeStrs.length; i++) {

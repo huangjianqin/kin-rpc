@@ -10,6 +10,7 @@ import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.common.URL;
 import org.kin.kinrpc.rpc.exception.RateLimitException;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
+import org.kin.kinrpc.rpc.invoker.impl.JavassistProviderInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.ReflectProviderInvoker;
 import org.kin.kinrpc.rpc.serializer.Serializer;
 import org.kin.kinrpc.rpc.transport.ProviderHandler;
@@ -70,8 +71,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
         tell((rpcProvider) -> {
             if (!isStopped) {
                 String serviceName = url.getServiceName();
-                ReflectProviderInvoker invoker = new ReflectProviderInvoker(serviceName, service);
-                invoker.init(interfaceClass);
+                ProviderInvoker invoker = new JavassistProviderInvoker(serviceName, service, interfaceClass);
 
                 if (!serviceMap.containsKey(serviceName)) {
                     serviceMap.put(serviceName, new ProviderInvokerWrapper(url, invoker));

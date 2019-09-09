@@ -1,27 +1,29 @@
 package org.kin.kinrpc.rpc.utils;
 
 import java.lang.reflect.Method;
+import java.util.StringJoiner;
 
 /**
  * Created by huangjianqin on 2019/6/12.
  */
 public class ClassUtils {
-    private ClassUtils(){
+    private ClassUtils() {
 
     }
 
     public static String getUniqueName(Method method) {
         StringBuilder sb = new StringBuilder();
         sb.append(method.getName());
-        sb.append("(");
+        sb.append("$");
+
+        StringJoiner paramsJoiner = new StringJoiner("$");
         Class[] paramTypes = method.getParameterTypes();
-        for(Class paramType: paramTypes){
-            sb.append(paramType.getTypeName() + ",");
+        for (Class paramType : paramTypes) {
+            paramsJoiner.add(paramType.getTypeName());
         }
-        if(paramTypes.length > 0){
-            sb.replace(sb.length() - 1, sb.length(), "");
-        }
-        sb.append(")");
+        sb.append(paramsJoiner.toString());
+
+        sb.append("$");
         return sb.toString();
     }
 }
