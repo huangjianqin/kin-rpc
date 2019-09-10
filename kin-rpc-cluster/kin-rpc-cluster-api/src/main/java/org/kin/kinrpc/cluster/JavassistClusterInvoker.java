@@ -279,11 +279,17 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
 
             Class<T> realProxyClass = (Class<T>) proxyClass.toClass();
             T proxy = realProxyClass.getConstructor(this.getClass()).newInstance(this);
-//            JavassistUtils.cacheCTClass(getUrl().getServiceName(), proxyClass);
+            JavassistUtils.cacheCTClass(getUrl().getServiceName(), proxyClass);
             return proxy;
         } catch (Exception e) {
             log.error("", e);
         }
         return null;
+    }
+
+    @Override
+    public void close() {
+        super.close();
+        JavassistUtils.detach(getUrl().getServiceName());
     }
 }
