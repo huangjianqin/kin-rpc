@@ -12,8 +12,8 @@ import java.util.concurrent.Future;
  * @date 2019-09-09
  * reference端没有必要使用字节码生成技术, 因为本来代码的实现就是把服务接口必要的参数传给provider, 仅此而已.
  */
-class JavaClusterInvoker extends ClusterInvoker implements InvocationHandler {
-    public JavaClusterInvoker(Cluster cluster, int retryTimes, int retryTimeout, URL url) {
+class ReflectClusterInvoker extends ClusterInvoker implements InvocationHandler {
+    public ReflectClusterInvoker(Cluster cluster, int retryTimes, int retryTimeout, URL url) {
         super(cluster, retryTimes, retryTimeout, url);
     }
 

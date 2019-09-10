@@ -23,12 +23,13 @@ public class ReferenceConfig<T> extends AbstractConfig {
     private String serialize = SerializerType.KRYO.getType();
     private String loadBalanceType = LoadBalanceType.ROUND_ROBIN.getType();
     private String routerType = RouterType.NONE.getType();
+    private InvokeType invokeType = InvokeType.JAVASSIST;
 
     private URL url;
     private volatile T reference;
     private boolean isReference;
 
-    ReferenceConfig(Class<T> interfaceClass){
+    ReferenceConfig(Class<T> interfaceClass) {
         this.interfaceClass = interfaceClass;
         this.serviceName = interfaceClass.getName();
     }
@@ -44,7 +45,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
     }
 
     public synchronized T get() {
-        if(!isReference){
+        if (!isReference) {
             check();
 
             Map<String, String> params = new HashMap<>();
@@ -55,6 +56,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
             params.put(Constants.SERIALIZE_KEY, serialize);
             params.put(Constants.LOADBALANCE_KEY, loadBalanceType);
             params.put(Constants.ROUTER_KEY, routerType);
+            params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(InvokeType.JAVASSIST.equals(invokeType)));
 
             url = createURL(applicationConfig, "0.0.0.0:0", registryConfig, params);
             Preconditions.checkNotNull(url);
@@ -68,7 +70,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
     }
 
     public void disable() {
-        if(isReference){
+        if (isReference) {
             reference = null;
 
             Clusters.disableReference(url);
@@ -77,107 +79,117 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
     //---------------------------------------builder------------------------------------------------------------
     public ReferenceConfig<T> appName(String appName) {
-        if(!isReference){
+        if (!isReference) {
             this.applicationConfig = new ApplicationConfig(appName);
         }
         return this;
     }
 
-    public ReferenceConfig<T> urls(String... urls){
-        if(!isReference){
+    public ReferenceConfig<T> urls(String... urls) {
+        if (!isReference) {
             this.registryConfig = new DirectURLsRegistryConfig(StringUtils.mkString(";", urls));
         }
         return this;
     }
 
-    public ReferenceConfig<T> zookeeper(String address){
-        if(!isReference){
+    public ReferenceConfig<T> zookeeper(String address) {
+        if (!isReference) {
             this.registryConfig = new ZookeeperRegistryConfig(address);
         }
         return this;
     }
 
-    public ReferenceConfig<T> zookeeper2(String address){
-        if(!isReference){
+    public ReferenceConfig<T> zookeeper2(String address) {
+        if (!isReference) {
             this.registryConfig = new Zookeeper2RegistryConfig(address);
         }
         return this;
     }
 
-    public ReferenceConfig<T> registrySessionTimeout(int sessionTimeout){
-        if(!isReference){
+    public ReferenceConfig<T> registrySessionTimeout(int sessionTimeout) {
+        if (!isReference) {
             this.registryConfig.setSessionTimeout(sessionTimeout);
         }
         return this;
     }
 
-    public ReferenceConfig<T> timeout(int timeout){
-        if(!isReference){
+    public ReferenceConfig<T> timeout(int timeout) {
+        if (!isReference) {
             this.timeout = timeout;
         }
         return this;
     }
 
-    public ReferenceConfig<T> serviceName(String serviceName){
-        if(!isReference){
+    public ReferenceConfig<T> serviceName(String serviceName) {
+        if (!isReference) {
             this.serviceName = serviceName;
         }
         return this;
     }
 
-    public ReferenceConfig<T> retry(int retryTimes){
-        if(!isReference){
+    public ReferenceConfig<T> retry(int retryTimes) {
+        if (!isReference) {
             this.retryTimes = retryTimes;
         }
         return this;
     }
 
-    public ReferenceConfig<T> retryTimeout(int retryTimeout){
-        if(!isReference){
+    public ReferenceConfig<T> retryTimeout(int retryTimeout) {
+        if (!isReference) {
             this.retryTimeout = retryTimeout;
         }
         return this;
     }
 
-    public ReferenceConfig<T> serialize(String serialize){
-        if(!isReference){
+    public ReferenceConfig<T> serialize(String serialize) {
+        if (!isReference) {
             this.serialize = serialize;
         }
         return this;
     }
 
-    public ReferenceConfig<T> serialize(SerializerType serializerType){
-        if(!isReference){
+    public ReferenceConfig<T> serialize(SerializerType serializerType) {
+        if (!isReference) {
             this.serialize = serializerType.getType();
         }
         return this;
     }
 
-    public ReferenceConfig<T> loadbalance(String loadbalance){
-        if(!isReference){
+    public ReferenceConfig<T> loadbalance(String loadbalance) {
+        if (!isReference) {
             this.loadBalanceType = loadbalance;
         }
         return this;
     }
 
-    public ReferenceConfig<T> loadbalance(LoadBalanceType loadBalanceType){
-        if(!isReference){
+    public ReferenceConfig<T> loadbalance(LoadBalanceType loadBalanceType) {
+        if (!isReference) {
             this.loadBalanceType = loadBalanceType.getType();
         }
         return this;
     }
 
-    public ReferenceConfig<T> router(String router){
-        if(!isReference){
+    public ReferenceConfig<T> router(String router) {
+        if (!isReference) {
             this.routerType = router;
         }
         return this;
     }
 
-    public ReferenceConfig<T> router(RouterType routerType){
-        if(!isReference){
+    public ReferenceConfig<T> router(RouterType routerType) {
+        if (!isReference) {
             this.routerType = routerType.getType();
         }
+        return this;
+    }
+
+    public ReferenceConfig<T> javaInvoke() {
+        this.invokeType = InvokeType.JAVA;
+        return this;
+    }
+
+    public ReferenceConfig<T> javassistInvoke() {
+        this.invokeType = InvokeType.JAVASSIST;
         return this;
     }
 
@@ -220,5 +232,9 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
     public String getRouterType() {
         return routerType;
+    }
+
+    public InvokeType getInvokeType() {
+        return invokeType;
     }
 }

@@ -24,6 +24,8 @@ public class Constants {
     public static final String SERIALIZE_KEY = "serialize";
     public static final String ROUTER_KEY = "router";
     public static final String LOADBALANCE_KEY = "loadbalance";
+    public static final String BYTE_CODE_INVOKE_KEY = "byteCodeInvoke";
+
     //    public static final String CLAXX_KEY = "claxx";//接口名
 //    public static final String VERSION_KEY = "version";//服务版本
 //    public static final String METHOD_KEY = "method";//接口方法列表

@@ -13,7 +13,7 @@ import java.util.Map;
 /**
  * Created by 健勤 on 2017/2/12.
  */
-public class ServiceConfig extends AbstractConfig{
+public class ServiceConfig extends AbstractConfig {
     //配置
     private ApplicationConfig applicationConfig = new ApplicationConfig();
     private ServerConfig serverConfig = ServerConfig.DEFAULT;
@@ -22,6 +22,7 @@ public class ServiceConfig extends AbstractConfig{
     private Class<?> interfaceClass;
     private String serviceName;
     private String serialize = SerializerType.KRYO.getType();
+    private InvokeType invokeType = InvokeType.JAVASSIST;
 
     private URL url;
     private volatile boolean isExport;
@@ -50,7 +51,7 @@ public class ServiceConfig extends AbstractConfig{
 
         this.applicationConfig.check();
         this.serverConfig.check();
-        if(this.registryConfig != null){
+        if (this.registryConfig != null) {
             this.registryConfig.check();
         }
     }
@@ -59,12 +60,13 @@ public class ServiceConfig extends AbstractConfig{
      * 暴露服务
      */
     public void export() {
-        if(!isExport){
+        if (!isExport) {
             check();
 
             Map<String, String> params = new HashMap<>();
             params.put(Constants.SERVICE_NAME_KEY, serviceName);
             params.put(Constants.SERIALIZE_KEY, serialize);
+            params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(InvokeType.JAVASSIST.equals(invokeType)));
 
             url = createURL(applicationConfig, "0.0.0.0:" + serverConfig.getPort(), registryConfig, params);
             Preconditions.checkNotNull(url);
@@ -80,20 +82,7 @@ public class ServiceConfig extends AbstractConfig{
      * 暴露服务
      */
     public void exportSync() {
-        if(!isExport){
-            check();
-
-            Map<String, String> params = new HashMap<>();
-            params.put(Constants.SERVICE_NAME_KEY, serviceName);
-            params.put(Constants.SERIALIZE_KEY, serialize);
-
-            url = createURL(applicationConfig, "0.0.0.0:" + serverConfig.getPort(), registryConfig, params);
-            Preconditions.checkNotNull(url);
-
-            Clusters.export(url, interfaceClass, ref);
-
-            isExport = true;
-        }
+        export();
 
         while (true) {
 
@@ -104,65 +93,75 @@ public class ServiceConfig extends AbstractConfig{
      * 取消服务注册
      */
     public void disable() {
-        if(isExport){
+        if (isExport) {
             Clusters.disableService(url, interfaceClass);
         }
     }
 
     //---------------------------------------builder------------------------------------------------------------
     public ServiceConfig appName(String appName) {
-        if(!isExport){
+        if (!isExport) {
             this.applicationConfig = new ApplicationConfig(appName);
         }
         return this;
     }
 
-    public ServiceConfig bind(int port){
-        if(!isExport){
+    public ServiceConfig bind(int port) {
+        if (!isExport) {
             this.serverConfig = new ServerConfig(port);
         }
         return this;
     }
 
-    public ServiceConfig urls(String... urls){
-        if(!isExport){
+    public ServiceConfig urls(String... urls) {
+        if (!isExport) {
             this.registryConfig = new DirectURLsRegistryConfig(StringUtils.mkString(";", urls));
         }
         return this;
     }
 
-    public ServiceConfig zookeeper(String address){
-        if(!isExport){
+    public ServiceConfig zookeeper(String address) {
+        if (!isExport) {
             this.registryConfig = new ZookeeperRegistryConfig(address);
         }
         return this;
     }
 
-    public ServiceConfig zookeeper2(String address){
-        if(!isExport){
+    public ServiceConfig zookeeper2(String address) {
+        if (!isExport) {
             this.registryConfig = new Zookeeper2RegistryConfig(address);
         }
         return this;
     }
 
-    public ServiceConfig registrySessionTimeout(int sessionTimeout){
-        if(!isExport){
+    public ServiceConfig registrySessionTimeout(int sessionTimeout) {
+        if (!isExport) {
             this.registryConfig.setSessionTimeout(sessionTimeout);
         }
         return this;
     }
 
-    public ServiceConfig serviceName(String serviceName){
-        if(!isExport){
+    public ServiceConfig serviceName(String serviceName) {
+        if (!isExport) {
             this.serviceName = serviceName;
         }
         return this;
     }
 
-    public ServiceConfig serialize(String serialize){
-        if(!isExport){
+    public ServiceConfig serialize(String serialize) {
+        if (!isExport) {
             this.serialize = serialize;
         }
+        return this;
+    }
+
+    public ServiceConfig javaInvoke() {
+        this.invokeType = InvokeType.JAVA;
+        return this;
+    }
+
+    public ServiceConfig javassistInvoke() {
+        this.invokeType = InvokeType.JAVASSIST;
         return this;
     }
 
@@ -193,5 +192,9 @@ public class ServiceConfig extends AbstractConfig{
 
     public String getSerialize() {
         return serialize;
+    }
+
+    public InvokeType getInvokeType() {
+        return invokeType;
     }
 }

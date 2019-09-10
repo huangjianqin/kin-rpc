@@ -88,12 +88,13 @@ public class Clusters {
     public static synchronized void export(URL url, Class interfaceClass, Object instance){
         int port = url.getPort();
         String serializerType = url.getParam(Constants.SERIALIZE_KEY);
+        boolean byteCodeInvoke = Boolean.valueOf(url.getParam(Constants.BYTE_CODE_INVOKE_KEY));
         Serializer serializer = Serializers.getSerializer(serializerType);
         Preconditions.checkNotNull(serializer, "unvalid serializer type: [" + serializerType + "]");
         RPCProvider provider;
         try {
             provider = PROVIDER_CACHE.get(port, () -> {
-                RPCProvider provider0 = new RPCProvider(port, serializer);
+                RPCProvider provider0 = new RPCProvider(port, serializer, byteCodeInvoke);
                 provider0.start();
 
                 return provider0;
@@ -153,14 +154,21 @@ public class Clusters {
 
         Cluster cluster = new ClusterImpl(registry, url.getServiceName(), timeout, router, loadBalance);
 
-//        JavaClusterInvoker clusterInvoker = new JavaClusterInvoker(cluster, retryTimes, retryTimeout, url);
-//
-//        Object jdkProxy = Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class<?>[]{interfaceClass}, clusterInvoker);
-//
-//        REFERENCE_CACHE.put(url.getServiceName(), clusterInvoker);
+        T proxy;
 
-        JavassistClusterInvoker<T> javassistClusterInvoker = new JavassistClusterInvoker<>(cluster, retryTimes, retryTimeout, url, interfaceClass);
-        T proxy = javassistClusterInvoker.proxy();
+        boolean byteCodeInvoke = Boolean.valueOf(url.getParam(Constants.BYTE_CODE_INVOKE_KEY));
+        if(byteCodeInvoke){
+            JavassistClusterInvoker<T> javassistClusterInvoker = new JavassistClusterInvoker<>(cluster, retryTimes, retryTimeout, url, interfaceClass);
+            proxy = javassistClusterInvoker.proxy();
+
+            REFERENCE_CACHE.put(url.getServiceName(), javassistClusterInvoker);
+        }
+        else{
+            ReflectClusterInvoker reflectClusterInvoker = new ReflectClusterInvoker(cluster, retryTimes, retryTimeout, url);
+            proxy = (T) Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class<?>[]{interfaceClass}, reflectClusterInvoker);
+
+            REFERENCE_CACHE.put(url.getServiceName(), reflectClusterInvoker);
+        }
 
         return proxy;
     }

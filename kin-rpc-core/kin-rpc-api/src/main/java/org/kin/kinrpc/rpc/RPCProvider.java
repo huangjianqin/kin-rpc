@@ -56,12 +56,15 @@ public class RPCProvider extends ActorLike<RPCProvider> {
     private ProviderHandler connection;
     //标识是否stopped
     private volatile boolean isStopped = false;
+    //是否使用字节码技术
+    private boolean isByteCodeInvoke;
 
-    public RPCProvider(int port, Serializer serializer) {
+    public RPCProvider(int port, Serializer serializer,boolean isByteCodeInvoke) {
         /** 使用公用的线程池 */
         super(RPCThreadPool.THREADS);
         this.port = port;
         this.serializer = serializer;
+        this.isByteCodeInvoke = isByteCodeInvoke;
     }
 
     /**
@@ -71,7 +74,16 @@ public class RPCProvider extends ActorLike<RPCProvider> {
         tell((rpcProvider) -> {
             if (!isStopped) {
                 String serviceName = url.getServiceName();
-                ProviderInvoker invoker = new JavassistProviderInvoker(serviceName, service, interfaceClass);
+                ProviderInvoker invoker;
+
+                if(isByteCodeInvoke){
+                    //使用javassist调用服务类接口方法
+                    invoker = new JavassistProviderInvoker(serviceName, service, interfaceClass);
+                }
+                else{
+                    //使用反射调用服务类接口方法
+                    invoker = new ReflectProviderInvoker(serviceName, service, interfaceClass);
+                }
 
                 if (!serviceMap.containsKey(serviceName)) {
                     serviceMap.put(serviceName, new ProviderInvokerWrapper(url, invoker));
