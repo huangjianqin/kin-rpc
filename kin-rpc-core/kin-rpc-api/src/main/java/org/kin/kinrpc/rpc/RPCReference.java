@@ -49,9 +49,10 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
         if(isStopped){
             return;
         }
-        log.debug("revceive a response >>> " + System.lineSeparator() + rpcResponse);
-
         rpcResponse.setHandleTime(System.currentTimeMillis());
+
+        log.debug("receive a response >>> " + System.lineSeparator() + rpcResponse);
+
         String requestId = rpcResponse.getRequestId() + "";
         RPCFuture pendRPCFuture = pendingRPCFutureMap.get(requestId);
         if (pendRPCFuture != null) {
