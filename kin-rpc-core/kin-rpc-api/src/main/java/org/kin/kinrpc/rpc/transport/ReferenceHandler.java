@@ -40,17 +40,16 @@ public class ReferenceHandler extends AbstractConnection implements ProtocolHand
 
     @Override
     public void connect(TransportOption transportOption) {
-        while(!client.isStopped() && !client.isActive()){
+        if(!client.isStopped() && !client.isActive()){
             try {
                 client.connect(transportOption);
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
-            if(client.isActive()){
-               break;
+            if(!client.isActive()){
+                /** n秒后重连 */
+                RPCThreadPool.THREADS.schedule(() -> connect(transportOption), 10, TimeUnit.SECONDS);
             }
-
-            RPCThreadPool.THREADS.schedule(() -> connect(transportOption), 10, TimeUnit.SECONDS);
         }
 
         if(!client.isStopped() && heartbeatFuture == null){
