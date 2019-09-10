@@ -6,7 +6,7 @@ import org.kin.framework.utils.StringUtils;
 /**
  * Created by 健勤 on 2017/2/12.
  */
-public class ApplicationConfig extends AbstractConfig{
+public class ApplicationConfig extends AbstractConfig {
     private String appName;
 
     ApplicationConfig() {

@@ -17,7 +17,7 @@ public class HashLoadBalance implements LoadBalance {
     @Override
     public ReferenceInvoker loadBalance(List<ReferenceInvoker> invokers) {
         TreeMap<Integer, ReferenceInvoker> map = new TreeMap<>();
-        for(ReferenceInvoker invoker: invokers){
+        for (ReferenceInvoker invoker : invokers) {
             map.put(HashUtils.efficientHash(invoker, LIMIT), invoker);
         }
 

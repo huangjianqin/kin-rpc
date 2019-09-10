@@ -10,9 +10,11 @@ import org.slf4j.LoggerFactory;
  * @author huangjianqin
  * @date 2019-08-22
  */
-public abstract class ProviderInvoker extends AbstractInvoker{
+public abstract class ProviderInvoker extends AbstractInvoker {
     protected static final Logger log = LoggerFactory.getLogger(ProviderInvoker.class);
-    /** 限流 */
+    /**
+     * 限流
+     */
     private RateLimiter rateLimiter = RateLimiter.create(Constants.PROVIDER_REQUEST_THRESHOLD);
 
     protected ProviderInvoker(String serviceName) {
@@ -23,7 +25,7 @@ public abstract class ProviderInvoker extends AbstractInvoker{
     public Object invoke(String methodName, boolean isVoid, Object... params) throws Throwable {
         log.debug("service '{}' method '{}' invoking...", getServiceName(), methodName);
         //限流
-        if(!rateLimiter.tryAcquire()){
+        if (!rateLimiter.tryAcquire()) {
             //抛异常, 外部捕获异常并立即返回给reference, 让其重试
             throw new RateLimitException();
         }
@@ -35,8 +37,8 @@ public abstract class ProviderInvoker extends AbstractInvoker{
     /**
      * 设置限流
      */
-    public void setRate(double rate){
-        if(rate > 0){
+    public void setRate(double rate) {
+        if (rate > 0) {
             rateLimiter.setRate(rate);
         }
     }
@@ -44,7 +46,7 @@ public abstract class ProviderInvoker extends AbstractInvoker{
     /**
      * 获取限流
      */
-    public double getRate(){
+    public double getRate() {
         return rateLimiter.getRate();
     }
 }

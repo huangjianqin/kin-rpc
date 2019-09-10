@@ -59,7 +59,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
     //是否使用字节码技术
     private boolean isByteCodeInvoke;
 
-    public RPCProvider(int port, Serializer serializer,boolean isByteCodeInvoke) {
+    public RPCProvider(int port, Serializer serializer, boolean isByteCodeInvoke) {
         /** 使用公用的线程池 */
         super(RPCThreadPool.THREADS);
         this.port = port;
@@ -76,11 +76,10 @@ public class RPCProvider extends ActorLike<RPCProvider> {
                 String serviceName = url.getServiceName();
                 ProviderInvoker invoker;
 
-                if(isByteCodeInvoke){
+                if (isByteCodeInvoke) {
                     //使用javassist调用服务类接口方法
                     invoker = new JavassistProviderInvoker(serviceName, service, interfaceClass);
-                }
-                else{
+                } else {
                     //使用反射调用服务类接口方法
                     invoker = new ReflectProviderInvoker(serviceName, service, interfaceClass);
                 }

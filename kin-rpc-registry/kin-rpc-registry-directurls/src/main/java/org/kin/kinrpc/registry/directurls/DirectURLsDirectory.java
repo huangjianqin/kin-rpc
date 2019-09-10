@@ -27,7 +27,7 @@ public class DirectURLsDirectory extends AbstractDirectory {
 
     @Override
     public List<ReferenceInvoker> list() {
-        if(!isStopped){
+        if (!isStopped) {
             return invokers.stream().filter(ReferenceInvoker::isActive).collect(Collectors.toList());
         }
         return Collections.emptyList();
@@ -35,9 +35,9 @@ public class DirectURLsDirectory extends AbstractDirectory {
 
     @Override
     protected void doDiscover(List<String> addresses) {
-        if(!isStopped){
+        if (!isStopped) {
             List<ReferenceInvoker> invokers = new ArrayList<>();
-            for (String address: addresses) {
+            for (String address : addresses) {
                 HostAndPort hostAndPort = HostAndPort.fromString(address);
 
                 //创建新的ReferenceInvoker,连接Service Server
@@ -54,7 +54,7 @@ public class DirectURLsDirectory extends AbstractDirectory {
 
     @Override
     protected void doDestroy() {
-        if(!isStopped){
+        if (!isStopped) {
             isStopped = true;
             for (ReferenceInvoker invoker : invokers) {
                 invoker.shutdown();

@@ -18,12 +18,12 @@ public class DirectURLsRegistry extends AbstractRegistry {
     }
 
     @Override
-    public void connect(){
+    public void connect() {
         //do nothing
     }
 
     @Override
-    public void register(String serviceName, String host, int port){
+    public void register(String serviceName, String host, int port) {
         //do nothing
     }
 
@@ -44,7 +44,7 @@ public class DirectURLsRegistry extends AbstractRegistry {
     public void unSubscribe(String serviceName) {
         log.info("reference unsubscribe service '{}' ", serviceName);
         Directory directory = DIRECTORY_CACHE.getIfPresent(serviceName);
-        if(directory != null){
+        if (directory != null) {
             directory.destroy();
         }
         DIRECTORY_CACHE.invalidate(serviceName);
@@ -54,7 +54,7 @@ public class DirectURLsRegistry extends AbstractRegistry {
     public void destroy() {
         hostAndPorts.clear();
         hostAndPorts = null;
-        for(Directory directory: DIRECTORY_CACHE.asMap().values()){
+        for (Directory directory : DIRECTORY_CACHE.asMap().values()) {
             directory.destroy();
         }
         DIRECTORY_CACHE.invalidateAll();

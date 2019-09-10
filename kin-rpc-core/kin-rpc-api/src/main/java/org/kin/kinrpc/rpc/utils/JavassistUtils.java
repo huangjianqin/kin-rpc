@@ -153,7 +153,7 @@ public class JavassistUtils {
         }
     }
 
-    public static void cacheCTClass(String serviceName, CtClass ctClass){
+    public static void cacheCTClass(String serviceName, CtClass ctClass) {
         CTCLASS_CACHE.put(serviceName, ctClass);
     }
 

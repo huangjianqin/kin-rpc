@@ -4,7 +4,7 @@ package org.kin.kinrpc.rpc.transport.common;
  * Created by huangjianqin on 2019/6/14.
  */
 public class RPCConstants {
-    private RPCConstants(){
+    private RPCConstants() {
 
     }
 

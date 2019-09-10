@@ -29,6 +29,7 @@ public abstract class AbstractDirectory extends ActorLike<AbstractDirectory> imp
     }
 
     protected abstract void doDiscover(List<String> addresses);
+
     protected abstract void doDestroy();
 
     @Override

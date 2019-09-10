@@ -17,10 +17,10 @@ public class LoadBalances {
     private static final Logger log = LoggerFactory.getLogger(LoadBalances.class);
     private static final Cache<String, LoadBalance> LOADBALANCE_CACHE = CacheBuilder.newBuilder().build();
 
-    private LoadBalances(){
+    private LoadBalances() {
     }
 
-    public static LoadBalance getLoadBalance(String type){
+    public static LoadBalance getLoadBalance(String type) {
         //从整个classpath寻找LoadBalance子类
         type = type.toLowerCase();
         try {

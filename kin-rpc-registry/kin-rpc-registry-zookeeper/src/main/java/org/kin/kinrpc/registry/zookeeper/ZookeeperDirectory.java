@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 /**
  * Created by 健勤 on 2017/2/13.
  * 以zookeeper为注册中心, 实时监听服务状态变化, 并更新可调用服务invoker
- *
+ * <p>
  * 无效invoker由zookeeper注册中心控制, 所以可能会存在list有无效invoker(zookeeper没有及时更新到)
  */
 public class ZookeeperDirectory extends AbstractDirectory {
@@ -29,7 +29,7 @@ public class ZookeeperDirectory extends AbstractDirectory {
     @Override
     public List<ReferenceInvoker> list() {
         //Directory关闭中调用该方法会返回一个size=0的列表
-        if(!isStopped){
+        if (!isStopped) {
             return super.invokers.stream().filter(ReferenceInvoker::isActive).collect(Collectors.toList());
         }
         return Collections.emptyList();
@@ -46,7 +46,7 @@ public class ZookeeperDirectory extends AbstractDirectory {
 
         StringBuilder sb = new StringBuilder();
         List<HostAndPort> hostAndPorts = new ArrayList<>();
-        if(addresses != null && addresses.size() > 0){
+        if (addresses != null && addresses.size() > 0) {
             for (String address : addresses) {
                 HostAndPort hostAndPort = HostAndPort.fromString(address);
                 hostAndPorts.add(hostAndPort);
@@ -102,7 +102,7 @@ public class ZookeeperDirectory extends AbstractDirectory {
 
     @Override
     protected void doDestroy() {
-        if(!isStopped){
+        if (!isStopped) {
             isStopped = true;
             //关闭所有当前连接
             if (invokers != null && invokers.size() > 0) {

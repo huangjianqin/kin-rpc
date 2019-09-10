@@ -17,6 +17,7 @@ public interface Registry {
     void unSubscribe(String serviceName);
 
     void retain();
+
     boolean release();
 
     void destroy();

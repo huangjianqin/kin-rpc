@@ -10,7 +10,7 @@ public class RPCContext {
 
     private ThreadLocal<Future> rpcFuture = new ThreadLocal<>();
 
-    private RPCContext(){
+    private RPCContext() {
     }
 
     public static RPCContext instance() {

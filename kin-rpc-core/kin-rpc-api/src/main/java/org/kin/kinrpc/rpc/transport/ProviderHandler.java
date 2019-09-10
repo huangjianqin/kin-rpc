@@ -62,10 +62,10 @@ public class ProviderHandler extends AbstractConnection implements ProtocolHandl
 
     @Override
     public void handleProtocol(AbstractSession session, AbstractProtocol protocol) {
-        if(protocol == null){
+        if (protocol == null) {
             return;
         }
-        if(protocol instanceof RPCRequestProtocol){
+        if (protocol instanceof RPCRequestProtocol) {
             try {
                 RPCRequestProtocol requestProtocol = (RPCRequestProtocol) protocol;
                 byte[] data = requestProtocol.getReqContent();
@@ -79,7 +79,7 @@ public class ProviderHandler extends AbstractConnection implements ProtocolHandl
                     );
 
                     //限流
-                    if(!rateLimiter.tryAcquire(data.length)){
+                    if (!rateLimiter.tryAcquire(data.length)) {
                         RPCResponse rpcResponse = RPCResponse.respWithError(rpcRequest, "server rate limited, just reject");
                         session.getChannel().writeAndFlush(rpcResponse);
 
@@ -100,14 +100,12 @@ public class ProviderHandler extends AbstractConnection implements ProtocolHandl
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
-        }
-        else if(protocol instanceof RPCHeartbeat){
+        } else if (protocol instanceof RPCHeartbeat) {
             RPCHeartbeat heartbeat = (RPCHeartbeat) protocol;
             log.info("client heartbeat ip:{}, content:{}", heartbeat.getIp(), heartbeat.getContent());
             RPCHeartbeat heartbeatResp = ProtocolFactory.createProtocol(RPCConstants.RPC_HEARTBEAT_PROTOCOL_ID, getAddress(), "");
             session.getChannel().writeAndFlush(heartbeatResp.write());
-        }
-        else{
+        } else {
             log.error("unknown protocol >>>> {}", protocol);
         }
     }

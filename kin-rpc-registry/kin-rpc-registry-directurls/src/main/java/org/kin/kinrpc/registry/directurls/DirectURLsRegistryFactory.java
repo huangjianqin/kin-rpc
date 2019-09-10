@@ -23,7 +23,7 @@ public class DirectURLsRegistryFactory extends AbstractRegistryFactory {
         Preconditions.checkNotNull(Serializers.getSerializer(serializerType), "unvalid serializer type: [" + serializerType + "]");
 
         List<String> hostAndPorts = new ArrayList<>();
-        for(String one: address.split(Constants.DIRECT_URLS_REGISTRY_SPLITOR)){
+        for (String one : address.split(Constants.DIRECT_URLS_REGISTRY_SPLITOR)) {
             hostAndPorts.add(one);
         }
 

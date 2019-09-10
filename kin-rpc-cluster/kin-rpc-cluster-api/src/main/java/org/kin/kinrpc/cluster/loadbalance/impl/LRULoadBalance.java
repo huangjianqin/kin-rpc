@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author huangjianqin
  * @date 2019/7/29
- *
+ * <p>
  * 最近最少使用
  */
 public class LRULoadBalance implements LoadBalance {
@@ -25,29 +25,29 @@ public class LRULoadBalance implements LoadBalance {
 
     @Override
     public ReferenceInvoker loadBalance(List<ReferenceInvoker> invokers) {
-        synchronized (lruMap){
+        synchronized (lruMap) {
             int now = TimeUtils.timestamp();
-            if(now >= monitorTime + EXPIRE_TIME){
+            if (now >= monitorTime + EXPIRE_TIME) {
                 monitorTime = now;
                 lruMap.clear();
             }
 
             //put
             Map<String, ReferenceInvoker> address2Invoker = new HashMap<>();
-            for(ReferenceInvoker invoker: invokers){
+            for (ReferenceInvoker invoker : invokers) {
                 address2Invoker.put(invoker.getAddress().toString(), invoker);
                 lruMap.put(invoker.getAddress().toString(), true);
             }
 
             //remove invalid
             List<String> invalidAddresses = new ArrayList<>();
-            for(String hostAndPortStr: lruMap.keySet()){
-                if(!address2Invoker.containsKey(hostAndPortStr)){
+            for (String hostAndPortStr : lruMap.keySet()) {
+                if (!address2Invoker.containsKey(hostAndPortStr)) {
                     invalidAddresses.add(hostAndPortStr);
                 }
             }
 
-            for(String invalidAddress: invalidAddresses){
+            for (String invalidAddress : invalidAddresses) {
                 lruMap.remove(invalidAddress);
             }
 

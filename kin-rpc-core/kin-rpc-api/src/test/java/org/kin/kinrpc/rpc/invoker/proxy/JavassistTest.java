@@ -20,8 +20,9 @@ public class JavassistTest {
         }
     }
 
-    public interface Addable{
+    public interface Addable {
         int add(int a, int b);
+
         void print(int a);
     }
 

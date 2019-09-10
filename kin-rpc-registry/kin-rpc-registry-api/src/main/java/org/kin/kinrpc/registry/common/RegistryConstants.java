@@ -4,7 +4,7 @@ package org.kin.kinrpc.registry.common;
  * Created by huangjianqin on 2019/6/11.
  */
 public class RegistryConstants {
-    private RegistryConstants(){
+    private RegistryConstants() {
 
     }
 

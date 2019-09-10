@@ -6,7 +6,7 @@ import org.kin.kinrpc.common.Constants;
 /**
  * Created by 健勤 on 2017/2/12.
  */
-public class ServerConfig extends AbstractConfig{
+public class ServerConfig extends AbstractConfig {
     private static final int MAX_PORT = Short.MAX_VALUE - Short.MIN_VALUE;
     public static final ServerConfig DEFAULT = new ServerConfig(Constants.SERVER_DEFAULT_PORT);
 

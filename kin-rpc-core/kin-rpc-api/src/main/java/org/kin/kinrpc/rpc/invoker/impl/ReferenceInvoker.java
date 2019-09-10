@@ -87,7 +87,7 @@ public class ReferenceInvoker extends AbstractInvoker implements AsyncInvoker {
         return invoke0(methodName, params);
     }
 
-    private Future<RPCResponse> invoke0(String methodName, Object... params){
+    private Future<RPCResponse> invoke0(String methodName, Object... params) {
         log.debug("invoke method '" + methodName + "'");
         RPCRequest request = createRequest(RPCRequestIdGenerator.next(), methodName, params);
         return rpcReference.request(request);

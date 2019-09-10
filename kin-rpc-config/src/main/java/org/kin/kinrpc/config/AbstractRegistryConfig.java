@@ -3,7 +3,7 @@ package org.kin.kinrpc.config;
 /**
  * Created by huangjianqin on 2019/6/18.
  */
-public abstract class AbstractRegistryConfig extends AbstractConfig{
+public abstract class AbstractRegistryConfig extends AbstractConfig {
     protected String address;
     protected int sessionTimeout;
 

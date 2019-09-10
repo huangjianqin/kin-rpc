@@ -17,10 +17,10 @@ public class Routers {
     private static final Logger log = LoggerFactory.getLogger(Routers.class);
     private static final Cache<String, Router> ROUTER_CACHE = CacheBuilder.newBuilder().build();
 
-    private Routers(){
+    private Routers() {
     }
 
-    public static Router getRouter(String type){
+    public static Router getRouter(String type) {
         //从整个classpath寻找Router子类
         type = type.toLowerCase();
         try {

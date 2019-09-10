@@ -5,7 +5,7 @@ package org.kin.kinrpc.common;
  * Created by 健勤 on 2016/10/9.
  */
 public class Constants {
-    private Constants(){
+    private Constants() {
 
     }
 
@@ -34,7 +34,6 @@ public class Constants {
 //    public static final String CHECK_KEY = "check";
 
 
-
     public static final String KINRPC_PROTOCOL = "kinrpc";
     //zookeeper注册中心会话超时
     public static final int ZOOKEEPER_SESSION_TIMEOUT = 5000;
@@ -51,7 +50,6 @@ public class Constants {
     public static final int REFERENCE_REQUEST_THRESHOLD = 5;
     //每秒所有channel请求访问量Byte
     public static final int SERVER_REQUEST_THRESHOLD = 20000;
-
 
 
     //Reference默认配置

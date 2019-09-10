@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
  * @author huangjianqin
  * @date 2019/7/2
  */
-public class Zookeeper2Registry extends AbstractRegistry{
+public class Zookeeper2Registry extends AbstractRegistry {
     private static final Logger log = LoggerFactory.getLogger(Zookeeper2Registry.class);
 
     protected String address;
@@ -40,7 +40,7 @@ public class Zookeeper2Registry extends AbstractRegistry{
     }
 
     @Override
-    public void connect(){
+    public void connect() {
         //同步创建zk client，原生api是异步的
         //RetryNTimes  RetryOneTime  RetryForever  RetryUntilElapsed
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(200, 5);
@@ -54,18 +54,18 @@ public class Zookeeper2Registry extends AbstractRegistry{
 //                .namespace(RegistryConstants.REGISTRY_ROOT)
                 .build();
         client.getConnectionStateListenable().addListener((curatorFramework, connectionState) -> {
-            if(ConnectionState.CONNECTED.equals(connectionState)){
+            if (ConnectionState.CONNECTED.equals(connectionState)) {
                 log.info("zookeeper registry created");
-            }else if(ConnectionState.RECONNECTED.equals(connectionState)){
+            } else if (ConnectionState.RECONNECTED.equals(connectionState)) {
                 log.info("zookeeper registry reconnected");
                 //重连时重新订阅
-                for(Directory directory: DIRECTORY_CACHE.asMap().values()){
+                for (Directory directory : DIRECTORY_CACHE.asMap().values()) {
                     watch(directory);
                 }
-            }else if(ConnectionState.LOST.equals(connectionState)){
+            } else if (ConnectionState.LOST.equals(connectionState)) {
                 log.info("disconnect to zookeeper server");
                 handleConnectError();
-            }else if(ConnectionState.SUSPENDED.equals(connectionState)){
+            } else if (ConnectionState.SUSPENDED.equals(connectionState)) {
                 log.error("connect to zookeeper server timeout '{}'", sessionTimeOut);
                 handleConnectError();
             }
@@ -112,7 +112,7 @@ public class Zookeeper2Registry extends AbstractRegistry{
     }
 
     @Override
-    public void register(String serviceName, String host, int port){
+    public void register(String serviceName, String host, int port) {
         log.info("provider register service '{}' ", serviceName);
         String address = host + ":" + port;
 
@@ -145,13 +145,13 @@ public class Zookeeper2Registry extends AbstractRegistry{
     public void unSubscribe(String serviceName) {
         log.info("reference unsubscribe service '{}' ", serviceName);
         Directory directory = DIRECTORY_CACHE.getIfPresent(serviceName);
-        if(directory != null){
+        if (directory != null) {
             directory.destroy();
         }
         DIRECTORY_CACHE.invalidate(serviceName);
     }
 
-    private void watch(Directory directory){
+    private void watch(Directory directory) {
         watchServiveNode(directory);
         watchServiveNodeChilds(directory);
     }
@@ -159,7 +159,7 @@ public class Zookeeper2Registry extends AbstractRegistry{
     /**
      * 监听服务根节点
      */
-    private void watchServiveNode(Directory directory){
+    private void watchServiveNode(Directory directory) {
         try {
             client.checkExists().usingWatcher((Watcher) (WatchedEvent watchedEvent) -> {
                 if (watchedEvent.getType() == Watcher.Event.EventType.NodeCreated) {
@@ -184,8 +184,7 @@ public class Zookeeper2Registry extends AbstractRegistry{
                 }
                 //尝试重新订阅服务
                 watch(directory);
-            }
-            else{
+            } else {
                 log.error(e.getMessage(), e);
             }
         } catch (Exception e) {
@@ -196,7 +195,7 @@ public class Zookeeper2Registry extends AbstractRegistry{
     /**
      * 监听服务子节点
      */
-    private void watchServiveNodeChilds(Directory directory){
+    private void watchServiveNodeChilds(Directory directory) {
         try {
             List<String> addresses = client.getChildren().usingWatcher(
                     (Watcher) (WatchedEvent watchedEvent) -> {
@@ -215,9 +214,9 @@ public class Zookeeper2Registry extends AbstractRegistry{
         }
     }
 
-    private void handleConnectError(){
+    private void handleConnectError() {
         //断连时, 让所有directory持有的invoker失效
-        for(Directory directory: DIRECTORY_CACHE.asMap().values()){
+        for (Directory directory : DIRECTORY_CACHE.asMap().values()) {
             directory.discover(Collections.emptyList());
         }
     }
@@ -226,7 +225,7 @@ public class Zookeeper2Registry extends AbstractRegistry{
     public void destroy() {
         if (client != null) {
             client.close();
-            for(Directory directory: DIRECTORY_CACHE.asMap().values()){
+            for (Directory directory : DIRECTORY_CACHE.asMap().values()) {
                 directory.destroy();
             }
             DIRECTORY_CACHE.invalidateAll();

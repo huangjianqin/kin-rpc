@@ -40,19 +40,19 @@ public class ReferenceHandler extends AbstractConnection implements ProtocolHand
 
     @Override
     public void connect(TransportOption transportOption) {
-        if(!client.isStopped() && !client.isActive()){
+        if (!client.isStopped() && !client.isActive()) {
             try {
                 client.connect(transportOption);
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
-            if(!client.isActive()){
+            if (!client.isActive()) {
                 /** n秒后重连 */
                 RPCThreadPool.THREADS.schedule(() -> connect(transportOption), 10, TimeUnit.SECONDS);
             }
         }
 
-        if(!client.isStopped() && heartbeatFuture == null){
+        if (!client.isStopped() && heartbeatFuture == null) {
             heartbeatFuture = RPCThreadPool.THREADS.scheduleAtFixedRate(() -> {
                 RPCHeartbeat heartbeat = ProtocolFactory.createProtocol(RPCConstants.RPC_HEARTBEAT_PROTOCOL_ID, client.getLocalAddress(), "");
                 client.request(heartbeat);
@@ -76,8 +76,8 @@ public class ReferenceHandler extends AbstractConnection implements ProtocolHand
         return client.isActive();
     }
 
-    public void request(RPCRequest request){
-        if(isActive()){
+    public void request(RPCRequest request) {
+        if (isActive()) {
             try {
                 request.setCreateTime(System.currentTimeMillis());
                 byte[] data = serializer.serialize(request);
@@ -92,10 +92,10 @@ public class ReferenceHandler extends AbstractConnection implements ProtocolHand
 
     @Override
     public void handleProtocol(AbstractSession session, AbstractProtocol protocol) {
-        if(protocol == null){
+        if (protocol == null) {
             return;
         }
-        if(protocol instanceof RPCResponseProtocol){
+        if (protocol instanceof RPCResponseProtocol) {
             RPCResponseProtocol responseProtocol = (RPCResponseProtocol) protocol;
             try {
                 RPCResponse rpcResponse;
@@ -111,12 +111,10 @@ public class ReferenceHandler extends AbstractConnection implements ProtocolHand
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
-        }
-        else if(protocol instanceof RPCHeartbeat){
+        } else if (protocol instanceof RPCHeartbeat) {
             RPCHeartbeat heartbeat = (RPCHeartbeat) protocol;
             log.info("server heartbeat ip:{}, content:{}", heartbeat.getIp(), heartbeat.getContent());
-        }
-        else{
+        } else {
             log.error("unknown protocol >>>> {}", protocol);
         }
     }

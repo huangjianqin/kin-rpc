@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author huangjianqin
  * @date 2019/7/29
- *
+ * <p>
  * 最不经常使用
  */
 public class LFULoadBalance implements LoadBalance {
@@ -21,19 +21,19 @@ public class LFULoadBalance implements LoadBalance {
 
     @Override
     public ReferenceInvoker loadBalance(List<ReferenceInvoker> invokers) {
-        synchronized (map){
+        synchronized (map) {
             int now = TimeUtils.timestamp();
-            if(now >= monitorTime + EXPIRE_TIME){
+            if (now >= monitorTime + EXPIRE_TIME) {
                 monitorTime = now;
                 map.clear();
             }
 
             //put
             Map<String, ReferenceInvoker> address2Invoker = new HashMap<>();
-            for(ReferenceInvoker invoker: invokers){
+            for (ReferenceInvoker invoker : invokers) {
                 String hostAndPortStr = invoker.getAddress().toString();
                 address2Invoker.put(hostAndPortStr, invoker);
-                if(!map.containsKey(hostAndPortStr) || map.get(hostAndPortStr) > 1000000){
+                if (!map.containsKey(hostAndPortStr) || map.get(hostAndPortStr) > 1000000) {
                     //缓解首次的压力
                     map.put(hostAndPortStr, new Random().nextInt(invokers.size()));
                 }
@@ -41,13 +41,13 @@ public class LFULoadBalance implements LoadBalance {
 
             //remove invalid
             List<String> invalidAddresses = new ArrayList<>();
-            for(String hostAndPortStr: map.keySet()){
-                if(!address2Invoker.containsKey(hostAndPortStr)){
+            for (String hostAndPortStr : map.keySet()) {
+                if (!address2Invoker.containsKey(hostAndPortStr)) {
                     invalidAddresses.add(hostAndPortStr);
                 }
             }
 
-            for(String invalidAddress: invalidAddresses){
+            for (String invalidAddress : invalidAddresses) {
                 map.remove(invalidAddress);
             }
 

@@ -51,9 +51,13 @@ public class AddableReference {
 
     public interface Addable {
         int add(int a, int b);
+
         void print(String content);
+
         <T> Future<T> get(int a);
+
         <T> CompletableFuture<T> get(String a);
+
         void throwException();
     }
 }

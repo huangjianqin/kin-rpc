@@ -44,13 +44,13 @@ public class Clusters {
     static {
         ProtocolFactory.init("org.kin.kinrpc.rpc");
         JvmCloseCleaner.DEFAULT().add(() -> {
-            for(RPCProvider provider: PROVIDER_CACHE.asMap().values()){
+            for (RPCProvider provider : PROVIDER_CACHE.asMap().values()) {
                 provider.shutdown();
                 for (URL url : provider.getAvailableServices()) {
                     unRegisterService(url);
                 }
             }
-            for(ClusterInvoker clusterInvoker: REFERENCE_CACHE.asMap().values()){
+            for (ClusterInvoker clusterInvoker : REFERENCE_CACHE.asMap().values()) {
                 clusterInvoker.close();
                 Registries.closeRegistry(clusterInvoker.getUrl());
             }
@@ -58,7 +58,7 @@ public class Clusters {
         });
         //心跳检查, 每隔一定时间检查provider是否异常, 并取消服务注册
         THREADS.execute(() -> {
-            while(!isStopped){
+            while (!isStopped) {
                 long sleepTime = HEARTBEAT_INTERVAL - TimeUtils.timestamp() % HEARTBEAT_INTERVAL;
                 try {
                     TimeUnit.SECONDS.sleep(sleepTime);
@@ -66,8 +66,8 @@ public class Clusters {
 
                 }
 
-                for(RPCProvider provider: new ArrayList<>(PROVIDER_CACHE.asMap().values())){
-                    if(!provider.isAlive()){
+                for (RPCProvider provider : new ArrayList<>(PROVIDER_CACHE.asMap().values())) {
+                    if (!provider.isAlive()) {
                         int port = provider.getPort();
                         PROVIDER_CACHE.invalidate(port);
                         THREADS.execute(() -> {
@@ -82,10 +82,10 @@ public class Clusters {
         });
     }
 
-    private Clusters(){
+    private Clusters() {
     }
 
-    public static synchronized void export(URL url, Class interfaceClass, Object instance){
+    public static synchronized void export(URL url, Class interfaceClass, Object instance) {
         int port = url.getPort();
         String serializerType = url.getParam(Constants.SERIALIZE_KEY);
         boolean byteCodeInvoke = Boolean.valueOf(url.getParam(Constants.BYTE_CODE_INVOKE_KEY));
@@ -107,7 +107,7 @@ public class Clusters {
         try {
             provider.addService(url, interfaceClass, instance);
             Registry registry = Registries.getRegistry(url);
-            if(registry != null){
+            if (registry != null) {
                 registry.register(url.getServiceName(), "0.0.0.0", port);
             }
         } catch (Exception e) {
@@ -116,27 +116,27 @@ public class Clusters {
         }
     }
 
-    private static void unRegisterService(URL url){
+    private static void unRegisterService(URL url) {
         Registry registry = Registries.getRegistry(url);
-        if(registry != null){
+        if (registry != null) {
             registry.unRegister(url.getServiceName(), "0.0.0.0", url.getPort());
             Registries.closeRegistry(url);
         }
     }
 
-    public static synchronized void disableService(URL url, Class interfaceClass){
+    public static synchronized void disableService(URL url, Class interfaceClass) {
         unRegisterService(url);
 
         RPCProvider provider = PROVIDER_CACHE.getIfPresent(url.getPort());
         provider.disableService(url);
-        if(!provider.isBusy()){
+        if (!provider.isBusy()) {
             //该端口没有提供服务, 关闭网络连接
             provider.shutdown();
             PROVIDER_CACHE.invalidate(url.getPort());
         }
     }
 
-    public static synchronized <T> T reference(URL url, Class<T> interfaceClass){
+    public static synchronized <T> T reference(URL url, Class<T> interfaceClass) {
         Registry registry = Registries.getRegistry(url);
         Preconditions.checkNotNull(registry);
 
@@ -157,13 +157,12 @@ public class Clusters {
         T proxy;
 
         boolean byteCodeInvoke = Boolean.valueOf(url.getParam(Constants.BYTE_CODE_INVOKE_KEY));
-        if(byteCodeInvoke){
+        if (byteCodeInvoke) {
             JavassistClusterInvoker<T> javassistClusterInvoker = new JavassistClusterInvoker<>(cluster, retryTimes, retryTimeout, url, interfaceClass);
             proxy = javassistClusterInvoker.proxy();
 
             REFERENCE_CACHE.put(url.getServiceName(), javassistClusterInvoker);
-        }
-        else{
+        } else {
             ReflectClusterInvoker reflectClusterInvoker = new ReflectClusterInvoker(cluster, retryTimes, retryTimeout, url);
             proxy = (T) Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class<?>[]{interfaceClass}, reflectClusterInvoker);
 
@@ -173,10 +172,10 @@ public class Clusters {
         return proxy;
     }
 
-    public static synchronized void disableReference(URL url){
+    public static synchronized void disableReference(URL url) {
         ClusterInvoker clusterInvoker = REFERENCE_CACHE.getIfPresent(url.getServiceName());
 
-        if(clusterInvoker != null){
+        if (clusterInvoker != null) {
             clusterInvoker.close();
         }
         Registry registry = Registries.getRegistry(url);
@@ -186,7 +185,7 @@ public class Clusters {
         REFERENCE_CACHE.invalidate(url.getServiceName());
     }
 
-    public static synchronized void shutdownHeartBeat(){
+    public static synchronized void shutdownHeartBeat() {
         THREADS.shutdown();
     }
 }

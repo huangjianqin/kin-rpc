@@ -13,6 +13,7 @@ import java.util.Collection;
 public interface Cluster {
     /**
      * 从注册中心中多个invoker中选择一个,包含router, loadbalance
+     *
      * @param excludes
      */
     ReferenceInvoker get(Collection<HostAndPort> excludes);

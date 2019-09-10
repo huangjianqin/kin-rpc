@@ -8,7 +8,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class RPCRequestIdGenerator {
     private static AtomicInteger num = new AtomicInteger(0);
 
-    private RPCRequestIdGenerator(){}
+    private RPCRequestIdGenerator() {
+    }
 
     public static int next() {
         return num.getAndAdd(1);

@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * Created by huangjianqin on 2019/6/18.
  */
-public class URL implements Serializable{
+public class URL implements Serializable {
     private String protocol;
     private String username;
     private String password;
@@ -113,7 +113,7 @@ public class URL implements Serializable{
         return new URL(protocol, username, password, host, port, path, parameters);
     }
 
-    public String getParam(String k){
+    public String getParam(String k) {
         return params.getOrDefault(k, "");
     }
 

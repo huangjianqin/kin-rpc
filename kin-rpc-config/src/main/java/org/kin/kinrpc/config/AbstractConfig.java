@@ -19,25 +19,22 @@ abstract class AbstractConfig {
     abstract void check();
 
     protected URL createURL(ApplicationConfig applicationConfig,
-                          String hostPort,
-                          AbstractRegistryConfig registryConfig,
-                          Map<String, String> otherParams){
+                            String hostPort,
+                            AbstractRegistryConfig registryConfig,
+                            Map<String, String> otherParams) {
         StringBuilder sb = new StringBuilder();
         sb.append(Constants.KINRPC_PROTOCOL + "://" + hostPort + "?");
 
         Map<String, String> params = new HashMap<>(Constants.URL_PARAM_NUM);
         params.put(Constants.APP_NAME_KEY, applicationConfig.getAppName());
-        if(registryConfig != null){
-            if(registryConfig instanceof DirectURLsRegistryConfig){
+        if (registryConfig != null) {
+            if (registryConfig instanceof DirectURLsRegistryConfig) {
                 params.put(Constants.REGISTRY_KEY, RegistryType.DIRECTURLS.getType());
-            }
-            else if(registryConfig instanceof ZookeeperRegistryConfig){
+            } else if (registryConfig instanceof ZookeeperRegistryConfig) {
                 params.put(Constants.REGISTRY_KEY, RegistryType.ZOOKEEPER.getType());
-            }
-            else if(registryConfig instanceof Zookeeper2RegistryConfig){
+            } else if (registryConfig instanceof Zookeeper2RegistryConfig) {
                 params.put(Constants.REGISTRY_KEY, RegistryType.ZOOKEEPER2.getType());
-            }
-            else{
+            } else {
                 throw new IllegalStateException("unknown registry");
             }
             params.put(Constants.REGISTRY_URL_KEY, registryConfig.getAddress());

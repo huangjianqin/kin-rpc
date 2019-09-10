@@ -46,7 +46,7 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
      * channel线程
      */
     public void handleResponse(RPCResponse rpcResponse) {
-        if(isStopped){
+        if (isStopped) {
             return;
         }
         rpcResponse.setHandleTime(System.currentTimeMillis());
@@ -63,9 +63,9 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
     /**
      * 其他线程
      */
-    public Future<RPCResponse> request(RPCRequest request){
+    public Future<RPCResponse> request(RPCRequest request) {
         RPCFuture future = new RPCFuture(request, this);
-        if(!isActive()){
+        if (!isActive()) {
             future.done(RPCResponse.respWithError(request, "client channel closed"));
             return future;
         }
@@ -96,21 +96,21 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
     }
 
     public boolean isActive() {
-        if(isStopped){
+        if (isStopped) {
             return false;
         }
         return connection.isActive();
     }
 
     public void start() {
-        if(isStopped){
+        if (isStopped) {
             return;
         }
         connection.connect(clientTransportOption);
     }
 
     public void shutdown() {
-        if(isStopped){
+        if (isStopped) {
             return;
         }
         isStopped = true;

@@ -5,7 +5,7 @@ package org.kin.kinrpc.config;
  * @date 2019/6/25
  */
 public class References {
-    private References(){
+    private References() {
 
     }
 

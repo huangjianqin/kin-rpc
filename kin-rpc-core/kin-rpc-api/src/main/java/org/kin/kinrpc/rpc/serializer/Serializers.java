@@ -17,10 +17,10 @@ public class Serializers {
     private static final Logger log = LoggerFactory.getLogger(Serializers.class);
     private static final Cache<String, Serializer> SERIALIZER_CACHE = CacheBuilder.newBuilder().build();
 
-    private Serializers(){
+    private Serializers() {
     }
 
-    public static Serializer getSerializer(String type){
+    public static Serializer getSerializer(String type) {
         //从整个classpath寻找Serializer子类
         type = type.toLowerCase();
         try {

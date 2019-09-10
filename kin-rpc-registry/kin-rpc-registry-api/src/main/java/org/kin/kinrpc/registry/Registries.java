@@ -22,9 +22,9 @@ public class Registries {
     private Registries() {
     }
 
-    private static RegistryFactory getRegistryFactory(URL url){
+    private static RegistryFactory getRegistryFactory(URL url) {
         String registryType = url.getParam(Constants.REGISTRY_KEY);
-        if(StringUtils.isBlank(registryType)){
+        if (StringUtils.isBlank(registryType)) {
             return null;
         }
         registryType = registryType.toLowerCase();
@@ -54,17 +54,17 @@ public class Registries {
         throw new IllegalStateException("init registry error >>>" + registryType);
     }
 
-    public static synchronized Registry getRegistry(URL url){
+    public static synchronized Registry getRegistry(URL url) {
         RegistryFactory registryFactory = getRegistryFactory(url);
-        if(registryFactory != null){
+        if (registryFactory != null) {
             return registryFactory.getRegistry(url);
         }
         return null;
     }
 
-    public static synchronized void closeRegistry(URL url){
+    public static synchronized void closeRegistry(URL url) {
         RegistryFactory registryFactory = getRegistryFactory(url);
-        if(registryFactory != null){
+        if (registryFactory != null) {
             registryFactory.close(url);
         }
     }
