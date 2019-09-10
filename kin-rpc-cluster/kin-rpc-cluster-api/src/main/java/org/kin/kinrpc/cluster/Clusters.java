@@ -153,13 +153,16 @@ public class Clusters {
 
         Cluster cluster = new ClusterImpl(registry, url.getServiceName(), timeout, router, loadBalance);
 
-        ClusterInvoker clusterInvoker = new ClusterInvoker(cluster, retryTimes, retryTimeout, url);
+//        JavaClusterInvoker clusterInvoker = new JavaClusterInvoker(cluster, retryTimes, retryTimeout, url);
+//
+//        Object jdkProxy = Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class<?>[]{interfaceClass}, clusterInvoker);
+//
+//        REFERENCE_CACHE.put(url.getServiceName(), clusterInvoker);
 
-        Object jdkProxy = Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class<?>[]{interfaceClass}, clusterInvoker);
+        JavassistClusterInvoker<T> javassistClusterInvoker = new JavassistClusterInvoker<>(cluster, retryTimes, retryTimeout, url, interfaceClass);
+        T proxy = javassistClusterInvoker.proxy();
 
-        REFERENCE_CACHE.put(url.getServiceName(), clusterInvoker);
-
-        return interfaceClass.cast(jdkProxy);
+        return proxy;
     }
 
     public static synchronized void disableReference(URL url){

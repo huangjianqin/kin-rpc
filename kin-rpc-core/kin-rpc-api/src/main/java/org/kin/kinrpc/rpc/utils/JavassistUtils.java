@@ -59,8 +59,7 @@ public class JavassistUtils {
                 proxyClass.addField(serviceField);
 
                 //处理构造方法
-                CtConstructor constructor = new CtConstructor(new CtClass[]{pool.get(interfaceClass.getName())},
-                        proxyClass);
+                CtConstructor constructor = new CtConstructor(new CtClass[]{pool.get(interfaceClass.getName())}, proxyClass);
                 constructor.setBody("{$0.service = $1;}");
                 proxyClass.addConstructor(constructor);
 
@@ -134,7 +133,7 @@ public class JavassistUtils {
                 JavassistMethodInvoker proxyMethodInvoker = (JavassistMethodInvoker) realProxyClass.getConstructor(interfaceClass).newInstance(service);
 
                 result.put(uniqueName, proxyMethodInvoker);
-                CTCLASS_CACHE.put(serviceName, proxyClass);
+                cacheCTClass(serviceName, proxyClass);
             } catch (Exception e) {
                 log.error(method.toString(), e);
             }
@@ -152,5 +151,14 @@ public class JavassistUtils {
                 ctClass.detach();
             }
         }
+    }
+
+    public static void cacheCTClass(String serviceName, CtClass ctClass){
+        CTCLASS_CACHE.put(serviceName, ctClass);
+    }
+
+
+    public static ClassPool getPool() {
+        return pool;
     }
 }

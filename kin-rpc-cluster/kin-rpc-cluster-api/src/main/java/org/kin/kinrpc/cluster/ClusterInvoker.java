@@ -17,7 +17,6 @@ import org.kin.kinrpc.rpc.utils.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashSet;
@@ -26,10 +25,9 @@ import java.util.concurrent.*;
 
 /**
  * Created by 健勤 on 2017/2/15.
- * reference端没有必要使用字节码生成技术, 因为本来代码的实现就是把服务接口必要的参数传给provider, 仅此而已.
  */
-class ClusterInvoker implements InvocationHandler, Closeable {
-    private static final Logger log = LoggerFactory.getLogger(ClusterInvoker.class);
+abstract class ClusterInvoker<I> implements Closeable {
+    protected static final Logger log = LoggerFactory.getLogger(ClusterInvoker.class);
 
     private final Cluster cluster;
     private final int retryTimes;
@@ -43,34 +41,35 @@ class ClusterInvoker implements InvocationHandler, Closeable {
         this.url = url;
     }
 
-    @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        log.debug("invoke method '" + method.getName() + "'");
-
-        //异步方式: reference端必须自定义一个与service端除了返回值为Future.class或者CompletableFuture.class外,
-        //方法签名相同的接口
-        Class returnType = method.getReturnType();
-        if (Future.class.equals(returnType)) {
-            return invokeAsync(method, args);
-        } else if (CompletableFuture.class.equals(returnType)) {
-            return CompletableFuture.supplyAsync(() -> invoke0(method, args));
-        }
-
-        return invoke0(method, args);
-    }
-
-    private Future invokeAsync(Method method, Object... params){
+    public Future invokeAsync(Method method, Object... params) {
         Callable callable = () -> invoke0(method, params);
         Future future = RPCThreadPool.THREADS.submit(callable);
         RPCContext.instance().setFuture(future);
         return future;
     }
 
-    private Object invoke0(Method method, Object... params){
+    /**
+     * 专供javassist使用
+     */
+    protected Future invokeAsync(String methodName, boolean isVoid, Object... params) {
+        Callable callable = () -> invoke0(methodName, isVoid, params);
+        Future future = RPCThreadPool.THREADS.submit(callable);
+        RPCContext.instance().setFuture(future);
+        return future;
+    }
+
+    public Object invoke0(Method method, Object... params) {
         String methodName = ClassUtils.getUniqueName(method);
         Class returnType = method.getReturnType();
-        boolean isVoid = Void.class.equals(returnType);
-        if(retryTimes > 0){
+        boolean isVoid = Void.class.equals(returnType) || Void.TYPE.equals(method.getReturnType());
+        return invoke0(methodName, isVoid, params);
+    }
+
+    /**
+     * 专供javassist使用
+     */
+    protected Object invoke0(String methodName, boolean isVoid, Object... params) {
+        if (retryTimes > 0) {
             int tryTimes = 0;
 
             //单次请求曾经fail的service 访问地址
@@ -120,8 +119,7 @@ class ClusterInvoker implements InvocationHandler, Closeable {
 
             //超过重试次数, 抛弃异常
             throw new RPCRetryOutException(retryTimes);
-        }
-        else{
+        } else {
             ReferenceInvoker invoker = cluster.get(Collections.EMPTY_LIST);
             if (invoker != null) {
                 try {
@@ -135,7 +133,6 @@ class ClusterInvoker implements InvocationHandler, Closeable {
         //抛异常, 等待外部程序处理
         throw new CannotFindInvokerException();
     }
-
 
     @Override
     public void close() {
