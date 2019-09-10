@@ -28,6 +28,81 @@ public class JavassistUtils {
     private JavassistUtils() {
     }
 
+    public static String primitivePackage(Class claxx, String code) {
+        StringBuffer sb = new StringBuffer();
+        /** 需要手动装箱, 不然编译会报错 */
+        if (claxx.isPrimitive()) {
+            if (Integer.TYPE.equals(claxx)) {
+                sb.append("Integer.valueOf(");
+            } else if (Short.TYPE.equals(claxx)) {
+                sb.append("Short.valueOf(");
+            } else if (Byte.TYPE.equals(claxx)) {
+                sb.append("Byte.valueOf(");
+            } else if (Long.TYPE.equals(claxx)) {
+                sb.append("Long.valueOf(");
+            } else if (Float.TYPE.equals(claxx)) {
+                sb.append("Float.valueOf(");
+            } else if (Double.TYPE.equals(claxx)) {
+                sb.append("Double.valueOf(");
+            } else if (Character.TYPE.equals(claxx)) {
+                sb.append("Character.valueOf(");
+            }
+        }
+        sb.append(code);
+        if (claxx.isPrimitive() && !Void.TYPE.equals(claxx)) {
+            sb.append(")");
+        }
+        return sb.toString();
+    }
+
+    public static String primitiveUnpackage(Class claxx, String code) {
+        /** 需要手动拆箱, 不然编译会报错 */
+        if (Integer.TYPE.equals(claxx)) {
+            return "((" + Integer.class.getSimpleName() + ")" + code + ").intValue()";
+        } else if (Short.TYPE.equals(claxx)) {
+            return "((" + Short.class.getSimpleName() + ")" + code + ").shortValue()";
+        } else if (Byte.TYPE.equals(claxx)) {
+            return "((" + Byte.class.getSimpleName() + ")" + code + ").byteValue()";
+        } else if (Long.TYPE.equals(claxx)) {
+            return "((" + Long.class.getSimpleName() + ")" + code + ").longValue()";
+        } else if (Float.TYPE.equals(claxx)) {
+            return "((" + Float.class.getSimpleName() + ")" + code + ").floatValue()";
+        } else if (Double.TYPE.equals(claxx)) {
+            return "((" + Double.class.getSimpleName() + ")" + code + ").doubleValue()";
+        } else if (Character.TYPE.equals(claxx)) {
+            return "((" + Character.class.getSimpleName() + ")" + code + ").charValue()";
+        } else if (!Void.TYPE.equals(claxx)) {
+            return "(" + claxx.getName() + ")" + code;
+        }
+        return code;
+    }
+
+    private static String generateProviderInvokeCode(String fieldName, Method method) {
+        StringBuffer invokeCode = new StringBuffer();
+
+        Class<?> returnType = method.getReturnType();
+        if (!returnType.equals(Void.TYPE)) {
+            invokeCode.append("result = ");
+        }
+
+        StringBuffer oneLineCode = new StringBuffer();
+        oneLineCode.append(fieldName + "." + method.getName() + "(");
+
+        Class[] paramTypes = method.getParameterTypes();
+        StringJoiner paramBody = new StringJoiner(", ");
+        for (int i = 0; i < paramTypes.length; i++) {
+            paramBody.add(primitiveUnpackage(paramTypes[i], "params[" + i + "]"));
+        }
+
+        oneLineCode.append(paramBody.toString());
+        oneLineCode.append(")");
+
+        invokeCode.append(primitivePackage(returnType, oneLineCode.toString()));
+        invokeCode.append(";");
+
+        return invokeCode.toString();
+    }
+
     /**
      * 利用javassist字节码技术生成方法代理类, 调用效率比反射要高
      */
@@ -51,79 +126,24 @@ public class JavassistUtils {
 
             try {
                 //实现接口
-                proxyClass.setInterfaces(new CtClass[]{pool.getCtClass(JavassistMethodInvoker.class.getName())});
+                proxyClass.addInterface(pool.getCtClass(JavassistMethodInvoker.class.getName()));
 
                 //添加成员域
-                CtField serviceField = new CtField(pool.get(interfaceClass.getName()), "service", proxyClass);
+                String fieldName = "service";
+                CtField serviceField = new CtField(pool.get(interfaceClass.getName()), fieldName, proxyClass);
                 serviceField.setModifiers(Modifier.PRIVATE | Modifier.FINAL);
                 proxyClass.addField(serviceField);
 
                 //处理构造方法
                 CtConstructor constructor = new CtConstructor(new CtClass[]{pool.get(interfaceClass.getName())}, proxyClass);
-                constructor.setBody("{$0.service = $1;}");
+                constructor.setBody("{$0." + fieldName + " = $1;}");
                 proxyClass.addConstructor(constructor);
 
                 //方法体
                 StringBuffer methodBody = new StringBuffer();
                 methodBody.append(METHOD_SIGNATURE + "{");
                 methodBody.append("Object result = null;");
-
-                Class<?> returnType = method.getReturnType();
-                if (!returnType.equals(Void.TYPE)) {
-                    methodBody.append("result = ");
-                    /** 需要手动装箱, 不然编译会报错 */
-                    if (returnType.isPrimitive()) {
-                        if (Integer.TYPE.equals(method.getReturnType())) {
-                            methodBody.append("Integer.valueOf(");
-                        } else if (Short.TYPE.equals(method.getReturnType())) {
-                            methodBody.append("Short.valueOf(");
-                        } else if (Byte.TYPE.equals(method.getReturnType())) {
-                            methodBody.append("Byte.valueOf(");
-                        } else if (Long.TYPE.equals(method.getReturnType())) {
-                            methodBody.append("Long.valueOf(");
-                        } else if (Float.TYPE.equals(method.getReturnType())) {
-                            methodBody.append("Float.valueOf(");
-                        } else if (Double.TYPE.equals(method.getReturnType())) {
-                            methodBody.append("Double.valueOf(");
-                        } else if (Character.TYPE.equals(method.getReturnType())) {
-                            methodBody.append("Character.valueOf(");
-                        }
-                    }
-                }
-                methodBody.append("service." + method.getName() + "(");
-
-                Class[] paramTypes = method.getParameterTypes();
-                StringJoiner paramBody = new StringJoiner(", ");
-                for (int i = 0; i < paramTypes.length; i++) {
-                    if (paramTypes[i].isPrimitive()) {
-                        /** 需要手动拆箱, 不然编译会报错 */
-                        if (Integer.TYPE.equals(paramTypes[i])) {
-                            paramBody.add("((" + Integer.class.getSimpleName() + ")params[" + i + "]).intValue()");
-                        } else if (Short.TYPE.equals(paramTypes[i])) {
-                            paramBody.add("((" + Short.class.getSimpleName() + ")params[" + i + "]).shortValue()");
-                        } else if (Byte.TYPE.equals(paramTypes[i])) {
-                            paramBody.add("((" + Byte.class.getSimpleName() + ")params[" + i + "]).byteValue()");
-                        } else if (Long.TYPE.equals(paramTypes[i])) {
-                            paramBody.add("((" + Long.class.getSimpleName() + ")params[" + i + "]).longValue()");
-                        } else if (Float.TYPE.equals(paramTypes[i])) {
-                            paramBody.add("((" + Float.class.getSimpleName() + ")params[" + i + "]).floatValue()");
-                        } else if (Double.TYPE.equals(paramTypes[i])) {
-                            paramBody.add("((" + Double.class.getSimpleName() + ")params[" + i + "]).doubleValue()");
-                        } else if (Character.TYPE.equals(paramTypes[i])) {
-                            paramBody.add("((" + Character.class.getSimpleName() + ")params[" + i + "]).charValue()");
-                        }
-                    } else {
-                        paramBody.add("(" + paramTypes[i].getName() + ")params[" + i + "]");
-                    }
-                }
-
-                methodBody.append(paramBody.toString());
-                methodBody.append(")");
-                if (!method.getReturnType().equals(Void.TYPE) && returnType.isPrimitive()) {
-                    methodBody.append(");");
-                } else {
-                    methodBody.append(";");
-                }
+                methodBody.append(generateProviderInvokeCode(fieldName, method));
                 methodBody.append("return result; }");
 
                 CtMethod proxyMethod = CtMethod.make(methodBody.toString(), proxyClass);
@@ -150,6 +170,7 @@ public class JavassistUtils {
             for (CtClass ctClass : CTCLASS_CACHE.get(serviceName)) {
                 ctClass.detach();
             }
+            CTCLASS_CACHE.removeAll(serviceName);
         }
     }
 
