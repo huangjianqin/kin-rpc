@@ -28,55 +28,6 @@ public class JavassistUtils {
     private JavassistUtils() {
     }
 
-    public static String primitivePackage(Class claxx, String code) {
-        StringBuffer sb = new StringBuffer();
-        /** 需要手动装箱, 不然编译会报错 */
-        if (claxx.isPrimitive()) {
-            if (Integer.TYPE.equals(claxx)) {
-                sb.append("Integer.valueOf(");
-            } else if (Short.TYPE.equals(claxx)) {
-                sb.append("Short.valueOf(");
-            } else if (Byte.TYPE.equals(claxx)) {
-                sb.append("Byte.valueOf(");
-            } else if (Long.TYPE.equals(claxx)) {
-                sb.append("Long.valueOf(");
-            } else if (Float.TYPE.equals(claxx)) {
-                sb.append("Float.valueOf(");
-            } else if (Double.TYPE.equals(claxx)) {
-                sb.append("Double.valueOf(");
-            } else if (Character.TYPE.equals(claxx)) {
-                sb.append("Character.valueOf(");
-            }
-        }
-        sb.append(code);
-        if (claxx.isPrimitive() && !Void.TYPE.equals(claxx)) {
-            sb.append(")");
-        }
-        return sb.toString();
-    }
-
-    public static String primitiveUnpackage(Class claxx, String code) {
-        /** 需要手动拆箱, 不然编译会报错 */
-        if (Integer.TYPE.equals(claxx)) {
-            return "((" + Integer.class.getSimpleName() + ")" + code + ").intValue()";
-        } else if (Short.TYPE.equals(claxx)) {
-            return "((" + Short.class.getSimpleName() + ")" + code + ").shortValue()";
-        } else if (Byte.TYPE.equals(claxx)) {
-            return "((" + Byte.class.getSimpleName() + ")" + code + ").byteValue()";
-        } else if (Long.TYPE.equals(claxx)) {
-            return "((" + Long.class.getSimpleName() + ")" + code + ").longValue()";
-        } else if (Float.TYPE.equals(claxx)) {
-            return "((" + Float.class.getSimpleName() + ")" + code + ").floatValue()";
-        } else if (Double.TYPE.equals(claxx)) {
-            return "((" + Double.class.getSimpleName() + ")" + code + ").doubleValue()";
-        } else if (Character.TYPE.equals(claxx)) {
-            return "((" + Character.class.getSimpleName() + ")" + code + ").charValue()";
-        } else if (!Void.TYPE.equals(claxx)) {
-            return "(" + claxx.getName() + ")" + code;
-        }
-        return code;
-    }
-
     private static String generateProviderInvokeCode(String fieldName, Method method) {
         StringBuffer invokeCode = new StringBuffer();
 
@@ -91,13 +42,13 @@ public class JavassistUtils {
         Class[] paramTypes = method.getParameterTypes();
         StringJoiner paramBody = new StringJoiner(", ");
         for (int i = 0; i < paramTypes.length; i++) {
-            paramBody.add(primitiveUnpackage(paramTypes[i], "params[" + i + "]"));
+            paramBody.add(org.kin.framework.utils.ClassUtils.primitiveUnpackage(paramTypes[i], "params[" + i + "]"));
         }
 
         oneLineCode.append(paramBody.toString());
         oneLineCode.append(")");
 
-        invokeCode.append(primitivePackage(returnType, oneLineCode.toString()));
+        invokeCode.append(org.kin.framework.utils.ClassUtils.primitivePackage(returnType, oneLineCode.toString()));
         invokeCode.append(";");
 
         return invokeCode.toString();

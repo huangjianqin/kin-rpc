@@ -57,7 +57,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
             StringJoiner invokeBody = new StringJoiner(", ");
             for (int i = 0; i < parameterTypes.length; i++) {
                 String argStr = "arg" + i;
-                invokeBody.add(JavassistUtils.primitivePackage(parameterTypes[i], argStr));
+                invokeBody.add(org.kin.framework.utils.ClassUtils.primitivePackage(parameterTypes[i], argStr));
             }
             invokeCode.append(invokeBody.toString());
             invokeCode.append("})");
@@ -65,7 +65,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
             invokeCode.append(", new Object[0])");
         }
 
-        methodBody.append(JavassistUtils.primitiveUnpackage(returnType, invokeCode.toString()));
+        methodBody.append(org.kin.framework.utils.ClassUtils.primitiveUnpackage(returnType, invokeCode.toString()));
         methodBody.append(";");
 
         if (isVoid) {
