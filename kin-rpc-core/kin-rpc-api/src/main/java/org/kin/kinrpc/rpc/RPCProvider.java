@@ -16,7 +16,8 @@ import org.kin.kinrpc.rpc.serializer.Serializer;
 import org.kin.kinrpc.rpc.transport.ProviderHandler;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
-import org.kin.kinrpc.transport.netty.TransportOption;
+import org.kin.transport.netty.core.ServerTransportOption;
+import org.kin.transport.netty.core.TransportOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -135,7 +136,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
 
             //启动连接
             this.connection = new ProviderHandler(new InetSocketAddress(this.port), this, serializer);
-            TransportOption transportOption = TransportOption.create()
+            ServerTransportOption transportOption = TransportOption.server()
                     .channelOption(ChannelOption.TCP_NODELAY, true)
                     .channelOption(ChannelOption.SO_KEEPALIVE, true)
                     .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)

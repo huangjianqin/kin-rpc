@@ -11,9 +11,9 @@ import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.kin.kinrpc.rpc.transport.protocol.RPCHeartbeat;
 import org.kin.kinrpc.rpc.transport.protocol.RPCRequestProtocol;
 import org.kin.kinrpc.rpc.transport.protocol.RPCResponseProtocol;
-import org.kin.kinrpc.transport.netty.*;
-import org.kin.kinrpc.transport.netty.protocol.AbstractProtocol;
-import org.kin.kinrpc.transport.statistic.InOutBoundStatisicService;
+import org.kin.transport.netty.core.*;
+import org.kin.transport.netty.core.protocol.AbstractProtocol;
+import org.kin.transport.statistic.InOutBoundStatisicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,8 +23,9 @@ import java.net.InetSocketAddress;
 /**
  * Created by 健勤 on 2017/2/10.
  */
-public class ProviderHandler extends AbstractConnection implements ProtocolHandler {
+public class ProviderHandler implements ProtocolHandler {
     private static final Logger log = LoggerFactory.getLogger(ProviderHandler.class);
+    private final InetSocketAddress address;
     private final RPCProvider rpcProvider;
     private Serializer serializer;
     private Server server;
@@ -33,31 +34,34 @@ public class ProviderHandler extends AbstractConnection implements ProtocolHandl
     public ProviderHandler(InetSocketAddress address,
                            RPCProvider rpcProvider,
                            Serializer serializer) {
-        super(address);
+        this.address = address;
         this.rpcProvider = rpcProvider;
         this.serializer = serializer;
-
-        this.server = new Server(address);
     }
 
-    @Override
-    public void connect(TransportOption transportOption) {
-        server.connect(transportOption);
+    public void bind(ServerTransportOption transportOption) throws Exception {
+        if(server != null){
+            server.close();
+        }
+        server = transportOption.tcp(address);
     }
 
-    @Override
-    public void bind(TransportOption transportOption) throws Exception {
-        server.bind(transportOption);
-    }
-
-    @Override
     public void close() {
-        server.close();
+        if(server != null){
+            server.close();
+        }
     }
 
-    @Override
     public boolean isActive() {
-        return server.isActive();
+        return server != null && server.isActive();
+    }
+
+    public InetSocketAddress getAddress() {
+        return address;
+    }
+
+    public String getAddressStr() {
+        return this.address.getHostName() + ":" + this.address.getPort();
     }
 
     @Override
@@ -103,7 +107,7 @@ public class ProviderHandler extends AbstractConnection implements ProtocolHandl
         } else if (protocol instanceof RPCHeartbeat) {
             RPCHeartbeat heartbeat = (RPCHeartbeat) protocol;
             log.info("client heartbeat ip:{}, content:{}", heartbeat.getIp(), heartbeat.getContent());
-            RPCHeartbeat heartbeatResp = ProtocolFactory.createProtocol(RPCConstants.RPC_HEARTBEAT_PROTOCOL_ID, getAddress(), "");
+            RPCHeartbeat heartbeatResp = ProtocolFactory.createProtocol(RPCConstants.RPC_HEARTBEAT_PROTOCOL_ID, getAddressStr(), "");
             session.getChannel().writeAndFlush(heartbeatResp.write());
         } else {
             log.error("unknown protocol >>>> {}", protocol);
