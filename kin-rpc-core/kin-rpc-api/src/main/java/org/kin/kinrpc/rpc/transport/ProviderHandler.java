@@ -40,14 +40,14 @@ public class ProviderHandler implements ProtocolHandler {
     }
 
     public void bind(ServerTransportOption transportOption) throws Exception {
-        if(server != null){
+        if (server != null) {
             server.close();
         }
         server = transportOption.tcp(address);
     }
 
     public void close() {
-        if(server != null){
+        if (server != null) {
             server.close();
         }
     }

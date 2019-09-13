@@ -39,10 +39,10 @@ public class ReferenceHandler implements ProtocolHandler {
     }
 
     public void connect(ClientTransportOption transportOption) {
-        if(isActive()){
+        if (isActive()) {
             return;
         }
-        if(client != null){
+        if (client != null) {
             client.close();
             client = null;
         }
@@ -60,11 +60,11 @@ public class ReferenceHandler implements ProtocolHandler {
 
         if (heartbeatFuture == null) {
             heartbeatFuture = RPCThreadPool.THREADS.scheduleAtFixedRate(() -> {
-                if(client != null){
-                    try{
+                if (client != null) {
+                    try {
                         RPCHeartbeat heartbeat = ProtocolFactory.createProtocol(RPCConstants.RPC_HEARTBEAT_PROTOCOL_ID, client.getLocalAddress(), "");
                         client.request(heartbeat);
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         //屏蔽异常
                     }
                 }
@@ -73,7 +73,7 @@ public class ReferenceHandler implements ProtocolHandler {
     }
 
     public void close() {
-        if(isActive()){
+        if (isActive()) {
             client.close();
             heartbeatFuture.cancel(false);
         }
@@ -99,7 +99,7 @@ public class ReferenceHandler implements ProtocolHandler {
 
     @Override
     public void handleProtocol(AbstractSession session, AbstractProtocol protocol) {
-        if(!isActive()){
+        if (!isActive()) {
             return;
         }
         if (protocol == null) {

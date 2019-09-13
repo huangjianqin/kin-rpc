@@ -14,7 +14,7 @@ public class IntCounter {
         this.number = number;
     }
 
-    public void increment(){
+    public void increment() {
         number++;
     }
 
