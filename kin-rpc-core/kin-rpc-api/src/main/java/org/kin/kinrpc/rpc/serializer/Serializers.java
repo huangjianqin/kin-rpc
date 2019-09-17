@@ -26,9 +26,9 @@ public class Serializers {
         try {
             String serializerName = (type + Serializer.class.getSimpleName()).toLowerCase();
             Serializer serializer = SERIALIZER_CACHE.get(type, () -> {
-                Set<Class<Serializer>> classes = ClassUtils.getSubClass("", Serializer.class, true);
+                Set<Class<? extends Serializer>> classes = ClassUtils.getSubClass("", Serializer.class, true);
                 if (classes.size() > 0) {
-                    for (Class<Serializer> claxx : classes) {
+                    for (Class<? extends Serializer> claxx : classes) {
                         String className = claxx.getSimpleName().toLowerCase();
                         if (className.equals(serializerName)) {
                             return claxx.newInstance();

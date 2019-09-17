@@ -26,9 +26,9 @@ public class Routers {
         try {
             String routerName = (type + Router.class.getSimpleName()).toLowerCase();
             Router router = ROUTER_CACHE.get(type, () -> {
-                Set<Class<Router>> classes = ClassUtils.getSubClass("", Router.class, true);
+                Set<Class<? extends Router>> classes = ClassUtils.getSubClass("", Router.class, true);
                 if (classes.size() > 0) {
-                    for (Class<Router> claxx : classes) {
+                    for (Class<? extends Router> claxx : classes) {
                         String className = claxx.getSimpleName().toLowerCase();
                         if (className.equals(routerName)) {
                             return claxx.newInstance();

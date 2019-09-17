@@ -33,9 +33,9 @@ public class Registries {
         try {
             String registryName = (registryType + RegistryFactory.class.getSimpleName()).toLowerCase();
             RegistryFactory registryFactory = REGISTRY_FACTORY_CACHE.get(registryType, () -> {
-                Set<Class<RegistryFactory>> classes = ClassUtils.getSubClass("", RegistryFactory.class, true);
+                Set<Class<? extends RegistryFactory>> classes = ClassUtils.getSubClass("", RegistryFactory.class, true);
                 if (classes.size() > 0) {
-                    for (Class<RegistryFactory> claxx : classes) {
+                    for (Class<? extends RegistryFactory> claxx : classes) {
                         String className = claxx.getSimpleName().toLowerCase();
                         if (className.equals(registryName)) {
                             return claxx.newInstance();

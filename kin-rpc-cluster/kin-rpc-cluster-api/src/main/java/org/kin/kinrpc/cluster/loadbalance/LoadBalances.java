@@ -26,9 +26,9 @@ public class LoadBalances {
         try {
             String loadBalanceName = (type + LoadBalance.class.getSimpleName()).toLowerCase();
             LoadBalance loadBalance = LOADBALANCE_CACHE.get(type, () -> {
-                Set<Class<LoadBalance>> classes = ClassUtils.getSubClass("", LoadBalance.class, true);
+                Set<Class<? extends LoadBalance>> classes = ClassUtils.getSubClass("", LoadBalance.class, true);
                 if (classes.size() > 0) {
-                    for (Class<LoadBalance> claxx : classes) {
+                    for (Class<? extends LoadBalance> claxx : classes) {
                         String className = claxx.getSimpleName().toLowerCase();
                         if (className.equals(loadBalanceName)) {
                             return claxx.newInstance();
