@@ -11,6 +11,7 @@ import org.kin.kinrpc.rpc.transport.protocol.RPCRequestProtocol;
 import org.kin.kinrpc.rpc.transport.protocol.RPCResponseProtocol;
 import org.kin.transport.netty.core.*;
 import org.kin.transport.netty.core.protocol.AbstractProtocol;
+import org.kin.transport.netty.core.statistic.InOutBoundStatisicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,6 +92,10 @@ public class ReferenceHandler implements ProtocolHandler {
 
                 RPCRequestProtocol protocol = ProtocolFactory.createProtocol(RPCConstants.RPC_REQUEST_PROTOCOL_ID, data);
                 client.request(protocol);
+
+                InOutBoundStatisicService.instance().statisticReq(
+                        request.getServiceName() + "-" + request.getMethod(), data.length
+                );
             } catch (IOException e) {
                 log.error(e.getMessage(), e);
             }
@@ -116,6 +121,10 @@ public class ReferenceHandler implements ProtocolHandler {
                     log.error(e.getMessage(), e);
                     return;
                 }
+
+                InOutBoundStatisicService.instance().statisticResp(
+                        rpcResponse.getServiceName() + "-" + rpcResponse.getMethod(), responseProtocol.getRespContent().length
+                );
 
                 rpcReference.handleResponse(rpcResponse);
             } catch (Exception e) {

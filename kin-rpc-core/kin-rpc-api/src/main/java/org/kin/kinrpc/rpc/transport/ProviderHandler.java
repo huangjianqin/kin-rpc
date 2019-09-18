@@ -13,7 +13,7 @@ import org.kin.kinrpc.rpc.transport.protocol.RPCRequestProtocol;
 import org.kin.kinrpc.rpc.transport.protocol.RPCResponseProtocol;
 import org.kin.transport.netty.core.*;
 import org.kin.transport.netty.core.protocol.AbstractProtocol;
-import org.kin.transport.statistic.InOutBoundStatisicService;
+import org.kin.transport.netty.core.statistic.InOutBoundStatisicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,7 +79,7 @@ public class ProviderHandler implements ProtocolHandler {
                     rpcRequest = serializer.deserialize(data, RPCRequest.class);
 
                     InOutBoundStatisicService.instance().statisticReq(
-                            rpcRequest.getServiceName() + "-" + rpcRequest.getServiceName(), data.length
+                            rpcRequest.getServiceName() + "-" + rpcRequest.getMethod(), data.length
                     );
 
                     //限流
@@ -132,5 +132,9 @@ public class ProviderHandler implements ProtocolHandler {
 
         RPCResponseProtocol rpcResponseProtocol = ProtocolFactory.createProtocol(RPCConstants.RPC_RESPONSE_PROTOCOL_ID, data);
         channel.writeAndFlush(rpcResponseProtocol.write());
+
+        InOutBoundStatisicService.instance().statisticResp(
+                rpcResponse.getServiceName() + "-" + rpcResponse.getMethod(), data.length
+        );
     }
 }
