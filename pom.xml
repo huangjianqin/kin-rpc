@@ -74,16 +74,15 @@
                 <artifactId>maven-dependency-plugin</artifactId>
                 <version>3.0.0</version>
                 <executions>
-                    <execution>
-                        <id>copy-dependencies</id>
-                        <phase>deploy</phase>
-                        <goals>
-                            <goal>copy-dependencies</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
-                        </configuration>
-                    </execution>
+<!--                    <execution>-->
+<!--                        <id>copy-dependencies</id>-->
+<!--                        <goals>-->
+<!--                            <goal>copy-dependencies</goal>-->
+<!--                        </goals>-->
+<!--                        <configuration>-->
+<!--                            <outputDirectory>${project.build.directory}/lib</outputDirectory>-->
+<!--                        </configuration>-->
+<!--                    </execution>-->
                 </executions>
             </plugin>
 
@@ -93,7 +92,6 @@
                 <version>3.0.2</version>
                 <executions>
 <!--                    <execution>-->
-<!--                        <phase>package</phase>-->
 <!--                        <goals>-->
 <!--                            <goal>test-jar</goal>-->
 <!--                        </goals>-->
