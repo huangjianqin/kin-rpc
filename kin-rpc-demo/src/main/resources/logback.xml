@@ -156,30 +156,30 @@
         <appender-ref ref="asyncERROR"/>
     </logger>
 
-    <logger name="org.kin.kinrpc.transport" level="DEBUG">
+    <logger name="org.kin.kinrpc.transport" level="INFO">
         <appender-ref ref="asyncTransportAppender"/>
         <appender-ref ref="asyncERROR" level="ERROR"/>
     </logger>
 
-    <logger name="org.kin.kinrpc.transport.reqStatistic" level="DEBUG">
+    <logger name="org.kin.kinrpc.transport.reqStatistic" level="INFO">
         <appender-ref ref="asyncReqStatisticAppender"/>
     </logger>
 
-    <logger name="org.kin.kinrpc.transport.respStatistic" level="DEBUG">
+    <logger name="org.kin.kinrpc.transport.respStatistic" level="INFO">
         <appender-ref ref="asyncRespStatisticAppender"/>
     </logger>
 
-    <logger name="org.kin.kinrpc.rpc" level="DEBUG">
+    <logger name="org.kin.kinrpc.rpc" level="INFO">
         <appender-ref ref="asyncInvokerAppender"/>
         <appender-ref ref="asyncERROR" level="ERROR"/>
     </logger>
 
-    <logger name="org.kin.kinrpc.registry" level="DEBUG">
+    <logger name="org.kin.kinrpc.registry" level="INFO">
         <appender-ref ref="asyncRegistryAppender"/>
         <appender-ref ref="asyncERROR" level="ERROR"/>
     </logger>
 
-    <logger name="org.kin.kinrpc.cluster" level="DEBUG">
+    <logger name="org.kin.kinrpc.cluster" level="INFO">
         <appender-ref ref="asyncClusterAppender"/>
         <appender-ref ref="asyncERROR" level="ERROR"/>
     </logger>
