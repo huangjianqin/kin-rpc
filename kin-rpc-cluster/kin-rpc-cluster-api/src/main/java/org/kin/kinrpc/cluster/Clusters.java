@@ -36,7 +36,7 @@ public class Clusters {
     private static final Cache<Integer, RPCProvider> PROVIDER_CACHE = CacheBuilder.newBuilder().build();
     private static final Cache<String, ClusterInvoker> REFERENCE_CACHE = CacheBuilder.newBuilder().build();
     private static final ThreadManager THREADS = new ThreadManager(
-            new ThreadPoolExecutor(0, 2, 60L, TimeUnit.SECONDS,
+            new ThreadPoolExecutor(2, 2, 60L, TimeUnit.SECONDS,
                     new LinkedBlockingQueue<>(), new SimpleThreadFactory("provider-unregister-executor")));
     private static volatile boolean isStopped = false;
     private static final int HEARTBEAT_INTERVAL = 3;
