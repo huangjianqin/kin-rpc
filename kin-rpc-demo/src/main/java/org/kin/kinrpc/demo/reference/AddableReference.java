@@ -1,6 +1,6 @@
 package org.kin.kinrpc.demo.reference;
 
-import org.kin.framework.utils.IPUtils;
+import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.cluster.exception.CannotFindInvokerException;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.References;
@@ -21,7 +21,7 @@ public class AddableReference {
     public static void main(String[] args) throws InterruptedException {
         ReferenceConfig<Addable> referenceConfig =
                 References.reference(Addable.class)
-                        .serviceName("org.kin.kinrpc.demo.service.Addable").urls(IPUtils.getIpPort(16888))
+                        .serviceName("org.kin.kinrpc.demo.service.Addable").urls(NetUtils.getIpPort(16888))
                         .version("001");
 
         Addable service = referenceConfig.get();
