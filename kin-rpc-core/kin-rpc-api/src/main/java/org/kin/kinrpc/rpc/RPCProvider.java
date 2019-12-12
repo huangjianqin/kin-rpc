@@ -87,6 +87,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
 
                 if (!serviceMap.containsKey(serviceName)) {
                     serviceMap.put(serviceName, new ProviderInvokerWrapper(url, invoker));
+                    log.info("provider(serviceName={}, port={}) registered", serviceName, port);
                 } else {
                     throw new IllegalStateException("service'" + serviceName + "' has registered. can not register again");
                 }

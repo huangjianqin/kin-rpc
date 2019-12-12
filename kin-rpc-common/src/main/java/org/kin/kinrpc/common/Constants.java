@@ -13,6 +13,7 @@ public class Constants {
     public static final int URL_PARAM_NUM = 6;
     public static final String APP_NAME_KEY = "appName";
     public static final String SERVICE_NAME_KEY = "serviceName";
+    public static final String VERSION_KEY = "version";
     //连接超时
     public static final String TIMEOUT_KEY = "timeout";
     public static final String REGISTRY_KEY = "registry";

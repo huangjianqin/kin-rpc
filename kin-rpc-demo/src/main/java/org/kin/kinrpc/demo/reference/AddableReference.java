@@ -20,7 +20,9 @@ import java.util.concurrent.TimeUnit;
 public class AddableReference {
     public static void main(String[] args) throws InterruptedException {
         ReferenceConfig<Addable> referenceConfig =
-                References.reference(Addable.class).serviceName("org.kin.kinrpc.demo.service.Addable").urls(IPUtils.getIpPort(16888));
+                References.reference(Addable.class)
+                        .serviceName("org.kin.kinrpc.demo.service.Addable").urls(IPUtils.getIpPort(16888))
+                        .version("001");
 
         Addable service = referenceConfig.get();
         int count = 0;

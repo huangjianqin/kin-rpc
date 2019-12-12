@@ -1,6 +1,7 @@
 package org.kin.kinrpc.config;
 
 import com.google.common.base.Preconditions;
+import org.kin.framework.utils.IPUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.cluster.Clusters;
 import org.kin.kinrpc.common.Constants;
@@ -24,6 +25,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
     private String loadBalanceType = LoadBalanceType.ROUND_ROBIN.getType();
     private String routerType = RouterType.NONE.getType();
     private InvokeType invokeType = InvokeType.JAVASSIST;
+    private String version;
 
     private URL url;
     private volatile T reference;
@@ -57,8 +59,9 @@ public class ReferenceConfig<T> extends AbstractConfig {
             params.put(Constants.LOADBALANCE_KEY, loadBalanceType);
             params.put(Constants.ROUTER_KEY, routerType);
             params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(InvokeType.JAVASSIST.equals(invokeType)));
+            params.put(Constants.VERSION_KEY, version);
 
-            url = createURL(applicationConfig, "0.0.0.0:0", registryConfig, params);
+            url = createURL(applicationConfig, IPUtils.getIp(), registryConfig, params);
             Preconditions.checkNotNull(url);
 
             reference = Clusters.reference(url, interfaceClass);
@@ -193,6 +196,11 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return this;
     }
 
+    public ReferenceConfig<T> version(String version) {
+        this.version = version;
+        return this;
+    }
+
     //setter && getter
     public ApplicationConfig getApplicationConfig() {
         return applicationConfig;
@@ -236,5 +244,9 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
     public InvokeType getInvokeType() {
         return invokeType;
+    }
+
+    public String getVersion() {
+        return version;
     }
 }

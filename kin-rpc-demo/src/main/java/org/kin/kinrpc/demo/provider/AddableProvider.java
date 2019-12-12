@@ -10,7 +10,7 @@ import org.kin.kinrpc.demo.service.Adder;
  */
 public class AddableProvider {
     public static void main(String[] args) throws InterruptedException {
-        ServiceConfig serviceConfig = Services.service(new Adder(), Addable.class);
+        ServiceConfig serviceConfig = Services.service(new Adder(), Addable.class).version("001");
         serviceConfig.exportSync();
     }
 }

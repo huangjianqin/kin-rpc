@@ -33,6 +33,10 @@ public class URL implements Serializable {
         this.params = params;
 
         this.serviceName = getParam(Constants.SERVICE_NAME_KEY);
+        String version = getParam(Constants.VERSION_KEY);
+        if(StringUtils.isNotBlank(version)){
+            this.serviceName += ("#" + version);
+        }
     }
 
     public static URL valueOf(String url) {

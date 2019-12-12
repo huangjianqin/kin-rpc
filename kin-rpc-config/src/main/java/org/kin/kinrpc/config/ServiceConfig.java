@@ -23,6 +23,7 @@ public class ServiceConfig extends AbstractConfig {
     private String serviceName;
     private String serialize = SerializerType.KRYO.getType();
     private InvokeType invokeType = InvokeType.JAVASSIST;
+    private String version;
 
     private URL url;
     private volatile boolean isExport;
@@ -67,6 +68,7 @@ public class ServiceConfig extends AbstractConfig {
             params.put(Constants.SERVICE_NAME_KEY, serviceName);
             params.put(Constants.SERIALIZE_KEY, serialize);
             params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(InvokeType.JAVASSIST.equals(invokeType)));
+            params.put(Constants.VERSION_KEY, version);
 
             url = createURL(applicationConfig, "0.0.0.0:" + serverConfig.getPort(), registryConfig, params);
             Preconditions.checkNotNull(url);
@@ -165,6 +167,11 @@ public class ServiceConfig extends AbstractConfig {
         return this;
     }
 
+    public ServiceConfig version(String version) {
+        this.version = version;
+        return this;
+    }
+
     //setter && getter
     public ApplicationConfig getApplicationConfig() {
         return applicationConfig;
@@ -196,5 +203,9 @@ public class ServiceConfig extends AbstractConfig {
 
     public InvokeType getInvokeType() {
         return invokeType;
+    }
+
+    public String getVersion() {
+        return version;
     }
 }
