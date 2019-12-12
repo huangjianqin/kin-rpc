@@ -34,7 +34,7 @@ public class DirectURLsDirectory extends AbstractDirectory {
     }
 
     @Override
-    protected void doDiscover(List<String> addresses) {
+    protected List<ReferenceInvoker> doDiscover(List<String> addresses) {
         if (!isStopped) {
             List<ReferenceInvoker> invokers = new ArrayList<>();
             for (String address : addresses) {
@@ -48,8 +48,10 @@ public class DirectURLsDirectory extends AbstractDirectory {
                 refereneceInvoker.init();
                 invokers.add(refereneceInvoker);
             }
-            super.invokers = invokers;
+            return invokers;
         }
+
+        return Collections.emptyList();
     }
 
     @Override

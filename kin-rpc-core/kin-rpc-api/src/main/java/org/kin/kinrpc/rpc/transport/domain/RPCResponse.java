@@ -6,7 +6,7 @@ import java.io.Serializable;
  * Created by 健勤 on 2017/2/9.
  */
 public class RPCResponse implements Serializable {
-    private int requestId;
+    private String requestId;
     //统计日志打印用
     private String serviceName;
     private String method;
@@ -51,18 +51,18 @@ public class RPCResponse implements Serializable {
     public RPCResponse() {
     }
 
-    public RPCResponse(int requestId, String serviceName, String method) {
+    public RPCResponse(String requestId, String serviceName, String method) {
         this.requestId = requestId;
         this.serviceName = serviceName;
         this.method = method;
     }
 
-    private static RPCResponse respWith(int requestId, String serviceName, String method) {
+    private static RPCResponse respWith(String requestId, String serviceName, String method) {
         RPCResponse rpcResponse = new RPCResponse(requestId, serviceName, method);
         return rpcResponse;
     }
 
-    public static RPCResponse respWithError(int requestId, String serviceName, String method, String errorMsg) {
+    public static RPCResponse respWithError(String requestId, String serviceName, String method, String errorMsg) {
         RPCResponse rpcResponse = respWith(requestId, serviceName, method);
         rpcResponse.setState(RPCResponse.State.ERROR, errorMsg);
         return rpcResponse;
@@ -74,7 +74,7 @@ public class RPCResponse implements Serializable {
         return rpcResponse;
     }
 
-    public static RPCResponse respWithRetry(int requestId, String serviceName, String method, String retryMsg) {
+    public static RPCResponse respWithRetry(String requestId, String serviceName, String method, String retryMsg) {
         RPCResponse rpcResponse = respWith(requestId, serviceName, method);
         rpcResponse.setState(State.RETRY, retryMsg);
         return rpcResponse;
@@ -108,7 +108,7 @@ public class RPCResponse implements Serializable {
         this.result = result;
     }
 
-    public int getRequestId() {
+    public String getRequestId() {
         return requestId;
     }
 
@@ -161,7 +161,7 @@ public class RPCResponse implements Serializable {
 
     @Override
     public int hashCode() {
-        return requestId;
+        return requestId.hashCode();
     }
 
     @Override

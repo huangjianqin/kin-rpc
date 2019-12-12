@@ -28,13 +28,13 @@ public abstract class AbstractDirectory extends ActorLike<AbstractDirectory> imp
         this.serializerType = serializerType;
     }
 
-    protected abstract void doDiscover(List<String> addresses);
+    protected abstract List<ReferenceInvoker> doDiscover(List<String> addresses);
 
     protected abstract void doDestroy();
 
     @Override
     public void discover(List<String> addresses) {
-        tell(directory -> doDiscover(addresses));
+        tell(directory -> invokers = doDiscover(addresses));
     }
 
     @Override

@@ -40,7 +40,7 @@ public class ReferenceInvoker extends AbstractInvoker implements AsyncInvoker {
         log.info("referenceInvoker shutdown");
     }
 
-    protected RPCRequest createRequest(int requestId, String methodName, Object... params) {
+    protected RPCRequest createRequest(String requestId, String methodName, Object... params) {
         RPCRequest request = new RPCRequest(requestId, super.getServiceName(), methodName, params);
         return request;
     }

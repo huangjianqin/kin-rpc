@@ -9,7 +9,7 @@ import java.util.Arrays;
  * Created by 健勤 on 2017/2/9.
  */
 public class RPCRequest implements Serializable {
-    private int requestId;
+    private String requestId;
     //请求参数
     private String serviceName;
     private String method;
@@ -28,11 +28,7 @@ public class RPCRequest implements Serializable {
 
     }
 
-    public RPCRequest(int requestId) {
-        this.requestId = requestId;
-    }
-
-    public RPCRequest(int requestId, String serviceName, String method, Object[] params) {
+    public RPCRequest(String requestId, String serviceName, String method, Object[] params) {
         this.requestId = requestId;
         this.serviceName = serviceName;
         this.method = method;
@@ -40,7 +36,7 @@ public class RPCRequest implements Serializable {
     }
 
     //setter && getter
-    public int getRequestId() {
+    public String getRequestId() {
         return requestId;
     }
 
@@ -105,7 +101,7 @@ public class RPCRequest implements Serializable {
 
     @Override
     public int hashCode() {
-        return requestId;
+        return requestId.hashCode();
     }
 
     @Override

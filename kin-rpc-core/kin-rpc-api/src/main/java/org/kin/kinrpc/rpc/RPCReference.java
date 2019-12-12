@@ -54,7 +54,7 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
 
         log.debug("receive a response >>> " + System.lineSeparator() + rpcResponse);
 
-        String requestId = rpcResponse.getRequestId() + "";
+        String requestId = rpcResponse.getRequestId();
         RPCFuture pendRPCFuture = pendingRPCFutureMap.get(requestId);
         if (pendRPCFuture != null) {
             pendRPCFuture.done(rpcResponse);

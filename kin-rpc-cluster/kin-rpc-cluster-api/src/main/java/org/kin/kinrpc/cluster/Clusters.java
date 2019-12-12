@@ -6,6 +6,7 @@ import com.google.common.cache.CacheBuilder;
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadManager;
+import org.kin.framework.utils.IPUtils;
 import org.kin.framework.utils.TimeUtils;
 import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
 import org.kin.kinrpc.cluster.loadbalance.LoadBalances;
@@ -108,7 +109,7 @@ public class Clusters {
             provider.addService(url, interfaceClass, instance);
             Registry registry = Registries.getRegistry(url);
             if (registry != null) {
-                registry.register(url.getServiceName(), "0.0.0.0", port);
+                registry.register(url.getServiceName(), IPUtils.getIp(), port);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -119,7 +120,7 @@ public class Clusters {
     private static void unRegisterService(URL url) {
         Registry registry = Registries.getRegistry(url);
         if (registry != null) {
-            registry.unRegister(url.getServiceName(), "0.0.0.0", url.getPort());
+            registry.unRegister(url.getServiceName(), IPUtils.getIp(), url.getPort());
             Registries.closeRegistry(url);
         }
     }

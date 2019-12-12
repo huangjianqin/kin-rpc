@@ -39,9 +39,9 @@ public class ZookeeperDirectory extends AbstractDirectory {
      * 发现服务,发现可用服务的address
      */
     @Override
-    protected void doDiscover(List<String> addresses) {
+    protected List<ReferenceInvoker> doDiscover(List<String> addresses) {
         if (isStopped) {
-            return;
+            return Collections.emptyList();
         }
 
         StringBuilder sb = new StringBuilder();
@@ -90,14 +90,14 @@ public class ZookeeperDirectory extends AbstractDirectory {
             newInvokerList.add(refereneceInvoker);
         }
 
-        super.invokers = newInvokerList;
-
         //remove invalid ReferenceInvokers
         for (ReferenceInvoker invoker : invalidInvokers) {
             invoker.shutdown();
         }
 
         log.info("discover service '{}' finished", getServiceName());
+
+        return newInvokerList;
     }
 
     @Override

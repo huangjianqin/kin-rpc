@@ -4,7 +4,6 @@ import com.google.common.net.HostAndPort;
 import org.kin.framework.Closeable;
 import org.kin.kinrpc.cluster.exception.CannotFindInvokerException;
 import org.kin.kinrpc.common.URL;
-import org.kin.kinrpc.rpc.RPCContext;
 import org.kin.kinrpc.rpc.RPCThreadPool;
 import org.kin.kinrpc.rpc.exception.RPCCallErrorException;
 import org.kin.kinrpc.rpc.exception.RPCRetryException;
@@ -44,7 +43,6 @@ abstract class ClusterInvoker<I> implements Closeable {
     public Future invokeAsync(Method method, Object... params) {
         Callable callable = () -> invoke0(method, params);
         Future future = RPCThreadPool.THREADS.submit(callable);
-        RPCContext.instance().setFuture(future);
         return future;
     }
 
@@ -54,7 +52,6 @@ abstract class ClusterInvoker<I> implements Closeable {
     protected Future invokeAsync(String methodName, boolean isVoid, Object... params) {
         Callable callable = () -> invoke0(methodName, isVoid, params);
         Future future = RPCThreadPool.THREADS.submit(callable);
-        RPCContext.instance().setFuture(future);
         return future;
     }
 

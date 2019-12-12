@@ -4,6 +4,7 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
+import org.kin.kinrpc.rpc.transport.domain.RPCRequestIdGenerator;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -13,7 +14,7 @@ import java.io.ByteArrayOutputStream;
  */
 public class KryoTest {
     public static void main(String[] args) {
-        RPCRequest request = new RPCRequest(0, "system.service.Addable", "add", new Object[]{1, 1});
+        RPCRequest request = new RPCRequest(RPCRequestIdGenerator.next(), "system.service.Addable", "add", new Object[]{1, 1});
 
         Kryo kryo = new Kryo();
         Output output = new Output(new ByteArrayOutputStream());
