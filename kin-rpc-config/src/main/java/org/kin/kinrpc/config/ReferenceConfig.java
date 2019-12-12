@@ -1,7 +1,7 @@
 package org.kin.kinrpc.config;
 
 import com.google.common.base.Preconditions;
-import org.kin.framework.utils.IPUtils;
+import org.kin.framework.utils.NetUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.cluster.Clusters;
 import org.kin.kinrpc.common.Constants;
@@ -61,7 +61,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
             params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(InvokeType.JAVASSIST.equals(invokeType)));
             params.put(Constants.VERSION_KEY, version);
 
-            url = createURL(applicationConfig, IPUtils.getIp(), registryConfig, params);
+            url = createURL(applicationConfig, NetUtils.getIp(), registryConfig, params);
             Preconditions.checkNotNull(url);
 
             reference = Clusters.reference(url, interfaceClass);
