@@ -25,7 +25,6 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <kin-framework.version>0.1.0.0</kin-framework.version>
         <kin-transport-netty.version>0.1.0.0</kin-transport-netty.version>
-        <jackson.version>2.7.4</jackson.version>
         <hessian.version>4.0.38</hessian.version>
         <protobuf-java.version>2.5.0</protobuf-java.version>
         <kryo.version>4.0.0</kryo.version>
@@ -34,8 +33,8 @@
         <jedis.version>2.8.1</jedis.version>
         <zookeeper.version>3.4.9</zookeeper.version>
         <curator.version>4.2.0</curator.version>
-        <fastjson.version>1.2.58</fastjson.version>
         <jmh.version>1.21</jmh.version>
+        <jackson.version>2.10.1</jackson.version>
     </properties>
 
     <build>
