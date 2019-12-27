@@ -14,6 +14,8 @@ public class Constants {
     public static final String APP_NAME_KEY = "appName";
     public static final String SERVICE_NAME_KEY = "serviceName";
     public static final String VERSION_KEY = "version";
+    //发送方支持压缩, 接收方根据实际解压后接受或直接接受
+    public static final String COMPRESSION_KEY = "compression";
     //连接超时
     public static final String TIMEOUT_KEY = "timeout";
     public static final String REGISTRY_KEY = "registry";

@@ -19,8 +19,8 @@ import java.util.stream.Collectors;
  * 无效invoker由zookeeper注册中心控制, 所以可能会存在list有无效invoker(zookeeper没有及时更新到)
  */
 public class ZookeeperDirectory extends AbstractDirectory {
-    public ZookeeperDirectory(String serviceName, int connectTimeout, String serializerType) {
-        super(serviceName, connectTimeout, serializerType);
+    public ZookeeperDirectory(String serviceName, int connectTimeout, String serializerType, boolean compression) {
+        super(serviceName, connectTimeout, serializerType, compression);
     }
 
     /**
@@ -82,7 +82,7 @@ public class ZookeeperDirectory extends AbstractDirectory {
         for (HostAndPort hostAndPort : hostAndPorts) {
             //address有效,创建新的ReferenceInvoker,连接Service Server
             RPCReference rpcReference = new RPCReference(
-                    new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPort()), Serializers.getSerializer(serializerType), connectTimeout);
+                    new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPort()), Serializers.getSerializer(serializerType), connectTimeout, compression);
             ReferenceInvoker refereneceInvoker = new ReferenceInvoker(serviceName, rpcReference);
             //真正启动连接
             refereneceInvoker.init();

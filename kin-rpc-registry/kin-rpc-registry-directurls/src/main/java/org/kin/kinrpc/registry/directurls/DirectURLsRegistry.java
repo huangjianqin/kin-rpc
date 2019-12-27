@@ -10,11 +10,13 @@ import java.util.List;
  */
 public class DirectURLsRegistry extends AbstractRegistry {
     private List<String> hostAndPorts;
-    private String serializerType;
+    private final String serializerType;
+    private final boolean compression;
 
-    public DirectURLsRegistry(List<String> hostAndPorts, String serializerType) {
+    public DirectURLsRegistry(List<String> hostAndPorts, String serializerType, boolean compression) {
         this.hostAndPorts = hostAndPorts;
         this.serializerType = serializerType;
+        this.compression = compression;
     }
 
     @Override
@@ -35,7 +37,7 @@ public class DirectURLsRegistry extends AbstractRegistry {
     @Override
     public Directory subscribe(String serviceName, int connectTimeout) {
         log.info("reference subscribe service '{}' ", serviceName);
-        Directory directory = new DirectURLsDirectory(serviceName, connectTimeout, serializerType);
+        Directory directory = new DirectURLsDirectory(serviceName, connectTimeout, serializerType, compression);
         directory.discover(hostAndPorts);
         return directory;
     }

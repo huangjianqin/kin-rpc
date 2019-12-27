@@ -26,6 +26,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
     private String routerType = RouterType.NONE.getType();
     private InvokeType invokeType = InvokeType.JAVASSIST;
     private String version;
+    private boolean compression;
 
     private URL url;
     private volatile T reference;
@@ -60,6 +61,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
             params.put(Constants.ROUTER_KEY, routerType);
             params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(InvokeType.JAVASSIST.equals(invokeType)));
             params.put(Constants.VERSION_KEY, version);
+            params.put(Constants.COMPRESSION_KEY, Boolean.toString(compression));
 
             url = createURL(applicationConfig, NetUtils.getIp(), registryConfig, params);
             Preconditions.checkNotNull(url);
@@ -198,6 +200,16 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
     public ReferenceConfig<T> version(String version) {
         this.version = version;
+        return this;
+    }
+
+    public ReferenceConfig<T> compress() {
+        this.compression = true;
+        return this;
+    }
+
+    public ReferenceConfig<T> uncompress() {
+        this.compression = false;
         return this;
     }
 

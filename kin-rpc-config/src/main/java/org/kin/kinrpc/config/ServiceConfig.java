@@ -2,6 +2,7 @@ package org.kin.kinrpc.config;
 
 
 import com.google.common.base.Preconditions;
+import org.kin.framework.utils.NetUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.cluster.Clusters;
 import org.kin.kinrpc.common.Constants;
@@ -24,6 +25,7 @@ public class ServiceConfig extends AbstractConfig {
     private String serialize = SerializerType.KRYO.getType();
     private InvokeType invokeType = InvokeType.JAVASSIST;
     private String version;
+    private boolean compression;
 
     private URL url;
     private volatile boolean isExport;
@@ -69,8 +71,9 @@ public class ServiceConfig extends AbstractConfig {
             params.put(Constants.SERIALIZE_KEY, serialize);
             params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(InvokeType.JAVASSIST.equals(invokeType)));
             params.put(Constants.VERSION_KEY, version);
+            params.put(Constants.COMPRESSION_KEY, Boolean.toString(compression));
 
-            url = createURL(applicationConfig, "0.0.0.0:" + serverConfig.getPort(), registryConfig, params);
+            url = createURL(applicationConfig, NetUtils.getIpPort(serverConfig.getPort()), registryConfig, params);
             Preconditions.checkNotNull(url);
 
             Clusters.export(url, interfaceClass, ref);
@@ -169,6 +172,16 @@ public class ServiceConfig extends AbstractConfig {
 
     public ServiceConfig version(String version) {
         this.version = version;
+        return this;
+    }
+
+    public ServiceConfig compress() {
+        this.compression = true;
+        return this;
+    }
+
+    public ServiceConfig uncompress() {
+        this.compression = false;
         return this;
     }
 

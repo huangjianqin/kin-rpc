@@ -30,13 +30,15 @@ public class Zookeeper2Registry extends AbstractRegistry {
     protected String address;
 
     private CuratorFramework client;
-    private int sessionTimeOut;
-    private String serializerType;
+    private final int sessionTimeOut;
+    private final String serializerType;
+    private final boolean compression;
 
-    public Zookeeper2Registry(String address, int sessionTimeOut, String serializerType) {
+    public Zookeeper2Registry(String address, int sessionTimeOut, String serializerType, boolean compression) {
         this.address = address;
         this.sessionTimeOut = sessionTimeOut;
         this.serializerType = serializerType;
+        this.compression = compression;
     }
 
     @Override
@@ -135,7 +137,7 @@ public class Zookeeper2Registry extends AbstractRegistry {
     @Override
     public Directory subscribe(String serviceName, int connectTimeout) {
         log.info("reference subscribe service '{}' ", serviceName);
-        Directory directory = new ZookeeperDirectory(serviceName, connectTimeout, serializerType);
+        Directory directory = new ZookeeperDirectory(serviceName, connectTimeout, serializerType, compression);
         watch(directory);
         DIRECTORY_CACHE.put(serviceName, directory);
         return directory;

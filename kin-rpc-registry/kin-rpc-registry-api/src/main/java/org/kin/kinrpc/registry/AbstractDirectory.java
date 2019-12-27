@@ -17,15 +17,18 @@ public abstract class AbstractDirectory extends ActorLike<AbstractDirectory> imp
     protected final String serviceName;
     protected final int connectTimeout;
     protected final String serializerType;
+    protected final boolean compression;
+
     //所有directory的discover和destroy操作都是单线程操作, 利用copy-on-write思想更新可用invokers, 提高list效率
     protected volatile List<ReferenceInvoker> invokers = Collections.emptyList();
     protected volatile boolean isStopped;
 
-    protected AbstractDirectory(String serviceName, int connectTimeout, String serializerType) {
+    protected AbstractDirectory(String serviceName, int connectTimeout, String serializerType, boolean compression) {
         super(RegistryThreadPool.THREADS);
         this.serviceName = serviceName;
         this.connectTimeout = connectTimeout;
         this.serializerType = serializerType;
+        this.compression = compression;
     }
 
     protected abstract List<ReferenceInvoker> doDiscover(List<String> addresses);

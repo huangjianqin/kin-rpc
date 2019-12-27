@@ -95,7 +95,7 @@ public class Clusters {
         RPCProvider provider;
         try {
             provider = PROVIDER_CACHE.get(port, () -> {
-                RPCProvider provider0 = new RPCProvider(port, serializer, byteCodeInvoke);
+                RPCProvider provider0 = new RPCProvider(port, serializer, byteCodeInvoke, Boolean.valueOf(url.getParam(Constants.COMPRESSION_KEY)));
                 provider0.start();
 
                 return provider0;

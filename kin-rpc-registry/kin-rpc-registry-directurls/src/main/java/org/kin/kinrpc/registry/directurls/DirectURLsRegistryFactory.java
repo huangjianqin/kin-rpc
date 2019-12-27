@@ -19,6 +19,8 @@ public class DirectURLsRegistryFactory extends AbstractRegistryFactory {
     public Registry getRegistry(URL url) {
         String address = url.getParam(Constants.REGISTRY_URL_KEY);
         String serializerType = url.getParam(Constants.SERIALIZE_KEY);
+        boolean compression = Boolean.valueOf(url.getParam(Constants.COMPRESSION_KEY));
+
         //先校验, 顺便初始化
         Preconditions.checkNotNull(Serializers.getSerializer(serializerType), "unvalid serializer type: [" + serializerType + "]");
 
@@ -28,7 +30,7 @@ public class DirectURLsRegistryFactory extends AbstractRegistryFactory {
         }
 
         try {
-            Registry registry = REGISTRY_CACHE.get(address, () -> new DirectURLsRegistry(hostAndPorts, serializerType));
+            Registry registry = REGISTRY_CACHE.get(address, () -> new DirectURLsRegistry(hostAndPorts, serializerType, compression));
             registry.connect();
             registry.retain();
             return registry;

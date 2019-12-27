@@ -4,6 +4,7 @@ import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.cluster.exception.CannotFindInvokerException;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.References;
+import org.kin.kinrpc.config.SerializerType;
 import org.kin.kinrpc.rpc.exception.RPCCallErrorException;
 import org.kin.kinrpc.rpc.exception.RPCRetryException;
 import org.kin.kinrpc.rpc.exception.UnknownRPCResponseStateCodeException;
@@ -22,7 +23,9 @@ public class AddableReference {
         ReferenceConfig<Addable> referenceConfig =
                 References.reference(Addable.class)
                         .serviceName("org.kin.kinrpc.demo.service.Addable").urls(NetUtils.getIpPort(16888))
-                        .version("001");
+                        .serialize(SerializerType.JSON.getType())
+                        .version("001")
+                        .compress();
 
         Addable service = referenceConfig.get();
         int count = 0;

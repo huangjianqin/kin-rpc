@@ -22,13 +22,15 @@ public class ZookeeperRegistry extends AbstractRegistry {
     protected String address;
 
     private volatile ZooKeeper zooKeeper;
-    private int sessionTimeOut;
-    private String serializerType;
+    private final int sessionTimeOut;
+    private final String serializerType;
+    private boolean compression;
 
-    public ZookeeperRegistry(String address, int sessionTimeOut, String serializerType) {
+    public ZookeeperRegistry(String address, int sessionTimeOut, String serializerType, boolean compression) {
         this.address = address;
         this.sessionTimeOut = sessionTimeOut;
         this.serializerType = serializerType;
+        this.compression = compression;
     }
 
     @Override
@@ -160,7 +162,7 @@ public class ZookeeperRegistry extends AbstractRegistry {
     @Override
     public Directory subscribe(String serviceName, int connectTimeout) {
         log.info("reference subscribe service '{}' ", serviceName);
-        Directory directory = new ZookeeperDirectory(serviceName, connectTimeout, serializerType);
+        Directory directory = new ZookeeperDirectory(serviceName, connectTimeout, serializerType, compression);
         watch(directory);
         DIRECTORY_CACHE.put(serviceName, directory);
         return directory;

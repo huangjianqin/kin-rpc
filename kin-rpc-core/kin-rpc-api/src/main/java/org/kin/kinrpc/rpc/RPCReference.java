@@ -32,7 +32,7 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
     private ClientTransportOption clientTransportOption;
     private ReferenceHandler connection;
 
-    public RPCReference(InetSocketAddress address, Serializer serializer, int connectTimeout) {
+    public RPCReference(InetSocketAddress address, Serializer serializer, int connectTimeout, boolean compression) {
         this.connection = new ReferenceHandler(address, serializer, this);
         this.clientTransportOption =
                 TransportOption.client()
@@ -41,6 +41,9 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
                         .channelInactiveListener(this)
                         .channelExceptionHandler(this)
                         .protocolHandler(connection);
+        if (compression) {
+            clientTransportOption.compress();
+        }
     }
 
     /**

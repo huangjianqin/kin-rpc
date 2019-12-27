@@ -18,12 +18,14 @@ public class Zookeeper2RegistryFactory extends AbstractRegistryFactory {
     public Registry getRegistry(URL url) {
         String address = url.getParam(Constants.REGISTRY_URL_KEY);
         int sessionTimeout = Integer.valueOf(url.getParam(Constants.SESSION_TIMEOUT_KEY));
+        boolean compression = Boolean.valueOf(url.getParam(Constants.COMPRESSION_KEY));
+
         String serializerType = url.getParam(Constants.SERIALIZE_KEY);
         //先校验, 顺便初始化
         Preconditions.checkNotNull(Serializers.getSerializer(serializerType), "unvalid serializer type: [" + serializerType + "]");
 
         try {
-            Registry registry = REGISTRY_CACHE.get(address, () -> new Zookeeper2Registry(address, sessionTimeout, serializerType));
+            Registry registry = REGISTRY_CACHE.get(address, () -> new Zookeeper2Registry(address, sessionTimeout, serializerType, compression));
             registry.connect();
             registry.retain();
             return registry;

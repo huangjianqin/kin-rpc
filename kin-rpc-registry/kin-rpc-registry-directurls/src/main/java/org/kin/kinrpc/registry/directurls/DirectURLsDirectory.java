@@ -21,8 +21,8 @@ import java.util.stream.Collectors;
 public class DirectURLsDirectory extends AbstractDirectory {
     private static final Logger log = LoggerFactory.getLogger(DirectURLsDirectory.class);
 
-    public DirectURLsDirectory(String serviceName, int connectTimeout, String serializerType) {
-        super(serviceName, connectTimeout, serializerType);
+    public DirectURLsDirectory(String serviceName, int connectTimeout, String serializerType, boolean compression) {
+        super(serviceName, connectTimeout, serializerType, compression);
     }
 
     @Override
@@ -42,7 +42,7 @@ public class DirectURLsDirectory extends AbstractDirectory {
 
                 //创建新的ReferenceInvoker,连接Service Server
                 RPCReference rpcReference = new RPCReference(new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPort()),
-                        Serializers.getSerializer(serializerType), connectTimeout);
+                        Serializers.getSerializer(serializerType), connectTimeout, compression);
                 ReferenceInvoker refereneceInvoker = new ReferenceInvoker(serviceName, rpcReference);
                 //真正启动连接
                 refereneceInvoker.init();

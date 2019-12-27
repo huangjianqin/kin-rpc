@@ -50,22 +50,25 @@ public class RPCProvider extends ActorLike<RPCProvider> {
     private Map<String, ProviderInvokerWrapper> serviceMap = new ConcurrentHashMap<>();
 
     //占用端口
-    private int port;
+    private final int port;
     //序列化方式
-    private Serializer serializer;
+    private final Serializer serializer;
     //底层的连接
     private ProviderHandler connection;
     //标识是否stopped
     private volatile boolean isStopped = false;
     //是否使用字节码技术
-    private boolean isByteCodeInvoke;
+    private final boolean isByteCodeInvoke;
+    //是否压缩
+    private final boolean compression;
 
-    public RPCProvider(int port, Serializer serializer, boolean isByteCodeInvoke) {
+    public RPCProvider(int port, Serializer serializer, boolean isByteCodeInvoke, boolean compression) {
         /** 使用公用的线程池 */
         super(RPCThreadPool.THREADS);
         this.port = port;
         this.serializer = serializer;
         this.isByteCodeInvoke = isByteCodeInvoke;
+        this.compression = compression;
     }
 
     /**
@@ -142,6 +145,9 @@ public class RPCProvider extends ActorLike<RPCProvider> {
                     .channelOption(ChannelOption.SO_KEEPALIVE, true)
                     .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                     .protocolHandler(connection);
+            if (compression) {
+                transportOption.compress();
+            }
             try {
                 connection.bind(transportOption);
             } catch (Exception e) {
