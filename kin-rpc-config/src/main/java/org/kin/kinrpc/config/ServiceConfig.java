@@ -26,6 +26,8 @@ public class ServiceConfig extends AbstractConfig {
     private InvokeType invokeType = InvokeType.JAVASSIST;
     private String version;
     private boolean compression;
+    //默认支持并发执行
+    private boolean parallelism = true;
 
     private URL url;
     private volatile boolean isExport;
@@ -52,6 +54,8 @@ public class ServiceConfig extends AbstractConfig {
             throw new IllegalStateException("service class " + serviceClass.getName() + " must implements the certain interface '" + this.interfaceClass.getName() + "'");
         }
 
+        Preconditions.checkNotNull(this.parallelism, "parallelism must be greater than 0");
+
         this.applicationConfig.check();
         this.serverConfig.check();
         if (this.registryConfig != null) {
@@ -72,6 +76,7 @@ public class ServiceConfig extends AbstractConfig {
             params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(InvokeType.JAVASSIST.equals(invokeType)));
             params.put(Constants.VERSION_KEY, version);
             params.put(Constants.COMPRESSION_KEY, Boolean.toString(compression));
+            params.put(Constants.PARALLELISM_KEY, parallelism + "");
 
             url = createURL(applicationConfig, NetUtils.getIpPort(serverConfig.getPort()), registryConfig, params);
             Preconditions.checkNotNull(url);
@@ -185,6 +190,11 @@ public class ServiceConfig extends AbstractConfig {
         return this;
     }
 
+    public ServiceConfig singleThread() {
+        this.parallelism = false;
+        return this;
+    }
+
     //setter && getter
     public ApplicationConfig getApplicationConfig() {
         return applicationConfig;
@@ -220,5 +230,13 @@ public class ServiceConfig extends AbstractConfig {
 
     public String getVersion() {
         return version;
+    }
+
+    public boolean isCompression() {
+        return compression;
+    }
+
+    public boolean isParallelism() {
+        return parallelism;
     }
 }

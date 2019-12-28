@@ -5,8 +5,10 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.actor.ActorLike;
+import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadManager;
 import org.kin.framework.utils.SysUtils;
+import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.common.URL;
 import org.kin.kinrpc.rpc.exception.RateLimitException;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
@@ -35,18 +37,21 @@ import java.util.stream.Collectors;
 public class RPCProvider extends ActorLike<RPCProvider> {
     private static final Logger log = LoggerFactory.getLogger(RPCProvider.class);
     //服务请求处理线程池
-    private static ThreadManager THREADS = new ThreadManager(
-            new ForkJoinPool(SysUtils.getSuitableThreadNum() * 2 - 1,
+    /**
+     * 可以在加载类RPCProvider前修改RPC.parallelism来修改RPCProvider的并发数
+     */
+    private static ThreadManager EXECUTORS = new ThreadManager(
+            new ForkJoinPool(RPC.parallelism,
                     ForkJoinPool.defaultForkJoinWorkerThreadFactory,
                     null,
                     true
-            ));
+            ), 2, new SimpleThreadFactory("rpc-provider-schedule"));
 
     static {
-        JvmCloseCleaner.DEFAULT().add(() -> THREADS.shutdown());
+        JvmCloseCleaner.DEFAULT().add(() -> EXECUTORS.shutdown());
     }
 
-
+    //服务
     private Map<String, ProviderInvokerWrapper> serviceMap = new ConcurrentHashMap<>();
 
     //占用端口
@@ -63,8 +68,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
     private final boolean compression;
 
     public RPCProvider(int port, Serializer serializer, boolean isByteCodeInvoke, boolean compression) {
-        /** 使用公用的线程池 */
-        super(RPCThreadPool.THREADS);
+        super(EXECUTORS);
         this.port = port;
         this.serializer = serializer;
         this.isByteCodeInvoke = isByteCodeInvoke;
@@ -193,53 +197,52 @@ public class RPCProvider extends ActorLike<RPCProvider> {
         });
     }
 
+    /**
+     * 处理rpc请求
+     * 对外接口
+     */
     public void handleRequest(RPCRequest rpcRequest) {
         if (!isStopped) {
             tell(rpcProvider -> handleRPCRequest(rpcRequest));
         }
     }
 
+    /**
+     * 处理rpc请求
+     * provider线程处理
+     */
     private void handleRPCRequest(RPCRequest rpcRequest) {
         if (!isStopped) {
             /** 处理请求 */
             log.debug("receive a request >>> " + rpcRequest);
 
             //提交线程池处理服务执行
-            THREADS.execute(() -> {
-                rpcRequest.setHandleTime(System.currentTimeMillis());
-                String serviceName = rpcRequest.getServiceName();
-                String methodName = rpcRequest.getMethod();
-                Object[] params = rpcRequest.getParams();
-                Channel channel = rpcRequest.getChannel();
+            rpcRequest.setHandleTime(System.currentTimeMillis());
+            String serviceName = rpcRequest.getServiceName();
+            String methodName = rpcRequest.getMethod();
+            Object[] params = rpcRequest.getParams();
+            Channel channel = rpcRequest.getChannel();
 
-                RPCResponse rpcResponse = new RPCResponse(rpcRequest.getRequestId(),
-                        rpcRequest.getServiceName(), rpcRequest.getMethod());
-                if (serviceMap.containsKey(serviceName)) {
-                    ProviderInvoker invoker = serviceMap.get(serviceName).getInvoker();
-
-                    Object result = null;
-                    try {
-                        result = invoker.invoke(methodName, false, params);
-                        rpcResponse.setState(RPCResponse.State.SUCCESS, "success");
-                    } catch (RateLimitException e) {
-                        rpcResponse.setState(RPCResponse.State.RETRY, "service rate limited, just reject");
-                    } catch (Throwable throwable) {
-                        //服务调用报错, 将异常信息返回
-                        rpcResponse.setState(RPCResponse.State.ERROR, throwable.getMessage());
-                        log.error(throwable.getMessage(), throwable);
-                    }
-
-                    rpcResponse.setResult(result);
+            RPCResponse rpcResponse = new RPCResponse(rpcRequest.getRequestId(),
+                    rpcRequest.getServiceName(), rpcRequest.getMethod());
+            if (serviceMap.containsKey(serviceName)) {
+                ProviderInvokerWrapper invokerWrapper = serviceMap.get(serviceName);
+                if (invokerWrapper.parallelism) {
+                    //并发处理
+                    EXECUTORS.execute(() -> handlerRPCRequest0(invokerWrapper.getInvoker(), methodName, params, channel, rpcRequest, rpcResponse));
                 } else {
-                    log.error("can not find service>>> {}", rpcRequest);
-                    rpcResponse.setState(RPCResponse.State.ERROR, "unknown service");
+                    //同一invoker同一线程处理
+                    invokerWrapper.tell(iw -> handlerRPCRequest0(invokerWrapper.getInvoker(), methodName, params, channel, rpcRequest, rpcResponse));
                 }
+            } else {
+                log.error("can not find service>>> {}", rpcRequest);
+                rpcResponse.setState(RPCResponse.State.ERROR, "unknown service");
                 rpcResponse.setCreateTime(System.currentTimeMillis());
                 //write back to reference
                 connection.resp(channel, rpcResponse);
 
                 log.debug("finish handle request >>>>>>>>>" + System.lineSeparator() + rpcRequest + System.lineSeparator() + rpcResponse);
-            });
+            }
         } else {
             /** 停止对外提供服务, 直接拒绝请求 */
 
@@ -255,13 +258,42 @@ public class RPCProvider extends ActorLike<RPCProvider> {
         }
     }
 
-    private class ProviderInvokerWrapper {
+    /**
+     * 处理rpc请求
+     * 调用invoker处理rpc请求
+     */
+    private void handlerRPCRequest0(ProviderInvoker invoker, String methodName, Object[] params,
+                                    Channel channel, RPCRequest rpcRequest, RPCResponse rpcResponse) {
+        Object result = null;
+        try {
+            result = invoker.invoke(methodName, false, params);
+            rpcResponse.setState(RPCResponse.State.SUCCESS, "success");
+        } catch (RateLimitException e) {
+            rpcResponse.setState(RPCResponse.State.RETRY, "service rate limited, just reject");
+        } catch (Throwable throwable) {
+            //服务调用报错, 将异常信息返回
+            rpcResponse.setState(RPCResponse.State.ERROR, throwable.getMessage());
+            log.error(throwable.getMessage(), throwable);
+        }
+
+        rpcResponse.setResult(result);
+        rpcResponse.setCreateTime(System.currentTimeMillis());
+        //write back to reference
+        connection.resp(channel, rpcResponse);
+
+        log.debug("finish handle request >>>>>>>>>" + System.lineSeparator() + rpcRequest + System.lineSeparator() + rpcResponse);
+    }
+
+    private class ProviderInvokerWrapper extends ActorLike<ProviderInvokerWrapper> {
         private URL url;
         private ProviderInvoker invoker;
+        private boolean parallelism;
 
         public ProviderInvokerWrapper(URL url, ProviderInvoker invoker) {
+            super(EXECUTORS);
             this.url = url;
             this.invoker = invoker;
+            this.parallelism = Boolean.valueOf(url.getParam(Constants.PARALLELISM_KEY));
         }
 
         //getter
@@ -271,6 +303,10 @@ public class RPCProvider extends ActorLike<RPCProvider> {
 
         public ProviderInvoker getInvoker() {
             return invoker;
+        }
+
+        public boolean isParallelism() {
+            return parallelism;
         }
     }
 }

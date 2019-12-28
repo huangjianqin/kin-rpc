@@ -9,6 +9,7 @@ public class Constants {
 
     }
 
+    //-------------------------------------------------配置key--------------------------------------------------------
     //url参数
     public static final int URL_PARAM_NUM = 6;
     public static final String APP_NAME_KEY = "appName";
@@ -16,6 +17,8 @@ public class Constants {
     public static final String VERSION_KEY = "version";
     //发送方支持压缩, 接收方根据实际解压后接受或直接接受
     public static final String COMPRESSION_KEY = "compression";
+    //服务provider是否支持并发
+    public static final String PARALLELISM_KEY = "parallelism";
     //连接超时
     public static final String TIMEOUT_KEY = "timeout";
     public static final String REGISTRY_KEY = "registry";
@@ -29,14 +32,8 @@ public class Constants {
     public static final String LOADBALANCE_KEY = "loadbalance";
     public static final String BYTE_CODE_INVOKE_KEY = "byteCodeInvoke";
 
-    //    public static final String CLAXX_KEY = "claxx";//接口名
-//    public static final String VERSION_KEY = "version";//服务版本
-//    public static final String METHOD_KEY = "method";//接口方法列表
-//    public static final String CALLED_METHOD_KEY = "calledMethod";//被调用方法,参数不显示
-    //启动检查
-//    public static final String CHECK_KEY = "check";
 
-
+    //-------------------------------------------------配置value--------------------------------------------------------
     public static final String KINRPC_PROTOCOL = "kinrpc";
     //zookeeper注册中心会话超时
     public static final int ZOOKEEPER_SESSION_TIMEOUT = 5000;
