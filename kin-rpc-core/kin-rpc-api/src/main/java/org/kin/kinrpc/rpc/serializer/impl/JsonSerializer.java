@@ -11,7 +11,6 @@ import java.nio.charset.Charset;
  * @date 2019/7/29
  */
 public class JsonSerializer implements Serializer {
-    private static final Charset UTF8 = Charset.forName("UTF-8");
     private static final ObjectMapper mapper = new ObjectMapper();
 
     @Override
