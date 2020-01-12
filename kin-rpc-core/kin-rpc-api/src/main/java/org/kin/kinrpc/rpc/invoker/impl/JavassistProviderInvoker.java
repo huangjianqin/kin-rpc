@@ -1,11 +1,14 @@
 package org.kin.kinrpc.rpc.invoker.impl;
 
+import org.kin.framework.proxy.ProxyInvoker;
+import org.kin.framework.proxy.ProxyMethodDefinition;
+import org.kin.framework.proxy.utils.ProxyEnhanceUtils;
+import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.StringUtils;
-import org.kin.kinrpc.rpc.invoker.JavassistMethodInvoker;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
-import org.kin.kinrpc.rpc.utils.JavassistUtils;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,7 +22,7 @@ public class JavassistProviderInvoker extends ProviderInvoker {
     /**
      * 方法调用入口
      */
-    private Map<String, JavassistMethodInvoker> methodMap = new HashMap<>();
+    private Map<String, ProxyInvoker> methodMap = new HashMap<>();
 
     public JavassistProviderInvoker(String serviceName, Object service, Class interfaceClass) {
         super(serviceName);
@@ -28,12 +31,20 @@ public class JavassistProviderInvoker extends ProviderInvoker {
     }
 
     private void init(Object service, Class interfaceClass) {
-        methodMap = JavassistUtils.generateProviderMethodProxy(service, interfaceClass, serviceName);
+        Map<String, ProxyInvoker> methodMap = new HashMap<>();
+        for (Method method : interfaceClass.getDeclaredMethods()) {
+            String uniqueName = ClassUtils.getUniqueName(method);
+            ProxyInvoker proxyInvoker = ProxyEnhanceUtils.enhanceMethod(
+                    new ProxyMethodDefinition(service, method,
+                            "org.kin.kinrpc.rpc.invoker.proxy", interfaceClass.getSimpleName() + "$" + ClassUtils.getUniqueName(method)));
+            methodMap.put(uniqueName, proxyInvoker);
+        }
+        this.methodMap = methodMap;
     }
 
     @Override
     public Object doInvoke(String methodName, boolean isVoid, Object... params) throws Throwable {
-        JavassistMethodInvoker methodInvoker = methodMap.get(methodName);
+        ProxyInvoker methodInvoker = methodMap.get(methodName);
 
         if (methodInvoker == null) {
             throw new IllegalStateException("service don't has method whoes name is " + methodName);

@@ -1,10 +1,10 @@
 package org.kin.kinrpc.cluster;
 
 import javassist.*;
-import org.kin.kinrpc.cluster.utils.IntCounter;
+import org.kin.framework.math.IntCounter;
+import org.kin.framework.proxy.utils.ProxyEnhanceUtils;
+import org.kin.framework.utils.ClassUtils;
 import org.kin.kinrpc.common.URL;
-import org.kin.kinrpc.rpc.utils.ClassUtils;
-import org.kin.kinrpc.rpc.utils.JavassistUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -131,7 +131,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
     }
 
     public T proxy() {
-        ClassPool classPool = JavassistUtils.getPool();
+        ClassPool classPool = ProxyEnhanceUtils.getPool();
         CtClass proxyClass = classPool.makeClass("org.kin.kinrpc.cluster." + interfaceClass.getSimpleName() + "$JavassistProxy");
         try {
             //接口
@@ -170,7 +170,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
 
             Class<T> realProxyClass = (Class<T>) proxyClass.toClass();
             T proxy = realProxyClass.getConstructor(this.getClass()).newInstance(this);
-            JavassistUtils.cacheCTClass(getUrl().getServiceName(), proxyClass);
+            ProxyEnhanceUtils.cacheCTClass(getUrl().getServiceName(), proxyClass);
             return proxy;
         } catch (Exception e) {
             log.error("", e);
@@ -181,6 +181,6 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
     @Override
     public void close() {
         super.close();
-        JavassistUtils.detach(getUrl().getServiceName());
+        ProxyEnhanceUtils.detach(getUrl().getServiceName());
     }
 }

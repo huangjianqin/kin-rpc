@@ -1,8 +1,8 @@
 package org.kin.kinrpc.rpc.invoker.impl;
 
+import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
-import org.kin.kinrpc.rpc.utils.ClassUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

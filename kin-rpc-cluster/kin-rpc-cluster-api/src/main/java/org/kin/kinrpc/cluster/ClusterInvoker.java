@@ -2,6 +2,7 @@ package org.kin.kinrpc.cluster;
 
 import com.google.common.net.HostAndPort;
 import org.kin.framework.Closeable;
+import org.kin.framework.utils.ClassUtils;
 import org.kin.kinrpc.cluster.exception.CannotFindInvokerException;
 import org.kin.kinrpc.common.URL;
 import org.kin.kinrpc.rpc.RPCThreadPool;
@@ -12,7 +13,6 @@ import org.kin.kinrpc.rpc.exception.UnknownRPCResponseStateCodeException;
 import org.kin.kinrpc.rpc.future.RPCFuture;
 import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
-import org.kin.kinrpc.rpc.utils.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

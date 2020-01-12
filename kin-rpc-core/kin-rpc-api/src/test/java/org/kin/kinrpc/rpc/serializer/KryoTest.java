@@ -1,4 +1,4 @@
-package org.kin.kinrpc.serializer;
+package org.kin.kinrpc.rpc.serializer;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
