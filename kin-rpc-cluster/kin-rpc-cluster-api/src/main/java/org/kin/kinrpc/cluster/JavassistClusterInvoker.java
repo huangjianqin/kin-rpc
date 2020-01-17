@@ -31,6 +31,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
         return new JavassistClusterInvoker<T>(cluster, retryTimes, retryTimeout, url, interfaceClass).proxy();
     }
 
+    //------------------此处需自定义, 有点特殊-------------------------------------
     private String generateMethodBody(ClassPool classPool,
                                       CtClass proxyClass,
                                       Method method,
@@ -46,17 +47,17 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
 
         StringBuffer invokeCode = new StringBuffer();
         if (Future.class.equals(returnType)) {
-            invokeCode.append("invoker.invokeAsync");
+            invokeCode.append(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME.concat(".invokeAsync"));
         } else {
-            invokeCode.append("invoker.invoke0");
+            invokeCode.append(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME.concat(".invoke0"));
         }
-        invokeCode.append("(\"" + ClassUtils.getUniqueName(method) + "\", " + isVoid);
+        invokeCode.append("(\"".concat(ClassUtils.getUniqueName(method)).concat("\", ").concat(Boolean.toString(isVoid)));
 
         if (parameterTypes.length > 0) {
             invokeCode.append(", new Object[]{");
             StringJoiner invokeBody = new StringJoiner(", ");
             for (int i = 0; i < parameterTypes.length; i++) {
-                String argStr = "arg" + i;
+                String argStr = "arg".concat(Integer.toString(i));
                 invokeBody.add(org.kin.framework.utils.ClassUtils.primitivePackage(parameterTypes[i], argStr));
             }
             invokeCode.append(invokeBody.toString());
@@ -74,18 +75,18 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
 
         if (CompletableFuture.class.equals(returnType)) {
             //需要构造内部抽象类
-            CtClass internalClass = classPool.makeClass(proxyClass.getName() + "$" + internalClassNum.getCount());
+            CtClass internalClass = classPool.makeClass(proxyClass.getName().concat("$").concat(Integer.toString(internalClassNum.getCount())));
             internalClass.addInterface(classPool.get(Supplier.class.getName()));
 
             Collection<CtClass> constructArgClass = new ArrayList<>();
 
-            CtField internalClassField = new CtField(classPool.get(this.getClass().getName()), "invoker", internalClass);
+            CtField internalClassField = new CtField(classPool.get(this.getClass().getName()), ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME, internalClass);
             internalClassField.setModifiers(Modifier.PRIVATE | Modifier.FINAL);
             internalClass.addField(internalClassField);
             constructArgClass.add(classPool.get(this.getClass().getName()));
 
             for (int i = 0; i < parameterTypes.length; i++) {
-                CtField internalClassField1 = new CtField(classPool.get(parameterTypes[i].getName()), "arg" + i, internalClass);
+                CtField internalClassField1 = new CtField(classPool.get(parameterTypes[i].getName()), "arg".concat(Integer.toString(i)), internalClass);
                 internalClassField1.setModifiers(Modifier.PRIVATE | Modifier.FINAL);
                 internalClass.addField(internalClassField1);
                 constructArgClass.add(classPool.get(parameterTypes[i].getName()));
@@ -96,9 +97,9 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
                     constructArgClass.toArray(new CtClass[constructArgClass.size()]), internalClass);
             StringBuffer constructBody = new StringBuffer();
             constructBody.append("{");
-            constructBody.append("$0.invoker = $1;");
+            constructBody.append("$0.".concat(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME).concat("= $1;"));
             for (int i = 1; i <= parameterTypes.length; i++) {
-                constructBody.append("$0.arg" + (i - 1) + " = $" + (i + 1) + ";");
+                constructBody.append("$0.arg".concat(Integer.toString((i - 1))).concat(" = $").concat(Integer.toString((i + 1))).concat(";"));
             }
             constructBody.append("}");
             internalClassConstructor.setBody(constructBody.toString());
@@ -115,14 +116,14 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
             Class realInternalClass = internalClass.toClass();
 
             StringJoiner invokeParam = new StringJoiner(", ");
-            invokeParam.add("invoker");
+            invokeParam.add(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME);
             for (int i = 0; i < parameterTypes.length; i++) {
-                invokeParam.add("arg" + i);
+                invokeParam.add("arg".concat(Integer.toString(i)));
             }
 
             methodBody = new StringBuffer();
-            methodBody.append("return " + CompletableFuture.class.getName() +
-                    ".supplyAsync(new " + realInternalClass.getName() + "(" + invokeParam.toString() + "));");
+            methodBody.append("return ".concat(CompletableFuture.class.getName())
+                    .concat(".supplyAsync(new ").concat(realInternalClass.getName()).concat("(").concat(invokeParam.toString()).concat("));"));
 
             internalClassNum.increment();
         }
@@ -132,18 +133,18 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
 
     public T proxy() {
         ClassPool classPool = ProxyEnhanceUtils.getPool();
-        CtClass proxyClass = classPool.makeClass("org.kin.kinrpc.cluster." + interfaceClass.getSimpleName() + "$JavassistProxy");
+        CtClass proxyClass = classPool.makeClass("org.kin.kinrpc.cluster.".concat(interfaceClass.getSimpleName()).concat("$JavassistProxy"));
         try {
             //接口
             proxyClass.addInterface(classPool.get(interfaceClass.getName()));
 
-            CtField invokerField = new CtField(classPool.get(this.getClass().getName()), "invoker", proxyClass);
+            CtField invokerField = new CtField(classPool.get(this.getClass().getName()), ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME, proxyClass);
             invokerField.setModifiers(Modifier.PRIVATE | Modifier.FINAL);
             proxyClass.addField(invokerField);
 
             //构造器
             CtConstructor constructor = new CtConstructor(new CtClass[]{classPool.get(this.getClass().getName())}, proxyClass);
-            constructor.setBody("{$0.invoker = $1;}");
+            constructor.setBody("{$0.".concat(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME).concat(" = $1;}"));
             proxyClass.addConstructor(constructor);
 
             IntCounter internalClassNum = new IntCounter();
@@ -151,16 +152,16 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
             for (Method method : interfaceClass.getDeclaredMethods()) {
                 StringBuffer sb = new StringBuffer();
                 sb.append("public ");
-                sb.append(method.getReturnType().getName() + " ");
-                sb.append(method.getName() + "(");
+                sb.append(method.getReturnType().getName().concat(" "));
+                sb.append(method.getName().concat("("));
 
                 StringJoiner paramBody = new StringJoiner(", ");
 
                 Class[] parameterTypes = method.getParameterTypes();
                 for (int i = 0; i < parameterTypes.length; i++) {
-                    paramBody.add(parameterTypes[i].getName() + " " + "arg" + i);
+                    paramBody.add(parameterTypes[i].getName().concat(" ").concat("arg").concat(Integer.toString(i)));
                 }
-                sb.append(paramBody.toString() + "){");
+                sb.append(paramBody.toString().concat("){"));
                 sb.append(generateMethodBody(classPool, proxyClass, method, parameterTypes, internalClassNum));
                 sb.append("}");
 
@@ -177,6 +178,8 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
         }
         return null;
     }
+
+    //----------------------------------------------------------------------------------------------------
 
     @Override
     public void close() {
