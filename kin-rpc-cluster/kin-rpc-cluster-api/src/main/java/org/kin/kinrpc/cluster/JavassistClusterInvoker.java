@@ -174,7 +174,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
             ProxyEnhanceUtils.cacheCTClass(getUrl().getServiceName(), proxyClass);
             return proxy;
         } catch (Exception e) {
-            log.error("", e);
+            log.error(e.getMessage(), e);
         }
         return null;
     }
