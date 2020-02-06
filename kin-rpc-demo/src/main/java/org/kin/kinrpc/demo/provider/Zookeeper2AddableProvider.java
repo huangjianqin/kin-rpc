@@ -10,7 +10,7 @@ import org.kin.kinrpc.demo.service.Adder;
  * @date 2019/7/3
  */
 public class Zookeeper2AddableProvider {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         ServiceConfig serviceConfig = Services.service(new Adder(), Addable.class).serviceName("test/Add").zookeeper2("127.0.0.1:2181");
         serviceConfig.exportSync();
     }

@@ -66,7 +66,7 @@ public class ServiceConfig extends AbstractConfig {
     /**
      * 暴露服务
      */
-    public void export() {
+    public void export() throws Exception {
         if (!isExport) {
             check();
 
@@ -91,7 +91,7 @@ public class ServiceConfig extends AbstractConfig {
     /**
      * 暴露服务
      */
-    public void exportSync() {
+    public void exportSync() throws Exception {
         export();
 
         while (true) {

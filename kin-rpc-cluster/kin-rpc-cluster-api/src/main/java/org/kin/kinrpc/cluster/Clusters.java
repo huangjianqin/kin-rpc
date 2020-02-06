@@ -3,6 +3,7 @@ package org.kin.kinrpc.cluster;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadManager;
@@ -86,7 +87,7 @@ public class Clusters {
     private Clusters() {
     }
 
-    public static synchronized void export(URL url, Class interfaceClass, Object instance) {
+    public static synchronized void export(URL url, Class interfaceClass, Object instance) throws Exception {
         int port = url.getPort();
         String serializerType = url.getParam(Constants.SERIALIZE_KEY);
         boolean byteCodeInvoke = Boolean.valueOf(url.getParam(Constants.BYTE_CODE_INVOKE_KEY));
@@ -96,10 +97,17 @@ public class Clusters {
         try {
             provider = PROVIDER_CACHE.get(port, () -> {
                 RPCProvider provider0 = new RPCProvider(port, serializer, byteCodeInvoke, Boolean.valueOf(url.getParam(Constants.COMPRESSION_KEY)));
-                provider0.start();
+                try {
+                    provider0.start();
+                } catch (Exception e) {
+                    provider0.shutdownNow();
+                    throw e;
+                }
 
                 return provider0;
             });
+        } catch (UncheckedExecutionException uee) {
+            throw (RuntimeException) uee.getCause();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return;

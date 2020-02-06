@@ -7,7 +7,6 @@ import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.actor.ActorLike;
 import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadManager;
-import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.common.URL;
 import org.kin.kinrpc.rpc.exception.RateLimitException;
@@ -25,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
@@ -80,7 +80,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
      */
     public void addService(URL url, Class<?> interfaceClass, Object service) {
         tell((rpcProvider) -> {
-            if (!isStopped) {
+            if (isAlive()) {
                 String serviceName = url.getServiceName();
                 ProviderInvoker invoker;
 
@@ -121,10 +121,13 @@ public class RPCProvider extends ActorLike<RPCProvider> {
     }
 
     public boolean isAlive() {
-        return connection.isActive();
+        return !isStopped && connection.isActive();
     }
 
     public Collection<URL> getAvailableServices() {
+        if (!isAlive()) {
+            return Collections.emptyList();
+        }
         return serviceMap.values().stream().map(ProviderInvokerWrapper::getUrl).collect(Collectors.toList());
     }
 
@@ -135,32 +138,25 @@ public class RPCProvider extends ActorLike<RPCProvider> {
     /**
      * 启动Server
      */
-    public void start() {
-        tell(rpcProvider -> {
-            if (isStopped) {
-                throw new RuntimeException("try start stopped provider");
-            }
-            log.info("provider(port={}) starting...", port);
+    public void start() throws Exception {
+        if (isStopped) {
+            throw new RuntimeException("try start stopped provider");
+        }
+        log.info("provider(port={}) starting...", port);
 
-            //启动连接
-            this.connection = new ProviderHandler(new InetSocketAddress(this.port), this, serializer);
-            ServerTransportOption transportOption = TransportOption.server()
-                    .channelOption(ChannelOption.TCP_NODELAY, true)
-                    .channelOption(ChannelOption.SO_KEEPALIVE, true)
-                    .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                    .protocolHandler(connection);
-            if (compression) {
-                transportOption.compress();
-            }
-            try {
-                connection.bind(transportOption);
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-                System.exit(-1);
-            }
+        //启动连接
+        this.connection = new ProviderHandler(new InetSocketAddress(this.port), this, serializer);
+        ServerTransportOption transportOption = TransportOption.server()
+                .channelOption(ChannelOption.TCP_NODELAY, true)
+                .channelOption(ChannelOption.SO_KEEPALIVE, true)
+                .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                .protocolHandler(connection);
+        if (compression) {
+            transportOption.compress();
+        }
+        connection.bind(transportOption);
 
-            log.info("provider(port={}) started", port);
-        });
+        log.info("provider(port={}) started", port);
     }
 
     /**
@@ -202,7 +198,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
      * 对外接口
      */
     public void handleRequest(RPCRequest rpcRequest) {
-        if (!isStopped) {
+        if (!isAlive()) {
             tell(rpcProvider -> handleRPCRequest(rpcRequest));
         }
     }
@@ -212,7 +208,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
      * provider线程处理
      */
     private void handleRPCRequest(RPCRequest rpcRequest) {
-        if (!isStopped) {
+        if (!isAlive()) {
             /** 处理请求 */
             log.debug("receive a request >>> " + rpcRequest);
 

@@ -10,7 +10,7 @@ import org.kin.kinrpc.demo.service.Adder;
  * Created by 健勤 on 2017/2/16.
  */
 public class AddableProvider {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         ServiceConfig serviceConfig = Services.service(new Adder(), Addable.class).serialize(SerializerType.JSON.getType()).version("001").compress().singleThread();
         serviceConfig.exportSync();
     }
