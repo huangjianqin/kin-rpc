@@ -197,7 +197,7 @@ public class ServiceConfig extends AbstractConfig {
         return this;
     }
 
-    public ServiceConfig singleThread() {
+    public ServiceConfig actorLike() {
         this.parallelism = false;
         return this;
     }
