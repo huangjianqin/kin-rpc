@@ -40,7 +40,7 @@ public class ServiceConfig extends AbstractConfig {
 
     //---------------------------------------------------------------------------------------------------------
     @Override
-    void check() {
+    void check() throws Exception{
         Preconditions.checkNotNull(this.ref, "provider object must be not null");
         Preconditions.checkNotNull(this.interfaceClass, "provider object interface must be not");
 
@@ -78,7 +78,7 @@ public class ServiceConfig extends AbstractConfig {
             params.put(Constants.COMPRESSION_KEY, Boolean.toString(compression));
             params.put(Constants.PARALLELISM_KEY, parallelism + "");
 
-            url = createURL(applicationConfig, NetUtils.getIpPort(serverConfig.getPort()), registryConfig, params);
+            url = createURL(applicationConfig, NetUtils.getIpPort(serverConfig.getHost(), serverConfig.getPort()), registryConfig, params);
             Preconditions.checkNotNull(url);
 
             Clusters.export(url, interfaceClass, ref);
@@ -119,6 +119,13 @@ public class ServiceConfig extends AbstractConfig {
     public ServiceConfig bind(int port) {
         if (!isExport) {
             this.serverConfig = new ServerConfig(port);
+        }
+        return this;
+    }
+
+    public ServiceConfig bind(String host, int port) {
+        if (!isExport) {
+            this.serverConfig = new ServerConfig(host, port);
         }
         return this;
     }

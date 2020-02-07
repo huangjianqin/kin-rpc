@@ -16,7 +16,7 @@ abstract class AbstractConfig {
     /**
      * 检查配置参数正确性
      */
-    abstract void check();
+    abstract void check() throws Exception;
 
     protected URL createURL(ApplicationConfig applicationConfig,
                             String hostPort,
