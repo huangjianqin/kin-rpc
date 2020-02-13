@@ -26,7 +26,8 @@ public class LoadBalances {
         try {
             String loadBalanceName = (type + LoadBalance.class.getSimpleName()).toLowerCase();
             LoadBalance loadBalance = LOADBALANCE_CACHE.get(type, () -> {
-                Set<Class<? extends LoadBalance>> classes = ClassUtils.getSubClass("", LoadBalance.class, true);
+                Set<Class<? extends LoadBalance>> classes = ClassUtils.getSubClass(LoadBalance.class.getPackage().getName(), LoadBalance.class, true);
+                //TODO 考虑增加加载外部自定义的LoadBalance
                 if (classes.size() > 0) {
                     for (Class<? extends LoadBalance> claxx : classes) {
                         String className = claxx.getSimpleName().toLowerCase();

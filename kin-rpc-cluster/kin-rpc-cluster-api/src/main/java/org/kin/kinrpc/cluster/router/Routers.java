@@ -26,7 +26,8 @@ public class Routers {
         try {
             String routerName = (type + Router.class.getSimpleName()).toLowerCase();
             Router router = ROUTER_CACHE.get(type, () -> {
-                Set<Class<? extends Router>> classes = ClassUtils.getSubClass("", Router.class, true);
+                Set<Class<? extends Router>> classes = ClassUtils.getSubClass(Router.class.getPackage().getName(), Router.class, true);
+                //TODO 考虑增加加载外部自定义的Router
                 if (classes.size() > 0) {
                     for (Class<? extends Router> claxx : classes) {
                         String className = claxx.getSimpleName().toLowerCase();
