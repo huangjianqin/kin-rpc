@@ -24,7 +24,7 @@ public class ServiceConfig extends AbstractConfig {
     private String serviceName;
     private String serialize = SerializerType.KRYO.getType();
     private InvokeType invokeType = InvokeType.JAVASSIST;
-    private String version;
+    private String version = "0.1.0.0";
     private boolean compression;
     //默认支持并发执行
     private boolean parallelism = true;

@@ -25,7 +25,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
     private String loadBalanceType = LoadBalanceType.ROUND_ROBIN.getType();
     private String routerType = RouterType.NONE.getType();
     private InvokeType invokeType = InvokeType.JAVASSIST;
-    private String version;
+    private String version = "0.1.0.0";
     private boolean compression;
 
     private URL url;
