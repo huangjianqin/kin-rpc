@@ -94,8 +94,8 @@ public class ServiceConfig extends AbstractConfig {
     public void exportSync() throws Exception {
         export();
 
-        while (true) {
-
+        synchronized (this){
+            wait();
         }
     }
 
