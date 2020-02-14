@@ -3,6 +3,7 @@ package org.kin.kinrpc.rpc;
 import com.google.common.net.HostAndPort;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.future.RPCFuture;
 import org.kin.kinrpc.rpc.serializer.Serializer;
 import org.kin.kinrpc.rpc.transport.ReferenceHandler;
@@ -80,7 +81,8 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
             pendingRPCFutureMap.put(request.getRequestId() + "", future);
         } catch (Exception e) {
             pendingRPCFutureMap.remove(request.getRequestId() + "");
-            future.done(RPCResponse.respWithError(request, "client channel closed"));
+            future.done(RPCResponse.respWithError(request,
+                    "client channel closed, due to ".concat(System.lineSeparator()).concat(ExceptionUtils.getExceptionDesc(e))));
         }
 
         return future;

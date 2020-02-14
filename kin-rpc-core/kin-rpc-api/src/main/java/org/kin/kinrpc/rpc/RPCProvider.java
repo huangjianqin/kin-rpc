@@ -7,6 +7,7 @@ import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.actor.ActorLike;
 import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadManager;
+import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.common.URL;
 import org.kin.kinrpc.rpc.exception.RateLimitException;
@@ -54,6 +55,8 @@ public class RPCProvider extends ActorLike<RPCProvider> {
     //服务
     private Map<String, ProviderInvokerWrapper> serviceMap = new ConcurrentHashMap<>();
 
+    //占用主机名
+    private final String host;
     //占用端口
     private final int port;
     //序列化方式
@@ -67,8 +70,9 @@ public class RPCProvider extends ActorLike<RPCProvider> {
     //是否压缩
     private final boolean compression;
 
-    public RPCProvider(int port, Serializer serializer, boolean isByteCodeInvoke, boolean compression) {
+    public RPCProvider(String host, int port, Serializer serializer, boolean isByteCodeInvoke, boolean compression) {
         super(EXECUTORS);
+        this.host = host;
         this.port = port;
         this.serializer = serializer;
         this.isByteCodeInvoke = isByteCodeInvoke;
@@ -145,7 +149,14 @@ public class RPCProvider extends ActorLike<RPCProvider> {
         log.info("provider(port={}) starting...", port);
 
         //启动连接
-        this.connection = new ProviderHandler(new InetSocketAddress(this.port), this, serializer);
+        InetSocketAddress inetAddress;
+        if (StringUtils.isNotBlank(host)) {
+            inetAddress = new InetSocketAddress(this.host, this.port);
+        } else {
+            inetAddress = new InetSocketAddress(this.port);
+        }
+
+        this.connection = new ProviderHandler(inetAddress, this, serializer);
         ServerTransportOption transportOption = TransportOption.server()
                 .channelOption(ChannelOption.TCP_NODELAY, true)
                 .channelOption(ChannelOption.SO_KEEPALIVE, true)
@@ -198,7 +209,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
      * 对外接口
      */
     public void handleRequest(RPCRequest rpcRequest) {
-        if (!isAlive()) {
+        if (isAlive()) {
             tell(rpcProvider -> handleRPCRequest(rpcRequest));
         }
     }
@@ -208,7 +219,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
      * provider线程处理
      */
     private void handleRPCRequest(RPCRequest rpcRequest) {
-        if (!isAlive()) {
+        if (isAlive()) {
             /** 处理请求 */
             log.debug("receive a request >>> " + rpcRequest);
 

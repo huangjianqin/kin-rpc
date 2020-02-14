@@ -1,12 +1,15 @@
 package org.kin.kinrpc.registry;
 
 import org.kin.framework.actor.ActorLike;
+import org.kin.framework.utils.CollectionUtils;
 import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Created by huangjianqin on 2019/6/11.
@@ -37,7 +40,24 @@ public abstract class AbstractDirectory extends ActorLike<AbstractDirectory> imp
 
     @Override
     public void discover(List<String> addresses) {
-        tell(directory -> invokers = doDiscover(addresses));
+        CountDownLatch latch = null;
+        if (CollectionUtils.isEmpty(invokers)) {
+            latch = new CountDownLatch(1);
+        }
+        CountDownLatch finalLatch = latch;
+        tell(directory -> {
+            invokers = doDiscover(addresses);
+            if (Objects.nonNull(finalLatch)) {
+                finalLatch.countDown();
+            }
+        });
+        if (Objects.nonNull(latch)) {
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+
+            }
+        }
     }
 
     @Override

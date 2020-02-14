@@ -20,6 +20,7 @@ import org.kin.kinrpc.registry.Registry;
 import org.kin.kinrpc.rpc.RPCProvider;
 import org.kin.kinrpc.rpc.serializer.Serializer;
 import org.kin.kinrpc.rpc.serializer.Serializers;
+import org.kin.kinrpc.rpc.transport.protocol.RPCHeartbeat;
 import org.kin.transport.netty.core.ProtocolFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +45,7 @@ public class Clusters {
     private static final int HEARTBEAT_INTERVAL = 3;
 
     static {
-        ProtocolFactory.init("org.kin.kinrpc.rpc");
+        ProtocolFactory.init(RPCHeartbeat.class.getPackage().getName());
         JvmCloseCleaner.DEFAULT().add(() -> {
             for (RPCProvider provider : PROVIDER_CACHE.asMap().values()) {
                 provider.shutdown();
@@ -88,6 +89,7 @@ public class Clusters {
     }
 
     public static synchronized void export(URL url, Class interfaceClass, Object instance) throws Exception {
+        String host = url.getHost();
         int port = url.getPort();
         String serializerType = url.getParam(Constants.SERIALIZE_KEY);
         boolean byteCodeInvoke = Boolean.valueOf(url.getParam(Constants.BYTE_CODE_INVOKE_KEY));
@@ -96,7 +98,7 @@ public class Clusters {
         RPCProvider provider;
         try {
             provider = PROVIDER_CACHE.get(port, () -> {
-                RPCProvider provider0 = new RPCProvider(port, serializer, byteCodeInvoke, Boolean.valueOf(url.getParam(Constants.COMPRESSION_KEY)));
+                RPCProvider provider0 = new RPCProvider(host, port, serializer, byteCodeInvoke, Boolean.valueOf(url.getParam(Constants.COMPRESSION_KEY)));
                 try {
                     provider0.start();
                 } catch (Exception e) {
