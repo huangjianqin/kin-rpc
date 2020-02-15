@@ -135,12 +135,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
     public T proxy() {
         ClassPool classPool = ProxyEnhanceUtils.getPool();
         String ctClassName = "org.kin.kinrpc.cluster.".concat(interfaceClass.getSimpleName()).concat("$JavassistProxy");
-        CtClass proxyClass = null;
-        try {
-            proxyClass = classPool.get(ctClassName);
-        } catch (NotFoundException e) {
-
-        }
+        CtClass proxyClass = classPool.getOrNull(ctClassName);
         try {
             if(Objects.isNull(proxyClass)){
                 proxyClass = classPool.makeClass(ctClassName);
