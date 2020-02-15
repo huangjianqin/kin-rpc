@@ -2,6 +2,7 @@ package org.kin.kinrpc.rpc.transport;
 
 import com.google.common.util.concurrent.RateLimiter;
 import io.netty.channel.Channel;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.rpc.RPCProvider;
 import org.kin.kinrpc.rpc.serializer.Serializer;
@@ -94,7 +95,7 @@ public class ProviderHandler implements ProtocolHandler {
                     rpcRequest.setEventTime(System.currentTimeMillis());
                 } catch (IOException | ClassNotFoundException e) {
                     log.error(e.getMessage(), e);
-                    RPCResponse rpcResponse = RPCResponse.respWithError(rpcRequest, e.getMessage());
+                    RPCResponse rpcResponse = RPCResponse.respWithError(rpcRequest, ExceptionUtils.getExceptionDesc(e));
                     session.getChannel().writeAndFlush(rpcResponse);
                     return;
                 }

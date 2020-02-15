@@ -10,6 +10,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
@@ -133,40 +134,49 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
 
     public T proxy() {
         ClassPool classPool = ProxyEnhanceUtils.getPool();
-        CtClass proxyClass = classPool.makeClass("org.kin.kinrpc.cluster.".concat(interfaceClass.getSimpleName()).concat("$JavassistProxy"));
+        String ctClassName = "org.kin.kinrpc.cluster.".concat(interfaceClass.getSimpleName()).concat("$JavassistProxy");
+        CtClass proxyClass = null;
         try {
-            //接口
-            proxyClass.addInterface(classPool.get(interfaceClass.getName()));
+            proxyClass = classPool.get(ctClassName);
+        } catch (NotFoundException e) {
 
-            CtField invokerField = new CtField(classPool.get(this.getClass().getName()), ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME, proxyClass);
-            invokerField.setModifiers(Modifier.PRIVATE | Modifier.FINAL);
-            proxyClass.addField(invokerField);
+        }
+        try {
+            if(Objects.isNull(proxyClass)){
+                proxyClass = classPool.makeClass(ctClassName);
+                //接口
+                proxyClass.addInterface(classPool.get(interfaceClass.getName()));
 
-            //构造器
-            CtConstructor constructor = new CtConstructor(new CtClass[]{classPool.get(this.getClass().getName())}, proxyClass);
-            constructor.setBody("{$0.".concat(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME).concat(" = $1;}"));
-            proxyClass.addConstructor(constructor);
+                CtField invokerField = new CtField(classPool.get(this.getClass().getName()), ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME, proxyClass);
+                invokerField.setModifiers(Modifier.PRIVATE | Modifier.FINAL);
+                proxyClass.addField(invokerField);
 
-            IntCounter internalClassNum = new IntCounter();
-            //生成接口方法方法体
-            for (Method method : interfaceClass.getDeclaredMethods()) {
-                StringBuffer sb = new StringBuffer();
-                sb.append("public ");
-                sb.append(method.getReturnType().getName().concat(" "));
-                sb.append(method.getName().concat("("));
+                //构造器
+                CtConstructor constructor = new CtConstructor(new CtClass[]{classPool.get(this.getClass().getName())}, proxyClass);
+                constructor.setBody("{$0.".concat(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME).concat(" = $1;}"));
+                proxyClass.addConstructor(constructor);
 
-                StringJoiner paramBody = new StringJoiner(", ");
+                IntCounter internalClassNum = new IntCounter();
+                //生成接口方法方法体
+                for (Method method : interfaceClass.getDeclaredMethods()) {
+                    StringBuffer sb = new StringBuffer();
+                    sb.append("public ");
+                    sb.append(method.getReturnType().getName().concat(" "));
+                    sb.append(method.getName().concat("("));
 
-                Class[] parameterTypes = method.getParameterTypes();
-                for (int i = 0; i < parameterTypes.length; i++) {
-                    paramBody.add(parameterTypes[i].getName().concat(" ").concat("arg").concat(Integer.toString(i)));
+                    StringJoiner paramBody = new StringJoiner(", ");
+
+                    Class[] parameterTypes = method.getParameterTypes();
+                    for (int i = 0; i < parameterTypes.length; i++) {
+                        paramBody.add(parameterTypes[i].getName().concat(" ").concat("arg").concat(Integer.toString(i)));
+                    }
+                    sb.append(paramBody.toString().concat("){"));
+                    sb.append(generateMethodBody(classPool, proxyClass, method, parameterTypes, internalClassNum));
+                    sb.append("}");
+
+                    CtMethod ctMethod = CtMethod.make(sb.toString(), proxyClass);
+                    proxyClass.addMethod(ctMethod);
                 }
-                sb.append(paramBody.toString().concat("){"));
-                sb.append(generateMethodBody(classPool, proxyClass, method, parameterTypes, internalClassNum));
-                sb.append("}");
-
-                CtMethod ctMethod = CtMethod.make(sb.toString(), proxyClass);
-                proxyClass.addMethod(ctMethod);
             }
 
             Class<T> realProxyClass = (Class<T>) proxyClass.toClass();
