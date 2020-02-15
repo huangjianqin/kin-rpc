@@ -133,50 +133,60 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
     }
 
     public T proxy() {
-        ClassPool classPool = ProxyEnhanceUtils.getPool();
         String ctClassName = "org.kin.kinrpc.cluster.".concat(interfaceClass.getSimpleName()).concat("$JavassistProxy");
-        CtClass proxyClass = classPool.getOrNull(ctClassName);
+        Class<T> realProxyClass = null;
         try {
-            if(Objects.isNull(proxyClass)){
-                proxyClass = classPool.makeClass(ctClassName);
-                //接口
-                proxyClass.addInterface(classPool.get(interfaceClass.getName()));
+            realProxyClass = (Class<T>) Class.forName(ctClassName);
+        } catch (ClassNotFoundException e) {
 
-                CtField invokerField = new CtField(classPool.get(this.getClass().getName()), ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME, proxyClass);
-                invokerField.setModifiers(Modifier.PRIVATE | Modifier.FINAL);
-                proxyClass.addField(invokerField);
+        }
 
-                //构造器
-                CtConstructor constructor = new CtConstructor(new CtClass[]{classPool.get(this.getClass().getName())}, proxyClass);
-                constructor.setBody("{$0.".concat(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME).concat(" = $1;}"));
-                proxyClass.addConstructor(constructor);
+        try {
+            if (Objects.isNull(realProxyClass)) {
+                ClassPool classPool = ProxyEnhanceUtils.getPool();
+                CtClass proxyClass = classPool.getOrNull(ctClassName);
 
-                IntCounter internalClassNum = new IntCounter();
-                //生成接口方法方法体
-                for (Method method : interfaceClass.getDeclaredMethods()) {
-                    StringBuffer sb = new StringBuffer();
-                    sb.append("public ");
-                    sb.append(method.getReturnType().getName().concat(" "));
-                    sb.append(method.getName().concat("("));
+                if (Objects.isNull(proxyClass)) {
+                    proxyClass = classPool.makeClass(ctClassName);
+                    //接口
+                    proxyClass.addInterface(classPool.get(interfaceClass.getName()));
 
-                    StringJoiner paramBody = new StringJoiner(", ");
+                    CtField invokerField = new CtField(classPool.get(this.getClass().getName()), ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME, proxyClass);
+                    invokerField.setModifiers(Modifier.PRIVATE | Modifier.FINAL);
+                    proxyClass.addField(invokerField);
 
-                    Class[] parameterTypes = method.getParameterTypes();
-                    for (int i = 0; i < parameterTypes.length; i++) {
-                        paramBody.add(parameterTypes[i].getName().concat(" ").concat("arg").concat(Integer.toString(i)));
+                    //构造器
+                    CtConstructor constructor = new CtConstructor(new CtClass[]{classPool.get(this.getClass().getName())}, proxyClass);
+                    constructor.setBody("{$0.".concat(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME).concat(" = $1;}"));
+                    proxyClass.addConstructor(constructor);
+
+                    IntCounter internalClassNum = new IntCounter();
+                    //生成接口方法方法体
+                    for (Method method : interfaceClass.getDeclaredMethods()) {
+                        StringBuffer sb = new StringBuffer();
+                        sb.append("public ");
+                        sb.append(method.getReturnType().getName().concat(" "));
+                        sb.append(method.getName().concat("("));
+
+                        StringJoiner paramBody = new StringJoiner(", ");
+
+                        Class[] parameterTypes = method.getParameterTypes();
+                        for (int i = 0; i < parameterTypes.length; i++) {
+                            paramBody.add(parameterTypes[i].getName().concat(" ").concat("arg").concat(Integer.toString(i)));
+                        }
+                        sb.append(paramBody.toString().concat("){"));
+                        sb.append(generateMethodBody(classPool, proxyClass, method, parameterTypes, internalClassNum));
+                        sb.append("}");
+
+                        CtMethod ctMethod = CtMethod.make(sb.toString(), proxyClass);
+                        proxyClass.addMethod(ctMethod);
                     }
-                    sb.append(paramBody.toString().concat("){"));
-                    sb.append(generateMethodBody(classPool, proxyClass, method, parameterTypes, internalClassNum));
-                    sb.append("}");
-
-                    CtMethod ctMethod = CtMethod.make(sb.toString(), proxyClass);
-                    proxyClass.addMethod(ctMethod);
+                    ProxyEnhanceUtils.cacheCTClass(getUrl().getServiceName(), proxyClass);
                 }
-            }
 
-            Class<T> realProxyClass = (Class<T>) proxyClass.toClass();
+                realProxyClass = (Class<T>) proxyClass.toClass();
+            }
             T proxy = realProxyClass.getConstructor(this.getClass()).newInstance(this);
-            ProxyEnhanceUtils.cacheCTClass(getUrl().getServiceName(), proxyClass);
             return proxy;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
