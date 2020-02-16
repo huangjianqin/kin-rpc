@@ -107,7 +107,7 @@ public class ProviderHandler implements ProtocolHandler {
             }
         } else if (protocol instanceof RPCHeartbeat) {
             RPCHeartbeat heartbeat = (RPCHeartbeat) protocol;
-            log.info("client heartbeat ip:{}, content:{}", heartbeat.getIp(), heartbeat.getContent());
+            log.info("provider({}) receive heartbeat ip:{}, content:{}", address, heartbeat.getIp(), heartbeat.getContent());
             RPCHeartbeat heartbeatResp = ProtocolFactory.createProtocol(RPCConstants.RPC_HEARTBEAT_PROTOCOL_ID, getAddressStr(), "");
             session.getChannel().writeAndFlush(heartbeatResp.write());
         } else {

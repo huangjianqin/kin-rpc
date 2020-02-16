@@ -12,13 +12,12 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class ProviderInvoker extends AbstractInvoker {
     protected static final Logger log = LoggerFactory.getLogger(ProviderInvoker.class);
-    /**
-     * 限流
-     */
-    private RateLimiter rateLimiter = RateLimiter.create(Constants.PROVIDER_REQUEST_THRESHOLD);
+    //限流
+    private RateLimiter rateLimiter;
 
-    protected ProviderInvoker(String serviceName) {
+    protected ProviderInvoker(String serviceName, int rate) {
         super(serviceName);
+        rateLimiter = RateLimiter.create(rate);
     }
 
     @Override

@@ -24,8 +24,8 @@ public class JavassistProviderInvoker extends ProviderInvoker {
      */
     private Map<String, ProxyInvoker> methodMap = new HashMap<>();
 
-    public JavassistProviderInvoker(String serviceName, Object service, Class interfaceClass) {
-        super(serviceName);
+    public JavassistProviderInvoker(String serviceName, Object service, Class interfaceClass, int rate) {
+        super(serviceName, rate);
         //生成方法代理类
         init(service, interfaceClass);
     }

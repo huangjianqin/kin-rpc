@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -139,11 +140,15 @@ public class Clusters {
         unRegisterService(url);
 
         RPCProvider provider = PROVIDER_CACHE.getIfPresent(url.getPort());
-        provider.disableService(url);
-        if (!provider.isBusy()) {
-            //该端口没有提供服务, 关闭网络连接
-            provider.shutdown();
-            PROVIDER_CACHE.invalidate(url.getPort());
+        if(Objects.nonNull(provider)){
+            provider.disableService(url);
+            provider.tell((p)-> {
+                if (!p.isBusy()) {
+                    //该端口没有提供服务, 关闭网络连接
+                    p.shutdown();
+                    PROVIDER_CACHE.invalidate(url.getPort());
+                }
+            });
         }
     }
 

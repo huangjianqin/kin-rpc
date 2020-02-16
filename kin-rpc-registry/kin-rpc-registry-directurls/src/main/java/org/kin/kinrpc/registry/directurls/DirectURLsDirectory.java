@@ -12,7 +12,6 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Created by huangjianqin on 2019/6/11.
@@ -26,14 +25,6 @@ public class DirectURLsDirectory extends AbstractDirectory {
     }
 
     @Override
-    public List<ReferenceInvoker> list() {
-        if (!isStopped) {
-            return invokers.stream().filter(ReferenceInvoker::isActive).collect(Collectors.toList());
-        }
-        return Collections.emptyList();
-    }
-
-    @Override
     protected List<ReferenceInvoker> doDiscover(List<String> addresses) {
         if (!isStopped) {
             List<ReferenceInvoker> invokers = new ArrayList<>();
@@ -41,7 +32,7 @@ public class DirectURLsDirectory extends AbstractDirectory {
                 HostAndPort hostAndPort = HostAndPort.fromString(address);
 
                 //创建新的ReferenceInvoker,连接Service Server
-                RPCReference rpcReference = new RPCReference(new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPort()),
+                RPCReference rpcReference = new RPCReference(serviceName, new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPort()),
                         Serializers.getSerializer(serializerType), connectTimeout, compression);
                 ReferenceInvoker refereneceInvoker = new ReferenceInvoker(serviceName, rpcReference);
                 //真正启动连接

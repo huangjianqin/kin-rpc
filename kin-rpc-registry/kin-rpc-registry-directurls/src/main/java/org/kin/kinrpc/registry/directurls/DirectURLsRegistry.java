@@ -39,6 +39,7 @@ public class DirectURLsRegistry extends AbstractRegistry {
         log.info("reference subscribe service '{}' ", serviceName);
         Directory directory = new DirectURLsDirectory(serviceName, connectTimeout, serializerType, compression);
         directory.discover(hostAndPorts);
+        DIRECTORY_CACHE.put(serviceName, directory);
         return directory;
     }
 

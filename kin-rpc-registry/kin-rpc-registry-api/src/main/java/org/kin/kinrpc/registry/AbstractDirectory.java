@@ -8,8 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
 
 /**
  * Created by huangjianqin on 2019/6/11.
@@ -26,6 +25,8 @@ public abstract class AbstractDirectory extends ActorLike<AbstractDirectory> imp
     protected volatile List<ReferenceInvoker> invokers = Collections.emptyList();
     protected volatile boolean isStopped;
 
+    private volatile short waiters;
+
     protected AbstractDirectory(String serviceName, int connectTimeout, String serializerType, boolean compression) {
         super(RegistryThreadPool.THREADS);
         this.serviceName = serviceName;
@@ -34,30 +35,45 @@ public abstract class AbstractDirectory extends ActorLike<AbstractDirectory> imp
         this.compression = compression;
     }
 
+    /**
+     * 获取当前可用invokers
+     */
+    @Override
+    public List<ReferenceInvoker> list() {
+        //Directory关闭中调用该方法会返回一个size=0的列表
+        if (!isStopped) {
+            //等待invokers不为空
+            if(CollectionUtils.isEmpty(invokers)){
+                synchronized (this){
+                    waiters++;
+                    try{
+                        wait();
+                    } catch (InterruptedException e) {
+
+                    } finally {
+                        waiters--;
+                    }
+                }
+            }
+            return invokers.stream().filter(ReferenceInvoker::isActive).collect(Collectors.toList());
+        }
+        return Collections.emptyList();
+    }
+
     protected abstract List<ReferenceInvoker> doDiscover(List<String> addresses);
 
     protected abstract void doDestroy();
 
     @Override
     public void discover(List<String> addresses) {
-        CountDownLatch latch = null;
-        if (CollectionUtils.isEmpty(invokers)) {
-            latch = new CountDownLatch(1);
-        }
-        CountDownLatch finalLatch = latch;
         tell(directory -> {
             invokers = doDiscover(addresses);
-            if (Objects.nonNull(finalLatch)) {
-                finalLatch.countDown();
+            if(waiters > 0){
+                synchronized (this){
+                    notifyAll();
+                }
             }
         });
-        if (Objects.nonNull(latch)) {
-            try {
-                latch.await();
-            } catch (InterruptedException e) {
-
-            }
-        }
     }
 
     @Override

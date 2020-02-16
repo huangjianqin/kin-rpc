@@ -88,12 +88,13 @@ public class RPCProvider extends ActorLike<RPCProvider> {
                 String serviceName = url.getServiceName();
                 ProviderInvoker invoker;
 
+                int rate = Integer.valueOf(url.getParam(Constants.RATE_KEY));
                 if (isByteCodeInvoke) {
                     //使用javassist调用服务类接口方法
-                    invoker = new JavassistProviderInvoker(serviceName, service, interfaceClass);
+                    invoker = new JavassistProviderInvoker(serviceName, service, interfaceClass, rate);
                 } else {
                     //使用反射调用服务类接口方法
-                    invoker = new ReflectProviderInvoker(serviceName, service, interfaceClass);
+                    invoker = new ReflectProviderInvoker(serviceName, service, interfaceClass, rate);
                 }
 
                 if (!serviceMap.containsKey(serviceName)) {
@@ -117,11 +118,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
     }
 
     public boolean isBusy() {
-        if (isAlive()) {
-            return !serviceMap.isEmpty();
-        }
-
-        return false;
+        return isAlive() && !serviceMap.isEmpty();
     }
 
     public boolean isAlive() {

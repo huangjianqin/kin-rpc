@@ -28,6 +28,8 @@ public class ServiceConfig extends AbstractConfig {
     private boolean compression;
     //默认支持并发执行
     private boolean parallelism = true;
+    //限流, 每秒多少个request
+    private int rate = Constants.PROVIDER_REQUEST_THRESHOLD;
 
     private URL url;
     private volatile boolean isExport;
@@ -54,7 +56,7 @@ public class ServiceConfig extends AbstractConfig {
             throw new IllegalStateException("service class " + serviceClass.getName() + " must implements the certain interface '" + this.interfaceClass.getName() + "'");
         }
 
-        Preconditions.checkNotNull(this.parallelism, "parallelism must be greater than 0");
+        Preconditions.checkArgument(this.rate > 0, "rate must be greater than 0");
 
         this.applicationConfig.check();
         this.serverConfig.check();
@@ -77,6 +79,7 @@ public class ServiceConfig extends AbstractConfig {
             params.put(Constants.VERSION_KEY, version);
             params.put(Constants.COMPRESSION_KEY, Boolean.toString(compression));
             params.put(Constants.PARALLELISM_KEY, parallelism + "");
+            params.put(Constants.RATE_KEY, rate + "");
 
             url = createURL(applicationConfig, NetUtils.getIpPort(serverConfig.getHost(), serverConfig.getPort()), registryConfig, params);
             Preconditions.checkNotNull(url);
@@ -199,6 +202,11 @@ public class ServiceConfig extends AbstractConfig {
 
     public ServiceConfig actorLike() {
         this.parallelism = false;
+        return this;
+    }
+
+    public ServiceConfig rate(int rate) {
+        this.rate = rate;
         return this;
     }
 

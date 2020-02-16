@@ -10,7 +10,6 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Created by 健勤 on 2017/2/13.
@@ -21,18 +20,6 @@ import java.util.stream.Collectors;
 public class ZookeeperDirectory extends AbstractDirectory {
     public ZookeeperDirectory(String serviceName, int connectTimeout, String serializerType, boolean compression) {
         super(serviceName, connectTimeout, serializerType, compression);
-    }
-
-    /**
-     * 获取当前可用invokers
-     */
-    @Override
-    public List<ReferenceInvoker> list() {
-        //Directory关闭中调用该方法会返回一个size=0的列表
-        if (!isStopped) {
-            return super.invokers.stream().filter(ReferenceInvoker::isActive).collect(Collectors.toList());
-        }
-        return Collections.emptyList();
     }
 
     /**
@@ -82,7 +69,7 @@ public class ZookeeperDirectory extends AbstractDirectory {
         for (HostAndPort hostAndPort : hostAndPorts) {
             //address有效,创建新的ReferenceInvoker,连接Service Server
             RPCReference rpcReference = new RPCReference(
-                    new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPort()), Serializers.getSerializer(serializerType), connectTimeout, compression);
+                    serviceName, new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPort()), Serializers.getSerializer(serializerType), connectTimeout, compression);
             ReferenceInvoker refereneceInvoker = new ReferenceInvoker(serviceName, rpcReference);
             //真正启动连接
             refereneceInvoker.init();

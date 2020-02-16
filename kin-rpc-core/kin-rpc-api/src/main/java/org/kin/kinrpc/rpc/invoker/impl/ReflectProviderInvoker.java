@@ -23,8 +23,8 @@ public class ReflectProviderInvoker extends ProviderInvoker {
     private Map<String, Method> methodMap = new HashMap<String, Method>();
 
 
-    public ReflectProviderInvoker(String serviceName, Object service, Class interfaceClass) {
-        super(serviceName);
+    public ReflectProviderInvoker(String serviceName, Object service, Class interfaceClass, int rate) {
+        super(serviceName, rate);
         this.serivce = service;
         init(interfaceClass);
     }

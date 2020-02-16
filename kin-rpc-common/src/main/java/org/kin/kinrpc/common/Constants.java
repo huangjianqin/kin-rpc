@@ -19,6 +19,8 @@ public class Constants {
     public static final String COMPRESSION_KEY = "compression";
     //服务provider是否支持并发
     public static final String PARALLELISM_KEY = "parallelism";
+    //服务provider限流
+    public static final String RATE_KEY = "rate";
     //连接超时
     public static final String TIMEOUT_KEY = "timeout";
     public static final String REGISTRY_KEY = "registry";
@@ -45,9 +47,7 @@ public class Constants {
     public static final int RETRY_TIMEOUT = 500;
     //限流
     //每秒n次
-    public static final int PROVIDER_REQUEST_THRESHOLD = 5;
-    //每秒n次
-    public static final int REFERENCE_REQUEST_THRESHOLD = 5;
+    public static final int PROVIDER_REQUEST_THRESHOLD = 20;
     //每秒所有channel请求访问量Byte
     public static final int SERVER_REQUEST_THRESHOLD = 20000;
 

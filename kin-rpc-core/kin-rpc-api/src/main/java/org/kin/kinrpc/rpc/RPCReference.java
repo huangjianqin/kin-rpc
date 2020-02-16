@@ -33,8 +33,8 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
     private ClientTransportOption clientTransportOption;
     private ReferenceHandler connection;
 
-    public RPCReference(InetSocketAddress address, Serializer serializer, int connectTimeout, boolean compression) {
-        this.connection = new ReferenceHandler(address, serializer, this);
+    public RPCReference(String serviceName, InetSocketAddress address, Serializer serializer, int connectTimeout, boolean compression) {
+        this.connection = new ReferenceHandler(serviceName, address, serializer, this);
         this.clientTransportOption =
                 TransportOption.client()
                         .channelOption(ChannelOption.TCP_NODELAY, true)
@@ -148,7 +148,9 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
     public void channelInactive(Channel channel) {
         RPCThreadPool.THREADS.execute(() -> {
             clean();
-            connection.connect(clientTransportOption);
+            if(!isStopped){
+                connection.connect(clientTransportOption);
+            }
         });
     }
 

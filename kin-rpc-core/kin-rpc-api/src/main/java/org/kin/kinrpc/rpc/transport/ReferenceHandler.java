@@ -26,20 +26,26 @@ import java.util.concurrent.TimeUnit;
  */
 public class ReferenceHandler implements ProtocolHandler {
     private static final Logger log = LoggerFactory.getLogger(ReferenceHandler.class);
+    private final String serviceName;
     private final Serializer serializer;
     private final RPCReference rpcReference;
     private final InetSocketAddress address;
 
     private volatile Client client;
     private volatile Future heartbeatFuture;
+    private volatile boolean isStopped;
 
-    public ReferenceHandler(InetSocketAddress address, Serializer serializer, RPCReference rpcReference) {
+    public ReferenceHandler(String serviceName, InetSocketAddress address, Serializer serializer, RPCReference rpcReference) {
+        this.serviceName = serviceName;
         this.address = address;
         this.serializer = serializer;
         this.rpcReference = rpcReference;
     }
 
     public void connect(ClientTransportOption transportOption) {
+        if(isStopped){
+            return;
+        }
         if (isActive()) {
             return;
         }
@@ -53,9 +59,9 @@ public class ReferenceHandler implements ProtocolHandler {
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
-            if (client == null || (!client.isActive())) {
+            if (!isActive()) {
                 /** n秒后重连 */
-                RPCThreadPool.THREADS.schedule(() -> connect(transportOption), 10, TimeUnit.SECONDS);
+                RPCThreadPool.THREADS.schedule(() -> connect(transportOption), 5, TimeUnit.SECONDS);
             }
         }
 
@@ -74,14 +80,15 @@ public class ReferenceHandler implements ProtocolHandler {
     }
 
     public void close() {
-        if (isActive()) {
+        isStopped = true;
+        if(Objects.nonNull(client)){
             client.close();
-            heartbeatFuture.cancel(false);
         }
+        heartbeatFuture.cancel(true);
     }
 
     public boolean isActive() {
-        return client != null && client.isActive();
+        return !isStopped && client != null && client.isActive();
     }
 
     public void request(RPCRequest request) {
@@ -132,7 +139,7 @@ public class ReferenceHandler implements ProtocolHandler {
             }
         } else if (protocol instanceof RPCHeartbeat) {
             RPCHeartbeat heartbeat = (RPCHeartbeat) protocol;
-            log.info("server heartbeat ip:{}, content:{}", heartbeat.getIp(), heartbeat.getContent());
+            log.info("reference({}) receive heartbeat ip:{}, content:{}", serviceName, heartbeat.getIp(), heartbeat.getContent());
         } else {
             log.error("unknown protocol >>>> {}", protocol);
         }

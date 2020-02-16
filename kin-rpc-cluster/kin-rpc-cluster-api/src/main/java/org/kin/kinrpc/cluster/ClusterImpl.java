@@ -37,34 +37,22 @@ class ClusterImpl implements Cluster {
     @Override
     public ReferenceInvoker get(Collection<HostAndPort> excludes) {
         log.debug("get one reference invoker from cluster");
-        if (checkState()) {
-            List<ReferenceInvoker> availableInvokers = directory.list();
-            //过滤掉单次请求曾经fail的service 访问地址
-            availableInvokers = availableInvokers.stream().filter(invoker -> !excludes.contains(invoker.getAddress()))
-                    .collect(Collectors.toList());
+        List<ReferenceInvoker> availableInvokers = directory.list();
+        //过滤掉单次请求曾经fail的service 访问地址
+        availableInvokers = availableInvokers.stream().filter(invoker -> !excludes.contains(invoker.getAddress()))
+                .collect(Collectors.toList());
 
-            List<ReferenceInvoker> routeredInvokers = router.router(availableInvokers);
-            ReferenceInvoker loadbalancedInvoker = loadBalance.loadBalance(routeredInvokers);
+        List<ReferenceInvoker> routeredInvokers = router.router(availableInvokers);
+        ReferenceInvoker loadbalancedInvoker = loadBalance.loadBalance(routeredInvokers);
 
-            if (loadbalancedInvoker != null) {
-                log.debug("real invoker(" + loadbalancedInvoker.getAddress() + ")");
-            }
-            return loadbalancedInvoker;
+        if (loadbalancedInvoker != null) {
+            log.debug("real invoker(" + loadbalancedInvoker.getAddress() + ")");
         }
-
-        return null;
+        return loadbalancedInvoker;
     }
 
     @Override
     public void shutdown() {
-    }
-
-    protected boolean checkState() {
-        if (directory != null && router != null && loadBalance != null) {
-            return true;
-        }
-
-        return false;
     }
 
     //getter

@@ -100,6 +100,7 @@ abstract class ClusterInvoker<I> implements Closeable {
 
                     } catch (ExecutionException e) {
                         log.error("pending result execute error >>> {}", e.getMessage());
+                        break;
                     } catch (TimeoutException e) {
                         tryTimes++;
                         failureHostAndPorts.add(invoker.getAddress());
@@ -110,6 +111,15 @@ abstract class ClusterInvoker<I> implements Closeable {
                         log.warn(e.getMessage());
                     } catch (Throwable e) {
                         log.error(e.getMessage(), e);
+                        break;
+                    }
+                }
+                else{
+                    log.warn("cannot find valid invoker >>>> {}", methodName);
+                    try {
+                        Thread.sleep(300);
+                    } catch (InterruptedException e) {
+
                     }
                 }
             }
@@ -117,13 +127,18 @@ abstract class ClusterInvoker<I> implements Closeable {
             //超过重试次数, 抛弃异常
             throw new RPCRetryOutException(retryTimes);
         } else {
-            ReferenceInvoker invoker = cluster.get(Collections.EMPTY_LIST);
-            if (invoker != null) {
+            ReferenceInvoker invoker;
+            while ((invoker = cluster.get(Collections.EMPTY_LIST)) == null) {
                 try {
-                    return invoker.invoke(methodName, isVoid, params);
-                } catch (Throwable e) {
-                    log.error(e.getMessage(), e);
+                    Thread.sleep(300);
+                } catch (InterruptedException e) {
+
                 }
+            }
+            try {
+                return invoker.invoke(methodName, isVoid, params);
+            } catch (Throwable e) {
+                log.error(e.getMessage(), e);
             }
         }
 
