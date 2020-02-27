@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -55,7 +54,7 @@ public class RPCFuture implements Future<RPCResponse> {
     }
 
     @Override
-    public RPCResponse get() throws InterruptedException, ExecutionException {
+    public RPCResponse get() {
         sync.acquire(-1);
         if (isDone()) {
             return this.response;
@@ -64,7 +63,7 @@ public class RPCFuture implements Future<RPCResponse> {
     }
 
     @Override
-    public RPCResponse get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+    public RPCResponse get(long timeout, TimeUnit unit) throws InterruptedException, TimeoutException {
         boolean success = sync.tryAcquireNanos(-1, unit.toNanos(timeout));
         if (success) {
             if (isDone()) {
@@ -127,13 +126,13 @@ public class RPCFuture implements Future<RPCResponse> {
         return this;
     }
 
-    class Sync extends AbstractQueuedSynchronizer {
+    static class Sync extends AbstractQueuedSynchronizer {
         private final int DONE = 1;
         private final int PENDING = 0;
 
         @Override
         protected boolean tryAcquire(int acquires) {
-            return getState() == DONE ? true : false;
+            return getState() == DONE;
         }
 
         @Override

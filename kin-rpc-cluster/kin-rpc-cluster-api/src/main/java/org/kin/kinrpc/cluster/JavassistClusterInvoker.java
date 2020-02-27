@@ -96,7 +96,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
 
             //构造器
             CtConstructor internalClassConstructor = new CtConstructor(
-                    constructArgClass.toArray(new CtClass[constructArgClass.size()]), internalClass);
+                    constructArgClass.toArray(new CtClass[0]), internalClass);
             StringBuffer constructBody = new StringBuffer();
             constructBody.append("{");
             constructBody.append("$0.".concat(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME).concat("= $1;"));
@@ -107,12 +107,10 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
             internalClassConstructor.setBody(constructBody.toString());
             internalClass.addConstructor(internalClassConstructor);
 
-            StringBuffer internalMethodBody = new StringBuffer();
-            internalMethodBody.append("public Object get(){");
-            internalMethodBody.append(methodBody.toString());
-            internalMethodBody.append("}");
-
-            CtMethod internalMethod = CtMethod.make(internalMethodBody.toString(), internalClass);
+            String internalMethodBody = "public Object get(){" +
+                    methodBody.toString() +
+                    "}";
+            CtMethod internalMethod = CtMethod.make(internalMethodBody, internalClass);
             internalClass.addMethod(internalMethod);
 
             Class realInternalClass = internalClass.toClass();
@@ -187,8 +185,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
 
                 realProxyClass = (Class<T>) proxyClass.toClass();
             }
-            T proxy = realProxyClass.getConstructor(this.getClass()).newInstance(this);
-            return proxy;
+            return realProxyClass.getConstructor(this.getClass()).newInstance(this);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }

@@ -25,7 +25,8 @@ public class Routers {
         type = type.toLowerCase();
         try {
             String routerName = (type + Router.class.getSimpleName()).toLowerCase();
-            Router router = ROUTER_CACHE.get(type, () -> {
+
+            return ROUTER_CACHE.get(type, () -> {
                 Set<Class<? extends Router>> classes = ClassUtils.getSubClass(Router.class.getPackage().getName(), Router.class, true);
                 //TODO 考虑增加加载外部自定义的Router
                 if (classes.size() > 0) {
@@ -39,8 +40,6 @@ public class Routers {
 
                 return null;
             });
-
-            return router;
         } catch (ExecutionException e) {
             log.error(e.getMessage(), e);
         }

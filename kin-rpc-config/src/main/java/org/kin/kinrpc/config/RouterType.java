@@ -8,16 +8,10 @@ public enum RouterType {
     /**
      * 不router
      */
-    NONE("none"),
+    NONE,
     ;
 
-    RouterType(String type) {
-        this.type = type;
-    }
-
-    private String type;
-
     public String getType() {
-        return type;
+        return name().toLowerCase();
     }
 }

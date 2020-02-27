@@ -58,8 +58,7 @@ public class RPCResponse implements Serializable {
     }
 
     private static RPCResponse respWith(String requestId, String serviceName, String method) {
-        RPCResponse rpcResponse = new RPCResponse(requestId, serviceName, method);
-        return rpcResponse;
+        return new RPCResponse(requestId, serviceName, method);
     }
 
     public static RPCResponse respWithError(String requestId, String serviceName, String method, String errorMsg) {
@@ -156,7 +155,7 @@ public class RPCResponse implements Serializable {
 
         RPCResponse that = (RPCResponse) o;
 
-        return requestId == that.requestId;
+        return requestId.equals(that.requestId);
 
     }
 

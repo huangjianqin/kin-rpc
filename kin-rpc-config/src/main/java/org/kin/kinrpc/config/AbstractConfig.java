@@ -24,7 +24,7 @@ abstract class AbstractConfig {
                             AbstractRegistryConfig registryConfig,
                             Map<String, String> otherParams) {
         StringBuilder sb = new StringBuilder();
-        sb.append(Constants.KINRPC_PROTOCOL + "://" + hostPort + "?");
+        sb.append(Constants.KINRPC_PROTOCOL + "://").append(hostPort).append("?");
 
         Map<String, String> params = new HashMap<>(Constants.URL_PARAM_NUM);
         params.put(Constants.APP_NAME_KEY, applicationConfig.getAppName());
@@ -46,7 +46,7 @@ abstract class AbstractConfig {
 
         for (Map.Entry<String, String> entry : params.entrySet()) {
             try {
-                sb.append(entry.getKey() + "=" + URLEncoder.encode(entry.getValue(), "UTF-8") + "&");
+                sb.append(entry.getKey()).append("=").append(URLEncoder.encode(entry.getValue(), "UTF-8")).append("&");
             } catch (UnsupportedEncodingException e) {
                 ExceptionUtils.log(e);
             }

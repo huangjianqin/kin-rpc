@@ -8,6 +8,7 @@ import org.kin.kinrpc.registry.Registry;
 import org.kin.kinrpc.rpc.serializer.Serializers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -24,10 +25,7 @@ public class DirectURLsRegistryFactory extends AbstractRegistryFactory {
         //先校验, 顺便初始化
         Preconditions.checkNotNull(Serializers.getSerializer(serializerType), "unvalid serializer type: [" + serializerType + "]");
 
-        List<String> hostAndPorts = new ArrayList<>();
-        for (String one : address.split(Constants.DIRECT_URLS_REGISTRY_SPLITOR)) {
-            hostAndPorts.add(one);
-        }
+        List<String> hostAndPorts = new ArrayList<>(Arrays.asList(address.split(Constants.DIRECT_URLS_REGISTRY_SPLITOR)));
 
         try {
             Registry registry = REGISTRY_CACHE.get(address, () -> new DirectURLsRegistry(hostAndPorts, serializerType, compression));

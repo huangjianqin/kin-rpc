@@ -23,7 +23,7 @@ public class ServerConfig extends AbstractConfig {
     }
 
     @Override
-    void check() throws Exception {
+    void check() {
         Preconditions.checkArgument(0 < port && port < MAX_PORT,
                 "port must be greater than 0 and lower than " + MAX_PORT);
     }

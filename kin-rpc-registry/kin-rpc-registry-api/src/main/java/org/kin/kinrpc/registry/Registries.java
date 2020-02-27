@@ -32,7 +32,8 @@ public class Registries {
         //从整个classpath寻找RegistryFactory子类
         try {
             String registryName = (registryType + RegistryFactory.class.getSimpleName()).toLowerCase();
-            RegistryFactory registryFactory = REGISTRY_FACTORY_CACHE.get(registryType, () -> {
+
+            return REGISTRY_FACTORY_CACHE.get(registryType, () -> {
                 Set<Class<? extends RegistryFactory>> classes = ClassUtils.getSubClass(RegistryFactory.class.getPackage().getName(), RegistryFactory.class, true);
                 //TODO 考虑增加加载外部自定义的RegistryFactory
                 if (classes.size() > 0) {
@@ -46,8 +47,6 @@ public class Registries {
 
                 return null;
             });
-
-            return registryFactory;
         } catch (ExecutionException e) {
             log.error(e.getMessage(), e);
         }

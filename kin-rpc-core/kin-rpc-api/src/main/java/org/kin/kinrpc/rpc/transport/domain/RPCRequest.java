@@ -96,7 +96,7 @@ public class RPCRequest implements Serializable {
 
         RPCRequest request = (RPCRequest) o;
 
-        return requestId == request.requestId;
+        return requestId.equals(request.requestId);
 
     }
 

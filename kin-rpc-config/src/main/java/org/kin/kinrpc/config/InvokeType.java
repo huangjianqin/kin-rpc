@@ -12,5 +12,6 @@ public enum InvokeType {
     /**
      * JAVASSIST字节码代理
      */
-    JAVASSIST;
+    JAVASSIST,
+    ;
 }

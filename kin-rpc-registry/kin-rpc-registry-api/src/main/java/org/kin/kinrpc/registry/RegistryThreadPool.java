@@ -24,6 +24,6 @@ public class RegistryThreadPool {
 
     //添加JVM关闭钩子,以确保释放该静态线程池
     static {
-        JvmCloseCleaner.DEFAULT().add(() -> THREADS.shutdown());
+        JvmCloseCleaner.DEFAULT().add(THREADS::shutdown);
     }
 }

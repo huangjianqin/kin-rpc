@@ -60,7 +60,7 @@ public class ReferenceHandler implements ProtocolHandler {
                 log.error(e.getMessage(), e);
             }
             if (!isActive()) {
-                /** n秒后重连 */
+                //n秒后重连
                 RPCThreadPool.THREADS.schedule(() -> connect(transportOption), 5, TimeUnit.SECONDS);
             }
         }

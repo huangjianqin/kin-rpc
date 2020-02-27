@@ -89,7 +89,7 @@ public class Clusters {
     private Clusters() {
     }
 
-    public static synchronized void export(URL url, Class interfaceClass, Object instance) throws Exception {
+    public static synchronized void export(URL url, Class interfaceClass, Object instance) {
         String host = url.getHost();
         int port = url.getPort();
         String serializerType = url.getParam(Constants.SERIALIZE_KEY);
@@ -195,8 +195,10 @@ public class Clusters {
             clusterInvoker.close();
         }
         Registry registry = Registries.getRegistry(url);
-        registry.unSubscribe(url.getServiceName());
-        Registries.closeRegistry(url);
+        if (Objects.nonNull(registry)) {
+            registry.unSubscribe(url.getServiceName());
+            Registries.closeRegistry(url);
+        }
 
         REFERENCE_CACHE.invalidate(url.getServiceName());
     }

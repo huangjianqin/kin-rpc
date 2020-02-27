@@ -15,5 +15,5 @@ public interface AsyncInvoker extends Invoker {
      * @return future
      * @throws Throwable 异常
      */
-    Future invokeAsync(String methodName, Object... params) throws Throwable;
+    Future invokeAsync(String methodName, Object... params);
 }

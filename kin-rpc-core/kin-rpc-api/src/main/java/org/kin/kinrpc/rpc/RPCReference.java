@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
@@ -136,9 +137,7 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
      */
     @Override
     public void handleException(Channel channel, Throwable cause) {
-        RPCThreadPool.THREADS.execute(() -> {
-            clean();
-        });
+        RPCThreadPool.THREADS.execute(this::clean);
     }
 
     /**
@@ -165,7 +164,7 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
 
         RPCReference that = (RPCReference) o;
 
-        return connection != null ? connection.equals(that.connection) : that.connection == null;
+        return Objects.equals(connection, that.connection);
     }
 
     @Override

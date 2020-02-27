@@ -16,16 +16,16 @@ import java.util.concurrent.TimeUnit;
 public class LFULoadBalance implements LoadBalance {
     private static final int EXPIRE_TIME = (int) TimeUnit.SECONDS.convert(5, TimeUnit.MINUTES);
 
-    private Map<String, Integer> map = new HashMap<>();
+    private Map<String, Integer> lfuMap = new HashMap<>();
     private int monitorTime;
 
     @Override
     public ReferenceInvoker loadBalance(List<ReferenceInvoker> invokers) {
-        synchronized (map) {
+        synchronized (lfuMap) {
             int now = TimeUtils.timestamp();
             if (now >= monitorTime + EXPIRE_TIME) {
                 monitorTime = now;
-                map.clear();
+                lfuMap.clear();
             }
 
             //put
@@ -33,29 +33,29 @@ public class LFULoadBalance implements LoadBalance {
             for (ReferenceInvoker invoker : invokers) {
                 String hostAndPortStr = invoker.getAddress().toString();
                 address2Invoker.put(hostAndPortStr, invoker);
-                if (!map.containsKey(hostAndPortStr) || map.get(hostAndPortStr) > 1000000) {
+                if (!lfuMap.containsKey(hostAndPortStr) || lfuMap.get(hostAndPortStr) > 1000000) {
                     //缓解首次的压力
-                    map.put(hostAndPortStr, new Random().nextInt(invokers.size()));
+                    lfuMap.put(hostAndPortStr, new Random().nextInt(invokers.size()));
                 }
             }
 
             //remove invalid
             List<String> invalidAddresses = new ArrayList<>();
-            for (String hostAndPortStr : map.keySet()) {
+            for (String hostAndPortStr : lfuMap.keySet()) {
                 if (!address2Invoker.containsKey(hostAndPortStr)) {
                     invalidAddresses.add(hostAndPortStr);
                 }
             }
 
             for (String invalidAddress : invalidAddresses) {
-                map.remove(invalidAddress);
+                lfuMap.remove(invalidAddress);
             }
 
-            List<Map.Entry<String, Integer>> entries = new ArrayList<>(map.entrySet());
-            Collections.sort(entries, Comparator.comparingInt(Map.Entry::getValue));
+            List<Map.Entry<String, Integer>> entries = new ArrayList<>(lfuMap.entrySet());
+            entries.sort(Comparator.comparingInt(Map.Entry::getValue));
 
             String selected = entries.get(0).getKey();
-            map.put(selected, entries.get(0).getValue() + 1);
+            lfuMap.put(selected, entries.get(0).getValue() + 1);
             return address2Invoker.get(selected);
         }
     }

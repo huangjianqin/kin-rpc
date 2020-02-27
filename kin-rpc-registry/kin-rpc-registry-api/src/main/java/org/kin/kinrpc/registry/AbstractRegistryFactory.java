@@ -7,6 +7,8 @@ import org.kin.kinrpc.common.URL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
+
 /**
  * Created by huangjianqin on 2019/6/18.
  */
@@ -19,7 +21,7 @@ public abstract class AbstractRegistryFactory implements RegistryFactory {
         String address = url.getParam(Constants.REGISTRY_URL_KEY);
         Registry registry = REGISTRY_CACHE.getIfPresent(address);
 
-        if (registry.release()) {
+        if (Objects.nonNull(registry) && registry.release()) {
             REGISTRY_CACHE.invalidate(address);
             registry.destroy();
         }

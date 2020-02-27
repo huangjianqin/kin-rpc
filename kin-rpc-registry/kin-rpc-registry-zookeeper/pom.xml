@@ -8,7 +8,6 @@
         <version>0.1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.kin</groupId>
     <artifactId>kin-rpc-registry-zookeeper</artifactId>
     <version>0.1.0.0</version>
     <packaging>jar</packaging>

@@ -25,7 +25,8 @@ public class Serializers {
         type = type.toLowerCase();
         try {
             String serializerName = (type + Serializer.class.getSimpleName()).toLowerCase();
-            Serializer serializer = SERIALIZER_CACHE.get(type, () -> {
+
+            return SERIALIZER_CACHE.get(type, () -> {
                 Set<Class<? extends Serializer>> classes = ClassUtils.getSubClass(Serializer.class.getPackage().getName(), Serializer.class, true);
                 //TODO 考虑增加加载外部自定义的Serializer
                 if (classes.size() > 0) {
@@ -39,8 +40,6 @@ public class Serializers {
 
                 return null;
             });
-
-            return serializer;
         } catch (ExecutionException e) {
             log.error(e.getMessage(), e);
         }

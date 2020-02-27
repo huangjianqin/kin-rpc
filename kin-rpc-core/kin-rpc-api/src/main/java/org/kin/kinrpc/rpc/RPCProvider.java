@@ -192,7 +192,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
             log.info("server(port= " + port + ") shutdowning...");
             isStopped = true;
 
-            /** 让所有请求都拒绝返回时, 才关闭channel */
+            //让所有请求都拒绝返回时, 才关闭channel
             tell(rpcProvider2 -> {
                 //最后关闭连接
                 connection.close();
@@ -217,7 +217,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
      */
     private void handleRPCRequest(RPCRequest rpcRequest) {
         if (isAlive()) {
-            /** 处理请求 */
+            //处理请求
             log.debug("receive a request >>> " + rpcRequest);
 
             //提交线程池处理服务执行
@@ -248,7 +248,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
                 log.debug("finish handle request >>>>>>>>>" + System.lineSeparator() + rpcRequest + System.lineSeparator() + rpcResponse);
             }
         } else {
-            /** 停止对外提供服务, 直接拒绝请求 */
+            //停止对外提供服务, 直接拒绝请求
 
             //创建RPCResponse,设置服务不可用请求重试标识,直接回发
             Channel channel = rpcRequest.getChannel();
@@ -288,7 +288,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
         log.debug("finish handle request >>>>>>>>>" + System.lineSeparator() + rpcRequest + System.lineSeparator() + rpcResponse);
     }
 
-    private class ProviderInvokerWrapper extends ActorLike<ProviderInvokerWrapper> {
+    private static class ProviderInvokerWrapper extends ActorLike<ProviderInvokerWrapper> {
         private URL url;
         private ProviderInvoker invoker;
         private boolean parallelism;

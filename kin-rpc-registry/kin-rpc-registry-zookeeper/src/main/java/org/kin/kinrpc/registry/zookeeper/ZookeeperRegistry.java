@@ -37,24 +37,21 @@ public class ZookeeperRegistry extends AbstractRegistry {
     public void connect() {
         CountDownLatch countDownLatch = new CountDownLatch(1);
         try {
-            zooKeeper = new ZooKeeper(address, sessionTimeOut, new Watcher() {
-                @Override
-                public void process(WatchedEvent watchedEvent) {
-                    if (watchedEvent.getState() == Event.KeeperState.SyncConnected) {
-                        countDownLatch.countDown();
-                        //首次连接Cache不会有内容
-                        //重连时重新订阅
-                        for (Directory directory : DIRECTORY_CACHE.asMap().values()) {
-                            watch(directory);
-                        }
-                        log.info("zookeeper registry created");
-                    } else if (watchedEvent.getState() == Event.KeeperState.Expired) {
-                        log.error("connect to zookeeper server timeout '{}'", sessionTimeOut);
-                        reconnect();
-                    } else if (watchedEvent.getState() == Event.KeeperState.Disconnected) {
-                        log.info("disconnect to zookeeper server");
-                        reconnect();
+            zooKeeper = new ZooKeeper(address, sessionTimeOut, (WatchedEvent watchedEvent) -> {
+                if (watchedEvent.getState() == Watcher.Event.KeeperState.SyncConnected) {
+                    countDownLatch.countDown();
+                    //首次连接Cache不会有内容
+                    //重连时重新订阅
+                    for (Directory directory : DIRECTORY_CACHE.asMap().values()) {
+                        watch(directory);
                     }
+                    log.info("zookeeper registry created");
+                } else if (watchedEvent.getState() == Watcher.Event.KeeperState.Expired) {
+                    log.error("connect to zookeeper server timeout '{}'", sessionTimeOut);
+                    reconnect();
+                } else if (watchedEvent.getState() == Watcher.Event.KeeperState.Disconnected) {
+                    log.info("disconnect to zookeeper server");
+                    reconnect();
                 }
             });
         } catch (IOException e) {
@@ -80,7 +77,7 @@ public class ZookeeperRegistry extends AbstractRegistry {
         StringBuilder sb = new StringBuilder();
         String[] splits = path.split("/");
         for (int i = 1; i < splits.length; i++) {
-            sb.append("/" + splits[i]);
+            sb.append("/").append(splits[i]);
             try {
                 this.zooKeeper.create(sb.toString(), data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
             } catch (KeeperException e) {

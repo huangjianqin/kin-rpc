@@ -18,7 +18,7 @@ class ReflectClusterInvoker extends ClusterInvoker implements InvocationHandler 
     }
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    public Object invoke(Object proxy, Method method, Object[] args) {
         log.debug("invoke method '" + method.getName() + "'");
 
         //异步方式: reference端必须自定义一个与service端除了返回值为Future.class或者CompletableFuture.class外,

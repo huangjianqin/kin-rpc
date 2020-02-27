@@ -41,8 +41,7 @@ public class ReferenceInvoker extends AbstractInvoker implements AsyncInvoker {
     }
 
     protected RPCRequest createRequest(String requestId, String methodName, Object... params) {
-        RPCRequest request = new RPCRequest(requestId, super.getServiceName(), methodName, params);
-        return request;
+        return new RPCRequest(requestId, super.getServiceName(), methodName, params);
     }
 
     public HostAndPort getAddress() {
@@ -83,7 +82,7 @@ public class ReferenceInvoker extends AbstractInvoker implements AsyncInvoker {
     }
 
     @Override
-    public Future<RPCResponse> invokeAsync(String methodName, Object... params) throws Exception {
+    public Future<RPCResponse> invokeAsync(String methodName, Object... params) {
         return invoke0(methodName, params);
     }
 

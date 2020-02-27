@@ -38,7 +38,7 @@ public class ZookeeperDirectory extends AbstractDirectory {
                 HostAndPort hostAndPort = HostAndPort.fromString(address);
                 hostAndPorts.add(hostAndPort);
 
-                sb.append(hostAndPort.toString() + ", ");
+                sb.append(hostAndPort.toString()).append(", ");
             }
         }
         log.info("discover service '{}'..." + System.lineSeparator() + "current service address: " + sb.toString(), getServiceName());

@@ -7,7 +7,6 @@ import org.kin.kinrpc.rpc.serializer.Serializer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 
 /**
  * Created by huangjianqin on 2019/5/29.
@@ -16,7 +15,7 @@ public class KryoSerializer implements Serializer {
     private static final Kryo KRYO = new Kryo();
 
     @Override
-    public byte[] serialize(Object target) throws IOException {
+    public byte[] serialize(Object target) {
         Output output = new Output(new ByteArrayOutputStream());
         KRYO.writeObject(output, target);
         byte[] bytes = output.toBytes();
@@ -26,11 +25,11 @@ public class KryoSerializer implements Serializer {
     }
 
     @Override
-    public <T> T deserialize(byte[] bytes, Class<T> tagetClass) throws IOException, ClassNotFoundException {
+    public <T> T deserialize(byte[] bytes, Class<T> tagetClass) {
         Input input = new Input(new ByteArrayInputStream(bytes));
-        Object request = KRYO.readObject(input, tagetClass);
+        T request = KRYO.readObject(input, tagetClass);
         input.close();
 
-        return (T) request;
+        return request;
     }
 }
