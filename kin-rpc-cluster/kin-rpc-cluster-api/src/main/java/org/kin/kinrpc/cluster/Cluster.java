@@ -14,9 +14,13 @@ public interface Cluster {
     /**
      * 从注册中心中多个invoker中选择一个,包含router, loadbalance
      *
-     * @param excludes
+     * @param excludes 需排除的invokers address
+     * @return 过滤后的invoker
      */
     ReferenceInvoker get(Collection<HostAndPort> excludes);
 
+    /**
+     * 关闭reference
+     */
     void shutdown();
 }

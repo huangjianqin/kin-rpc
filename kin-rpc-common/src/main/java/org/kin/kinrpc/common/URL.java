@@ -122,6 +122,7 @@ public class URL implements Serializable {
     }
 
     //getter
+
     public String getProtocol() {
         return protocol;
     }

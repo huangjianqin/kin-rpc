@@ -52,22 +52,22 @@ public class RPCProvider extends ActorLike<RPCProvider> {
         JvmCloseCleaner.DEFAULT().add(() -> EXECUTORS.shutdown());
     }
 
-    //服务
+    /** 服务 */
     private Map<String, ProviderInvokerWrapper> serviceMap = new ConcurrentHashMap<>();
 
-    //占用主机名
+    /** 占用主机名 */
     private final String host;
-    //占用端口
+    /** 占用端口 */
     private final int port;
-    //序列化方式
+    /** 序列化方式 */
     private final Serializer serializer;
-    //底层的连接
+    /** 底层的连接 */
     private ProviderHandler connection;
-    //标识是否stopped
+    /** 标识是否stopped */
     private volatile boolean isStopped = false;
-    //是否使用字节码技术
+    /** 是否使用字节码技术 */
     private final boolean isByteCodeInvoke;
-    //是否压缩
+    /** 是否压缩 */
     private final boolean compression;
 
     public RPCProvider(String host, int port, Serializer serializer, boolean isByteCodeInvoke, boolean compression) {

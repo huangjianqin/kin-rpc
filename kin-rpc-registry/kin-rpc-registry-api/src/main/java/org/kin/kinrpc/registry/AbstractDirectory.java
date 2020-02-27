@@ -21,7 +21,7 @@ public abstract class AbstractDirectory extends ActorLike<AbstractDirectory> imp
     protected final String serializerType;
     protected final boolean compression;
 
-    //所有directory的discover和destroy操作都是单线程操作, 利用copy-on-write思想更新可用invokers, 提高list效率
+    /** 所有directory的discover和destroy操作都是单线程操作, 利用copy-on-write思想更新可用invokers, 提高list效率 */
     protected volatile List<ReferenceInvoker> invokers = Collections.emptyList();
     protected volatile boolean isStopped;
 
@@ -60,8 +60,17 @@ public abstract class AbstractDirectory extends ActorLike<AbstractDirectory> imp
         return Collections.emptyList();
     }
 
+    /**
+     * 连接发现的invokers
+     *
+     * @param addresses invokers address
+     * @return invokers
+     */
     protected abstract List<ReferenceInvoker> doDiscover(List<String> addresses);
 
+    /**
+     * invoker directory销毁
+     */
     protected abstract void doDestroy();
 
     @Override

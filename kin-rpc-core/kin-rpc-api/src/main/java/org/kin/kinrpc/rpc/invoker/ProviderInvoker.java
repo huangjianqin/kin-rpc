@@ -1,7 +1,6 @@
 package org.kin.kinrpc.rpc.invoker;
 
 import com.google.common.util.concurrent.RateLimiter;
-import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.rpc.exception.RateLimitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +11,7 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class ProviderInvoker extends AbstractInvoker {
     protected static final Logger log = LoggerFactory.getLogger(ProviderInvoker.class);
-    //限流
+    /** 限流 */
     private RateLimiter rateLimiter;
 
     protected ProviderInvoker(String serviceName, int rate) {
@@ -31,6 +30,15 @@ public abstract class ProviderInvoker extends AbstractInvoker {
         return doInvoke(methodName, isVoid, params);
     }
 
+    /**
+     * rpc调用方法真正实现
+     *
+     * @param methodName 方法名
+     * @param isVoid     对于返回值为void的方法, 直接返回, 不阻塞, service端不用管这个参数
+     * @param params     方法参数
+     * @return 返回方法结果(rpc调用)
+     * @throws Throwable 异常
+     */
     public abstract Object doInvoke(String methodName, boolean isVoid, Object... params) throws Throwable;
 
     /**

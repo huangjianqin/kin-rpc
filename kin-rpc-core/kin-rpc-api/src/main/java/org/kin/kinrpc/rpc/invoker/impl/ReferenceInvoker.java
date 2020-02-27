@@ -95,9 +95,15 @@ public class ReferenceInvoker extends AbstractInvoker implements AsyncInvoker {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
         ReferenceInvoker that = (ReferenceInvoker) o;
         return Objects.equals(rpcReference, that.rpcReference);
     }

@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 class ClusterImpl implements Cluster {
     private static final Logger log = LoggerFactory.getLogger(ClusterImpl.class);
 
-    //代表某service的所有ReferenceInvoker
+    /** 代表某service的所有ReferenceInvoker */
     private final Directory directory;
     private final Router router;
     private final LoadBalance loadBalance;
@@ -56,6 +56,7 @@ class ClusterImpl implements Cluster {
     }
 
     //getter
+
     public Directory getDirectory() {
         return directory;
     }

@@ -25,6 +25,7 @@ public class RPCRequestProtocol extends AbstractProtocol {
     }
 
     //setter && getter
+
     public byte[] getReqContent() {
         return reqContent;
     }

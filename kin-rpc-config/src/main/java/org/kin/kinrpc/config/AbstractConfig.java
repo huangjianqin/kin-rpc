@@ -15,6 +15,7 @@ import java.util.Map;
 abstract class AbstractConfig {
     /**
      * 检查配置参数正确性
+     * @throws Exception 异常
      */
     abstract void check() throws Exception;
 

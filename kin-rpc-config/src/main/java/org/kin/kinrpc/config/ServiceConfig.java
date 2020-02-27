@@ -15,7 +15,7 @@ import java.util.Map;
  * Created by 健勤 on 2017/2/12.
  */
 public class ServiceConfig extends AbstractConfig {
-    //配置
+    /** 配置 */
     private ApplicationConfig applicationConfig = new ApplicationConfig();
     private ServerConfig serverConfig = ServerConfig.DEFAULT;
     private AbstractRegistryConfig registryConfig;
@@ -26,9 +26,9 @@ public class ServiceConfig extends AbstractConfig {
     private InvokeType invokeType = InvokeType.JAVASSIST;
     private String version = "0.1.0.0";
     private boolean compression;
-    //默认支持并发执行
+    /** 默认支持并发执行 */
     private boolean parallelism = true;
-    //限流, 每秒多少个request
+    /** 限流, 每秒多少个request */
     private int rate = Constants.PROVIDER_REQUEST_THRESHOLD;
 
     private URL url;
@@ -41,6 +41,7 @@ public class ServiceConfig extends AbstractConfig {
     }
 
     //---------------------------------------------------------------------------------------------------------
+
     @Override
     void check() throws Exception{
         Preconditions.checkNotNull(this.ref, "provider object must be not null");
@@ -72,7 +73,7 @@ public class ServiceConfig extends AbstractConfig {
         if (!isExport) {
             check();
 
-            Map<String, String> params = new HashMap<>();
+            Map<String, String> params = new HashMap<>(50);
             params.put(Constants.SERVICE_NAME_KEY, serviceName);
             params.put(Constants.SERIALIZE_KEY, serialize);
             params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(InvokeType.JAVASSIST.equals(invokeType)));
@@ -112,6 +113,7 @@ public class ServiceConfig extends AbstractConfig {
     }
 
     //---------------------------------------builder------------------------------------------------------------
+
     public ServiceConfig appName(String appName) {
         if (!isExport) {
             this.applicationConfig = new ApplicationConfig(appName);
@@ -211,6 +213,7 @@ public class ServiceConfig extends AbstractConfig {
     }
 
     //setter && getter
+
     public ApplicationConfig getApplicationConfig() {
         return applicationConfig;
     }

@@ -28,6 +28,7 @@ public class RPCHeartbeat extends AbstractProtocol {
     }
 
     //setter && getter
+
     public String getIp() {
         return ip;
     }

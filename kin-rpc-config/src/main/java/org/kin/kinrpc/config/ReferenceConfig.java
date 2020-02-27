@@ -38,6 +38,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
     }
 
     //---------------------------------------------------------------------------------------------------------
+
     @Override
     void check() {
         Preconditions.checkNotNull(this.applicationConfig, "reference must need to configure application");
@@ -51,7 +52,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
         if (!isReference) {
             check();
 
-            Map<String, String> params = new HashMap<>();
+            Map<String, String> params = new HashMap<>(50);
             params.put(Constants.TIMEOUT_KEY, timeout + "");
             params.put(Constants.RETRY_TIMES_KEY, retryTimes + "");
             params.put(Constants.RETRY_TIMEOUT_KEY, retryTimeout + "");
@@ -83,6 +84,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
     }
 
     //---------------------------------------builder------------------------------------------------------------
+
     public ReferenceConfig<T> appName(String appName) {
         if (!isReference) {
             this.applicationConfig = new ApplicationConfig(appName);
@@ -214,6 +216,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
     }
 
     //setter && getter
+
     public ApplicationConfig getApplicationConfig() {
         return applicationConfig;
     }

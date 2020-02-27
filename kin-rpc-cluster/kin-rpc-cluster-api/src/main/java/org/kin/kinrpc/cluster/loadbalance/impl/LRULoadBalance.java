@@ -33,7 +33,7 @@ public class LRULoadBalance implements LoadBalance {
             }
 
             //put
-            Map<String, ReferenceInvoker> address2Invoker = new HashMap<>();
+            Map<String, ReferenceInvoker> address2Invoker = new HashMap<>(invokers.size());
             for (ReferenceInvoker invoker : invokers) {
                 address2Invoker.put(invoker.getAddress().toString(), invoker);
                 lruMap.put(invoker.getAddress().toString(), true);

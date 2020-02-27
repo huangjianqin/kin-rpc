@@ -11,6 +11,7 @@ public abstract class AbstractInvoker implements Invoker {
     }
 
     //getter
+
     public String getServiceName() {
         return serviceName;
     }

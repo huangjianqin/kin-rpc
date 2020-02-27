@@ -31,8 +31,10 @@ public class JavassistProviderInvoker extends ProviderInvoker {
     }
 
     private void init(Object service, Class interfaceClass) {
-        Map<String, ProxyInvoker> methodMap = new HashMap<>();
-        for (Method method : interfaceClass.getDeclaredMethods()) {
+        Method[] declaredMethods = interfaceClass.getDeclaredMethods();
+
+        Map<String, ProxyInvoker> methodMap = new HashMap<>(declaredMethods.length);
+        for (Method method : declaredMethods) {
             String uniqueName = ClassUtils.getUniqueName(method);
             ProxyInvoker proxyInvoker = ProxyEnhanceUtils.enhanceMethod(
                     new ProxyMethodDefinition(service, method,

@@ -22,7 +22,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 public class RPCFuture implements Future<RPCResponse> {
     private static final Logger log = LoggerFactory.getLogger(RPCFuture.class);
 
-    //用于记录服务调用的耗时(毫秒),衡量负载
+    /** 用于记录服务调用的耗时(毫秒),衡量负载 */
     private long startTime;
     private long responseTimeThreshold = 5000;
 

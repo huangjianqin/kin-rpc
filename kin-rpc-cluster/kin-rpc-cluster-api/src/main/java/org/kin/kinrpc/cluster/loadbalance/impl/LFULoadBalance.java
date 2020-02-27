@@ -29,7 +29,7 @@ public class LFULoadBalance implements LoadBalance {
             }
 
             //put
-            Map<String, ReferenceInvoker> address2Invoker = new HashMap<>();
+            Map<String, ReferenceInvoker> address2Invoker = new HashMap<>(invokers.size());
             for (ReferenceInvoker invoker : invokers) {
                 String hostAndPortStr = invoker.getAddress().toString();
                 address2Invoker.put(hostAndPortStr, invoker);

@@ -25,6 +25,7 @@ public class RPCResponseProtocol extends AbstractProtocol {
     }
 
     //setter && getter
+
     public byte[] getRespContent() {
         return respContent;
     }

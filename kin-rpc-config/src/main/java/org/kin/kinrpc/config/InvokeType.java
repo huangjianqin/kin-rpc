@@ -5,5 +5,12 @@ package org.kin.kinrpc.config;
  * @date 2019-09-10
  */
 public enum InvokeType {
-    JAVA, JAVASSIST;
+    /**
+     * java自带代理
+     */
+    JAVA,
+    /**
+     * JAVASSIST字节码代理
+     */
+    JAVASSIST;
 }

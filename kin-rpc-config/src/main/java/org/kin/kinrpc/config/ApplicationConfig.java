@@ -25,6 +25,7 @@ public class ApplicationConfig extends AbstractConfig {
     }
 
     //setter && getter
+
     public String getAppName() {
         return appName;
     }

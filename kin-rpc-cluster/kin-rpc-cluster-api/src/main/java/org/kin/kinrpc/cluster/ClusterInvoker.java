@@ -152,6 +152,7 @@ abstract class ClusterInvoker<I> implements Closeable {
     }
 
     //getter
+
     public URL getUrl() {
         return url;
     }

@@ -10,18 +10,18 @@ import java.util.Arrays;
  */
 public class RPCRequest implements Serializable {
     private String requestId;
-    //请求参数
+    /** 请求参数 */
     private String serviceName;
     private String method;
     private Object[] params;
-    //request创建时间
+    /** request创建时间 */
     private long createTime;
-    //request事件时间即, 到达service端的时间
+    /** request事件时间即, 到达service端的时间 */
     private long eventTime;
-    //request处理时间
+    /** request处理时间 */
     private long handleTime;
 
-    //请求的channel
+    /** 请求的channel */
     transient private Channel channel;
 
     public RPCRequest() {
@@ -36,6 +36,7 @@ public class RPCRequest implements Serializable {
     }
 
     //setter && getter
+
     public String getRequestId() {
         return requestId;
     }

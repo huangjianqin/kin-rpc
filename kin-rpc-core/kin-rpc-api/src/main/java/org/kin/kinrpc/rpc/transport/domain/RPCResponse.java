@@ -7,7 +7,7 @@ import java.io.Serializable;
  */
 public class RPCResponse implements Serializable {
     private String requestId;
-    //统计日志打印用
+    /** 统计日志打印用 */
     private String serviceName;
     private String method;
 
@@ -41,11 +41,11 @@ public class RPCResponse implements Serializable {
         }
     }
 
-    //request创建时间
+    /** request创建时间 */
     private long createTime;
-    //request事件时间即, 到达service端的时间
+    /** request事件时间即, 到达service端的时间 */
     private long eventTime;
-    //request处理时间
+    /** request处理时间 */
     private long handleTime;
 
     public RPCResponse() {
@@ -92,6 +92,7 @@ public class RPCResponse implements Serializable {
     }
 
     //setter && getter
+
     public State getState() {
         return state;
     }

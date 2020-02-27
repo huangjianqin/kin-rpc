@@ -28,7 +28,9 @@ public class ServerConfig extends AbstractConfig {
                 "port must be greater than 0 and lower than " + MAX_PORT);
     }
 
+
     //getter
+
     public String getHost() {
         return host;
     }

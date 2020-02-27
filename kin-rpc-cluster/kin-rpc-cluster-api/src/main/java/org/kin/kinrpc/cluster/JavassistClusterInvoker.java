@@ -33,6 +33,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
     }
 
     //------------------此处需自定义, 有点特殊-------------------------------------
+
     private String generateMethodBody(ClassPool classPool,
                                       CtClass proxyClass,
                                       Method method,

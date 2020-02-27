@@ -12,6 +12,7 @@ public abstract class AbstractRegistryConfig extends AbstractConfig {
     }
 
     //setter && getter
+
     public String getAddress() {
         return address;
     }
