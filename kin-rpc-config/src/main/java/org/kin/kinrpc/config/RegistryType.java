@@ -8,24 +8,18 @@ public enum RegistryType {
     /**
      * 自带api的zookeeper注册中心
      */
-    ZOOKEEPER("zookeeper"),
+    ZOOKEEPER,
     /**
      * 使用curator框架的zookeeper注册中心
      */
-    ZOOKEEPER2("zookeeper2"),
+    ZOOKEEPER2,
     /**
      * hession序列化
      */
-    DIRECTURLS("directurls"),
+    DIRECTURLS,
     ;
 
-    RegistryType(String type) {
-        this.type = type;
-    }
-
-    private String type;
-
     public String getType() {
-        return type;
+        return name().toLowerCase();
     }
 }

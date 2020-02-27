@@ -8,32 +8,26 @@ public enum LoadBalanceType {
     /**
      * hash
      */
-    HASH("hash"),
+    HASH,
     /**
      * lfu, 最不经常使用
      */
-    LFU("lfu"),
+    LFU,
     /**
      * lru, 最近最少使用
      */
-    LRU("lru"),
+    LRU,
     /**
      * random
      */
-    RANDOM("random"),
+    RANDOM,
     /**
      * round robin
      */
-    ROUND_ROBIN("roundrobin"),
+    ROUND_ROBIN,
     ;
 
-    LoadBalanceType(String type) {
-        this.type = type;
-    }
-
-    private String type;
-
     public String getType() {
-        return type;
+        return name().toLowerCase();
     }
 }

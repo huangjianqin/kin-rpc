@@ -7,28 +7,22 @@ public enum SerializerType {
     /**
      * java自带序列化
      */
-    JAVA("java"),
+    JAVA,
     /**
      * kryo序列化
      */
-    KRYO("kryo"),
+    KRYO,
     /**
      * hession序列化
      */
-    HESSION("hession"),
+    HESSION,
     /**
      * json序列化
      */
-    JSON("json"),
+    JSON,
     ;
 
-    SerializerType(String type) {
-        this.type = type;
-    }
-
-    private String type;
-
     public String getType() {
-        return type;
+        return name().toLowerCase();
     }
 }
