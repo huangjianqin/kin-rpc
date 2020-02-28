@@ -29,7 +29,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
     }
 
     public static <T> T proxy(Cluster cluster, int retryTimes, int retryTimeout, URL url, Class<T> interfaceClass) {
-        return new JavassistClusterInvoker<T>(cluster, retryTimes, retryTimeout, url, interfaceClass).proxy();
+        return new JavassistClusterInvoker<>(cluster, retryTimes, retryTimeout, url, interfaceClass).proxy();
     }
 
     //------------------此处需自定义, 有点特殊-------------------------------------
@@ -47,7 +47,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
             methodBody.append("return ");
         }
 
-        StringBuffer invokeCode = new StringBuffer();
+        StringBuilder invokeCode = new StringBuilder();
         if (Future.class.equals(returnType)) {
             invokeCode.append(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME.concat(".invokeAsync"));
         } else {

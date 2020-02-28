@@ -88,7 +88,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
                 String serviceName = url.getServiceName();
                 ProviderInvoker invoker;
 
-                int rate = Integer.valueOf(url.getParam(Constants.RATE_KEY));
+                int rate = Integer.parseInt(url.getParam(Constants.RATE_KEY));
                 if (isByteCodeInvoke) {
                     //使用javassist调用服务类接口方法
                     invoker = new JavassistProviderInvoker(serviceName, service, interfaceClass, rate);
@@ -297,7 +297,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
             super(EXECUTORS);
             this.url = url;
             this.invoker = invoker;
-            this.parallelism = Boolean.valueOf(url.getParam(Constants.PARALLELISM_KEY));
+            this.parallelism = Boolean.parseBoolean(url.getParam(Constants.PARALLELISM_KEY));
         }
 
         //getter

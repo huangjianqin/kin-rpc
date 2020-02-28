@@ -13,7 +13,6 @@ public interface AsyncInvoker extends Invoker {
      * @param methodName 方法名
      * @param params     参数
      * @return future
-     * @throws Throwable 异常
      */
     Future invokeAsync(String methodName, Object... params);
 }

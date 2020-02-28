@@ -35,15 +35,7 @@ public class ZookeeperAddableReference {
 //                CompletableFuture<String> completableFuture = service.get("A");
 //                System.out.println(completableFuture.handleAsync((s, t) -> s + s).get());
 //                service.throwException();
-            } catch (RPCRetryException e) {
-
-            } catch (CannotFindInvokerException e) {
-
-            } catch (RPCCallErrorException e) {
-
-            } catch (UnknownRPCResponseStateCodeException e) {
-
-            } catch (ExecutionException e) {
+            } catch (RPCRetryException | CannotFindInvokerException | RPCCallErrorException | UnknownRPCResponseStateCodeException | ExecutionException e) {
 
             }
 

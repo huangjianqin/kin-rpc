@@ -93,13 +93,13 @@ public class Clusters {
         String host = url.getHost();
         int port = url.getPort();
         String serializerType = url.getParam(Constants.SERIALIZE_KEY);
-        boolean byteCodeInvoke = Boolean.valueOf(url.getParam(Constants.BYTE_CODE_INVOKE_KEY));
+        boolean byteCodeInvoke = Boolean.parseBoolean(url.getParam(Constants.BYTE_CODE_INVOKE_KEY));
         Serializer serializer = Serializers.getSerializer(serializerType);
         Preconditions.checkNotNull(serializer, "unvalid serializer type: [" + serializerType + "]");
         RPCProvider provider;
         try {
             provider = PROVIDER_CACHE.get(port, () -> {
-                RPCProvider provider0 = new RPCProvider(host, port, serializer, byteCodeInvoke, Boolean.valueOf(url.getParam(Constants.COMPRESSION_KEY)));
+                RPCProvider provider0 = new RPCProvider(host, port, serializer, byteCodeInvoke, Boolean.parseBoolean(url.getParam(Constants.COMPRESSION_KEY)));
                 try {
                     provider0.start();
                 } catch (Exception e) {
@@ -157,9 +157,9 @@ public class Clusters {
         Preconditions.checkNotNull(registry);
 
         //构建Cluster类
-        int timeout = Integer.valueOf(url.getParam(Constants.TIMEOUT_KEY));
-        int retryTimes = Integer.valueOf(url.getParam(Constants.RETRY_TIMES_KEY));
-        int retryTimeout = Integer.valueOf(url.getParam(Constants.RETRY_TIMEOUT_KEY));
+        int timeout = Integer.parseInt(url.getParam(Constants.TIMEOUT_KEY));
+        int retryTimes = Integer.parseInt(url.getParam(Constants.RETRY_TIMES_KEY));
+        int retryTimeout = Integer.parseInt(url.getParam(Constants.RETRY_TIMEOUT_KEY));
         String loadBalanceType = url.getParam(Constants.LOADBALANCE_KEY);
         LoadBalance loadBalance = LoadBalances.getLoadBalance(loadBalanceType);
         String routerType = url.getParam(Constants.ROUTER_KEY);
@@ -172,7 +172,7 @@ public class Clusters {
 
         T proxy;
 
-        boolean byteCodeInvoke = Boolean.valueOf(url.getParam(Constants.BYTE_CODE_INVOKE_KEY));
+        boolean byteCodeInvoke = Boolean.parseBoolean(url.getParam(Constants.BYTE_CODE_INVOKE_KEY));
         if (byteCodeInvoke) {
             JavassistClusterInvoker<T> javassistClusterInvoker = new JavassistClusterInvoker<>(cluster, retryTimes, retryTimeout, url, interfaceClass);
             proxy = javassistClusterInvoker.proxy();

@@ -138,9 +138,7 @@ public class RPCFuture implements Future<RPCResponse> {
         @Override
         protected boolean tryRelease(int releases) {
             if (getState() == PENDING) {
-                if (compareAndSetState(PENDING, DONE)) {
-                    return true;
-                }
+                return compareAndSetState(PENDING, DONE);
             }
 
             return false;

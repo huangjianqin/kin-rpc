@@ -17,8 +17,8 @@ public class Zookeeper2RegistryFactory extends AbstractRegistryFactory {
     @Override
     public Registry getRegistry(URL url) {
         String address = url.getParam(Constants.REGISTRY_URL_KEY);
-        int sessionTimeout = Integer.valueOf(url.getParam(Constants.SESSION_TIMEOUT_KEY));
-        boolean compression = Boolean.valueOf(url.getParam(Constants.COMPRESSION_KEY));
+        int sessionTimeout = Integer.parseInt(url.getParam(Constants.SESSION_TIMEOUT_KEY));
+        boolean compression = Boolean.parseBoolean(url.getParam(Constants.COMPRESSION_KEY));
 
         String serializerType = url.getParam(Constants.SERIALIZE_KEY);
         //先校验, 顺便初始化

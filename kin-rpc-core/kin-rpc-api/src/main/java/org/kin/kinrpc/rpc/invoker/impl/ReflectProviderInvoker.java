@@ -20,7 +20,7 @@ public class ReflectProviderInvoker extends ProviderInvoker {
     /**
      * 方法调用入口
      */
-    private Map<String, Method> methodMap = new HashMap<String, Method>();
+    private Map<String, Method> methodMap = new HashMap<>();
 
 
     public ReflectProviderInvoker(String serviceName, Object service, Class interfaceClass, int rate) {
