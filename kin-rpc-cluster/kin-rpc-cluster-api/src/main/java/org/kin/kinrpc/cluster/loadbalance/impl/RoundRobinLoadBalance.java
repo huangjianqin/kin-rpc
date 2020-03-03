@@ -1,5 +1,6 @@
 package org.kin.kinrpc.cluster.loadbalance.impl;
 
+import org.kin.framework.utils.CollectionUtils;
 import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
 import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
 
@@ -14,7 +15,7 @@ public class RoundRobinLoadBalance implements LoadBalance {
 
     @Override
     public ReferenceInvoker loadBalance(List<ReferenceInvoker> invokers) {
-        if (invokers != null && invokers.size() > 0) {
+        if (CollectionUtils.isNonEmpty(invokers)) {
             return invokers.get(next(invokers.size()));
         }
 
@@ -22,6 +23,9 @@ public class RoundRobinLoadBalance implements LoadBalance {
     }
 
     private int next(int size) {
+        if (round.get() <= 0) {
+            round.set(0);
+        }
         return (round.getAndAdd(1) + size) % size;
     }
 }
