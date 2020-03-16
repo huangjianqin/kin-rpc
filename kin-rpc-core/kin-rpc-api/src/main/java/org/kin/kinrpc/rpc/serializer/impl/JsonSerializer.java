@@ -12,11 +12,11 @@ import java.io.IOException;
 public class JsonSerializer implements Serializer {
     @Override
     public byte[] serialize(Object target) throws IOException {
-        return JSON.PARSER.writeValueAsBytes(target);
+        return JSON.writeBytes(target);
     }
 
     @Override
     public <T> T deserialize(byte[] bytes, Class<T> tagetClass) throws IOException {
-        return JSON.PARSER.readValue(bytes, tagetClass);
+        return JSON.read(bytes, tagetClass);
     }
 }

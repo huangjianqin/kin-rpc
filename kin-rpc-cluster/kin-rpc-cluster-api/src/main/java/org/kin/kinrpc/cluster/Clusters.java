@@ -5,7 +5,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.kin.framework.JvmCloseCleaner;
-import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadManager;
 import org.kin.framework.utils.NetUtils;
 import org.kin.framework.utils.TimeUtils;
@@ -28,8 +27,6 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Objects;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -39,9 +36,7 @@ public class Clusters {
     private static final Logger log = LoggerFactory.getLogger(Clusters.class);
     private static final Cache<Integer, RPCProvider> PROVIDER_CACHE = CacheBuilder.newBuilder().build();
     private static final Cache<String, ClusterInvoker> REFERENCE_CACHE = CacheBuilder.newBuilder().build();
-    private static final ThreadManager THREADS = new ThreadManager(
-            new ThreadPoolExecutor(2, 2, 60L, TimeUnit.SECONDS,
-                    new LinkedBlockingQueue<>(), new SimpleThreadFactory("provider-unregister-executor")));
+    private static final ThreadManager THREADS = ThreadManager.fix(2, "provider-unregister-executor");
     private static volatile boolean isStopped = false;
     private static final int HEARTBEAT_INTERVAL = 3;
 

@@ -5,7 +5,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.actor.ActorLike;
-import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadManager;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.common.Constants;
@@ -28,7 +27,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
 /**
@@ -41,13 +39,8 @@ public class RPCProvider extends ActorLike<RPCProvider> {
     /**
      * 可以在加载类RPCProvider前修改RPC.parallelism来修改RPCProvider的并发数
      */
-    private static ThreadManager EXECUTORS = new ThreadManager(
-            new ForkJoinPool(RPC.parallelism,
-                    ForkJoinPool.defaultForkJoinWorkerThreadFactory,
-                    null,
-                    true
-            ), 2, new SimpleThreadFactory("rpc-provider-schedule"));
-
+    private static ThreadManager EXECUTORS =
+            ThreadManager.asyncForkjoin(RPC.parallelism, "rpc-", 2, "rpc-schedule-");
     static {
         JvmCloseCleaner.DEFAULT().add(() -> EXECUTORS.shutdown());
     }
