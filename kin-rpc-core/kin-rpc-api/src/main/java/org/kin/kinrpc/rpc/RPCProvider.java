@@ -40,7 +40,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
      * 可以在加载类RPCProvider前修改RPC.parallelism来修改RPCProvider的并发数
      */
     private static ThreadManager EXECUTORS =
-            ThreadManager.asyncForkjoin(RPC.parallelism, "rpc-", 2, "rpc-schedule-");
+            ThreadManager.asyncForkjoin(KinRPC.PARALLELISM, "rpc-", 2, "rpc-schedule-");
     static {
         JvmCloseCleaner.DEFAULT().add(() -> EXECUTORS.shutdown());
     }
