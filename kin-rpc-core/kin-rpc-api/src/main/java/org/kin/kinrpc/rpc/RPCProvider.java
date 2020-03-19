@@ -1,11 +1,13 @@
 package org.kin.kinrpc.rpc;
 
+import com.google.common.util.concurrent.RateLimiter;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.actor.ActorLike;
 import org.kin.framework.concurrent.ThreadManager;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.common.URL;
@@ -14,14 +16,23 @@ import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.JavassistProviderInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.ReflectProviderInvoker;
 import org.kin.kinrpc.rpc.serializer.Serializer;
-import org.kin.kinrpc.rpc.transport.ProviderHandler;
+import org.kin.kinrpc.rpc.transport.common.RPCConstants;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
+import org.kin.kinrpc.rpc.transport.protocol.RPCHeartbeat;
+import org.kin.kinrpc.rpc.transport.protocol.RPCRequestProtocol;
+import org.kin.kinrpc.rpc.transport.protocol.RPCResponseProtocol;
+import org.kin.transport.netty.core.Server;
 import org.kin.transport.netty.core.ServerTransportOption;
+import org.kin.transport.netty.core.TransportHandler;
 import org.kin.transport.netty.core.TransportOption;
+import org.kin.transport.netty.core.protocol.AbstractProtocol;
+import org.kin.transport.netty.core.protocol.ProtocolFactory;
+import org.kin.transport.netty.core.statistic.InOutBoundStatisicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.Collections;
@@ -40,7 +51,8 @@ public class RPCProvider extends ActorLike<RPCProvider> {
      * 可以在加载类RPCProvider前修改RPC.parallelism来修改RPCProvider的并发数
      */
     private static ThreadManager EXECUTORS =
-            ThreadManager.asyncForkjoin(KinRPC.PARALLELISM, "rpc-", 2, "rpc-schedule-");
+            ThreadManager.fix(KinRPC.PARALLELISM, "rpc-", 2, "rpc-schedule-");
+
     static {
         JvmCloseCleaner.DEFAULT().add(() -> EXECUTORS.shutdown());
     }
@@ -55,13 +67,19 @@ public class RPCProvider extends ActorLike<RPCProvider> {
     /** 序列化方式 */
     private final Serializer serializer;
     /** 底层的连接 */
-    private ProviderHandler connection;
+    private ProviderHandler providerHandler;
     /** 标识是否stopped */
     private volatile boolean isStopped = false;
     /** 是否使用字节码技术 */
     private final boolean isByteCodeInvoke;
-    /** 是否压缩 */
-    private final boolean compression;
+    /**
+     *
+     */
+    private InetSocketAddress address;
+    /**
+     *
+     */
+    private ServerTransportOption transportOption;
 
     public RPCProvider(String host, int port, Serializer serializer, boolean isByteCodeInvoke, boolean compression) {
         super(EXECUTORS);
@@ -69,7 +87,22 @@ public class RPCProvider extends ActorLike<RPCProvider> {
         this.port = port;
         this.serializer = serializer;
         this.isByteCodeInvoke = isByteCodeInvoke;
-        this.compression = compression;
+
+        if (StringUtils.isNotBlank(host)) {
+            this.address = new InetSocketAddress(this.host, this.port);
+        } else {
+            this.address = new InetSocketAddress(this.port);
+        }
+
+        this.providerHandler = new ProviderHandler();
+        this.transportOption = TransportOption.server()
+                .channelOption(ChannelOption.TCP_NODELAY, true)
+                .channelOption(ChannelOption.SO_KEEPALIVE, true)
+                .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                .transportHandler(providerHandler);
+        if (compression) {
+            this.transportOption.compress();
+        }
     }
 
     /**
@@ -115,7 +148,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
     }
 
     public boolean isAlive() {
-        return !isStopped && connection.isActive();
+        return !isStopped && providerHandler.isActive();
     }
 
     public Collection<URL> getAvailableServices() {
@@ -125,8 +158,16 @@ public class RPCProvider extends ActorLike<RPCProvider> {
         return serviceMap.values().stream().map(ProviderInvokerWrapper::getUrl).collect(Collectors.toList());
     }
 
+    public String getHost() {
+        return host;
+    }
+
     public int getPort() {
         return port;
+    }
+
+    public String getAddressStr() {
+        return address.getHostName() + ":" + address.getPort();
     }
 
     /**
@@ -139,23 +180,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
         log.info("provider(port={}) starting...", port);
 
         //启动连接
-        InetSocketAddress inetAddress;
-        if (StringUtils.isNotBlank(host)) {
-            inetAddress = new InetSocketAddress(this.host, this.port);
-        } else {
-            inetAddress = new InetSocketAddress(this.port);
-        }
-
-        this.connection = new ProviderHandler(inetAddress, this, serializer);
-        ServerTransportOption transportOption = TransportOption.server()
-                .channelOption(ChannelOption.TCP_NODELAY, true)
-                .channelOption(ChannelOption.SO_KEEPALIVE, true)
-                .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                .protocolHandler(connection);
-        if (compression) {
-            transportOption.compress();
-        }
-        connection.bind(transportOption);
+        providerHandler.bind(transportOption);
 
         log.info("provider(port={}) started", port);
     }
@@ -179,7 +204,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
             if (isStopped) {
                 return;
             }
-            if (this.connection == null) {
+            if (this.providerHandler == null) {
                 throw new IllegalStateException("Provider Server has not started");
             }
             log.info("server(port= " + port + ") shutdowning...");
@@ -188,7 +213,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
             //让所有请求都拒绝返回时, 才关闭channel
             tell(rpcProvider2 -> {
                 //最后关闭连接
-                connection.close();
+                providerHandler.close();
                 log.info("server connection close successfully");
             });
         });
@@ -199,9 +224,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
      * 对外接口
      */
     public void handleRequest(RPCRequest rpcRequest) {
-        if (isAlive()) {
-            tell(rpcProvider -> handleRPCRequest(rpcRequest));
-        }
+        tell(rpcProvider -> handleRPCRequest(rpcRequest));
     }
 
     /**
@@ -236,7 +259,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
                 rpcResponse.setState(RPCResponse.State.ERROR, "unknown service");
                 rpcResponse.setCreateTime(System.currentTimeMillis());
                 //write back to reference
-                connection.resp(channel, rpcResponse);
+                providerHandler.response(channel, rpcResponse);
 
                 log.debug("finish handle request >>>>>>>>>" + System.lineSeparator() + rpcRequest + System.lineSeparator() + rpcResponse);
             }
@@ -276,12 +299,14 @@ public class RPCProvider extends ActorLike<RPCProvider> {
         rpcResponse.setResult(result);
         rpcResponse.setCreateTime(System.currentTimeMillis());
         //write back to reference
-        connection.resp(channel, rpcResponse);
+        providerHandler.response(channel, rpcResponse);
 
         log.debug("finish handle request >>>>>>>>>" + System.lineSeparator() + rpcRequest + System.lineSeparator() + rpcResponse);
     }
 
-    private static class ProviderInvokerWrapper extends ActorLike<ProviderInvokerWrapper> {
+    //--------------------------------------------------------------------------------------------------------------
+
+    private class ProviderInvokerWrapper extends ActorLike<ProviderInvokerWrapper> {
         private URL url;
         private ProviderInvoker invoker;
         private boolean parallelism;
@@ -304,6 +329,101 @@ public class RPCProvider extends ActorLike<RPCProvider> {
 
         public boolean isParallelism() {
             return parallelism;
+        }
+    }
+
+    private class ProviderHandler extends TransportHandler {
+        private Server server;
+        private RateLimiter rateLimiter = RateLimiter.create(Constants.SERVER_REQUEST_THRESHOLD);
+
+        public void bind(ServerTransportOption transportOption) throws Exception {
+            if (server != null) {
+                server.close();
+            }
+            server = transportOption.tcp(address);
+        }
+
+        public void close() {
+            if (server != null) {
+                server.close();
+            }
+        }
+
+        public boolean isActive() {
+            return server != null && server.isActive();
+        }
+
+        public void response(Channel channel, RPCResponse rpcResponse) {
+            byte[] data;
+            try {
+                data = serializer.serialize(rpcResponse);
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+                rpcResponse.setState(RPCResponse.State.ERROR, e.getMessage());
+                rpcResponse.setResult(null);
+                try {
+                    data = serializer.serialize(rpcResponse);
+                } catch (IOException e1) {
+                    log.error(e1.getMessage(), e1);
+                    return;
+                }
+            }
+
+            RPCResponseProtocol rpcResponseProtocol = ProtocolFactory.createProtocol(RPCConstants.RPC_RESPONSE_PROTOCOL_ID, data);
+            channel.writeAndFlush(rpcResponseProtocol.write());
+
+            InOutBoundStatisicService.instance().statisticResp(
+                    rpcResponse.getServiceName() + "-" + rpcResponse.getMethod(), data.length
+            );
+        }
+
+        @Override
+        public void handleProtocol(Channel channel, AbstractProtocol protocol) {
+            if (protocol == null) {
+                return;
+            }
+            if (protocol instanceof RPCRequestProtocol) {
+                try {
+                    RPCRequestProtocol requestProtocol = (RPCRequestProtocol) protocol;
+                    byte[] data = requestProtocol.getReqContent();
+
+                    RPCRequest rpcRequest = null;
+                    try {
+                        rpcRequest = serializer.deserialize(data, RPCRequest.class);
+
+                        InOutBoundStatisicService.instance().statisticReq(
+                                rpcRequest.getServiceName() + "-" + rpcRequest.getMethod(), data.length
+                        );
+
+                        //流控
+                        if (!rateLimiter.tryAcquire()) {
+                            RPCResponse rpcResponse = RPCResponse.respWithError(rpcRequest, "server rate limited, just reject");
+                            channel.writeAndFlush(rpcResponse);
+                            return;
+                        }
+
+                        rpcRequest.setChannel(channel);
+                        rpcRequest.setEventTime(System.currentTimeMillis());
+                    } catch (IOException | ClassNotFoundException e) {
+                        log.error(e.getMessage(), e);
+                        RPCResponse rpcResponse = RPCResponse.respWithError(rpcRequest, ExceptionUtils.getExceptionDesc(e));
+                        channel.writeAndFlush(rpcResponse);
+                        return;
+                    }
+
+                    //简单地添加到任务队列交由上层的线程池去完成服务调用
+                    handleRequest(rpcRequest);
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                }
+            } else if (protocol instanceof RPCHeartbeat) {
+                RPCHeartbeat heartbeat = (RPCHeartbeat) protocol;
+                log.info("provider({}) receive heartbeat ip:{}, content:{}", address, heartbeat.getIp(), heartbeat.getContent());
+                RPCHeartbeat heartbeatResp = ProtocolFactory.createProtocol(RPCConstants.RPC_HEARTBEAT_PROTOCOL_ID, getAddressStr(), "");
+                channel.writeAndFlush(heartbeatResp.write());
+            } else {
+                log.error("unknown protocol >>>> {}", protocol);
+            }
         }
     }
 }

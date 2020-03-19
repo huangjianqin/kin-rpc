@@ -1,10 +1,10 @@
 package org.kin.kinrpc.rpc.transport.protocol;
 
 import org.kin.kinrpc.rpc.transport.common.RPCConstants;
-import org.kin.transport.netty.core.domain.Request;
-import org.kin.transport.netty.core.domain.Response;
 import org.kin.transport.netty.core.protocol.AbstractProtocol;
 import org.kin.transport.netty.core.protocol.Protocol;
+import org.kin.transport.netty.core.protocol.domain.Request;
+import org.kin.transport.netty.core.protocol.domain.Response;
 
 /**
  * Created by huangjianqin on 2019/6/14.

@@ -22,11 +22,13 @@ public class ReferenceConfig<T> extends AbstractConfig {
     private int retryTimes;
     private int retryTimeout = Constants.RETRY_TIMEOUT;
     private String serialize = SerializerType.KRYO.getType();
-    private String loadBalanceType = LoadBalanceType.ROUND_ROBIN.getType();
+    private String loadBalanceType = LoadBalanceType.ROUNDROBIN.getType();
     private String routerType = RouterType.NONE.getType();
     private InvokeType invokeType = InvokeType.JAVASSIST;
     private String version = "0.1.0.0";
     private boolean compression;
+    /** 服务限流, 每秒发送多少个 */
+    private int rate = Constants.REFERENCE_REQUEST_THRESHOLD;
 
     private URL url;
     private volatile T reference;
@@ -46,6 +48,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
         Preconditions.checkNotNull(this.interfaceClass, "reference subscribed interface must be not null");
         Preconditions.checkArgument(this.timeout > 0, "connection's timeout must greater than 0");
         Preconditions.checkArgument(this.retryTimeout > 0, "retrytimeout must greater than 0");
+        Preconditions.checkArgument(this.rate > 0, "rate must be greater than 0");
     }
 
     public synchronized T get() {
@@ -63,6 +66,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
             params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(InvokeType.JAVASSIST.equals(invokeType)));
             params.put(Constants.VERSION_KEY, version);
             params.put(Constants.COMPRESSION_KEY, Boolean.toString(compression));
+            params.put(Constants.RATE_KEY, rate + "");
 
             url = createURL(applicationConfig, NetUtils.getIp(), registryConfig, params);
             Preconditions.checkNotNull(url);
@@ -215,6 +219,11 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return this;
     }
 
+    public ReferenceConfig<T> rate(int rate) {
+        this.rate = rate;
+        return this;
+    }
+
     //setter && getter
 
     public ApplicationConfig getApplicationConfig() {
@@ -263,5 +272,13 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
     public String getVersion() {
         return version;
+    }
+
+    public boolean isCompression() {
+        return compression;
+    }
+
+    public int getRate() {
+        return rate;
     }
 }

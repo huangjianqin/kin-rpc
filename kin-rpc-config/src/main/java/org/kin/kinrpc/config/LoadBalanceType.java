@@ -24,7 +24,7 @@ public enum LoadBalanceType {
     /**
      * round robin
      */
-    ROUND_ROBIN,
+    ROUNDROBIN,
     ;
 
     public String getType() {

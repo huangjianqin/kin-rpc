@@ -5,13 +5,15 @@ import org.kin.kinrpc.rpc.exception.RateLimitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.StringJoiner;
+
 /**
  * @author huangjianqin
  * @date 2019-08-22
  */
 public abstract class ProviderInvoker extends AbstractInvoker {
     protected static final Logger log = LoggerFactory.getLogger(ProviderInvoker.class);
-    /** 限流 */
+    /** 流控 */
     private RateLimiter rateLimiter;
 
     protected ProviderInvoker(String serviceName, int rate) {
@@ -22,10 +24,18 @@ public abstract class ProviderInvoker extends AbstractInvoker {
     @Override
     public Object invoke(String methodName, boolean isVoid, Object... params) throws Throwable {
         log.debug("service '{}' method '{}' invoking...", getServiceName(), methodName);
-        //限流
+        //流控
         if (!rateLimiter.tryAcquire()) {
             //抛异常, 外部捕获异常并立即返回给reference, 让其重试
-            throw new RateLimitException();
+            StringBuffer sb = new StringBuffer();
+            StringJoiner sj = new StringJoiner(", ");
+            sb.append("(");
+            for (Object param : params) {
+                sj.add(param.getClass().getName());
+            }
+            sb.append(sj.toString());
+            sb.append(")");
+            throw new RateLimitException(getServiceName().concat("$").concat(methodName).concat(sb.toString()));
         }
         return doInvoke(methodName, isVoid, params);
     }
@@ -42,7 +52,7 @@ public abstract class ProviderInvoker extends AbstractInvoker {
     public abstract Object doInvoke(String methodName, boolean isVoid, Object... params) throws Throwable;
 
     /**
-     * 设置限流
+     * 设置流控
      */
     public void setRate(double rate) {
         if (rate > 0) {
@@ -51,7 +61,7 @@ public abstract class ProviderInvoker extends AbstractInvoker {
     }
 
     /**
-     * 获取限流
+     * 获取流控
      */
     public double getRate() {
         return rateLimiter.getRate();

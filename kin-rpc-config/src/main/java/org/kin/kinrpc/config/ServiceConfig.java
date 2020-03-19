@@ -28,7 +28,7 @@ public class ServiceConfig extends AbstractConfig {
     private boolean compression;
     /** 默认支持并发执行 */
     private boolean parallelism = true;
-    /** 限流, 每秒多少个request */
+    /** 流控, 每秒最多处理多少个request */
     private int rate = Constants.PROVIDER_REQUEST_THRESHOLD;
 
     private URL url;
@@ -256,5 +256,9 @@ public class ServiceConfig extends AbstractConfig {
 
     public boolean isParallelism() {
         return parallelism;
+    }
+
+    public int getRate() {
+        return rate;
     }
 }

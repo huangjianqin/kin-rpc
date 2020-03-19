@@ -5,7 +5,7 @@ package org.kin.kinrpc.rpc.exception;
  * @date 2019/6/28
  */
 public class RateLimitException extends RuntimeException {
-    public RateLimitException() {
-        super("rate limited");
+    public RateLimitException(String message) {
+        super("rate limited >>>".concat(message));
     }
 }

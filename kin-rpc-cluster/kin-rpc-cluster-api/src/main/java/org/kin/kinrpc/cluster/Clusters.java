@@ -20,7 +20,7 @@ import org.kin.kinrpc.rpc.RPCProvider;
 import org.kin.kinrpc.rpc.serializer.Serializer;
 import org.kin.kinrpc.rpc.serializer.Serializers;
 import org.kin.kinrpc.rpc.transport.protocol.RPCHeartbeat;
-import org.kin.transport.netty.core.ProtocolFactory;
+import org.kin.transport.netty.core.protocol.ProtocolFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

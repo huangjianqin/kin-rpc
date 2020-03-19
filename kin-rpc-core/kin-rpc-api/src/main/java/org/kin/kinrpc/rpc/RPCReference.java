@@ -6,45 +6,57 @@ import io.netty.channel.ChannelOption;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.future.RPCFuture;
 import org.kin.kinrpc.rpc.serializer.Serializer;
-import org.kin.kinrpc.rpc.transport.ReferenceHandler;
+import org.kin.kinrpc.rpc.transport.common.RPCConstants;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
-import org.kin.transport.netty.core.ChannelExceptionHandler;
+import org.kin.kinrpc.rpc.transport.protocol.RPCHeartbeat;
+import org.kin.kinrpc.rpc.transport.protocol.RPCRequestProtocol;
+import org.kin.kinrpc.rpc.transport.protocol.RPCResponseProtocol;
+import org.kin.transport.netty.core.Client;
 import org.kin.transport.netty.core.ClientTransportOption;
+import org.kin.transport.netty.core.TransportHandler;
 import org.kin.transport.netty.core.TransportOption;
-import org.kin.transport.netty.core.listener.ChannelInactiveListener;
+import org.kin.transport.netty.core.protocol.AbstractProtocol;
+import org.kin.transport.netty.core.protocol.ProtocolFactory;
+import org.kin.transport.netty.core.statistic.InOutBoundStatisicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by huangjianqin on 2019/6/14.
  */
-public class RPCReference implements ChannelExceptionHandler, ChannelInactiveListener {
+public class RPCReference {
     private static final Logger log = LoggerFactory.getLogger(RPCReference.class);
     private volatile boolean isStopped;
 
     private Map<String, RPCFuture> pendingRPCFutureMap = new ConcurrentHashMap<>();
 
+    private String serviceName;
+    private InetSocketAddress address;
+    private Serializer serializer;
     private ClientTransportOption clientTransportOption;
-    private ReferenceHandler connection;
+    private ReferenceHandler referenceHandler;
 
     public RPCReference(String serviceName, InetSocketAddress address, Serializer serializer, int connectTimeout, boolean compression) {
-        this.connection = new ReferenceHandler(serviceName, address, serializer, this);
+        this.serviceName = serviceName;
+        this.address = address;
+        this.serializer = serializer;
+        this.referenceHandler = new ReferenceHandler();
         this.clientTransportOption =
                 TransportOption.client()
                         .channelOption(ChannelOption.TCP_NODELAY, true)
                         .channelOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout)
-                        .channelInactiveListener(this)
-                        .channelExceptionHandler(this)
-                        .protocolHandler(connection);
+                        .transportHandler(this.referenceHandler);
         if (compression) {
-            clientTransportOption.compress();
+            this.clientTransportOption.compress();
         }
     }
 
@@ -78,7 +90,7 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
         log.debug("send a request>>>" + System.lineSeparator() + request);
 
         try {
-            connection.request(request);
+            referenceHandler.request(request);
             pendingRPCFutureMap.put(request.getRequestId() + "", future);
         } catch (Exception e) {
             pendingRPCFutureMap.remove(request.getRequestId() + "");
@@ -89,7 +101,7 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
         return future;
     }
 
-    private void clean() {
+    public void clean() {
         for (RPCFuture rpcFuture : pendingRPCFutureMap.values()) {
             RPCRequest rpcRequest = rpcFuture.getRequest();
             RPCResponse rpcResponse = RPCResponse.respWithRetry(rpcRequest, "channel inactive");
@@ -99,21 +111,21 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
     }
 
     public HostAndPort getAddress() {
-        return HostAndPort.fromString(connection.getAddressStr());
+        return HostAndPort.fromString(this.address.getHostName() + ":" + this.address.getPort());
     }
 
     public boolean isActive() {
         if (isStopped) {
             return false;
         }
-        return connection.isActive();
+        return referenceHandler.isActive();
     }
 
     public void start() {
         if (isStopped) {
             return;
         }
-        connection.connect(clientTransportOption);
+        referenceHandler.connect(clientTransportOption);
     }
 
     public void shutdown() {
@@ -121,7 +133,7 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
             return;
         }
         isStopped = true;
-        connection.close();
+        referenceHandler.close();
         clean();
     }
 
@@ -130,27 +142,6 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
      */
     public void removeInvalid(RPCRequest rpcRequest) {
         this.pendingRPCFutureMap.remove(rpcRequest.getRequestId() + "");
-    }
-
-    /**
-     * channel线程
-     */
-    @Override
-    public void handleException(Channel channel, Throwable cause) {
-        RPCThreadPool.THREADS.execute(this::clean);
-    }
-
-    /**
-     * channel线程
-     */
-    @Override
-    public void channelInactive(Channel channel) {
-        RPCThreadPool.THREADS.execute(() -> {
-            clean();
-            if(!isStopped){
-                connection.connect(clientTransportOption);
-            }
-        });
     }
 
     @Override
@@ -164,11 +155,147 @@ public class RPCReference implements ChannelExceptionHandler, ChannelInactiveLis
 
         RPCReference that = (RPCReference) o;
 
-        return Objects.equals(connection, that.connection);
+        return Objects.equals(referenceHandler, that.referenceHandler);
     }
 
     @Override
     public int hashCode() {
-        return connection != null ? connection.hashCode() : 0;
+        return referenceHandler != null ? referenceHandler.hashCode() : 0;
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    private class ReferenceHandler extends TransportHandler {
+        private volatile Client client;
+        private volatile Future heartbeatFuture;
+        private ClientTransportOption transportOption;
+
+        public void connect(ClientTransportOption transportOption) {
+            if (isStopped) {
+                return;
+            }
+            if (isActive()) {
+                return;
+            }
+            if (client != null) {
+                client.close();
+                client = null;
+            }
+            if (client == null) {
+                try {
+                    client = transportOption.tcp(address);
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                }
+                if (!isActive()) {
+                    //n秒后重连
+                    RPCThreadPool.THREADS.schedule(() -> connect(transportOption), 5, TimeUnit.SECONDS);
+                }
+            }
+
+            if (heartbeatFuture == null) {
+                heartbeatFuture = RPCThreadPool.THREADS.scheduleAtFixedRate(() -> {
+                    if (client != null) {
+                        try {
+                            RPCHeartbeat heartbeat = ProtocolFactory.createProtocol(RPCConstants.RPC_HEARTBEAT_PROTOCOL_ID, client.getLocalAddress(), "");
+                            client.request(heartbeat);
+                        } catch (Exception e) {
+                            //屏蔽异常
+                        }
+                    }
+                }, 10, 10, TimeUnit.SECONDS);
+            }
+        }
+
+        public void close() {
+            if (Objects.nonNull(client)) {
+                client.close();
+            }
+            heartbeatFuture.cancel(true);
+        }
+
+        public boolean isActive() {
+            return !isStopped && client != null && client.isActive();
+        }
+
+        public void request(RPCRequest request) {
+            if (isActive()) {
+                try {
+                    request.setCreateTime(System.currentTimeMillis());
+                    byte[] data = serializer.serialize(request);
+
+                    RPCRequestProtocol protocol = ProtocolFactory.createProtocol(RPCConstants.RPC_REQUEST_PROTOCOL_ID, data);
+                    client.request(protocol);
+
+                    InOutBoundStatisicService.instance().statisticReq(
+                            request.getServiceName() + "-" + request.getMethod(), data.length
+                    );
+                } catch (IOException e) {
+                    log.error(e.getMessage(), e);
+                }
+            }
+        }
+
+        @Override
+        public void handleProtocol(Channel channel, AbstractProtocol protocol) {
+            if (!isActive()) {
+                return;
+            }
+            if (Objects.isNull(protocol)) {
+                return;
+            }
+            if (protocol instanceof RPCResponseProtocol) {
+                RPCResponseProtocol responseProtocol = (RPCResponseProtocol) protocol;
+                try {
+                    RPCResponse rpcResponse;
+                    try {
+                        rpcResponse = serializer.deserialize(responseProtocol.getRespContent(), RPCResponse.class);
+                        rpcResponse.setEventTime(System.currentTimeMillis());
+                    } catch (IOException | ClassNotFoundException e) {
+                        log.error(e.getMessage(), e);
+                        return;
+                    }
+
+                    InOutBoundStatisicService.instance().statisticResp(
+                            rpcResponse.getServiceName() + "-" + rpcResponse.getMethod(), responseProtocol.getRespContent().length
+                    );
+
+                    handleResponse(rpcResponse);
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                }
+            } else if (protocol instanceof RPCHeartbeat) {
+                RPCHeartbeat heartbeat = (RPCHeartbeat) protocol;
+                log.info("reference({}) receive heartbeat ip:{}, content:{}", serviceName, heartbeat.getIp(), heartbeat.getContent());
+            } else {
+                log.error("unknown protocol >>>> {}", protocol);
+            }
+        }
+
+        @Override
+        public void channelInactive(Channel channel) {
+            RPCThreadPool.THREADS.execute(() -> {
+                RPCReference.this.clean();
+                if (!isStopped) {
+                    connect(clientTransportOption);
+                }
+            });
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            ReferenceHandler that = (ReferenceHandler) o;
+            return Objects.equals(client, that.client);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(client);
+        }
     }
 }
