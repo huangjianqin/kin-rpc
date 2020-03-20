@@ -69,7 +69,8 @@ public class ZookeeperDirectory extends AbstractDirectory {
         for (HostAndPort hostAndPort : hostAndPorts) {
             //address有效,创建新的ReferenceInvoker,连接Service Server
             RPCReference rpcReference = new RPCReference(
-                    serviceName, new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPort()), Serializers.getSerializer(serializerType), connectTimeout, compression);
+                    serviceName, new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPort()),
+                    Serializers.getSerializer(serializerType), connectTimeout, compression, HEARTBEAT_CALLBACK);
             ReferenceInvoker refereneceInvoker = new ReferenceInvoker(serviceName, rpcReference);
             //真正启动连接
             refereneceInvoker.init();

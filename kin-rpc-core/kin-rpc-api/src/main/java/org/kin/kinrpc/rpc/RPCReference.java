@@ -4,6 +4,7 @@ import com.google.common.net.HostAndPort;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.utils.ExceptionUtils;
+import org.kin.framework.utils.TimeUtils;
 import org.kin.kinrpc.rpc.future.RPCFuture;
 import org.kin.kinrpc.rpc.serializer.Serializer;
 import org.kin.kinrpc.rpc.transport.common.RPCConstants;
@@ -44,8 +45,9 @@ public class RPCReference {
     private Serializer serializer;
     private ClientTransportOption clientTransportOption;
     private ReferenceHandler referenceHandler;
+    private HeartBeatCallBack heartBeatCallBack;
 
-    public RPCReference(String serviceName, InetSocketAddress address, Serializer serializer, int connectTimeout, boolean compression) {
+    public RPCReference(String serviceName, InetSocketAddress address, Serializer serializer, int connectTimeout, boolean compression, HeartBeatCallBack heartBeatCallBack) {
         this.serviceName = serviceName;
         this.address = address;
         this.serializer = serializer;
@@ -58,6 +60,7 @@ public class RPCReference {
         if (compression) {
             this.clientTransportOption.compress();
         }
+        this.heartBeatCallBack = heartBeatCallBack;
     }
 
     /**
@@ -146,28 +149,35 @@ public class RPCReference {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         RPCReference that = (RPCReference) o;
-
-        return Objects.equals(referenceHandler, that.referenceHandler);
+        return serviceName.equals(that.serviceName) &&
+                address.equals(that.address);
     }
 
     @Override
     public int hashCode() {
-        return referenceHandler != null ? referenceHandler.hashCode() : 0;
+        return Objects.hash(serviceName, address);
     }
 
     //------------------------------------------------------------------------------------------------------------------
+    public interface HeartBeatCallBack {
+        void heartBeatFail(RPCReference rpcReference);
+    }
+
     private class ReferenceHandler extends TransportHandler {
+        /** 心跳间隔(秒) */
+        private final int HEARTBEAT_INTERNAL = 10;
+        /** 最大心跳失败次数 */
+        private final int MAX_HEARTBEAT_FAIL = 3;
+
         private volatile Client client;
         private volatile Future heartbeatFuture;
         private ClientTransportOption transportOption;
+
+        private int lastHeartBeatTime;
+        private int heartBeatFailTimes;
 
         public void connect(ClientTransportOption transportOption) {
             if (isStopped) {
@@ -194,7 +204,7 @@ public class RPCReference {
 
             if (heartbeatFuture == null) {
                 heartbeatFuture = RPCThreadPool.THREADS.scheduleAtFixedRate(() -> {
-                    if (client != null) {
+                    if (client != null && checkHeartbeat()) {
                         try {
                             RPCHeartbeat heartbeat = ProtocolFactory.createProtocol(RPCConstants.RPC_HEARTBEAT_PROTOCOL_ID, client.getLocalAddress(), "");
                             client.request(heartbeat);
@@ -202,7 +212,7 @@ public class RPCReference {
                             //屏蔽异常
                         }
                     }
-                }, 10, 10, TimeUnit.SECONDS);
+                }, HEARTBEAT_INTERNAL, HEARTBEAT_INTERNAL, TimeUnit.SECONDS);
             }
         }
 
@@ -210,7 +220,9 @@ public class RPCReference {
             if (Objects.nonNull(client)) {
                 client.close();
             }
-            heartbeatFuture.cancel(true);
+            if (Objects.nonNull(heartbeatFuture)) {
+                heartbeatFuture.cancel(true);
+            }
         }
 
         public boolean isActive() {
@@ -265,6 +277,7 @@ public class RPCReference {
                 }
             } else if (protocol instanceof RPCHeartbeat) {
                 RPCHeartbeat heartbeat = (RPCHeartbeat) protocol;
+                lastHeartBeatTime = TimeUtils.timestamp();
                 log.info("reference({}) receive heartbeat ip:{}, content:{}", serviceName, heartbeat.getIp(), heartbeat.getContent());
             } else {
                 log.error("unknown protocol >>>> {}", protocol);
@@ -281,21 +294,26 @@ public class RPCReference {
             });
         }
 
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
+        /**
+         * 检查心跳是否失败, 如果失败, 触发callback
+         *
+         * @return 心跳是否失败
+         */
+        private boolean checkHeartbeat() {
+            if (heartBeatFailTimes < MAX_HEARTBEAT_FAIL) {
+                int now = TimeUtils.timestamp();
+                if (now - lastHeartBeatTime > HEARTBEAT_INTERNAL) {
+                    //上次心跳还未返回
+                    heartBeatFailTimes++;
+                    if (heartBeatFailTimes >= MAX_HEARTBEAT_FAIL) {
+                        heartBeatCallBack.heartBeatFail(RPCReference.this);
+                        return false;
+                    }
+                }
                 return true;
             }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            ReferenceHandler that = (ReferenceHandler) o;
-            return Objects.equals(client, that.client);
-        }
 
-        @Override
-        public int hashCode() {
-            return Objects.hash(client);
+            return false;
         }
     }
 }

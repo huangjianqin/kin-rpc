@@ -126,7 +126,7 @@ public class RPCFuture implements Future<RPCResponse> {
         return this;
     }
 
-    static class Sync extends AbstractQueuedSynchronizer {
+    private class Sync extends AbstractQueuedSynchronizer {
         private final int DONE = 1;
         private final int PENDING = 0;
 

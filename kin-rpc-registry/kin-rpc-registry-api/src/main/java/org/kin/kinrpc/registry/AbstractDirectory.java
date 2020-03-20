@@ -2,11 +2,13 @@ package org.kin.kinrpc.registry;
 
 import org.kin.framework.actor.ActorLike;
 import org.kin.framework.utils.CollectionUtils;
+import org.kin.kinrpc.rpc.RPCReference;
 import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -15,6 +17,7 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractDirectory extends ActorLike<AbstractDirectory> implements Directory {
     protected static final Logger log = LoggerFactory.getLogger(AbstractDirectory.class);
+    protected final RPCReference.HeartBeatCallBack HEARTBEAT_CALLBACK = new HeartBeatCallbackImpl();
 
     protected final String serviceName;
     protected final int connectTimeout;
@@ -93,5 +96,21 @@ public abstract class AbstractDirectory extends ActorLike<AbstractDirectory> imp
     @Override
     public String getServiceName() {
         return serviceName;
+    }
+
+    //---------------------------------------------------------------------------------------------------------
+    private class HeartBeatCallbackImpl implements RPCReference.HeartBeatCallBack {
+
+        @Override
+        public void heartBeatFail(RPCReference rpcReference) {
+            tell(d -> {
+                Iterator<ReferenceInvoker> iterator = invokers.iterator();
+                while (iterator.hasNext()) {
+                    if (iterator.next().getAddress().equals(rpcReference.getAddress())) {
+                        iterator.remove();
+                    }
+                }
+            });
+        }
     }
 }
