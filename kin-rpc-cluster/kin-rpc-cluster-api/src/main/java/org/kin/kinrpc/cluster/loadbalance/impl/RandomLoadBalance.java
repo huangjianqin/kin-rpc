@@ -5,7 +5,7 @@ import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
 import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
 
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Created by 健勤 on 2017/2/15.
@@ -18,8 +18,7 @@ public class RandomLoadBalance implements LoadBalance {
                 return invokers.get(0);
             }
 
-            Random random = new Random();
-            return invokers.get(random.nextInt(invokers.size()));
+            return invokers.get(ThreadLocalRandom.current().nextInt(invokers.size()));
         }
 
         return null;

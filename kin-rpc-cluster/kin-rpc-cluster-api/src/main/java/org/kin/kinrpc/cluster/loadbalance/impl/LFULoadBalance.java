@@ -5,6 +5,7 @@ import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
 import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -35,7 +36,7 @@ public class LFULoadBalance implements LoadBalance {
                 address2Invoker.put(hostAndPortStr, invoker);
                 if (!lfuMap.containsKey(hostAndPortStr) || lfuMap.get(hostAndPortStr) > 1000000) {
                     //缓解首次的压力
-                    lfuMap.put(hostAndPortStr, new Random().nextInt(invokers.size()));
+                    lfuMap.put(hostAndPortStr, ThreadLocalRandom.current().nextInt(invokers.size()));
                 }
             }
 
