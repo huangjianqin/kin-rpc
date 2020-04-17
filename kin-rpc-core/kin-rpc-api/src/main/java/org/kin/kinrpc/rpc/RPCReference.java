@@ -198,12 +198,12 @@ public class RPCReference {
                 }
                 if (!isActive()) {
                     //n秒后重连
-                    RPCThreadPool.THREADS.schedule(() -> connect(transportOption), 5, TimeUnit.SECONDS);
+                    RPCThreadPool.EXECUTORS.schedule(() -> connect(transportOption), 5, TimeUnit.SECONDS);
                 }
             }
 
             if (heartbeatFuture == null) {
-                heartbeatFuture = RPCThreadPool.THREADS.scheduleAtFixedRate(() -> {
+                heartbeatFuture = RPCThreadPool.EXECUTORS.scheduleAtFixedRate(() -> {
                     if (client != null && checkHeartbeat()) {
                         try {
                             RPCHeartbeat heartbeat = ProtocolFactory.createProtocol(RPCConstants.RPC_HEARTBEAT_PROTOCOL_ID, client.getLocalAddress(), "");
@@ -286,7 +286,7 @@ public class RPCReference {
 
         @Override
         public void channelInactive(Channel channel) {
-            RPCThreadPool.THREADS.execute(() -> {
+            RPCThreadPool.EXECUTORS.execute(() -> {
                 RPCReference.this.clean();
                 if (!isStopped) {
                     connect(clientTransportOption);

@@ -6,7 +6,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.actor.ActorLike;
-import org.kin.framework.concurrent.ThreadManager;
+import org.kin.framework.concurrent.ExecutionContext;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.common.Constants;
@@ -50,8 +50,8 @@ public class RPCProvider extends ActorLike<RPCProvider> {
     /**
      * 可以在加载类RPCProvider前修改RPC.parallelism来修改RPCProvider的并发数
      */
-    private static ThreadManager EXECUTORS =
-            ThreadManager.fix(KinRPC.PARALLELISM, "rpc-", 2, "rpc-schedule-");
+    private static ExecutionContext EXECUTORS =
+            ExecutionContext.fix(KinRPC.PARALLELISM, "rpc-", 2, "rpc-schedule-");
 
     static {
         JvmCloseCleaner.DEFAULT().add(() -> EXECUTORS.shutdown());

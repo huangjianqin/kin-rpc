@@ -94,7 +94,7 @@ public class RPCFuture implements Future<RPCResponse> {
         this.response = response;
         rpcReference.removeInvalid(request);
         sync.release(1);
-        RPCThreadPool.THREADS.submit(() -> {
+        RPCThreadPool.EXECUTORS.submit(() -> {
             for (AsyncRPCCallback callback : this.callbacks) {
                 switch (response.getState()) {
                     case SUCCESS:

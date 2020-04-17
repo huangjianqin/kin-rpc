@@ -42,7 +42,7 @@ abstract class ClusterInvoker<I> implements Closeable {
 
     public Future invokeAsync(Method method, Object... params) {
         Callable callable = () -> invoke0(method, params);
-        return RPCThreadPool.THREADS.submit(callable);
+        return RPCThreadPool.EXECUTORS.submit(callable);
     }
 
     /**
@@ -50,7 +50,7 @@ abstract class ClusterInvoker<I> implements Closeable {
      */
     protected Future invokeAsync(String methodName, boolean isVoid, Object... params) {
         Callable callable = () -> invoke0(methodName, isVoid, params);
-        return RPCThreadPool.THREADS.submit(callable);
+        return RPCThreadPool.EXECUTORS.submit(callable);
     }
 
     public Object invoke0(Method method, Object... params) {

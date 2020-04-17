@@ -5,7 +5,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.kin.framework.JvmCloseCleaner;
-import org.kin.framework.concurrent.ThreadManager;
+import org.kin.framework.concurrent.ExecutionContext;
 import org.kin.framework.utils.NetUtils;
 import org.kin.framework.utils.TimeUtils;
 import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
@@ -36,7 +36,7 @@ public class Clusters {
     private static final Logger log = LoggerFactory.getLogger(Clusters.class);
     private static final Cache<Integer, RPCProvider> PROVIDER_CACHE = CacheBuilder.newBuilder().build();
     private static final Cache<String, ClusterInvoker> REFERENCE_CACHE = CacheBuilder.newBuilder().build();
-    private static final ThreadManager THREADS = ThreadManager.fix(2, "provider-unregister-executor");
+    private static final ExecutionContext EXECUTORS = ExecutionContext.fix(2, "provider-unregister-executor");
     private static volatile boolean isStopped = false;
     private static final int HEARTBEAT_INTERVAL = 3;
 
@@ -53,10 +53,10 @@ public class Clusters {
                 clusterInvoker.close();
                 Registries.closeRegistry(clusterInvoker.getUrl());
             }
-            THREADS.shutdown();
+            EXECUTORS.shutdown();
         });
         //心跳检查, 每隔一定时间检查provider是否异常, 并取消服务注册
-        THREADS.execute(() -> {
+        EXECUTORS.execute(() -> {
             while (!isStopped) {
                 long sleepTime = HEARTBEAT_INTERVAL - TimeUtils.timestamp() % HEARTBEAT_INTERVAL;
                 try {
@@ -69,7 +69,7 @@ public class Clusters {
                     if (!provider.isAlive()) {
                         int port = provider.getPort();
                         PROVIDER_CACHE.invalidate(port);
-                        THREADS.execute(() -> {
+                        EXECUTORS.execute(() -> {
                             provider.shutdown();
                             for (URL url : provider.getAvailableServices()) {
                                 unRegisterService(url);
@@ -135,9 +135,9 @@ public class Clusters {
         unRegisterService(url);
 
         RPCProvider provider = PROVIDER_CACHE.getIfPresent(url.getPort());
-        if(Objects.nonNull(provider)){
+        if (Objects.nonNull(provider)) {
             provider.disableService(url);
-            provider.tell((p)-> {
+            provider.tell((p) -> {
                 if (!p.isBusy()) {
                     //该端口没有提供服务, 关闭网络连接
                     p.shutdown();
@@ -199,6 +199,6 @@ public class Clusters {
     }
 
     public static synchronized void shutdownHeartBeat() {
-        THREADS.shutdown();
+        EXECUTORS.shutdown();
     }
 }

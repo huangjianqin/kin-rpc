@@ -31,7 +31,7 @@ public abstract class AbstractDirectory extends ActorLike<AbstractDirectory> imp
     private volatile short waiters;
 
     protected AbstractDirectory(String serviceName, int connectTimeout, String serializerType, boolean compression) {
-        super(RegistryThreadPool.THREADS);
+        super(RegistryThreadPool.EXECUTORS);
         this.serviceName = serviceName;
         this.connectTimeout = connectTimeout;
         this.serializerType = serializerType;
