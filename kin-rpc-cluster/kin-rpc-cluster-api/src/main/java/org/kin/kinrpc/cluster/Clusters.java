@@ -137,7 +137,7 @@ public class Clusters {
         RPCProvider provider = PROVIDER_CACHE.getIfPresent(url.getPort());
         if (Objects.nonNull(provider)) {
             provider.disableService(url);
-            provider.tell((p) -> {
+            provider.handle((p) -> {
                 if (!p.isBusy()) {
                     //该端口没有提供服务, 关闭网络连接
                     p.shutdown();

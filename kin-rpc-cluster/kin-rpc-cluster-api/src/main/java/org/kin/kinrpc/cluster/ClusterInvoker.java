@@ -40,16 +40,16 @@ abstract class ClusterInvoker<I> implements Closeable {
         this.url = url;
     }
 
-    public Future invokeAsync(Method method, Object... params) {
-        Callable callable = () -> invoke0(method, params);
+    public Future<?> invokeAsync(Method method, Object... params) {
+        Callable<?> callable = () -> invoke0(method, params);
         return RPCThreadPool.EXECUTORS.submit(callable);
     }
 
     /**
      * 专供javassist使用
      */
-    protected Future invokeAsync(String methodName, boolean isVoid, Object... params) {
-        Callable callable = () -> invoke0(methodName, isVoid, params);
+    protected Future<?> invokeAsync(String methodName, boolean isVoid, Object... params) {
+        Callable<?> callable = () -> invoke0(methodName, isVoid, params);
         return RPCThreadPool.EXECUTORS.submit(callable);
     }
 

@@ -5,7 +5,9 @@ import org.kin.kinrpc.rpc.serializer.Serializer;
 import java.io.*;
 
 /**
- * Created by 健勤 on 2017/2/9.
+ *
+ * @author 健勤
+ * @date 2017/2/9
  */
 public class JavaSerializer implements Serializer {
     @Override

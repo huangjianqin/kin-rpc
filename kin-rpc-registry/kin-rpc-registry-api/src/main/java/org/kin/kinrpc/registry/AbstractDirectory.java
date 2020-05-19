@@ -1,6 +1,6 @@
 package org.kin.kinrpc.registry;
 
-import org.kin.framework.actor.ActorLike;
+import org.kin.framework.concurrent.actor.PinnedThreadSafeHandler;
 import org.kin.framework.utils.CollectionUtils;
 import org.kin.kinrpc.rpc.RPCReference;
 import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
@@ -13,9 +13,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Created by huangjianqin on 2019/6/11.
+ *
+ * @author huangjianqin
+ * @date 2019/6/11
  */
-public abstract class AbstractDirectory extends ActorLike<AbstractDirectory> implements Directory {
+public abstract class AbstractDirectory extends PinnedThreadSafeHandler<AbstractDirectory> implements Directory {
     protected static final Logger log = LoggerFactory.getLogger(AbstractDirectory.class);
     protected final RPCReference.HeartBeatCallBack HEARTBEAT_CALLBACK = new HeartBeatCallbackImpl();
 
@@ -46,10 +48,10 @@ public abstract class AbstractDirectory extends ActorLike<AbstractDirectory> imp
         //Directory关闭中调用该方法会返回一个size=0的列表
         if (!isStopped) {
             //等待invokers不为空
-            if(CollectionUtils.isEmpty(invokers)){
-                synchronized (this){
+            if (CollectionUtils.isEmpty(invokers)) {
+                synchronized (this) {
                     waiters++;
-                    try{
+                    try {
                         wait();
                     } catch (InterruptedException e) {
 
@@ -78,10 +80,10 @@ public abstract class AbstractDirectory extends ActorLike<AbstractDirectory> imp
 
     @Override
     public void discover(List<String> addresses) {
-        tell(directory -> {
+        handle(directory -> {
             invokers = doDiscover(addresses);
-            if(waiters > 0){
-                synchronized (this){
+            if (waiters > 0) {
+                synchronized (this) {
                     notifyAll();
                 }
             }
@@ -90,7 +92,7 @@ public abstract class AbstractDirectory extends ActorLike<AbstractDirectory> imp
 
     @Override
     public void destroy() {
-        tell(directory -> doDestroy());
+        handle(directory -> doDestroy());
     }
 
     @Override
@@ -103,7 +105,7 @@ public abstract class AbstractDirectory extends ActorLike<AbstractDirectory> imp
 
         @Override
         public void heartBeatFail(RPCReference rpcReference) {
-            tell(d -> {
+            handle(d -> {
                 Iterator<ReferenceInvoker> iterator = invokers.iterator();
                 while (iterator.hasNext()) {
                     if (iterator.next().getAddress().equals(rpcReference.getAddress())) {

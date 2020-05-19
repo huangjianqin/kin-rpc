@@ -2,7 +2,6 @@ package org.kin.kinrpc.cluster;
 
 import com.google.common.util.concurrent.RateLimiter;
 import javassist.*;
-import org.kin.framework.math.IntCounter;
 import org.kin.framework.proxy.utils.ProxyEnhanceUtils;
 import org.kin.framework.utils.ClassUtils;
 import org.kin.kinrpc.common.Constants;
@@ -225,5 +224,25 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
     public void close() {
         super.close();
         ProxyEnhanceUtils.detach(getUrl().getServiceName());
+    }
+
+    //----------------------------------------------------------------------------------------------------
+    public class IntCounter {
+        private int count = 0;
+
+        public IntCounter() {
+        }
+
+        public IntCounter(int count) {
+            this.count = count;
+        }
+
+        public void increment() {
+            count++;
+        }
+
+        public int getCount() {
+            return count;
+        }
     }
 }

@@ -10,6 +10,6 @@ public class References {
     }
 
     public static <T> ReferenceConfig<T> reference(Class<T> interfaceClass) {
-        return new ReferenceConfig(interfaceClass);
+        return new ReferenceConfig<>(interfaceClass);
     }
 }

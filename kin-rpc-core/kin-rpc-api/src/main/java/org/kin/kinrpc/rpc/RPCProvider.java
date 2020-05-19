@@ -5,8 +5,8 @@ import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.JvmCloseCleaner;
-import org.kin.framework.actor.ActorLike;
 import org.kin.framework.concurrent.ExecutionContext;
+import org.kin.framework.concurrent.actor.PinnedThreadSafeHandler;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.common.Constants;
@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
  * Created by 健勤 on 2017/2/10.
  * 可以作为多个服务的Server
  */
-public class RPCProvider extends ActorLike<RPCProvider> {
+public class RPCProvider extends PinnedThreadSafeHandler<RPCProvider> {
     private static final Logger log = LoggerFactory.getLogger(RPCProvider.class);
     //服务请求处理线程池
     /**
@@ -109,7 +109,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
      * 支持动态添加服务
      */
     public void addService(URL url, Class<?> interfaceClass, Object service) {
-        tell((rpcProvider) -> {
+        handle((rpcProvider) -> {
             if (isAlive()) {
                 String serviceName = url.getServiceName();
                 ProviderInvoker invoker;
@@ -137,7 +137,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
      * 支持动态移除服务
      */
     public void disableService(URL url) {
-        tell(rpcProvider -> {
+        handle(rpcProvider -> {
             String serviceName = url.getServiceName();
             serviceMap.remove(serviceName);
         });
@@ -200,7 +200,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
      * 不管3721,马上stop
      */
     public void shutdownNow() {
-        tell(rpcProvider1 -> {
+        handle(rpcProvider1 -> {
             if (isStopped) {
                 return;
             }
@@ -211,7 +211,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
             isStopped = true;
 
             //让所有请求都拒绝返回时, 才关闭channel
-            tell(rpcProvider2 -> {
+            handle(rpcProvider2 -> {
                 //最后关闭连接
                 providerHandler.close();
                 log.info("server connection close successfully");
@@ -224,7 +224,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
      * 对外接口
      */
     public void handleRequest(RPCRequest rpcRequest) {
-        tell(rpcProvider -> handleRPCRequest(rpcRequest));
+        handle(rpcProvider -> handleRPCRequest(rpcRequest));
     }
 
     /**
@@ -252,7 +252,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
                     EXECUTORS.execute(() -> handlerRPCRequest0(invokerWrapper.getInvoker(), methodName, params, channel, rpcRequest, rpcResponse));
                 } else {
                     //同一invoker同一线程处理
-                    invokerWrapper.tell(iw -> handlerRPCRequest0(invokerWrapper.getInvoker(), methodName, params, channel, rpcRequest, rpcResponse));
+                    invokerWrapper.handle(iw -> handlerRPCRequest0(invokerWrapper.getInvoker(), methodName, params, channel, rpcRequest, rpcResponse));
                 }
             } else {
                 log.error("can not find service>>> {}", rpcRequest);
@@ -306,7 +306,7 @@ public class RPCProvider extends ActorLike<RPCProvider> {
 
     //--------------------------------------------------------------------------------------------------------------
 
-    private class ProviderInvokerWrapper extends ActorLike<ProviderInvokerWrapper> {
+    private class ProviderInvokerWrapper extends PinnedThreadSafeHandler<ProviderInvokerWrapper> {
         private URL url;
         private ProviderInvoker invoker;
         private boolean parallelism;
