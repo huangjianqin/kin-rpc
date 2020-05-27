@@ -40,6 +40,11 @@ public abstract class AbstractDirectory extends PinnedThreadSafeHandler<Abstract
         this.compression = compression;
     }
 
+
+    private List<ReferenceInvoker> getActiveReferenceInvoker() {
+        return invokers.stream().filter(ReferenceInvoker::isActive).collect(Collectors.toList());
+    }
+
     /**
      * 获取当前可用invokers
      */
@@ -48,19 +53,25 @@ public abstract class AbstractDirectory extends PinnedThreadSafeHandler<Abstract
         //Directory关闭中调用该方法会返回一个size=0的列表
         if (!isStopped) {
             //等待invokers不为空
-            if (CollectionUtils.isEmpty(invokers)) {
+            if (CollectionUtils.isEmpty(getActiveReferenceInvoker())) {
                 synchronized (this) {
-                    waiters++;
                     try {
-                        wait();
-                    } catch (InterruptedException e) {
+                        while (CollectionUtils.isEmpty(getActiveReferenceInvoker())) {
+                            waiters++;
+                            try {
+                                wait();
+                            } catch (InterruptedException e) {
+                                throw e;
+                            } finally {
+                                waiters--;
+                            }
+                        }
+                    } catch (Exception e) {
 
-                    } finally {
-                        waiters--;
                     }
                 }
             }
-            return invokers.stream().filter(ReferenceInvoker::isActive).collect(Collectors.toList());
+            return getActiveReferenceInvoker();
         }
         return Collections.emptyList();
     }

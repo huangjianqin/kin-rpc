@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.*;
 
@@ -125,18 +126,13 @@ abstract class ClusterInvoker<I> implements Closeable {
             //超过重试次数, 抛弃异常
             throw new RPCRetryOutException(retryTimes);
         } else {
-            ReferenceInvoker invoker;
-            while ((invoker = cluster.get(Collections.EMPTY_LIST)) == null) {
+            ReferenceInvoker invoker = cluster.get(Collections.EMPTY_LIST);
+            if (Objects.nonNull(invoker)) {
                 try {
-                    Thread.sleep(300);
-                } catch (InterruptedException e) {
-
+                    return invoker.invoke(methodName, isVoid, params);
+                } catch (Throwable e) {
+                    log.error(e.getMessage(), e);
                 }
-            }
-            try {
-                return invoker.invoke(methodName, isVoid, params);
-            } catch (Throwable e) {
-                log.error(e.getMessage(), e);
             }
         }
 

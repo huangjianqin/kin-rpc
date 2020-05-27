@@ -36,6 +36,7 @@ public class AddableReference {
 //                service.print(++count + "");
                 Future future = service.get(1);
                 System.out.println(future.get());
+                service.print("测试");
 //                CompletableFuture<String> completableFuture = service.get("A");
 //                System.out.println(completableFuture.handleAsync((s, t) -> s + s).get());
 //                service.throwException();
