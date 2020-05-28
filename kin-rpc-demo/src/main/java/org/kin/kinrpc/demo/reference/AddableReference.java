@@ -1,16 +1,11 @@
 package org.kin.kinrpc.demo.reference;
 
 import org.kin.framework.utils.NetUtils;
-import org.kin.kinrpc.cluster.exception.CannotFindInvokerException;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.References;
 import org.kin.kinrpc.config.SerializerType;
-import org.kin.kinrpc.rpc.exception.RPCCallErrorException;
-import org.kin.kinrpc.rpc.exception.RPCRetryException;
-import org.kin.kinrpc.rpc.exception.UnknownRPCResponseStateCodeException;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -25,27 +20,31 @@ public class AddableReference {
                         .serviceName("org.kin.kinrpc.demo.service.Addable").urls(NetUtils.getIpPort(16888))
                         .serialize(SerializerType.JSON.getType())
                         .version("001")
-                        .compress();
+                        .rate(10000);
 
         Addable service = referenceConfig.get();
         int count = 0;
-        while (true) {
+        while (count < 10000) {
             try {
-//                Object result = service.add(1, 1);
-//                System.out.println("结果" + result);
-//                service.print(++count + "");
+                int result = service.add(1, 1);
+                System.out.println("结果" + result);
+
+                service.print(++count + "");
                 Future future = service.get(1);
                 System.out.println(future.get());
-                service.print("测试");
 //                CompletableFuture<String> completableFuture = service.get("A");
 //                System.out.println(completableFuture.handleAsync((s, t) -> s + s).get());
 //                service.throwException();
-            } catch (RPCRetryException | CannotFindInvokerException | RPCCallErrorException | UnknownRPCResponseStateCodeException | ExecutionException e) {
-
+            } catch (Exception e) {
+                System.err.println(e);
             }
 
             TimeUnit.MILLISECONDS.sleep(300);
         }
+        service.print(++count + "");
+        System.out.println("结束");
+        referenceConfig.disable();
+        System.exit(0);
     }
 
     public interface Addable {

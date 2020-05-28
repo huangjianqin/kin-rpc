@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -25,35 +24,23 @@ public class DirectURLsDirectory extends AbstractDirectory {
     }
 
     @Override
-    protected List<ReferenceInvoker> doDiscover(List<String> addresses) {
-        if (!isStopped) {
-            List<ReferenceInvoker> invokers = new ArrayList<>();
-            for (String address : addresses) {
-                HostAndPort hostAndPort = HostAndPort.fromString(address);
+    protected List<ReferenceInvoker> doDiscover(List<String> addresses, List<ReferenceInvoker> originInvokers) {
+        List<ReferenceInvoker> invokers = new ArrayList<>();
+        for (String address : addresses) {
+            HostAndPort hostAndPort = HostAndPort.fromString(address);
 
-                //创建新的ReferenceInvoker,连接Service Server
-                RPCReference rpcReference = new RPCReference(serviceName, new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPort()),
-                        Serializers.getSerializer(serializerType), connectTimeout, compression, HEARTBEAT_CALLBACK);
-                ReferenceInvoker refereneceInvoker = new ReferenceInvoker(serviceName, rpcReference);
-                //真正启动连接
-                refereneceInvoker.init();
-                invokers.add(refereneceInvoker);
-            }
-            return invokers;
+            //创建新的ReferenceInvoker,连接Service Server
+            RPCReference rpcReference = new RPCReference(serviceName, new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPort()),
+                    Serializers.getSerializer(serializerType), connectTimeout, compression, HEARTBEAT_CALLBACK);
+            ReferenceInvoker refereneceInvoker = new ReferenceInvoker(serviceName, rpcReference);
+            //真正启动连接
+            refereneceInvoker.init();
+            invokers.add(refereneceInvoker);
         }
-
-        return Collections.emptyList();
+        return invokers;
     }
 
     @Override
     protected void doDestroy() {
-        if (!isStopped) {
-            isStopped = true;
-            for (ReferenceInvoker invoker : invokers) {
-                invoker.shutdown();
-            }
-            invokers.clear();
-            invokers = null;
-        }
     }
 }

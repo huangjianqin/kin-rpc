@@ -8,7 +8,6 @@ import org.kin.kinrpc.rpc.serializer.Serializers;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -26,11 +25,7 @@ public class ZookeeperDirectory extends AbstractDirectory {
      * 发现服务,发现可用服务的address
      */
     @Override
-    protected List<ReferenceInvoker> doDiscover(List<String> addresses) {
-        if (isStopped) {
-            return Collections.emptyList();
-        }
-
+    protected List<ReferenceInvoker> doDiscover(List<String> addresses, List<ReferenceInvoker> originInvokers) {
         StringBuilder sb = new StringBuilder();
         List<HostAndPort> hostAndPorts = new ArrayList<>();
         if (addresses != null && addresses.size() > 0) {
@@ -43,7 +38,7 @@ public class ZookeeperDirectory extends AbstractDirectory {
         }
         log.info("discover service '{}'..." + System.lineSeparator() + "current service address: " + sb.toString(), getServiceName());
 
-        List<ReferenceInvoker> newInvokerList = new ArrayList<>(invokers);
+        List<ReferenceInvoker> newInvokerList = new ArrayList<>(originInvokers);
         List<ReferenceInvoker> invalidInvokers = new ArrayList<>();
         if (hostAndPorts.size() > 0) {
             //该循环处理完后,addresses里面的都是新的
@@ -90,18 +85,6 @@ public class ZookeeperDirectory extends AbstractDirectory {
 
     @Override
     protected void doDestroy() {
-        if (!isStopped) {
-            isStopped = true;
-            //关闭所有当前连接
-            if (invokers != null && invokers.size() > 0) {
-                for (ReferenceInvoker invoker : invokers) {
-                    invoker.shutdown();
-                }
-                invokers.clear();
-                invokers = null;
-            }
-            log.info("zookeeper directory destroyed");
-        }
     }
 
 }

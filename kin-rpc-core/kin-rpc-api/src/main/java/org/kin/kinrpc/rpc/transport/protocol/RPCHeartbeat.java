@@ -3,6 +3,7 @@ package org.kin.kinrpc.rpc.transport.protocol;
 import org.kin.kinrpc.rpc.transport.common.RPCConstants;
 import org.kin.transport.netty.core.protocol.AbstractProtocol;
 import org.kin.transport.netty.core.protocol.Protocol;
+import org.kin.transport.netty.core.protocol.ProtocolFactory;
 import org.kin.transport.netty.core.protocol.domain.Request;
 import org.kin.transport.netty.core.protocol.domain.Response;
 
@@ -14,6 +15,11 @@ import org.kin.transport.netty.core.protocol.domain.Response;
 public class RPCHeartbeat extends AbstractProtocol {
     private String ip;
     private String content;
+
+    public static RPCHeartbeat create(String ip, String content) {
+        RPCHeartbeat heartbeat = ProtocolFactory.createProtocol(RPCConstants.RPC_HEARTBEAT_PROTOCOL_ID, ip, "");
+        return heartbeat;
+    }
 
     @Override
     public void read(Request request) {

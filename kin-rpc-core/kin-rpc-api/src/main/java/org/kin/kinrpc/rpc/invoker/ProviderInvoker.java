@@ -1,11 +1,8 @@
 package org.kin.kinrpc.rpc.invoker;
 
 import com.google.common.util.concurrent.RateLimiter;
-import org.kin.kinrpc.rpc.exception.RateLimitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.StringJoiner;
 
 /**
  * @author huangjianqin
@@ -25,18 +22,18 @@ public abstract class ProviderInvoker extends AbstractInvoker {
     public Object invoke(String methodName, boolean isVoid, Object... params) throws Throwable {
         log.debug("service '{}' method '{}' invoking...", getServiceName(), methodName);
         //流控
-        if (!rateLimiter.tryAcquire()) {
-            //抛异常, 外部捕获异常并立即返回给reference, 让其重试
-            StringBuffer sb = new StringBuffer();
-            StringJoiner sj = new StringJoiner(", ");
-            sb.append("(");
-            for (Object param : params) {
-                sj.add(param.getClass().getName());
-            }
-            sb.append(sj.toString());
-            sb.append(")");
-            throw new RateLimitException(getServiceName().concat("$").concat(methodName).concat(sb.toString()));
-        }
+//        if (!rateLimiter.tryAcquire()) {
+//            //抛异常, 外部捕获异常并立即返回给reference, 让其重试
+//            StringBuffer sb = new StringBuffer();
+//            StringJoiner sj = new StringJoiner(", ");
+//            sb.append("(");
+//            for (Object param : params) {
+//                sj.add(param.getClass().getName());
+//            }
+//            sb.append(sj.toString());
+//            sb.append(")");
+//            throw new RateLimitException(getServiceName().concat("$").concat(methodName).concat(sb.toString()));
+//        }
         return doInvoke(methodName, isVoid, params);
     }
 

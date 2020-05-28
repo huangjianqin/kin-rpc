@@ -3,6 +3,7 @@ package org.kin.kinrpc.rpc.transport.protocol;
 import org.kin.kinrpc.rpc.transport.common.RPCConstants;
 import org.kin.transport.netty.core.protocol.AbstractProtocol;
 import org.kin.transport.netty.core.protocol.Protocol;
+import org.kin.transport.netty.core.protocol.ProtocolFactory;
 import org.kin.transport.netty.core.protocol.domain.Request;
 import org.kin.transport.netty.core.protocol.domain.Response;
 
@@ -13,6 +14,12 @@ import org.kin.transport.netty.core.protocol.domain.Response;
 @Protocol(id = RPCConstants.RPC_REQUEST_PROTOCOL_ID)
 public class RPCRequestProtocol extends AbstractProtocol {
     private byte[] reqContent;
+
+    public static RPCRequestProtocol create(byte[] reqContent) {
+        RPCRequestProtocol protocol = ProtocolFactory.createProtocol(RPCConstants.RPC_REQUEST_PROTOCOL_ID);
+        protocol.reqContent = reqContent;
+        return protocol;
+    }
 
     @Override
     public void read(Request request) {

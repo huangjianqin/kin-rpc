@@ -36,29 +36,36 @@ public class RPCRequest implements Serializable {
     }
 
     //setter && getter
-
     public String getRequestId() {
         return requestId;
+    }
+
+    public void setRequestId(String requestId) {
+        this.requestId = requestId;
     }
 
     public String getServiceName() {
         return serviceName;
     }
 
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
+
     public String getMethod() {
         return method;
+    }
+
+    public void setMethod(String method) {
+        this.method = method;
     }
 
     public Object[] getParams() {
         return params;
     }
 
-    public Channel getChannel() {
-        return channel;
-    }
-
-    public void setChannel(Channel channel) {
-        this.channel = channel;
+    public void setParams(Object[] params) {
+        this.params = params;
     }
 
     public long getCreateTime() {
@@ -85,6 +92,14 @@ public class RPCRequest implements Serializable {
         this.handleTime = handleTime;
     }
 
+    public Channel getChannel() {
+        return channel;
+    }
+
+    public void setChannel(Channel channel) {
+        this.channel = channel;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -108,7 +123,7 @@ public class RPCRequest implements Serializable {
     @Override
     public String toString() {
         return "RPCRequest{" +
-                "requestId=" + requestId +
+                "requestId='" + requestId + '\'' +
                 ", serviceName='" + serviceName + '\'' +
                 ", method='" + method + '\'' +
                 ", params=" + Arrays.toString(params) +

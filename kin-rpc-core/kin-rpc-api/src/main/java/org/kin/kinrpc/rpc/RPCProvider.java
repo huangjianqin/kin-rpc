@@ -16,7 +16,6 @@ import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.JavassistProviderInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.ReflectProviderInvoker;
 import org.kin.kinrpc.rpc.serializer.Serializer;
-import org.kin.kinrpc.rpc.transport.common.RPCConstants;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.kin.kinrpc.rpc.transport.protocol.RPCHeartbeat;
@@ -27,7 +26,6 @@ import org.kin.transport.netty.core.ServerTransportOption;
 import org.kin.transport.netty.core.TransportHandler;
 import org.kin.transport.netty.core.TransportOption;
 import org.kin.transport.netty.core.protocol.AbstractProtocol;
-import org.kin.transport.netty.core.protocol.ProtocolFactory;
 import org.kin.transport.netty.core.statistic.InOutBoundStatisicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,6 +97,12 @@ public class RPCProvider extends PinnedThreadSafeHandler<RPCProvider> {
                 .channelOption(ChannelOption.TCP_NODELAY, true)
                 .channelOption(ChannelOption.SO_KEEPALIVE, true)
                 .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                //复用端口
+                .channelOption(ChannelOption.SO_REUSEADDR, true)
+                //receive窗口缓存6mb
+                .channelOption(ChannelOption.SO_RCVBUF, 10 * 1024 * 1024)
+                //send窗口缓存64kb
+                .channelOption(ChannelOption.SO_SNDBUF, 64 * 1024)
                 .transportHandler(providerHandler);
         if (compression) {
             this.transportOption.compress();
@@ -369,7 +373,7 @@ public class RPCProvider extends PinnedThreadSafeHandler<RPCProvider> {
                 }
             }
 
-            RPCResponseProtocol rpcResponseProtocol = ProtocolFactory.createProtocol(RPCConstants.RPC_RESPONSE_PROTOCOL_ID, data);
+            RPCResponseProtocol rpcResponseProtocol = RPCResponseProtocol.create(data);
             channel.writeAndFlush(rpcResponseProtocol.write());
 
             InOutBoundStatisicService.instance().statisticResp(
@@ -419,7 +423,7 @@ public class RPCProvider extends PinnedThreadSafeHandler<RPCProvider> {
             } else if (protocol instanceof RPCHeartbeat) {
                 RPCHeartbeat heartbeat = (RPCHeartbeat) protocol;
                 log.info("provider({}) receive heartbeat ip:{}, content:{}", address, heartbeat.getIp(), heartbeat.getContent());
-                RPCHeartbeat heartbeatResp = ProtocolFactory.createProtocol(RPCConstants.RPC_HEARTBEAT_PROTOCOL_ID, getAddressStr(), "");
+                RPCHeartbeat heartbeatResp = RPCHeartbeat.create(getAddressStr(), "");
                 channel.writeAndFlush(heartbeatResp.write());
             } else {
                 log.error("unknown protocol >>>> {}", protocol);

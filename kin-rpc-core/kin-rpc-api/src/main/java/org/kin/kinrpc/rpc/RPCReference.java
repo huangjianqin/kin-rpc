@@ -1,13 +1,13 @@
 package org.kin.kinrpc.rpc;
 
 import com.google.common.net.HostAndPort;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.TimeUtils;
 import org.kin.kinrpc.rpc.future.RPCFuture;
 import org.kin.kinrpc.rpc.serializer.Serializer;
-import org.kin.kinrpc.rpc.transport.common.RPCConstants;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.kin.kinrpc.rpc.transport.protocol.RPCHeartbeat;
@@ -18,7 +18,6 @@ import org.kin.transport.netty.core.ClientTransportOption;
 import org.kin.transport.netty.core.TransportHandler;
 import org.kin.transport.netty.core.TransportOption;
 import org.kin.transport.netty.core.protocol.AbstractProtocol;
-import org.kin.transport.netty.core.protocol.ProtocolFactory;
 import org.kin.transport.netty.core.statistic.InOutBoundStatisicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +55,13 @@ public class RPCReference {
                 TransportOption.client()
                         .channelOption(ChannelOption.TCP_NODELAY, true)
                         .channelOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout)
+                        .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                        //receive窗口缓存6mb
+                        .channelOption(ChannelOption.SO_RCVBUF, 10 * 1024 * 1024)
+                        //send窗口缓存64kb
+                        .channelOption(ChannelOption.SO_SNDBUF, 64 * 1024)
                         .transportHandler(this.referenceHandler);
+
         if (compression) {
             this.clientTransportOption.compress();
         }
@@ -206,7 +211,7 @@ public class RPCReference {
                 heartbeatFuture = RPCThreadPool.EXECUTORS.scheduleAtFixedRate(() -> {
                     if (client != null && checkHeartbeat()) {
                         try {
-                            RPCHeartbeat heartbeat = ProtocolFactory.createProtocol(RPCConstants.RPC_HEARTBEAT_PROTOCOL_ID, client.getLocalAddress(), "");
+                            RPCHeartbeat heartbeat = RPCHeartbeat.create(client.getLocalAddress(), "");
                             client.request(heartbeat);
                         } catch (Exception e) {
                             //屏蔽异常
@@ -235,7 +240,7 @@ public class RPCReference {
                     request.setCreateTime(System.currentTimeMillis());
                     byte[] data = serializer.serialize(request);
 
-                    RPCRequestProtocol protocol = ProtocolFactory.createProtocol(RPCConstants.RPC_REQUEST_PROTOCOL_ID, data);
+                    RPCRequestProtocol protocol = RPCRequestProtocol.create(data);
                     client.request(protocol);
 
                     InOutBoundStatisicService.instance().statisticReq(

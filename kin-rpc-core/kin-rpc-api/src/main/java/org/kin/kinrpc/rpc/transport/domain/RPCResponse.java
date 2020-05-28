@@ -91,13 +91,28 @@ public class RPCResponse implements Serializable {
     }
 
     //setter && getter
-
-    public State getState() {
-        return state;
+    public String getRequestId() {
+        return requestId;
     }
 
-    public String getInfo() {
-        return info;
+    public void setRequestId(String requestId) {
+        this.requestId = requestId;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
+
+    public String getMethod() {
+        return method;
+    }
+
+    public void setMethod(String method) {
+        this.method = method;
     }
 
     public Object getResult() {
@@ -108,16 +123,20 @@ public class RPCResponse implements Serializable {
         this.result = result;
     }
 
-    public String getRequestId() {
-        return requestId;
+    public String getInfo() {
+        return info;
     }
 
-    public String getServiceName() {
-        return serviceName;
+    public void setInfo(String info) {
+        this.info = info;
     }
 
-    public String getMethod() {
-        return method;
+    public State getState() {
+        return state;
+    }
+
+    public void setState(State state) {
+        this.state = state;
     }
 
     public long getCreateTime() {
@@ -167,7 +186,7 @@ public class RPCResponse implements Serializable {
     @Override
     public String toString() {
         return "RPCResponse{" +
-                "requestId=" + requestId +
+                "requestId='" + requestId + '\'' +
                 ", serviceName='" + serviceName + '\'' +
                 ", method='" + method + '\'' +
                 ", result=" + result +
