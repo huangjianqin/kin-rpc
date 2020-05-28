@@ -27,8 +27,6 @@ public abstract class AbstractDirectory implements Directory {
     private volatile List<ReferenceInvoker> invokers = Collections.emptyList();
     private volatile boolean isStopped;
 
-    private volatile short waiters;
-
     protected AbstractDirectory(String serviceName, int connectTimeout, String serializerType, boolean compression) {
         this.serviceName = serviceName;
         this.connectTimeout = connectTimeout;
@@ -52,21 +50,6 @@ public abstract class AbstractDirectory implements Directory {
     public List<ReferenceInvoker> list() {
         //Directory关闭中调用该方法会返回一个size=0的列表
         if (!isStopped) {
-            //等待invokers不为空
-//            if (CollectionUtils.isEmpty(getActiveReferenceInvoker())) {
-//                synchronized (this) {
-//                    if (CollectionUtils.isEmpty(getActiveReferenceInvoker())) {
-//                        waiters++;
-//                        try {
-//                            wait();
-//                        } catch (InterruptedException e) {
-//
-//                        } finally {
-//                            waiters--;
-//                        }
-//                    }
-//                }
-//            }
             return getActiveReferenceInvoker();
         }
         return Collections.emptyList();
@@ -89,13 +72,6 @@ public abstract class AbstractDirectory implements Directory {
     public void discover(List<String> addresses) {
         if (!isStopped) {
             updateInvokers(doDiscover(addresses, new ArrayList<>(invokers)));
-//            if (waiters > 0) {
-//                synchronized (this) {
-//                    if (CollectionUtils.isEmpty(getActiveReferenceInvoker())) {
-//                        notifyAll();
-//                    }
-//                }
-//            }
         }
     }
 
