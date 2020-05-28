@@ -47,13 +47,13 @@ public class Constants {
     public static final int RETRY_TIMEOUT = 500;
     //provide默认流控
     //每秒n次
-    public static final int PROVIDER_REQUEST_THRESHOLD = 20;
+    public static final int PROVIDER_REQUEST_THRESHOLD = Integer.MAX_VALUE;
     //reference默认限流
     //每秒n次
-    public static final int REFERENCE_REQUEST_THRESHOLD = 5;
+    public static final int REFERENCE_REQUEST_THRESHOLD = Integer.MAX_VALUE;
     //每秒所有请求访问量
     //全局
-    public static final int SERVER_REQUEST_THRESHOLD = 20000;
+    public static final int SERVER_REQUEST_THRESHOLD = Integer.MAX_VALUE;
 
 
     //Reference默认配置
