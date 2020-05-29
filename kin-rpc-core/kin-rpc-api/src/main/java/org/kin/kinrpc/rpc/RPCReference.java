@@ -294,6 +294,7 @@ public class RPCReference {
             RPCThreadPool.EXECUTORS.execute(() -> {
                 RPCReference.this.clean();
                 if (!isStopped) {
+                    log.warn("reference({}, {}) reconnecting...", serviceName, getAddress());
                     connect(clientTransportOption);
                 }
             });
