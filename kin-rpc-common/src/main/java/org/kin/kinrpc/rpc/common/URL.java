@@ -1,4 +1,4 @@
-package org.kin.kinrpc.common;
+package org.kin.kinrpc.rpc.common;
 
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;

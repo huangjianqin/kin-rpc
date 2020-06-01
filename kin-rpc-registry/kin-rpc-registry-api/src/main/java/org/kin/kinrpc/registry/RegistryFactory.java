@@ -1,6 +1,6 @@
 package org.kin.kinrpc.registry;
 
-import org.kin.kinrpc.common.URL;
+import org.kin.kinrpc.rpc.common.URL;
 
 /**
  * Created by huangjianqin on 2019/6/18.

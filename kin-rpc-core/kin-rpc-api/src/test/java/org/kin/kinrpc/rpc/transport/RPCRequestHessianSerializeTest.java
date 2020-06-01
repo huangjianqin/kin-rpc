@@ -1,4 +1,4 @@
-package org.kin.kinrpc.rpc.serializer;
+package org.kin.kinrpc.rpc.transport;
 
 import com.caucho.hessian.io.Hessian2Input;
 import com.caucho.hessian.io.Hessian2Output;
@@ -12,7 +12,7 @@ import java.io.IOException;
 /**
  * Created by 健勤 on 2017/2/9.
  */
-public class HessianTest {
+public class RPCRequestHessianSerializeTest {
     public static void main(String[] args) throws IOException {
         RPCRequest request = new RPCRequest(RPCRequestIdGenerator.next(), "system.service.Addable", "add", new Object[]{1, 1});
 

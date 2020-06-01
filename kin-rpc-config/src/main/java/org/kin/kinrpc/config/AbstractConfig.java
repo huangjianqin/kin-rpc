@@ -1,8 +1,8 @@
 package org.kin.kinrpc.config;
 
 import org.kin.framework.utils.ExceptionUtils;
-import org.kin.kinrpc.common.Constants;
-import org.kin.kinrpc.common.URL;
+import org.kin.kinrpc.rpc.common.Constants;
+import org.kin.kinrpc.rpc.common.URL;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;

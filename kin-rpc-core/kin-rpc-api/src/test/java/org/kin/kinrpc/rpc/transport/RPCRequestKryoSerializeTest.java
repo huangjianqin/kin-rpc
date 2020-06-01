@@ -1,4 +1,4 @@
-package org.kin.kinrpc.rpc.serializer;
+package org.kin.kinrpc.rpc.transport;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
@@ -12,7 +12,7 @@ import java.io.ByteArrayOutputStream;
 /**
  * Created by 健勤 on 2017/2/25.
  */
-public class KryoTest {
+public class RPCRequestKryoSerializeTest {
     public static void main(String[] args) {
         RPCRequest request = new RPCRequest(RPCRequestIdGenerator.next(), "system.service.Addable", "add", new Object[]{1, 1});
 

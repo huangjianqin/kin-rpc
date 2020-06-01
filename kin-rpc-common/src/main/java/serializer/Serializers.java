@@ -1,4 +1,4 @@
-package org.kin.kinrpc.rpc.serializer;
+package serializer;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;

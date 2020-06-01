@@ -1,6 +1,6 @@
-package org.kin.kinrpc.rpc.serializer.impl;
+package serializer.impl;
 
-import org.kin.kinrpc.rpc.serializer.Serializer;
+import serializer.Serializer;
 
 import java.io.*;
 

@@ -1,11 +1,11 @@
 package org.kin.kinrpc.registry.directurls;
 
 import com.google.common.base.Preconditions;
-import org.kin.kinrpc.common.Constants;
-import org.kin.kinrpc.common.URL;
 import org.kin.kinrpc.registry.AbstractRegistryFactory;
 import org.kin.kinrpc.registry.Registry;
-import org.kin.kinrpc.rpc.serializer.Serializers;
+import org.kin.kinrpc.rpc.common.Constants;
+import org.kin.kinrpc.rpc.common.URL;
+import serializer.Serializers;
 
 import java.util.ArrayList;
 import java.util.Arrays;

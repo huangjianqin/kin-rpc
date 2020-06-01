@@ -1,4 +1,4 @@
-package org.kin.kinrpc.common;
+package org.kin.kinrpc.rpc.common;
 
 
 /**

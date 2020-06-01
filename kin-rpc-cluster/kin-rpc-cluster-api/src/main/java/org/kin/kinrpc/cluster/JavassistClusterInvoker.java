@@ -4,8 +4,8 @@ import com.google.common.util.concurrent.RateLimiter;
 import javassist.*;
 import org.kin.framework.proxy.utils.ProxyEnhanceUtils;
 import org.kin.framework.utils.ClassUtils;
-import org.kin.kinrpc.common.Constants;
-import org.kin.kinrpc.common.URL;
+import org.kin.kinrpc.rpc.common.Constants;
+import org.kin.kinrpc.rpc.common.URL;
 import org.kin.kinrpc.rpc.exception.RateLimitException;
 
 import java.lang.reflect.Method;

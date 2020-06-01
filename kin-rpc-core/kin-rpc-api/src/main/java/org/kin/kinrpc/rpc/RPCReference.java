@@ -7,7 +7,6 @@ import io.netty.channel.ChannelOption;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.TimeUtils;
 import org.kin.kinrpc.rpc.future.RPCFuture;
-import org.kin.kinrpc.rpc.serializer.Serializer;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.kin.kinrpc.rpc.transport.protocol.RPCHeartbeat;
@@ -21,6 +20,7 @@ import org.kin.transport.netty.core.protocol.AbstractProtocol;
 import org.kin.transport.netty.core.statistic.InOutBoundStatisicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import serializer.Serializer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

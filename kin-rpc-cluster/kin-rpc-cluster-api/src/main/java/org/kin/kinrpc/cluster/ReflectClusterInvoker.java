@@ -1,8 +1,8 @@
 package org.kin.kinrpc.cluster;
 
 import com.google.common.util.concurrent.RateLimiter;
-import org.kin.kinrpc.common.Constants;
-import org.kin.kinrpc.common.URL;
+import org.kin.kinrpc.rpc.common.Constants;
+import org.kin.kinrpc.rpc.common.URL;
 import org.kin.kinrpc.rpc.exception.RateLimitException;
 
 import java.lang.reflect.InvocationHandler;

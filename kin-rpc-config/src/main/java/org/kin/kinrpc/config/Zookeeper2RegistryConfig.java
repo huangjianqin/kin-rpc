@@ -2,7 +2,7 @@ package org.kin.kinrpc.config;
 
 import com.google.common.base.Preconditions;
 import org.kin.framework.utils.NetUtils;
-import org.kin.kinrpc.common.Constants;
+import org.kin.kinrpc.rpc.common.Constants;
 
 /**
  * @author huangjianqin

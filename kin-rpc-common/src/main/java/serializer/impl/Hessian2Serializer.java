@@ -1,8 +1,8 @@
-package org.kin.kinrpc.rpc.serializer.impl;
+package serializer.impl;
 
 import com.caucho.hessian.io.Hessian2Input;
 import com.caucho.hessian.io.Hessian2Output;
-import org.kin.kinrpc.rpc.serializer.Serializer;
+import serializer.Serializer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

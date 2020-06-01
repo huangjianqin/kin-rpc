@@ -4,8 +4,8 @@ import com.google.common.base.Preconditions;
 import org.kin.framework.utils.NetUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.cluster.Clusters;
-import org.kin.kinrpc.common.Constants;
-import org.kin.kinrpc.common.URL;
+import org.kin.kinrpc.rpc.common.Constants;
+import org.kin.kinrpc.rpc.common.URL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
