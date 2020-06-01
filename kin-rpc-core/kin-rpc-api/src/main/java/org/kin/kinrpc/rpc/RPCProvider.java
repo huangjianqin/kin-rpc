@@ -194,10 +194,10 @@ public class RPCProvider extends PinnedThreadSafeHandler<RPCProvider> {
      * 但如果仍然有服务在此Server上提供服务,则仍然运行该Server
      */
     public void shutdown() {
-        if (isStopped) {
-            throw new IllegalStateException("try shutdown stopped provider");
+        if (!isStopped) {
+            shutdownNow();
         }
-        shutdownNow();
+        log.warn("try shutdown stopped provider");
     }
 
     /**
