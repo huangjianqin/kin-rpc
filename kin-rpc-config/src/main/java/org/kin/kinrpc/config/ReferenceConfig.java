@@ -6,6 +6,8 @@ import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.cluster.Clusters;
 import org.kin.kinrpc.common.Constants;
 import org.kin.kinrpc.common.URL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +16,8 @@ import java.util.Map;
  * Created by 健勤 on 2017/2/15.
  */
 public class ReferenceConfig<T> extends AbstractConfig {
+    private static final Logger log = LoggerFactory.getLogger(ReferenceConfig.class);
+
     private ApplicationConfig applicationConfig = new ApplicationConfig();
     private AbstractRegistryConfig registryConfig;
     private Class<T> interfaceClass;
@@ -83,7 +87,11 @@ public class ReferenceConfig<T> extends AbstractConfig {
         if (isReference) {
             reference = null;
 
-            Clusters.disableReference(url);
+            try {
+                Clusters.disableReference(url);
+            } catch (Exception e) {
+                log.error("", e);
+            }
         }
     }
 
