@@ -283,7 +283,7 @@ public class RPCReference {
             } else if (protocol instanceof RPCHeartbeat) {
                 RPCHeartbeat heartbeat = (RPCHeartbeat) protocol;
                 lastHeartBeatTime = TimeUtils.timestamp();
-                log.info("reference({}) receive heartbeat ip:{}, content:{}", serviceName, heartbeat.getIp(), heartbeat.getContent());
+                log.debug("reference({}) receive heartbeat ip:{}, content:{}", serviceName, heartbeat.getIp(), heartbeat.getContent());
             } else {
                 log.error("unknown protocol >>>> {}", protocol);
             }
