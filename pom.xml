@@ -14,6 +14,7 @@
         <module>kin-rpc-core</module>
         <module>kin-rpc-demo</module>
         <module>kin-rpc-registry</module>
+        <module>kin-rpc-message</module>
     </modules>
     <packaging>pom</packaging>
 
