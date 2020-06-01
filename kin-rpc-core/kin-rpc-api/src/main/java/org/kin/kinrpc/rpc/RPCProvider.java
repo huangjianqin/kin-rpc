@@ -422,7 +422,7 @@ public class RPCProvider extends PinnedThreadSafeHandler<RPCProvider> {
                 }
             } else if (protocol instanceof RPCHeartbeat) {
                 RPCHeartbeat heartbeat = (RPCHeartbeat) protocol;
-                log.info("provider({}) receive heartbeat ip:{}, content:{}", address, heartbeat.getIp(), heartbeat.getContent());
+                log.debug("provider({}) receive heartbeat ip:{}, content:{}", address, heartbeat.getIp(), heartbeat.getContent());
                 RPCHeartbeat heartbeatResp = RPCHeartbeat.create(getAddressStr(), "");
                 channel.writeAndFlush(heartbeatResp.write());
             } else {
