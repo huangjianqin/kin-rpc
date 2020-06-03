@@ -12,6 +12,7 @@ import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
 import org.kin.kinrpc.rpc.transport.protocol.RPCHeartbeat;
 import org.kin.kinrpc.rpc.transport.protocol.RPCRequestProtocol;
 import org.kin.kinrpc.rpc.transport.protocol.RPCResponseProtocol;
+import org.kin.kinrpc.serializer.Serializer;
 import org.kin.transport.netty.core.Client;
 import org.kin.transport.netty.core.ClientTransportOption;
 import org.kin.transport.netty.core.TransportHandler;
@@ -20,7 +21,6 @@ import org.kin.transport.netty.core.protocol.AbstractProtocol;
 import org.kin.transport.netty.core.statistic.InOutBoundStatisicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import serializer.Serializer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

@@ -5,7 +5,7 @@ import org.kin.kinrpc.registry.AbstractRegistryFactory;
 import org.kin.kinrpc.registry.Registry;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.URL;
-import serializer.Serializers;
+import org.kin.kinrpc.serializer.Serializers;
 
 import java.util.ArrayList;
 import java.util.Arrays;
