@@ -6,6 +6,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.concurrent.ExecutionContext;
+import org.kin.framework.concurrent.actor.PinnedThreadSafeFuturesManager;
 import org.kin.framework.utils.NetUtils;
 import org.kin.framework.utils.TimeUtils;
 import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
@@ -15,12 +16,14 @@ import org.kin.kinrpc.cluster.router.Routers;
 import org.kin.kinrpc.registry.Registries;
 import org.kin.kinrpc.registry.Registry;
 import org.kin.kinrpc.rpc.RPCProvider;
+import org.kin.kinrpc.rpc.RPCThreadPool;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.URL;
 import org.kin.kinrpc.rpc.transport.protocol.RPCHeartbeat;
 import org.kin.kinrpc.serializer.Serializer;
 import org.kin.kinrpc.serializer.Serializers;
 import org.kin.transport.netty.core.protocol.ProtocolFactory;
+import org.kin.transport.netty.core.statistic.InOutBoundStatisicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,19 +45,7 @@ public class Clusters {
 
     static {
         ProtocolFactory.init(RPCHeartbeat.class.getPackage().getName());
-        JvmCloseCleaner.DEFAULT().add(() -> {
-            for (RPCProvider provider : PROVIDER_CACHE.asMap().values()) {
-                provider.shutdown();
-                for (URL url : provider.getAvailableServices()) {
-                    unRegisterService(url);
-                }
-            }
-            for (ClusterInvoker clusterInvoker : REFERENCE_CACHE.asMap().values()) {
-                clusterInvoker.close();
-                Registries.closeRegistry(clusterInvoker.getUrl());
-            }
-            EXECUTORS.shutdown();
-        });
+        JvmCloseCleaner.DEFAULT().add(Clusters::shutdown);
         //心跳检查, 每隔一定时间检查provider是否异常, 并取消服务注册
         EXECUTORS.execute(() -> {
             while (!isStopped) {
@@ -62,7 +53,7 @@ public class Clusters {
                 try {
                     TimeUnit.SECONDS.sleep(sleepTime);
                 } catch (InterruptedException e) {
-
+                    break;
                 }
 
                 for (RPCProvider provider : new ArrayList<>(PROVIDER_CACHE.asMap().values())) {
@@ -198,7 +189,23 @@ public class Clusters {
         REFERENCE_CACHE.invalidate(url.getServiceName());
     }
 
-    public static synchronized void shutdownHeartBeat() {
-        EXECUTORS.shutdown();
+    public static synchronized void shutdown() {
+        for (RPCProvider provider : PROVIDER_CACHE.asMap().values()) {
+            provider.shutdown();
+            for (URL url : provider.getAvailableServices()) {
+                unRegisterService(url);
+            }
+        }
+        for (ClusterInvoker clusterInvoker : REFERENCE_CACHE.asMap().values()) {
+            clusterInvoker.close();
+            Registries.closeRegistry(clusterInvoker.getUrl());
+        }
+        //没有任何RPC 实例运行中
+        isStopped = true;
+        EXECUTORS.shutdownNow();
+        RPCThreadPool.PROVIDER_WORKER.shutdownNow();
+        RPCThreadPool.EXECUTORS.shutdownNow();
+        PinnedThreadSafeFuturesManager.instance().close();
+        InOutBoundStatisicService.instance().close();
     }
 }

@@ -4,8 +4,6 @@ import com.google.common.util.concurrent.RateLimiter;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
-import org.kin.framework.JvmCloseCleaner;
-import org.kin.framework.concurrent.ExecutionContext;
 import org.kin.framework.concurrent.actor.PinnedThreadSafeHandler;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
@@ -44,16 +42,6 @@ import java.util.stream.Collectors;
  */
 public class RPCProvider extends PinnedThreadSafeHandler<RPCProvider> {
     private static final Logger log = LoggerFactory.getLogger(RPCProvider.class);
-    //服务请求处理线程池
-    /**
-     * 可以在加载类RPCProvider前修改RPC.parallelism来修改RPCProvider的并发数
-     */
-    private static ExecutionContext EXECUTORS =
-            ExecutionContext.fix(KinRPC.PARALLELISM, "rpc-", 2, "rpc-schedule-");
-
-    static {
-        JvmCloseCleaner.DEFAULT().add(() -> EXECUTORS.shutdown());
-    }
 
     /** 服务 */
     private Map<String, ProviderInvokerWrapper> serviceMap = new ConcurrentHashMap<>();
@@ -74,13 +62,11 @@ public class RPCProvider extends PinnedThreadSafeHandler<RPCProvider> {
      *
      */
     private InetSocketAddress address;
-    /**
-     *
-     */
+    /** */
     private ServerTransportOption transportOption;
 
     public RPCProvider(String host, int port, Serializer serializer, boolean isByteCodeInvoke, boolean compression) {
-        super(EXECUTORS);
+        super(RPCThreadPool.PROVIDER_WORKER);
         this.host = host;
         this.port = port;
         this.serializer = serializer;
@@ -253,7 +239,7 @@ public class RPCProvider extends PinnedThreadSafeHandler<RPCProvider> {
                 ProviderInvokerWrapper invokerWrapper = serviceMap.get(serviceName);
                 if (invokerWrapper.parallelism) {
                     //并发处理
-                    EXECUTORS.execute(() -> handlerRPCRequest0(invokerWrapper.getInvoker(), methodName, params, channel, rpcRequest, rpcResponse));
+                    RPCThreadPool.PROVIDER_WORKER.execute(() -> handlerRPCRequest0(invokerWrapper.getInvoker(), methodName, params, channel, rpcRequest, rpcResponse));
                 } else {
                     //同一invoker同一线程处理
                     invokerWrapper.handle(iw -> handlerRPCRequest0(invokerWrapper.getInvoker(), methodName, params, channel, rpcRequest, rpcResponse));
@@ -316,7 +302,7 @@ public class RPCProvider extends PinnedThreadSafeHandler<RPCProvider> {
         private boolean parallelism;
 
         public ProviderInvokerWrapper(URL url, ProviderInvoker invoker) {
-            super(EXECUTORS);
+            super(RPCThreadPool.PROVIDER_WORKER);
             this.url = url;
             this.invoker = invoker;
             this.parallelism = Boolean.parseBoolean(url.getParam(Constants.PARALLELISM_KEY));
