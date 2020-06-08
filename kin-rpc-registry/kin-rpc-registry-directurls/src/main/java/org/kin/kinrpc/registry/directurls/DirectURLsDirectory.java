@@ -4,7 +4,7 @@ import com.google.common.net.HostAndPort;
 import org.kin.kinrpc.registry.AbstractDirectory;
 import org.kin.kinrpc.rpc.RpcReference;
 import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
-import org.kin.kinrpc.serializer.Serializers;
+import org.kin.kinrpc.transport.serializer.Serializers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

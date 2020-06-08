@@ -5,7 +5,6 @@ import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.concurrent.actor.PinnedThreadSafeHandler;
-import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
@@ -13,16 +12,14 @@ import org.kin.kinrpc.rpc.exception.RateLimitException;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.JavassistProviderInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.ReflectProviderInvoker;
-import org.kin.kinrpc.rpc.transport.domain.RpcRequest;
-import org.kin.kinrpc.rpc.transport.domain.RpcResponse;
-import org.kin.kinrpc.rpc.transport.protocol.RpcRequestProtocol;
-import org.kin.kinrpc.rpc.transport.protocol.RpcResponseProtocol;
-import org.kin.kinrpc.serializer.Serializer;
-import org.kin.transport.netty.core.Server;
+import org.kin.kinrpc.rpc.transport.RpcRequest;
+import org.kin.kinrpc.rpc.transport.RpcResponse;
+import org.kin.kinrpc.transport.EndpointHandler;
+import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
+import org.kin.kinrpc.transport.protocol.RpcResponseProtocol;
+import org.kin.kinrpc.transport.serializer.Serializer;
 import org.kin.transport.netty.core.ServerTransportOption;
-import org.kin.transport.netty.core.TransportHandler;
 import org.kin.transport.netty.core.TransportOption;
-import org.kin.transport.netty.core.protocol.AbstractProtocol;
 import org.kin.transport.netty.core.statistic.InOutBoundStatisicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +29,6 @@ import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -50,6 +46,8 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
     private final String host;
     /** 占用端口 */
     private final int port;
+    /** 绑定地址 */
+    protected InetSocketAddress address;
     /** 序列化方式 */
     private final Serializer serializer;
     /** 底层的连接 */
@@ -61,11 +59,9 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
     /**
      *
      */
-    private InetSocketAddress address;
-    /**
-     *
-     */
     private ServerTransportOption transportOption;
+    /** 流控 */
+    private RateLimiter rateLimiter = RateLimiter.create(Constants.SERVER_REQUEST_THRESHOLD);
 
     public RpcProvider(String host, int port, Serializer serializer, boolean isByteCodeInvoke, boolean compression) {
         super(RpcThreadPool.PROVIDER_WORKER);
@@ -158,10 +154,6 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
         return port;
     }
 
-    public String getAddressStr() {
-        return address.getHostName() + ":" + address.getPort();
-    }
-
     /**
      * 启动Server
      */
@@ -172,7 +164,7 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
         log.info("provider(port={}) starting...", port);
 
         //启动连接
-        providerHandler.bind(transportOption);
+        providerHandler.bind(transportOption, address);
 
         log.info("provider(port={}) started", port);
     }
@@ -213,23 +205,15 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
 
     /**
      * 处理rpc请求
-     * 对外接口
-     */
-    public void handleRequest(RpcRequest rpcRequest) {
-        handle(rpcProvider -> handleRpcRequest(rpcRequest));
-    }
-
-    /**
-     * 处理rpc请求
      * provider线程处理
      */
     private void handleRpcRequest(RpcRequest rpcRequest) {
-        if (isAlive()) {
-            //处理请求
-            log.debug("receive a request >>> " + rpcRequest);
+        //处理请求
+        log.debug("receive a request >>> " + rpcRequest);
+        //提交线程池处理服务执行
+        rpcRequest.setHandleTime(System.currentTimeMillis());
 
-            //提交线程池处理服务执行
-            rpcRequest.setHandleTime(System.currentTimeMillis());
+        if (isAlive()) {
             String serviceName = rpcRequest.getServiceName();
             String methodName = rpcRequest.getMethod();
             Object[] params = rpcRequest.getParams();
@@ -324,27 +308,7 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
         }
     }
 
-    private class ProviderHandler extends TransportHandler {
-        private Server server;
-        private RateLimiter rateLimiter = RateLimiter.create(Constants.SERVER_REQUEST_THRESHOLD);
-
-        public void bind(ServerTransportOption transportOption) throws Exception {
-            if (server != null) {
-                server.close();
-            }
-            server = transportOption.tcp(address);
-        }
-
-        public void close() {
-            if (server != null) {
-                server.close();
-            }
-        }
-
-        public boolean isActive() {
-            return server != null && server.isActive();
-        }
-
+    private class ProviderHandler extends EndpointHandler {
         public void response(Channel channel, RpcResponse rpcResponse) {
             byte[] data;
             try {
@@ -370,49 +334,35 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
         }
 
         @Override
-        public void handleProtocol(Channel channel, AbstractProtocol protocol) {
-            if (protocol == null) {
+        protected void handleRpcRequestProtocol(Channel channel, RpcRequestProtocol requestProtocol) {
+            byte[] data = requestProtocol.getReqContent();
+
+            RpcRequest rpcRequest;
+            try {
+                rpcRequest = serializer.deserialize(data, RpcRequest.class);
+
+                InOutBoundStatisicService.instance().statisticReq(
+                        rpcRequest.getServiceName() + "-" + rpcRequest.getMethod(), data.length
+                );
+
+                rpcRequest.setChannel(channel);
+                rpcRequest.setEventTime(System.currentTimeMillis());
+            } catch (IOException | ClassNotFoundException e) {
+                log.error(e.getMessage(), e);
                 return;
             }
-            if (protocol instanceof RpcRequestProtocol) {
-                try {
-                    RpcRequestProtocol requestProtocol = (RpcRequestProtocol) protocol;
-                    byte[] data = requestProtocol.getReqContent();
 
-                    RpcRequest rpcRequest = null;
-                    try {
-                        rpcRequest = serializer.deserialize(data, RpcRequest.class);
-
-                        InOutBoundStatisicService.instance().statisticReq(
-                                rpcRequest.getServiceName() + "-" + rpcRequest.getMethod(), data.length
-                        );
-
-                        //流控
-                        if (!rateLimiter.tryAcquire()) {
-                            RpcResponse rpcResponse = RpcResponse.respWithError(rpcRequest, "server rate limited, just reject");
-                            channel.writeAndFlush(rpcResponse);
-                            return;
-                        }
-
-                        rpcRequest.setChannel(channel);
-                        rpcRequest.setEventTime(System.currentTimeMillis());
-                    } catch (IOException | ClassNotFoundException e) {
-                        log.error(e.getMessage(), e);
-                        if (Objects.nonNull(rpcRequest)) {
-                            RpcResponse rpcResponse = RpcResponse.respWithError(rpcRequest, ExceptionUtils.getExceptionDesc(e));
-                            channel.writeAndFlush(rpcResponse);
-                        }
-                        return;
-                    }
-
-                    //简单地添加到任务队列交由上层的线程池去完成服务调用
-                    handleRequest(rpcRequest);
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
-                }
-            } else {
-                log.error("unknown protocol >>>> {}", protocol);
+            //简单地添加到任务队列交由上层的线程池去完成服务调用
+            //流控
+            if (!rateLimiter.tryAcquire()) {
+                RpcResponse rpcResponse = RpcResponse.respWithError(rpcRequest, "server rate limited, just reject");
+                rpcRequest.setHandleTime(System.currentTimeMillis());
+                rpcRequest.getChannel().writeAndFlush(rpcResponse);
+                return;
             }
+
+            RpcRequest finalRpcRequest = rpcRequest;
+            handle(rpcProvider -> handleRpcRequest(finalRpcRequest));
         }
     }
 }

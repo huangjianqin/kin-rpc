@@ -3,8 +3,8 @@ package org.kin.kinrpc.rpc.future;
 
 import org.kin.kinrpc.rpc.RpcReference;
 import org.kin.kinrpc.rpc.RpcThreadPool;
-import org.kin.kinrpc.rpc.transport.domain.RpcRequest;
-import org.kin.kinrpc.rpc.transport.domain.RpcResponse;
+import org.kin.kinrpc.rpc.transport.RpcRequest;
+import org.kin.kinrpc.rpc.transport.RpcResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

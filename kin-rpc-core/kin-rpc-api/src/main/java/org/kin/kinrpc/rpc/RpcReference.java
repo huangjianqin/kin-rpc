@@ -2,22 +2,19 @@ package org.kin.kinrpc.rpc;
 
 import com.google.common.net.HostAndPort;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.future.RpcFuture;
-import org.kin.kinrpc.rpc.transport.domain.RpcRequest;
-import org.kin.kinrpc.rpc.transport.domain.RpcResponse;
-import org.kin.kinrpc.rpc.transport.protocol.RpcRequestProtocol;
-import org.kin.kinrpc.rpc.transport.protocol.RpcResponseProtocol;
-import org.kin.kinrpc.serializer.Serializer;
-import org.kin.transport.netty.core.Client;
+import org.kin.kinrpc.rpc.transport.RpcRequest;
+import org.kin.kinrpc.rpc.transport.RpcResponse;
+import org.kin.kinrpc.transport.EndpointRefHandler;
+import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
+import org.kin.kinrpc.transport.protocol.RpcResponseProtocol;
+import org.kin.kinrpc.transport.serializer.Serializer;
 import org.kin.transport.netty.core.ClientTransportOption;
-import org.kin.transport.netty.core.TransportHandler;
 import org.kin.transport.netty.core.TransportOption;
-import org.kin.transport.netty.core.protocol.AbstractProtocol;
 import org.kin.transport.netty.core.statistic.InOutBoundStatisicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +25,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by huangjianqin on 2019/6/14.
@@ -129,7 +125,7 @@ public class RpcReference {
         if (isStopped) {
             return;
         }
-        referenceHandler.connect(clientTransportOption);
+        referenceHandler.connect(clientTransportOption, address);
     }
 
     public void shutdown() {
@@ -174,43 +170,7 @@ public class RpcReference {
     }
 
     //------------------------------------------------------------------------------------------------------------------
-    private class ReferenceHandler extends TransportHandler {
-        private volatile Client client;
-
-        public void connect(ClientTransportOption transportOption) {
-            if (isStopped) {
-                return;
-            }
-            if (isActive()) {
-                return;
-            }
-            if (client != null) {
-                client.close();
-                client = null;
-            }
-            if (client == null) {
-                try {
-                    client = transportOption.tcp(address);
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
-                }
-                if (!isActive()) {
-                    //n秒后重连
-                    RpcThreadPool.EXECUTORS.schedule(() -> connect(transportOption), 5, TimeUnit.SECONDS);
-                }
-            }
-        }
-
-        public void close() {
-            if (Objects.nonNull(client)) {
-                client.close();
-            }
-        }
-
-        public boolean isActive() {
-            return !isStopped && client != null && client.isActive();
-        }
-
+    private class ReferenceHandler extends EndpointRefHandler {
         public void request(RpcRequest request) {
             if (isActive()) {
                 try {
@@ -231,47 +191,34 @@ public class RpcReference {
         }
 
         @Override
-        public void handleProtocol(Channel channel, AbstractProtocol protocol) {
-            if (!isActive()) {
-                return;
-            }
-            if (Objects.isNull(protocol)) {
-                return;
-            }
-            if (protocol instanceof RpcResponseProtocol) {
-                RpcResponseProtocol responseProtocol = (RpcResponseProtocol) protocol;
+        protected void handleRpcResponseProtocol(RpcResponseProtocol responseProtocol) {
+            try {
+                RpcResponse rpcResponse;
                 try {
-                    RpcResponse rpcResponse;
-                    try {
-                        rpcResponse = serializer.deserialize(responseProtocol.getRespContent(), RpcResponse.class);
-                        rpcResponse.setEventTime(System.currentTimeMillis());
-                    } catch (IOException | ClassNotFoundException e) {
-                        log.error(e.getMessage(), e);
-                        return;
-                    }
-
-                    InOutBoundStatisicService.instance().statisticResp(
-                            rpcResponse.getServiceName() + "-" + rpcResponse.getMethod(), responseProtocol.getRespContent().length
-                    );
-
-                    handleResponse(rpcResponse);
-                } catch (Exception e) {
+                    rpcResponse = serializer.deserialize(responseProtocol.getRespContent(), RpcResponse.class);
+                    rpcResponse.setEventTime(System.currentTimeMillis());
+                } catch (IOException | ClassNotFoundException e) {
                     log.error(e.getMessage(), e);
+                    return;
                 }
-            } else {
-                log.error("unknown protocol >>>> {}", protocol);
+
+                InOutBoundStatisicService.instance().statisticResp(
+                        rpcResponse.getServiceName() + "-" + rpcResponse.getMethod(), responseProtocol.getRespContent().length
+                );
+
+                handleResponse(rpcResponse);
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
             }
         }
 
         @Override
-        public void channelInactive(Channel channel) {
-            RpcThreadPool.EXECUTORS.execute(() -> {
-                RpcReference.this.clean();
-                if (!isStopped) {
-                    log.warn("reference({}, {}) reconnecting...", serviceName, getAddress());
-                    connect(clientTransportOption);
-                }
-            });
+        protected void reconnect() {
+            RpcReference.this.clean();
+            if (!isStopped) {
+                log.warn("reference({}, {}) reconnecting...", serviceName, getAddress());
+                connect(clientTransportOption, address);
+            }
         }
     }
 

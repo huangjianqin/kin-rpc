@@ -17,9 +17,10 @@ import org.kin.kinrpc.rpc.RpcProvider;
 import org.kin.kinrpc.rpc.RpcThreadPool;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
-import org.kin.kinrpc.rpc.transport.protocol.RpcRequestProtocol;
-import org.kin.kinrpc.serializer.Serializer;
-import org.kin.kinrpc.serializer.Serializers;
+import org.kin.kinrpc.transport.EndpointRefHandler;
+import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
+import org.kin.kinrpc.transport.serializer.Serializer;
+import org.kin.kinrpc.transport.serializer.Serializers;
 import org.kin.transport.netty.core.protocol.ProtocolFactory;
 import org.kin.transport.netty.core.statistic.InOutBoundStatisicService;
 import org.slf4j.Logger;
@@ -172,6 +173,7 @@ public class Clusters {
         //没有任何RPC 实例运行中
         RpcThreadPool.PROVIDER_WORKER.shutdownNow();
         RpcThreadPool.EXECUTORS.shutdownNow();
+        EndpointRefHandler.RECONNECT_EXECUTORS.shutdownNow();
         PinnedThreadSafeFuturesManager.instance().close();
         InOutBoundStatisicService.instance().close();
     }

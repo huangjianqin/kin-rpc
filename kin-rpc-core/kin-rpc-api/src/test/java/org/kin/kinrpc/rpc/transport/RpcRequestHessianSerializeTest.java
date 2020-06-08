@@ -2,8 +2,7 @@ package org.kin.kinrpc.rpc.transport;
 
 import com.caucho.hessian.io.Hessian2Input;
 import com.caucho.hessian.io.Hessian2Output;
-import org.kin.kinrpc.domain.RpcRequestIdGenerator;
-import org.kin.kinrpc.rpc.transport.domain.RpcRequest;
+import org.kin.kinrpc.transport.domain.RpcRequestIdGenerator;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

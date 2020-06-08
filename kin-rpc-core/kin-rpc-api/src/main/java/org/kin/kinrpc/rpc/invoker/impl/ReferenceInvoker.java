@@ -2,15 +2,15 @@ package org.kin.kinrpc.rpc.invoker.impl;
 
 
 import com.google.common.net.HostAndPort;
-import org.kin.kinrpc.domain.RpcRequestIdGenerator;
 import org.kin.kinrpc.rpc.RpcReference;
 import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 import org.kin.kinrpc.rpc.exception.RpcRetryException;
 import org.kin.kinrpc.rpc.exception.UnknownRpcResponseStateCodeException;
 import org.kin.kinrpc.rpc.invoker.AbstractInvoker;
 import org.kin.kinrpc.rpc.invoker.AsyncInvoker;
-import org.kin.kinrpc.rpc.transport.domain.RpcRequest;
-import org.kin.kinrpc.rpc.transport.domain.RpcResponse;
+import org.kin.kinrpc.rpc.transport.RpcRequest;
+import org.kin.kinrpc.rpc.transport.RpcResponse;
+import org.kin.kinrpc.transport.domain.RpcRequestIdGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

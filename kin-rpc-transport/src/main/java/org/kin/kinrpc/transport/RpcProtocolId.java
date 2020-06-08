@@ -1,4 +1,4 @@
-package org.kin.kinrpc.rpc.transport;
+package org.kin.kinrpc.transport;
 
 /**
  * Created by huangjianqin on 2019/6/14.

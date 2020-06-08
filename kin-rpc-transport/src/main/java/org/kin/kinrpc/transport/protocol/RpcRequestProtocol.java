@@ -1,6 +1,6 @@
-package org.kin.kinrpc.rpc.transport.protocol;
+package org.kin.kinrpc.transport.protocol;
 
-import org.kin.kinrpc.rpc.transport.RpcProtocolId;
+import org.kin.kinrpc.transport.RpcProtocolId;
 import org.kin.transport.netty.core.protocol.AbstractProtocol;
 import org.kin.transport.netty.core.protocol.Protocol;
 import org.kin.transport.netty.core.protocol.ProtocolFactory;

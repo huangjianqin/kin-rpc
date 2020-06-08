@@ -1,10 +1,10 @@
-package org.kin.kinrpc.serializer.impl;
+package org.kin.kinrpc.transport.serializer.impl;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.pool.KryoPool;
-import org.kin.kinrpc.serializer.Serializer;
+import org.kin.kinrpc.transport.serializer.Serializer;
 import org.objenesis.strategy.StdInstantiatorStrategy;
 
 import java.io.ByteArrayInputStream;

@@ -1,4 +1,4 @@
-package org.kin.kinrpc.rpc.transport.domain;
+package org.kin.kinrpc.rpc.transport;
 
 import java.io.Serializable;
 import java.util.Objects;

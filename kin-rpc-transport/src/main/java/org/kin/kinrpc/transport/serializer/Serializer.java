@@ -1,4 +1,4 @@
-package org.kin.kinrpc.serializer;
+package org.kin.kinrpc.transport.serializer;
 
 import java.io.IOException;
 

@@ -12,7 +12,7 @@ import org.kin.kinrpc.rpc.exception.RpcRetryOutException;
 import org.kin.kinrpc.rpc.exception.UnknownRpcResponseStateCodeException;
 import org.kin.kinrpc.rpc.future.RpcFuture;
 import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
-import org.kin.kinrpc.rpc.transport.domain.RpcResponse;
+import org.kin.kinrpc.rpc.transport.RpcResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

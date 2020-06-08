@@ -1,4 +1,4 @@
-package org.kin.kinrpc.domain;
+package org.kin.kinrpc.transport.domain;
 
 import java.util.UUID;
 

@@ -3,8 +3,7 @@ package org.kin.kinrpc.rpc.transport;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import org.kin.kinrpc.domain.RpcRequestIdGenerator;
-import org.kin.kinrpc.rpc.transport.domain.RpcRequest;
+import org.kin.kinrpc.transport.domain.RpcRequestIdGenerator;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
