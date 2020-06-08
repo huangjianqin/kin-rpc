@@ -19,8 +19,8 @@ import java.util.concurrent.TimeUnit;
  * @author huangjianqin
  * @date 2020-06-08
  */
-public abstract class EndpointRefHandler extends TransportHandler {
-    private static final Logger log = LoggerFactory.getLogger(EndpointRefHandler.class);
+public abstract class RpcEndpointRefHandler extends TransportHandler {
+    private static final Logger log = LoggerFactory.getLogger(RpcEndpointRefHandler.class);
     /** 客户端重连线程池 */
     public static ExecutionContext RECONNECT_EXECUTORS =
             ExecutionContext.fix(

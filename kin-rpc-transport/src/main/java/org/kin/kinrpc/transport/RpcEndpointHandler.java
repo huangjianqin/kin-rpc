@@ -15,8 +15,8 @@ import java.net.InetSocketAddress;
  * @author huangjianqin
  * @date 2020-06-08
  */
-public abstract class EndpointHandler extends TransportHandler {
-    private static final Logger log = LoggerFactory.getLogger(EndpointHandler.class);
+public abstract class RpcEndpointHandler extends TransportHandler {
+    private static final Logger log = LoggerFactory.getLogger(RpcEndpointHandler.class);
     /** 服务器引用 */
     protected Server server;
 

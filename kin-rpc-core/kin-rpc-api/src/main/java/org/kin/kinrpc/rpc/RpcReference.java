@@ -9,7 +9,7 @@ import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.future.RpcFuture;
 import org.kin.kinrpc.rpc.transport.RpcRequest;
 import org.kin.kinrpc.rpc.transport.RpcResponse;
-import org.kin.kinrpc.transport.EndpointRefHandler;
+import org.kin.kinrpc.transport.RpcEndpointRefHandler;
 import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
 import org.kin.kinrpc.transport.protocol.RpcResponseProtocol;
 import org.kin.kinrpc.transport.serializer.Serializer;
@@ -170,7 +170,7 @@ public class RpcReference {
     }
 
     //------------------------------------------------------------------------------------------------------------------
-    private class ReferenceHandler extends EndpointRefHandler {
+    private class ReferenceHandler extends RpcEndpointRefHandler {
         public void request(RpcRequest request) {
             if (isActive()) {
                 try {

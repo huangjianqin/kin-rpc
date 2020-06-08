@@ -14,7 +14,7 @@ import org.kin.kinrpc.rpc.invoker.impl.JavassistProviderInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.ReflectProviderInvoker;
 import org.kin.kinrpc.rpc.transport.RpcRequest;
 import org.kin.kinrpc.rpc.transport.RpcResponse;
-import org.kin.kinrpc.transport.EndpointHandler;
+import org.kin.kinrpc.transport.RpcEndpointHandler;
 import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
 import org.kin.kinrpc.transport.protocol.RpcResponseProtocol;
 import org.kin.kinrpc.transport.serializer.Serializer;
@@ -305,7 +305,7 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
         }
     }
 
-    private class ProviderHandler extends EndpointHandler {
+    private class ProviderHandler extends RpcEndpointHandler {
         public void response(Channel channel, RpcResponse rpcResponse) {
             byte[] data;
             try {
