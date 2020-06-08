@@ -9,6 +9,8 @@ import java.util.Arrays;
  * Created by 健勤 on 2017/2/9.
  */
 public class RPCRequest implements Serializable {
+    private static final long serialVersionUID = 5417022481782277610L;
+
     private String requestId;
     /** 请求参数 */
     private String serviceName;

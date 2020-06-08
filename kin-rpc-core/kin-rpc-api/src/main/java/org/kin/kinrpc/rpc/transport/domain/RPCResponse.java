@@ -6,6 +6,8 @@ import java.io.Serializable;
  * Created by 健勤 on 2017/2/9.
  */
 public class RPCResponse implements Serializable {
+    private static final long serialVersionUID = -7580386808779240788L;
+
     private String requestId;
     /** 统计日志打印用 */
     private String serviceName;
