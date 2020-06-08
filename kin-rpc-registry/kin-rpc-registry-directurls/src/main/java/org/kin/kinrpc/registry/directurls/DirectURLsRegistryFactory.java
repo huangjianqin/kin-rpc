@@ -4,7 +4,7 @@ import com.google.common.base.Preconditions;
 import org.kin.kinrpc.registry.AbstractRegistryFactory;
 import org.kin.kinrpc.registry.Registry;
 import org.kin.kinrpc.rpc.common.Constants;
-import org.kin.kinrpc.rpc.common.URL;
+import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.serializer.Serializers;
 
 import java.util.ArrayList;
@@ -17,7 +17,7 @@ import java.util.concurrent.ExecutionException;
  */
 public class DirectURLsRegistryFactory extends AbstractRegistryFactory {
     @Override
-    public Registry getRegistry(URL url) {
+    public Registry getRegistry(Url url) {
         String address = url.getParam(Constants.REGISTRY_URL_KEY);
         String serializerType = url.getParam(Constants.SERIALIZE_KEY);
         boolean compression = Boolean.parseBoolean(url.getParam(Constants.COMPRESSION_KEY));

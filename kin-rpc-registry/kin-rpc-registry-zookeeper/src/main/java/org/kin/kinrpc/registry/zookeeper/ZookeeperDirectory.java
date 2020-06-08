@@ -2,7 +2,7 @@ package org.kin.kinrpc.registry.zookeeper;
 
 import com.google.common.net.HostAndPort;
 import org.kin.kinrpc.registry.AbstractDirectory;
-import org.kin.kinrpc.rpc.RPCReference;
+import org.kin.kinrpc.rpc.RpcReference;
 import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
 import org.kin.kinrpc.serializer.Serializers;
 
@@ -63,7 +63,7 @@ public class ZookeeperDirectory extends AbstractDirectory {
         //new ReferenceInvokers
         for (HostAndPort hostAndPort : hostAndPorts) {
             //address有效,创建新的ReferenceInvoker,连接Service Server
-            RPCReference rpcReference = new RPCReference(
+            RpcReference rpcReference = new RpcReference(
                     serviceName, new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPort()),
                     Serializers.getSerializer(serializerType), connectTimeout, compression);
             ReferenceInvoker refereneceInvoker = new ReferenceInvoker(serviceName, rpcReference);

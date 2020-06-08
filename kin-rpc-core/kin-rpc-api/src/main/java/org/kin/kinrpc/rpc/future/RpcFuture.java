@@ -1,10 +1,10 @@
 package org.kin.kinrpc.rpc.future;
 
 
-import org.kin.kinrpc.rpc.RPCReference;
-import org.kin.kinrpc.rpc.RPCThreadPool;
-import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
-import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
+import org.kin.kinrpc.rpc.RpcReference;
+import org.kin.kinrpc.rpc.RpcThreadPool;
+import org.kin.kinrpc.rpc.transport.domain.RpcRequest;
+import org.kin.kinrpc.rpc.transport.domain.RpcResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,20 +18,20 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 /**
  * Created by 健勤 on 2017/2/15.
  */
-public class RPCFuture implements Future<RPCResponse> {
-    private static final Logger log = LoggerFactory.getLogger(RPCFuture.class);
+public class RpcFuture implements Future<RpcResponse> {
+    private static final Logger log = LoggerFactory.getLogger(RpcFuture.class);
 
     /** 用于记录服务调用的耗时(毫秒),衡量负载 */
     private long startTime;
     private long responseTimeThreshold = 5000;
 
     private Sync sync;
-    private RPCRequest request;
-    private RPCResponse response;
-    private List<AsyncRPCCallback> callbacks = new ArrayList<>();
-    private RPCReference rpcReference;
+    private RpcRequest request;
+    private RpcResponse response;
+    private List<AsyncRpcCallback> callbacks = new ArrayList<>();
+    private RpcReference rpcReference;
 
-    public RPCFuture(RPCRequest request, RPCReference rpcReference) {
+    public RpcFuture(RpcRequest request, RpcReference rpcReference) {
         this.sync = new Sync();
         this.request = request;
         this.startTime = System.currentTimeMillis();
@@ -54,7 +54,7 @@ public class RPCFuture implements Future<RPCResponse> {
     }
 
     @Override
-    public RPCResponse get() {
+    public RpcResponse get() {
         sync.acquire(-1);
         if (isDone()) {
             return this.response;
@@ -63,7 +63,7 @@ public class RPCFuture implements Future<RPCResponse> {
     }
 
     @Override
-    public RPCResponse get(long timeout, TimeUnit unit) throws InterruptedException, TimeoutException {
+    public RpcResponse get(long timeout, TimeUnit unit) throws InterruptedException, TimeoutException {
         boolean success = sync.tryAcquireNanos(-1, unit.toNanos(timeout));
         if (success) {
             if (isDone()) {
@@ -83,19 +83,19 @@ public class RPCFuture implements Future<RPCResponse> {
     }
 
     public void doneTimeout() {
-        RPCResponse rpcResponse = RPCResponse.respWithError(request, getTimeoutMessage());
+        RpcResponse rpcResponse = RpcResponse.respWithError(request, getTimeoutMessage());
         done(rpcResponse);
     }
 
-    public void done(RPCResponse response) {
+    public void done(RpcResponse response) {
         if (isDone()) {
             return;
         }
         this.response = response;
         rpcReference.removeInvalid(request);
         sync.release(1);
-        RPCThreadPool.EXECUTORS.submit(() -> {
-            for (AsyncRPCCallback callback : this.callbacks) {
+        RpcThreadPool.EXECUTORS.submit(() -> {
+            for (AsyncRpcCallback callback : this.callbacks) {
                 switch (response.getState()) {
                     case SUCCESS:
                         callback.success(response);
@@ -118,7 +118,7 @@ public class RPCFuture implements Future<RPCResponse> {
         }
     }
 
-    public RPCFuture addRPCCallback(AsyncRPCCallback callback) {
+    public RpcFuture addRpcCallback(AsyncRpcCallback callback) {
         if (!this.isDone()) {
             this.callbacks.add(callback);
         }
@@ -149,7 +149,7 @@ public class RPCFuture implements Future<RPCResponse> {
         }
     }
 
-    public RPCRequest getRequest() {
+    public RpcRequest getRequest() {
         return request;
     }
 }

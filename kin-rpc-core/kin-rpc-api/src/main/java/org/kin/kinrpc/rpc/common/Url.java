@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * Created by huangjianqin on 2019/6/18.
  */
-public class URL implements Serializable {
+public class Url implements Serializable {
     private String protocol;
     private String username;
     private String password;
@@ -23,7 +23,7 @@ public class URL implements Serializable {
 
     private String serviceName;
 
-    public URL(String protocol, String username, String password, String host, int port, String path, Map<String, String> params) {
+    public Url(String protocol, String username, String password, String host, int port, String path, Map<String, String> params) {
         this.protocol = protocol;
         this.username = username;
         this.password = password;
@@ -39,7 +39,7 @@ public class URL implements Serializable {
         }
     }
 
-    public static URL valueOf(String url) {
+    public static Url valueOf(String url) {
         if (StringUtils.isBlank(url)) {
             throw new IllegalArgumentException("url == null");
         }
@@ -114,7 +114,7 @@ public class URL implements Serializable {
         if (url.length() > 0) {
             host = url;
         }
-        return new URL(protocol, username, password, host, port, path, parameters);
+        return new Url(protocol, username, password, host, port, path, parameters);
     }
 
     public String getParam(String k) {

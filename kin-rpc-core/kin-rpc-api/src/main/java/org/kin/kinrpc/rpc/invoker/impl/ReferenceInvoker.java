@@ -2,15 +2,15 @@ package org.kin.kinrpc.rpc.invoker.impl;
 
 
 import com.google.common.net.HostAndPort;
-import org.kin.kinrpc.rpc.RPCReference;
-import org.kin.kinrpc.rpc.exception.RPCCallErrorException;
-import org.kin.kinrpc.rpc.exception.RPCRetryException;
-import org.kin.kinrpc.rpc.exception.UnknownRPCResponseStateCodeException;
+import org.kin.kinrpc.domain.RpcRequestIdGenerator;
+import org.kin.kinrpc.rpc.RpcReference;
+import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
+import org.kin.kinrpc.rpc.exception.RpcRetryException;
+import org.kin.kinrpc.rpc.exception.UnknownRpcResponseStateCodeException;
 import org.kin.kinrpc.rpc.invoker.AbstractInvoker;
 import org.kin.kinrpc.rpc.invoker.AsyncInvoker;
-import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
-import org.kin.kinrpc.rpc.transport.domain.RPCRequestIdGenerator;
-import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
+import org.kin.kinrpc.rpc.transport.domain.RpcRequest;
+import org.kin.kinrpc.rpc.transport.domain.RpcResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,9 +23,9 @@ import java.util.concurrent.Future;
  */
 public class ReferenceInvoker extends AbstractInvoker implements AsyncInvoker {
     protected static final Logger log = LoggerFactory.getLogger(ReferenceInvoker.class);
-    protected RPCReference rpcReference;
+    protected RpcReference rpcReference;
 
-    public ReferenceInvoker(String serviceName, RPCReference rpcReference) {
+    public ReferenceInvoker(String serviceName, RpcReference rpcReference) {
         super(serviceName);
         this.rpcReference = rpcReference;
     }
@@ -40,8 +40,8 @@ public class ReferenceInvoker extends AbstractInvoker implements AsyncInvoker {
         log.info("referenceInvoker shutdown");
     }
 
-    protected RPCRequest createRequest(String requestId, String methodName, Object... params) {
-        return new RPCRequest(requestId, super.getServiceName(), methodName, params);
+    protected RpcRequest createRequest(long requestId, String methodName, Object... params) {
+        return new RpcRequest(requestId, super.getServiceName(), methodName, params);
     }
 
     public HostAndPort getAddress() {
@@ -55,19 +55,19 @@ public class ReferenceInvoker extends AbstractInvoker implements AsyncInvoker {
     @Override
     public Object invoke(String methodName, boolean isVoid, Object... params) throws Exception {
         try {
-            Future<RPCResponse> future = invoke0(methodName, params);
+            Future<RpcResponse> future = invoke0(methodName, params);
             if (!isVoid) {
-                RPCResponse rpcResponse = future.get();
+                RpcResponse rpcResponse = future.get();
                 if (rpcResponse != null) {
                     switch (rpcResponse.getState()) {
                         case SUCCESS:
                             return rpcResponse.getResult();
                         case RETRY:
-                            throw new RPCRetryException(rpcResponse.getInfo(), serviceName, methodName, params);
+                            throw new RpcRetryException(rpcResponse.getInfo(), serviceName, methodName, params);
                         case ERROR:
-                            throw new RPCCallErrorException(rpcResponse.getInfo());
+                            throw new RpcCallErrorException(rpcResponse.getInfo());
                         default:
-                            throw new UnknownRPCResponseStateCodeException(rpcResponse.getState().getCode());
+                            throw new UnknownRpcResponseStateCodeException(rpcResponse.getState().getCode());
                     }
                 }
             }
@@ -82,13 +82,13 @@ public class ReferenceInvoker extends AbstractInvoker implements AsyncInvoker {
     }
 
     @Override
-    public Future<RPCResponse> invokeAsync(String methodName, Object... params) {
+    public Future<RpcResponse> invokeAsync(String methodName, Object... params) {
         return invoke0(methodName, params);
     }
 
-    private Future<RPCResponse> invoke0(String methodName, Object... params) {
+    private Future<RpcResponse> invoke0(String methodName, Object... params) {
         log.debug("invoke method '" + methodName + "'");
-        RPCRequest request = createRequest(RPCRequestIdGenerator.next(), methodName, params);
+        RpcRequest request = createRequest(RpcRequestIdGenerator.next(), methodName, params);
         return rpcReference.request(request);
     }
 

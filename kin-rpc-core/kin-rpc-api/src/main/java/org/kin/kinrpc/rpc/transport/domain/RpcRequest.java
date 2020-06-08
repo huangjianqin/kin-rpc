@@ -4,14 +4,15 @@ import io.netty.channel.Channel;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * Created by 健勤 on 2017/2/9.
  */
-public class RPCRequest implements Serializable {
+public class RpcRequest implements Serializable {
     private static final long serialVersionUID = 5417022481782277610L;
 
-    private String requestId;
+    private long requestId;
     /** 请求参数 */
     private String serviceName;
     private String method;
@@ -26,11 +27,11 @@ public class RPCRequest implements Serializable {
     /** 请求的channel */
     transient private Channel channel;
 
-    public RPCRequest() {
+    public RpcRequest() {
 
     }
 
-    public RPCRequest(String requestId, String serviceName, String method, Object[] params) {
+    public RpcRequest(long requestId, String serviceName, String method, Object[] params) {
         this.requestId = requestId;
         this.serviceName = serviceName;
         this.method = method;
@@ -38,11 +39,11 @@ public class RPCRequest implements Serializable {
     }
 
     //setter && getter
-    public String getRequestId() {
+    public long getRequestId() {
         return requestId;
     }
 
-    public void setRequestId(String requestId) {
+    public void setRequestId(long requestId) {
         this.requestId = requestId;
     }
 
@@ -107,24 +108,21 @@ public class RPCRequest implements Serializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof RPCRequest)) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
-        RPCRequest request = (RPCRequest) o;
-
-        return requestId.equals(request.requestId);
-
+        RpcRequest that = (RpcRequest) o;
+        return requestId == that.requestId;
     }
 
     @Override
     public int hashCode() {
-        return requestId.hashCode();
+        return Objects.hash(requestId);
     }
 
     @Override
     public String toString() {
-        return "RPCRequest{" +
+        return "RpcRequest{" +
                 "requestId='" + requestId + '\'' +
                 ", serviceName='" + serviceName + '\'' +
                 ", method='" + method + '\'' +

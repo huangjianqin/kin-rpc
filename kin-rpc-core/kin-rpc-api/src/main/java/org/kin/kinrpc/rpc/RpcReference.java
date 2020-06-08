@@ -7,11 +7,11 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.utils.ExceptionUtils;
-import org.kin.kinrpc.rpc.future.RPCFuture;
-import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
-import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
-import org.kin.kinrpc.rpc.transport.protocol.RPCRequestProtocol;
-import org.kin.kinrpc.rpc.transport.protocol.RPCResponseProtocol;
+import org.kin.kinrpc.rpc.future.RpcFuture;
+import org.kin.kinrpc.rpc.transport.domain.RpcRequest;
+import org.kin.kinrpc.rpc.transport.domain.RpcResponse;
+import org.kin.kinrpc.rpc.transport.protocol.RpcRequestProtocol;
+import org.kin.kinrpc.rpc.transport.protocol.RpcResponseProtocol;
 import org.kin.kinrpc.serializer.Serializer;
 import org.kin.transport.netty.core.Client;
 import org.kin.transport.netty.core.ClientTransportOption;
@@ -33,11 +33,11 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by huangjianqin on 2019/6/14.
  */
-public class RPCReference {
-    private static final Logger log = LoggerFactory.getLogger(RPCReference.class);
+public class RpcReference {
+    private static final Logger log = LoggerFactory.getLogger(RpcReference.class);
     private volatile boolean isStopped;
 
-    private Map<String, RPCFuture> pendingRPCFutureMap = new ConcurrentHashMap<>();
+    private Map<Long, RpcFuture> pendingRpcFutureMap = new ConcurrentHashMap<>();
 
     private String serviceName;
     private InetSocketAddress address;
@@ -45,7 +45,7 @@ public class RPCReference {
     private ClientTransportOption clientTransportOption;
     private ReferenceHandler referenceHandler;
 
-    public RPCReference(String serviceName, InetSocketAddress address, Serializer serializer, int connectTimeout, boolean compression) {
+    public RpcReference(String serviceName, InetSocketAddress address, Serializer serializer, int connectTimeout, boolean compression) {
         this.serviceName = serviceName;
         this.address = address;
         this.serializer = serializer;
@@ -69,7 +69,7 @@ public class RPCReference {
     /**
      * channel线程
      */
-    public void handleResponse(RPCResponse rpcResponse) {
+    public void handleResponse(RpcResponse rpcResponse) {
         if (isStopped) {
             return;
         }
@@ -77,26 +77,26 @@ public class RPCReference {
 
         log.debug("receive a response >>> " + System.lineSeparator() + rpcResponse);
 
-        String requestId = rpcResponse.getRequestId();
-        RPCFuture pendRPCFuture = pendingRPCFutureMap.get(requestId);
-        if (pendRPCFuture != null) {
-            pendRPCFuture.done(rpcResponse);
+        long requestId = rpcResponse.getRequestId();
+        RpcFuture pendRpcFuture = pendingRpcFutureMap.get(requestId);
+        if (pendRpcFuture != null) {
+            pendRpcFuture.done(rpcResponse);
         }
     }
 
     /**
      * 其他线程
      */
-    public Future<RPCResponse> request(RPCRequest request) {
-        RPCFuture future = new RPCFuture(request, this);
+    public Future<RpcResponse> request(RpcRequest request) {
+        RpcFuture future = new RpcFuture(request, this);
         if (!isActive()) {
-            future.done(RPCResponse.respWithError(request, "client channel closed"));
+            future.done(RpcResponse.respWithError(request, "client channel closed"));
             return future;
         }
         log.debug("send a request>>>" + System.lineSeparator() + request);
 
         try {
-            pendingRPCFutureMap.put(request.getRequestId(), future);
+            pendingRpcFutureMap.put(request.getRequestId(), future);
             referenceHandler.request(request);
         } catch (Exception e) {
             onFail(request.getRequestId(), "client channel write error >>> ".concat(System.lineSeparator()).concat(ExceptionUtils.getExceptionDesc(e)));
@@ -106,12 +106,12 @@ public class RPCReference {
     }
 
     public void clean() {
-        for (RPCFuture rpcFuture : pendingRPCFutureMap.values()) {
-            RPCRequest rpcRequest = rpcFuture.getRequest();
-            RPCResponse rpcResponse = RPCResponse.respWithRetry(rpcRequest, "channel inactive");
+        for (RpcFuture rpcFuture : pendingRpcFutureMap.values()) {
+            RpcRequest rpcRequest = rpcFuture.getRequest();
+            RpcResponse rpcResponse = RpcResponse.respWithRetry(rpcRequest, "channel inactive");
             rpcFuture.done(rpcResponse);
         }
-        this.pendingRPCFutureMap.clear();
+        this.pendingRpcFutureMap.clear();
     }
 
     public HostAndPort getAddress() {
@@ -142,24 +142,28 @@ public class RPCReference {
     }
 
     /**
-     * 已在pendingRPCFutureMap锁内执行
+     * 已在pendingRpcFutureMap锁内执行
      */
-    public void removeInvalid(RPCRequest rpcRequest) {
-        this.pendingRPCFutureMap.remove(rpcRequest.getRequestId());
+    public void removeInvalid(RpcRequest rpcRequest) {
+        this.pendingRpcFutureMap.remove(rpcRequest.getRequestId());
     }
 
-    private void onFail(String requestId, String reason) {
-        RPCFuture future = pendingRPCFutureMap.remove(requestId);
+    private void onFail(long requestId, String reason) {
+        RpcFuture future = pendingRpcFutureMap.remove(requestId);
         if (Objects.nonNull(future)) {
-            future.done(RPCResponse.respWithError(future.getRequest(), reason));
+            future.done(RpcResponse.respWithError(future.getRequest(), reason));
         }
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        RPCReference that = (RPCReference) o;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        RpcReference that = (RpcReference) o;
         return serviceName.equals(that.serviceName) &&
                 address.equals(that.address);
     }
@@ -172,7 +176,6 @@ public class RPCReference {
     //------------------------------------------------------------------------------------------------------------------
     private class ReferenceHandler extends TransportHandler {
         private volatile Client client;
-        private ClientTransportOption transportOption;
 
         public void connect(ClientTransportOption transportOption) {
             if (isStopped) {
@@ -193,7 +196,7 @@ public class RPCReference {
                 }
                 if (!isActive()) {
                     //n秒后重连
-                    RPCThreadPool.EXECUTORS.schedule(() -> connect(transportOption), 5, TimeUnit.SECONDS);
+                    RpcThreadPool.EXECUTORS.schedule(() -> connect(transportOption), 5, TimeUnit.SECONDS);
                 }
             }
         }
@@ -208,13 +211,13 @@ public class RPCReference {
             return !isStopped && client != null && client.isActive();
         }
 
-        public void request(RPCRequest request) {
+        public void request(RpcRequest request) {
             if (isActive()) {
                 try {
                     request.setCreateTime(System.currentTimeMillis());
                     byte[] data = serializer.serialize(request);
 
-                    RPCRequestProtocol protocol = RPCRequestProtocol.create(data);
+                    RpcRequestProtocol protocol = RpcRequestProtocol.create(data);
                     client.request(protocol, new ReferenceRequestListener(request.getRequestId()));
 
                     InOutBoundStatisicService.instance().statisticReq(
@@ -235,12 +238,12 @@ public class RPCReference {
             if (Objects.isNull(protocol)) {
                 return;
             }
-            if (protocol instanceof RPCResponseProtocol) {
-                RPCResponseProtocol responseProtocol = (RPCResponseProtocol) protocol;
+            if (protocol instanceof RpcResponseProtocol) {
+                RpcResponseProtocol responseProtocol = (RpcResponseProtocol) protocol;
                 try {
-                    RPCResponse rpcResponse;
+                    RpcResponse rpcResponse;
                     try {
-                        rpcResponse = serializer.deserialize(responseProtocol.getRespContent(), RPCResponse.class);
+                        rpcResponse = serializer.deserialize(responseProtocol.getRespContent(), RpcResponse.class);
                         rpcResponse.setEventTime(System.currentTimeMillis());
                     } catch (IOException | ClassNotFoundException e) {
                         log.error(e.getMessage(), e);
@@ -262,8 +265,8 @@ public class RPCReference {
 
         @Override
         public void channelInactive(Channel channel) {
-            RPCThreadPool.EXECUTORS.execute(() -> {
-                RPCReference.this.clean();
+            RpcThreadPool.EXECUTORS.execute(() -> {
+                RpcReference.this.clean();
                 if (!isStopped) {
                     log.warn("reference({}, {}) reconnecting...", serviceName, getAddress());
                     connect(clientTransportOption);
@@ -273,14 +276,14 @@ public class RPCReference {
     }
 
     private class ReferenceRequestListener implements ChannelFutureListener {
-        private String requestId;
+        private long requestId;
 
-        public ReferenceRequestListener(String requestId) {
+        public ReferenceRequestListener(long requestId) {
             this.requestId = requestId;
         }
 
         @Override
-        public void operationComplete(ChannelFuture future) throws Exception {
+        public void operationComplete(ChannelFuture future) {
             if (!future.isSuccess()) {
                 onFail(requestId, "client channel write error");
             }

@@ -2,7 +2,7 @@ package org.kin.kinrpc.registry.directurls;
 
 import com.google.common.net.HostAndPort;
 import org.kin.kinrpc.registry.AbstractDirectory;
-import org.kin.kinrpc.rpc.RPCReference;
+import org.kin.kinrpc.rpc.RpcReference;
 import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
 import org.kin.kinrpc.serializer.Serializers;
 import org.slf4j.Logger;
@@ -30,7 +30,7 @@ public class DirectURLsDirectory extends AbstractDirectory {
             HostAndPort hostAndPort = HostAndPort.fromString(address);
 
             //创建新的ReferenceInvoker,连接Service Server
-            RPCReference rpcReference = new RPCReference(serviceName, new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPort()),
+            RpcReference rpcReference = new RpcReference(serviceName, new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPort()),
                     Serializers.getSerializer(serializerType), connectTimeout, compression);
             ReferenceInvoker refereneceInvoker = new ReferenceInvoker(serviceName, rpcReference);
             //真正启动连接

@@ -5,7 +5,7 @@ import javassist.*;
 import org.kin.framework.proxy.utils.ProxyEnhanceUtils;
 import org.kin.framework.utils.ClassUtils;
 import org.kin.kinrpc.rpc.common.Constants;
-import org.kin.kinrpc.rpc.common.URL;
+import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RateLimitException;
 
 import java.lang.reflect.Method;
@@ -26,13 +26,13 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
     private Class<T> interfaceClass;
     private int rate;
 
-    public JavassistClusterInvoker(Cluster cluster, int retryTimes, int retryTimeout, URL url, Class<T> interfaceClass) {
+    public JavassistClusterInvoker(Cluster cluster, int retryTimes, int retryTimeout, Url url, Class<T> interfaceClass) {
         super(cluster, retryTimes, retryTimeout, url);
         this.interfaceClass = interfaceClass;
         this.rate = Integer.parseInt(url.getParam(Constants.RATE_KEY));
     }
 
-    public static <T> T proxy(Cluster cluster, int retryTimes, int retryTimeout, URL url, Class<T> interfaceClass) {
+    public static <T> T proxy(Cluster cluster, int retryTimes, int retryTimeout, Url url, Class<T> interfaceClass) {
         return new JavassistClusterInvoker<>(cluster, retryTimes, retryTimeout, url, interfaceClass).proxy();
     }
 

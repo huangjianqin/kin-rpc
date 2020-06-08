@@ -5,7 +5,7 @@ import org.kin.framework.utils.NetUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.cluster.Clusters;
 import org.kin.kinrpc.rpc.common.Constants;
-import org.kin.kinrpc.rpc.common.URL;
+import org.kin.kinrpc.rpc.common.Url;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +34,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
     /** 服务限流, 每秒发送多少个 */
     private int rate = Constants.REFERENCE_REQUEST_THRESHOLD;
 
-    private URL url;
+    private Url url;
     private volatile T reference;
     private boolean isReference;
 

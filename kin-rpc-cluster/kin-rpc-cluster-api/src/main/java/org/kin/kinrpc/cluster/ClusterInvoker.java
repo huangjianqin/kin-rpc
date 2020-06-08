@@ -4,15 +4,15 @@ import com.google.common.net.HostAndPort;
 import org.kin.framework.Closeable;
 import org.kin.framework.utils.ClassUtils;
 import org.kin.kinrpc.cluster.exception.CannotFindInvokerException;
-import org.kin.kinrpc.rpc.RPCThreadPool;
-import org.kin.kinrpc.rpc.common.URL;
-import org.kin.kinrpc.rpc.exception.RPCCallErrorException;
-import org.kin.kinrpc.rpc.exception.RPCRetryException;
-import org.kin.kinrpc.rpc.exception.RPCRetryOutException;
-import org.kin.kinrpc.rpc.exception.UnknownRPCResponseStateCodeException;
-import org.kin.kinrpc.rpc.future.RPCFuture;
+import org.kin.kinrpc.rpc.RpcThreadPool;
+import org.kin.kinrpc.rpc.common.Url;
+import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
+import org.kin.kinrpc.rpc.exception.RpcRetryException;
+import org.kin.kinrpc.rpc.exception.RpcRetryOutException;
+import org.kin.kinrpc.rpc.exception.UnknownRpcResponseStateCodeException;
+import org.kin.kinrpc.rpc.future.RpcFuture;
 import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
-import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
+import org.kin.kinrpc.rpc.transport.domain.RpcResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,9 +32,9 @@ abstract class ClusterInvoker<I> implements Closeable {
     private final Cluster cluster;
     private final int retryTimes;
     private final int retryTimeout;
-    private final URL url;
+    private final Url url;
 
-    public ClusterInvoker(Cluster cluster, int retryTimes, int retryTimeout, URL url) {
+    public ClusterInvoker(Cluster cluster, int retryTimes, int retryTimeout, Url url) {
         this.cluster = cluster;
         this.retryTimes = retryTimes;
         this.retryTimeout = retryTimeout;
@@ -43,7 +43,7 @@ abstract class ClusterInvoker<I> implements Closeable {
 
     public Future<?> invokeAsync(Method method, Object... params) {
         Callable<?> callable = () -> invoke0(method, params);
-        return RPCThreadPool.EXECUTORS.submit(callable);
+        return RpcThreadPool.EXECUTORS.submit(callable);
     }
 
     /**
@@ -51,7 +51,7 @@ abstract class ClusterInvoker<I> implements Closeable {
      */
     protected Future<?> invokeAsync(String methodName, boolean isVoid, Object... params) {
         Callable<?> callable = () -> invoke0(methodName, isVoid, params);
-        return RPCThreadPool.EXECUTORS.submit(callable);
+        return RpcThreadPool.EXECUTORS.submit(callable);
     }
 
     public Object invoke0(Method method, Object... params) {
@@ -75,8 +75,8 @@ abstract class ClusterInvoker<I> implements Closeable {
                 ReferenceInvoker invoker = cluster.get(failureHostAndPorts);
                 if (invoker != null) {
                     try {
-                        Future<RPCResponse> future = invoker.invokeAsync(methodName, params);
-                        RPCResponse rpcResponse = future.get(retryTimeout, TimeUnit.MILLISECONDS);
+                        Future<RpcResponse> future = invoker.invokeAsync(methodName, params);
+                        RpcResponse rpcResponse = future.get(retryTimeout, TimeUnit.MILLISECONDS);
                         if (rpcResponse != null) {
                             switch (rpcResponse.getState()) {
                                 case SUCCESS:
@@ -86,13 +86,13 @@ abstract class ClusterInvoker<I> implements Closeable {
                                     failureHostAndPorts.add(invoker.getAddress());
                                     break;
                                 case ERROR:
-                                    throw new RPCCallErrorException(rpcResponse.getInfo());
+                                    throw new RpcCallErrorException(rpcResponse.getInfo());
                                 default:
-                                    throw new UnknownRPCResponseStateCodeException(rpcResponse.getState().getCode());
+                                    throw new UnknownRpcResponseStateCodeException(rpcResponse.getState().getCode());
                             }
                         } else {
                             tryTimes++;
-                            ((RPCFuture) future).doneTimeout();
+                            ((RpcFuture) future).doneTimeout();
                             failureHostAndPorts.add(invoker.getAddress());
                         }
                     } catch (InterruptedException e) {
@@ -104,7 +104,7 @@ abstract class ClusterInvoker<I> implements Closeable {
                         tryTimes++;
                         failureHostAndPorts.add(invoker.getAddress());
                         log.warn("invoke time out >>> {}", e.getMessage());
-                    } catch (RPCRetryException e) {
+                    } catch (RpcRetryException e) {
                         tryTimes++;
                         failureHostAndPorts.add(invoker.getAddress());
                         log.warn(e.getMessage());
@@ -124,7 +124,7 @@ abstract class ClusterInvoker<I> implements Closeable {
             }
 
             //超过重试次数, 抛弃异常
-            throw new RPCRetryOutException(retryTimes);
+            throw new RpcRetryOutException(retryTimes);
         } else {
             ReferenceInvoker invoker = cluster.get(Collections.EMPTY_LIST);
             if (Objects.nonNull(invoker)) {
@@ -147,7 +147,7 @@ abstract class ClusterInvoker<I> implements Closeable {
 
     //getter
 
-    public URL getUrl() {
+    public Url getUrl() {
         return url;
     }
 }

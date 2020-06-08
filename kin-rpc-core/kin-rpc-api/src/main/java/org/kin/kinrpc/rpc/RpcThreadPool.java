@@ -8,7 +8,7 @@ import org.kin.framework.utils.SysUtils;
  * @author huangjianqin
  * @date 2019-08-20
  */
-public class RPCThreadPool {
+public class RpcThreadPool {
     /**
      * invoker公用线程池, 除了服务provider,netty以外, 都用这个线程池
      */
@@ -17,7 +17,6 @@ public class RPCThreadPool {
 
     /**
      * 服务请求处理线程池
-     * 可以在加载类RPCProvider前修改RPC.parallelism来修改RPCProvider的并发数
      */
     public static ExecutionContext PROVIDER_WORKER =
             ExecutionContext.fix(SysUtils.getSuitableThreadNum(), "rpc-provider", 2, "rpc-provider-schedule");

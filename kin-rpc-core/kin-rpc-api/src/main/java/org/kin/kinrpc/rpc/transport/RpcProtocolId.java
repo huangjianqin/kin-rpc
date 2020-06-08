@@ -3,8 +3,8 @@ package org.kin.kinrpc.rpc.transport;
 /**
  * Created by huangjianqin on 2019/6/14.
  */
-public class RPCProtocolId {
-    private RPCProtocolId() {
+public class RpcProtocolId {
+    private RpcProtocolId() {
 
     }
 

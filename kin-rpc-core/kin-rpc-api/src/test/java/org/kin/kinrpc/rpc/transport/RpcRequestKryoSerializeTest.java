@@ -3,8 +3,8 @@ package org.kin.kinrpc.rpc.transport;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
-import org.kin.kinrpc.rpc.transport.domain.RPCRequestIdGenerator;
+import org.kin.kinrpc.domain.RpcRequestIdGenerator;
+import org.kin.kinrpc.rpc.transport.domain.RpcRequest;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -12,9 +12,9 @@ import java.io.ByteArrayOutputStream;
 /**
  * Created by 健勤 on 2017/2/25.
  */
-public class RPCRequestKryoSerializeTest {
+public class RpcRequestKryoSerializeTest {
     public static void main(String[] args) {
-        RPCRequest request = new RPCRequest(RPCRequestIdGenerator.next(), "system.service.Addable", "add", new Object[]{1, 1});
+        RpcRequest request = new RpcRequest(RpcRequestIdGenerator.next(), "system.service.Addable", "add", new Object[]{1, 1});
 
         Kryo kryo = new Kryo();
         Output output = new Output(new ByteArrayOutputStream());
@@ -23,7 +23,7 @@ public class RPCRequestKryoSerializeTest {
         output.close();
 
         Input input = new Input(new ByteArrayInputStream(bytes));
-        RPCRequest request1 = kryo.readObject(input, RPCRequest.class);
+        RpcRequest request1 = kryo.readObject(input, RpcRequest.class);
         input.close();
 
         System.out.println(request == request1);

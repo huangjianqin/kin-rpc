@@ -5,7 +5,7 @@ import com.google.common.cache.CacheBuilder;
 import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.rpc.common.Constants;
-import org.kin.kinrpc.rpc.common.URL;
+import org.kin.kinrpc.rpc.common.Url;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +22,7 @@ public class Registries {
     private Registries() {
     }
 
-    private static RegistryFactory getRegistryFactory(URL url) {
+    private static RegistryFactory getRegistryFactory(Url url) {
         String registryType = url.getParam(Constants.REGISTRY_KEY);
         if (StringUtils.isBlank(registryType)) {
             return null;
@@ -54,7 +54,7 @@ public class Registries {
         throw new IllegalStateException("init registry error >>>" + registryType);
     }
 
-    public static synchronized Registry getRegistry(URL url) {
+    public static synchronized Registry getRegistry(Url url) {
         RegistryFactory registryFactory = getRegistryFactory(url);
         if (registryFactory != null) {
             return registryFactory.getRegistry(url);
@@ -62,7 +62,7 @@ public class Registries {
         return null;
     }
 
-    public static synchronized void closeRegistry(URL url) {
+    public static synchronized void closeRegistry(Url url) {
         RegistryFactory registryFactory = getRegistryFactory(url);
         if (registryFactory != null) {
             registryFactory.close(url);

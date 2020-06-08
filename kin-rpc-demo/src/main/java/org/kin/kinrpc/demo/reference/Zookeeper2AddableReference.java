@@ -3,9 +3,9 @@ package org.kin.kinrpc.demo.reference;
 import org.kin.kinrpc.cluster.exception.CannotFindInvokerException;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.References;
-import org.kin.kinrpc.rpc.exception.RPCCallErrorException;
-import org.kin.kinrpc.rpc.exception.RPCRetryException;
-import org.kin.kinrpc.rpc.exception.UnknownRPCResponseStateCodeException;
+import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
+import org.kin.kinrpc.rpc.exception.RpcRetryException;
+import org.kin.kinrpc.rpc.exception.UnknownRpcResponseStateCodeException;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -35,7 +35,7 @@ public class Zookeeper2AddableReference {
 //                CompletableFuture<String> completableFuture = service.get("A");
 //                System.out.println(completableFuture.handleAsync((s, t) -> s + s).get());
 //                service.throwException();
-            } catch (RPCRetryException | CannotFindInvokerException | RPCCallErrorException | UnknownRPCResponseStateCodeException | ExecutionException e) {
+            } catch (RpcRetryException | CannotFindInvokerException | RpcCallErrorException | UnknownRpcResponseStateCodeException | ExecutionException e) {
 
             }
 

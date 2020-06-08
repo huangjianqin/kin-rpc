@@ -2,7 +2,7 @@ package org.kin.kinrpc.cluster;
 
 import com.google.common.util.concurrent.RateLimiter;
 import org.kin.kinrpc.rpc.common.Constants;
-import org.kin.kinrpc.rpc.common.URL;
+import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RateLimitException;
 
 import java.lang.reflect.InvocationHandler;
@@ -19,7 +19,7 @@ import java.util.concurrent.Future;
 class ReflectClusterInvoker extends ClusterInvoker implements InvocationHandler {
     private RateLimiter rateLimiter;
 
-    public ReflectClusterInvoker(Cluster cluster, int retryTimes, int retryTimeout, URL url) {
+    public ReflectClusterInvoker(Cluster cluster, int retryTimes, int retryTimeout, Url url) {
         super(cluster, retryTimes, retryTimeout, url);
         int rate = Integer.parseInt(url.getParam(Constants.RATE_KEY));
         if (rate > 0) {

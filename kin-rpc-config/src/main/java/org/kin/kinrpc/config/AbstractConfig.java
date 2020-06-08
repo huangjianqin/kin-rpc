@@ -2,7 +2,7 @@ package org.kin.kinrpc.config;
 
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.common.Constants;
-import org.kin.kinrpc.rpc.common.URL;
+import org.kin.kinrpc.rpc.common.Url;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -19,7 +19,7 @@ abstract class AbstractConfig {
      */
     abstract void check() throws Exception;
 
-    protected URL createURL(ApplicationConfig applicationConfig,
+    protected Url createURL(ApplicationConfig applicationConfig,
                             String hostPort,
                             AbstractRegistryConfig registryConfig,
                             Map<String, String> otherParams) {
@@ -55,6 +55,6 @@ abstract class AbstractConfig {
         //去掉最后一个&
         sb.replace(sb.length() - 1, sb.length(), "");
 
-        return URL.valueOf(sb.toString());
+        return Url.valueOf(sb.toString());
     }
 }

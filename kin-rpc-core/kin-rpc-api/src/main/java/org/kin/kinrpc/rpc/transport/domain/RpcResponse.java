@@ -1,14 +1,15 @@
 package org.kin.kinrpc.rpc.transport.domain;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Created by 健勤 on 2017/2/9.
  */
-public class RPCResponse implements Serializable {
+public class RpcResponse implements Serializable {
     private static final long serialVersionUID = -7580386808779240788L;
 
-    private String requestId;
+    private long requestId;
     /** 统计日志打印用 */
     private String serviceName;
     private String method;
@@ -50,39 +51,39 @@ public class RPCResponse implements Serializable {
     /** request处理时间 */
     private long handleTime;
 
-    public RPCResponse() {
+    public RpcResponse() {
     }
 
-    public RPCResponse(String requestId, String serviceName, String method) {
+    public RpcResponse(long requestId, String serviceName, String method) {
         this.requestId = requestId;
         this.serviceName = serviceName;
         this.method = method;
     }
 
-    private static RPCResponse respWith(String requestId, String serviceName, String method) {
-        return new RPCResponse(requestId, serviceName, method);
+    private static RpcResponse respWith(long requestId, String serviceName, String method) {
+        return new RpcResponse(requestId, serviceName, method);
     }
 
-    public static RPCResponse respWithError(String requestId, String serviceName, String method, String errorMsg) {
-        RPCResponse rpcResponse = respWith(requestId, serviceName, method);
-        rpcResponse.setState(RPCResponse.State.ERROR, errorMsg);
+    public static RpcResponse respWithError(long requestId, String serviceName, String method, String errorMsg) {
+        RpcResponse rpcResponse = respWith(requestId, serviceName, method);
+        rpcResponse.setState(RpcResponse.State.ERROR, errorMsg);
         return rpcResponse;
     }
 
-    public static RPCResponse respWithError(RPCRequest request, String errorMsg) {
-        RPCResponse rpcResponse = respWithError(request.getRequestId(), request.getServiceName(), request.getMethod(), errorMsg);
+    public static RpcResponse respWithError(RpcRequest request, String errorMsg) {
+        RpcResponse rpcResponse = respWithError(request.getRequestId(), request.getServiceName(), request.getMethod(), errorMsg);
         rpcResponse.setCreateTime(System.currentTimeMillis());
         return rpcResponse;
     }
 
-    public static RPCResponse respWithRetry(String requestId, String serviceName, String method, String retryMsg) {
-        RPCResponse rpcResponse = respWith(requestId, serviceName, method);
+    public static RpcResponse respWithRetry(long requestId, String serviceName, String method, String retryMsg) {
+        RpcResponse rpcResponse = respWith(requestId, serviceName, method);
         rpcResponse.setState(State.RETRY, retryMsg);
         return rpcResponse;
     }
 
-    public static RPCResponse respWithRetry(RPCRequest request, String errorMsg) {
-        RPCResponse rpcResponse = respWithRetry(request.getRequestId(), request.getServiceName(), request.getMethod(), errorMsg);
+    public static RpcResponse respWithRetry(RpcRequest request, String errorMsg) {
+        RpcResponse rpcResponse = respWithRetry(request.getRequestId(), request.getServiceName(), request.getMethod(), errorMsg);
         rpcResponse.setCreateTime(System.currentTimeMillis());
         return rpcResponse;
     }
@@ -93,11 +94,13 @@ public class RPCResponse implements Serializable {
     }
 
     //setter && getter
-    public String getRequestId() {
+
+
+    public long getRequestId() {
         return requestId;
     }
 
-    public void setRequestId(String requestId) {
+    public void setRequestId(long requestId) {
         this.requestId = requestId;
     }
 
@@ -170,24 +173,21 @@ public class RPCResponse implements Serializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof RPCResponse)) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
-        RPCResponse that = (RPCResponse) o;
-
-        return requestId.equals(that.requestId);
-
+        RpcResponse that = (RpcResponse) o;
+        return requestId == that.requestId;
     }
 
     @Override
     public int hashCode() {
-        return requestId.hashCode();
+        return Objects.hash(requestId);
     }
 
     @Override
     public String toString() {
-        return "RPCResponse{" +
+        return "RpcResponse{" +
                 "requestId='" + requestId + '\'' +
                 ", serviceName='" + serviceName + '\'' +
                 ", method='" + method + '\'' +

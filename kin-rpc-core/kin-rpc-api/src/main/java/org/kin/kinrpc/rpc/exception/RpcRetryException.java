@@ -6,8 +6,8 @@ import org.kin.framework.utils.StringUtils;
  * @author huangjianqin
  * @date 2019/7/1
  */
-public class RPCRetryException extends RuntimeException {
-    public RPCRetryException(String respInfo, String serviceName, String methodName, Object... params) {
+public class RpcRetryException extends RuntimeException {
+    public RpcRetryException(String respInfo, String serviceName, String methodName, Object... params) {
         super(respInfo + System.lineSeparator() +
                 "need to retry to invoke service '" + serviceName +
                 "', methodName '" + methodName +
