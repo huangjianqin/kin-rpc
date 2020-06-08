@@ -15,7 +15,6 @@ import org.kin.kinrpc.rpc.invoker.impl.JavassistProviderInvoker;
 import org.kin.kinrpc.rpc.invoker.impl.ReflectProviderInvoker;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
-import org.kin.kinrpc.rpc.transport.protocol.RPCHeartbeat;
 import org.kin.kinrpc.rpc.transport.protocol.RPCRequestProtocol;
 import org.kin.kinrpc.rpc.transport.protocol.RPCResponseProtocol;
 import org.kin.kinrpc.serializer.Serializer;
@@ -62,7 +61,9 @@ public class RPCProvider extends PinnedThreadSafeHandler<RPCProvider> {
      *
      */
     private InetSocketAddress address;
-    /** */
+    /**
+     *
+     */
     private ServerTransportOption transportOption;
 
     public RPCProvider(String host, int port, Serializer serializer, boolean isByteCodeInvoke, boolean compression) {
@@ -406,11 +407,6 @@ public class RPCProvider extends PinnedThreadSafeHandler<RPCProvider> {
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
                 }
-            } else if (protocol instanceof RPCHeartbeat) {
-                RPCHeartbeat heartbeat = (RPCHeartbeat) protocol;
-                log.debug("provider({}) receive heartbeat ip:{}, content:{}", address, heartbeat.getIp(), heartbeat.getContent());
-                RPCHeartbeat heartbeatResp = RPCHeartbeat.create(getAddressStr(), "");
-                channel.writeAndFlush(heartbeatResp.write());
             } else {
                 log.error("unknown protocol >>>> {}", protocol);
             }

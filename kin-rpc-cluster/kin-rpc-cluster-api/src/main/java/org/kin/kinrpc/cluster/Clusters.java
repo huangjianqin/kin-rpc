@@ -5,10 +5,8 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.kin.framework.JvmCloseCleaner;
-import org.kin.framework.concurrent.ExecutionContext;
 import org.kin.framework.concurrent.actor.PinnedThreadSafeFuturesManager;
 import org.kin.framework.utils.NetUtils;
-import org.kin.framework.utils.TimeUtils;
 import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
 import org.kin.kinrpc.cluster.loadbalance.LoadBalances;
 import org.kin.kinrpc.cluster.router.Router;
@@ -19,7 +17,7 @@ import org.kin.kinrpc.rpc.RPCProvider;
 import org.kin.kinrpc.rpc.RPCThreadPool;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.URL;
-import org.kin.kinrpc.rpc.transport.protocol.RPCHeartbeat;
+import org.kin.kinrpc.rpc.transport.protocol.RPCRequestProtocol;
 import org.kin.kinrpc.serializer.Serializer;
 import org.kin.kinrpc.serializer.Serializers;
 import org.kin.transport.netty.core.protocol.ProtocolFactory;
@@ -28,9 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by huangjianqin on 2019/6/18.
@@ -39,37 +35,10 @@ public class Clusters {
     private static final Logger log = LoggerFactory.getLogger(Clusters.class);
     private static final Cache<Integer, RPCProvider> PROVIDER_CACHE = CacheBuilder.newBuilder().build();
     private static final Cache<String, ClusterInvoker> REFERENCE_CACHE = CacheBuilder.newBuilder().build();
-    private static final ExecutionContext EXECUTORS = ExecutionContext.fix(2, "provider-unregister-executor");
-    private static volatile boolean isStopped = false;
-    private static final int HEARTBEAT_INTERVAL = 3;
 
     static {
-        ProtocolFactory.init(RPCHeartbeat.class.getPackage().getName());
+        ProtocolFactory.init(RPCRequestProtocol.class.getPackage().getName());
         JvmCloseCleaner.DEFAULT().add(Clusters::shutdown);
-        //心跳检查, 每隔一定时间检查provider是否异常, 并取消服务注册
-        EXECUTORS.execute(() -> {
-            while (!isStopped) {
-                long sleepTime = HEARTBEAT_INTERVAL - TimeUtils.timestamp() % HEARTBEAT_INTERVAL;
-                try {
-                    TimeUnit.SECONDS.sleep(sleepTime);
-                } catch (InterruptedException e) {
-                    break;
-                }
-
-                for (RPCProvider provider : new ArrayList<>(PROVIDER_CACHE.asMap().values())) {
-                    if (!provider.isAlive()) {
-                        int port = provider.getPort();
-                        PROVIDER_CACHE.invalidate(port);
-                        EXECUTORS.execute(() -> {
-                            provider.shutdown();
-                            for (URL url : provider.getAvailableServices()) {
-                                unRegisterService(url);
-                            }
-                        });
-                    }
-                }
-            }
-        });
     }
 
     private Clusters() {
@@ -201,8 +170,6 @@ public class Clusters {
             Registries.closeRegistry(clusterInvoker.getUrl());
         }
         //没有任何RPC 实例运行中
-        isStopped = true;
-        EXECUTORS.shutdownNow();
         RPCThreadPool.PROVIDER_WORKER.shutdownNow();
         RPCThreadPool.EXECUTORS.shutdownNow();
         PinnedThreadSafeFuturesManager.instance().close();

@@ -5,11 +5,9 @@ import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.utils.ExceptionUtils;
-import org.kin.framework.utils.TimeUtils;
 import org.kin.kinrpc.rpc.future.RPCFuture;
 import org.kin.kinrpc.rpc.transport.domain.RPCRequest;
 import org.kin.kinrpc.rpc.transport.domain.RPCResponse;
-import org.kin.kinrpc.rpc.transport.protocol.RPCHeartbeat;
 import org.kin.kinrpc.rpc.transport.protocol.RPCRequestProtocol;
 import org.kin.kinrpc.rpc.transport.protocol.RPCResponseProtocol;
 import org.kin.kinrpc.serializer.Serializer;
@@ -44,9 +42,8 @@ public class RPCReference {
     private Serializer serializer;
     private ClientTransportOption clientTransportOption;
     private ReferenceHandler referenceHandler;
-    private HeartBeatCallBack heartBeatCallBack;
 
-    public RPCReference(String serviceName, InetSocketAddress address, Serializer serializer, int connectTimeout, boolean compression, HeartBeatCallBack heartBeatCallBack) {
+    public RPCReference(String serviceName, InetSocketAddress address, Serializer serializer, int connectTimeout, boolean compression) {
         this.serviceName = serviceName;
         this.address = address;
         this.serializer = serializer;
@@ -65,7 +62,6 @@ public class RPCReference {
         if (compression) {
             this.clientTransportOption.compress();
         }
-        this.heartBeatCallBack = heartBeatCallBack;
     }
 
     /**
@@ -167,22 +163,9 @@ public class RPCReference {
     }
 
     //------------------------------------------------------------------------------------------------------------------
-    public interface HeartBeatCallBack {
-        void heartBeatFail(RPCReference rpcReference);
-    }
-
     private class ReferenceHandler extends TransportHandler {
-        /** 心跳间隔(秒) */
-        private final int HEARTBEAT_INTERNAL = 10;
-        /** 最大心跳失败次数 */
-        private final int MAX_HEARTBEAT_FAIL = 3;
-
         private volatile Client client;
-        private volatile Future heartbeatFuture;
         private ClientTransportOption transportOption;
-
-        private int lastHeartBeatTime;
-        private int heartBeatFailTimes;
 
         public void connect(ClientTransportOption transportOption) {
             if (isStopped) {
@@ -206,27 +189,11 @@ public class RPCReference {
                     RPCThreadPool.EXECUTORS.schedule(() -> connect(transportOption), 5, TimeUnit.SECONDS);
                 }
             }
-
-            if (heartbeatFuture == null) {
-                heartbeatFuture = RPCThreadPool.EXECUTORS.scheduleAtFixedRate(() -> {
-                    if (client != null && checkHeartbeat()) {
-                        try {
-                            RPCHeartbeat heartbeat = RPCHeartbeat.create(client.getLocalAddress(), "");
-                            client.request(heartbeat);
-                        } catch (Exception e) {
-                            //屏蔽异常
-                        }
-                    }
-                }, HEARTBEAT_INTERNAL, HEARTBEAT_INTERNAL, TimeUnit.SECONDS);
-            }
         }
 
         public void close() {
             if (Objects.nonNull(client)) {
                 client.close();
-            }
-            if (Objects.nonNull(heartbeatFuture)) {
-                heartbeatFuture.cancel(true);
             }
         }
 
@@ -280,10 +247,6 @@ public class RPCReference {
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
                 }
-            } else if (protocol instanceof RPCHeartbeat) {
-                RPCHeartbeat heartbeat = (RPCHeartbeat) protocol;
-                lastHeartBeatTime = TimeUtils.timestamp();
-                log.debug("reference({}) receive heartbeat ip:{}, content:{}", serviceName, heartbeat.getIp(), heartbeat.getContent());
             } else {
                 log.error("unknown protocol >>>> {}", protocol);
             }
@@ -298,28 +261,6 @@ public class RPCReference {
                     connect(clientTransportOption);
                 }
             });
-        }
-
-        /**
-         * 检查心跳是否失败, 如果失败, 触发callback
-         *
-         * @return 心跳是否失败
-         */
-        private boolean checkHeartbeat() {
-            if (heartBeatFailTimes < MAX_HEARTBEAT_FAIL) {
-                int now = TimeUtils.timestamp();
-                if (now - lastHeartBeatTime > HEARTBEAT_INTERNAL) {
-                    //上次心跳还未返回
-                    heartBeatFailTimes++;
-                    if (heartBeatFailTimes >= MAX_HEARTBEAT_FAIL) {
-                        heartBeatCallBack.heartBeatFail(RPCReference.this);
-                        return false;
-                    }
-                }
-                return true;
-            }
-
-            return false;
         }
     }
 }
