@@ -3,6 +3,8 @@ package org.kin.kinrpc.rpc;
 import com.google.common.net.HostAndPort;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.future.RPCFuture;
@@ -94,12 +96,10 @@ public class RPCReference {
         log.debug("send a request>>>" + System.lineSeparator() + request);
 
         try {
+            pendingRPCFutureMap.put(request.getRequestId(), future);
             referenceHandler.request(request);
-            pendingRPCFutureMap.put(request.getRequestId() + "", future);
         } catch (Exception e) {
-            pendingRPCFutureMap.remove(request.getRequestId() + "");
-            future.done(RPCResponse.respWithError(request,
-                    "client channel closed, due to ".concat(System.lineSeparator()).concat(ExceptionUtils.getExceptionDesc(e))));
+            onFail(request.getRequestId(), "client channel write error >>> ".concat(System.lineSeparator()).concat(ExceptionUtils.getExceptionDesc(e)));
         }
 
         return future;
@@ -145,7 +145,14 @@ public class RPCReference {
      * 已在pendingRPCFutureMap锁内执行
      */
     public void removeInvalid(RPCRequest rpcRequest) {
-        this.pendingRPCFutureMap.remove(rpcRequest.getRequestId() + "");
+        this.pendingRPCFutureMap.remove(rpcRequest.getRequestId());
+    }
+
+    private void onFail(String requestId, String reason) {
+        RPCFuture future = pendingRPCFutureMap.remove(requestId);
+        if (Objects.nonNull(future)) {
+            future.done(RPCResponse.respWithError(future.getRequest(), reason));
+        }
     }
 
     @Override
@@ -208,13 +215,14 @@ public class RPCReference {
                     byte[] data = serializer.serialize(request);
 
                     RPCRequestProtocol protocol = RPCRequestProtocol.create(data);
-                    client.request(protocol);
+                    client.request(protocol, new ReferenceRequestListener(request.getRequestId()));
 
                     InOutBoundStatisicService.instance().statisticReq(
                             request.getServiceName() + "-" + request.getMethod(), data.length
                     );
                 } catch (IOException e) {
                     log.error(e.getMessage(), e);
+                    onFail(request.getRequestId(), "client channel write error >>> ".concat(System.lineSeparator()).concat(ExceptionUtils.getExceptionDesc(e)));
                 }
             }
         }
@@ -261,6 +269,21 @@ public class RPCReference {
                     connect(clientTransportOption);
                 }
             });
+        }
+    }
+
+    private class ReferenceRequestListener implements ChannelFutureListener {
+        private String requestId;
+
+        public ReferenceRequestListener(String requestId) {
+            this.requestId = requestId;
+        }
+
+        @Override
+        public void operationComplete(ChannelFuture future) throws Exception {
+            if (!future.isSuccess()) {
+                onFail(requestId, "client channel write error");
+            }
         }
     }
 }
