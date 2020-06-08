@@ -1,15 +1,16 @@
 package org.kin.kinrpc.rpc.transport;
 
+import org.kin.kinrpc.transport.protocol.AbstractRpcMessage;
+
 import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * Created by 健勤 on 2017/2/9.
  */
-public class RpcResponse implements Serializable {
+public class RpcResponse extends AbstractRpcMessage implements Serializable {
     private static final long serialVersionUID = -7580386808779240788L;
 
-    private long requestId;
     /** 统计日志打印用 */
     private String serviceName;
     private String method;
@@ -43,13 +44,6 @@ public class RpcResponse implements Serializable {
             return code;
         }
     }
-
-    /** request创建时间 */
-    private long createTime;
-    /** request事件时间即, 到达service端的时间 */
-    private long eventTime;
-    /** request处理时间 */
-    private long handleTime;
 
     public RpcResponse() {
     }
@@ -95,15 +89,6 @@ public class RpcResponse implements Serializable {
 
     //setter && getter
 
-
-    public long getRequestId() {
-        return requestId;
-    }
-
-    public void setRequestId(long requestId) {
-        this.requestId = requestId;
-    }
-
     public String getServiceName() {
         return serviceName;
     }
@@ -142,30 +127,6 @@ public class RpcResponse implements Serializable {
 
     public void setState(State state) {
         this.state = state;
-    }
-
-    public long getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(long createTime) {
-        this.createTime = createTime;
-    }
-
-    public long getEventTime() {
-        return eventTime;
-    }
-
-    public void setEventTime(long eventTime) {
-        this.eventTime = eventTime;
-    }
-
-    public long getHandleTime() {
-        return handleTime;
-    }
-
-    public void setHandleTime(long handleTime) {
-        this.handleTime = handleTime;
     }
 
     @Override

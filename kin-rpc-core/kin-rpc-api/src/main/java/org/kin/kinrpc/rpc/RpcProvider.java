@@ -207,7 +207,7 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
      * 处理rpc请求
      * provider线程处理
      */
-    private void handleRpcRequest(RpcRequest rpcRequest) {
+    private void handleRpcRequest(RpcRequest rpcRequest, Channel channel) {
         //处理请求
         log.debug("receive a request >>> " + rpcRequest);
         //提交线程池处理服务执行
@@ -217,7 +217,6 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
             String serviceName = rpcRequest.getServiceName();
             String methodName = rpcRequest.getMethod();
             Object[] params = rpcRequest.getParams();
-            Channel channel = rpcRequest.getChannel();
 
             RpcResponse rpcResponse = new RpcResponse(rpcRequest.getRequestId(),
                     rpcRequest.getServiceName(), rpcRequest.getMethod());
@@ -243,8 +242,6 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
             //停止对外提供服务, 直接拒绝请求
 
             //创建RpcResponse,设置服务不可用请求重试标识,直接回发
-            Channel channel = rpcRequest.getChannel();
-
             RpcResponse rpcResponse = new RpcResponse(rpcRequest.getRequestId(), rpcRequest.getServiceName(), rpcRequest.getMethod());
             rpcResponse.setState(RpcResponse.State.RETRY, "service unavailable");
 
@@ -345,7 +342,6 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
                         rpcRequest.getServiceName() + "-" + rpcRequest.getMethod(), data.length
                 );
 
-                rpcRequest.setChannel(channel);
                 rpcRequest.setEventTime(System.currentTimeMillis());
             } catch (IOException | ClassNotFoundException e) {
                 log.error(e.getMessage(), e);
@@ -357,12 +353,12 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
             if (!rateLimiter.tryAcquire()) {
                 RpcResponse rpcResponse = RpcResponse.respWithError(rpcRequest, "server rate limited, just reject");
                 rpcRequest.setHandleTime(System.currentTimeMillis());
-                rpcRequest.getChannel().writeAndFlush(rpcResponse);
+                channel.writeAndFlush(rpcResponse);
                 return;
             }
 
             RpcRequest finalRpcRequest = rpcRequest;
-            handle(rpcProvider -> handleRpcRequest(finalRpcRequest));
+            handle(rpcProvider -> handleRpcRequest(finalRpcRequest, channel));
         }
     }
 }
