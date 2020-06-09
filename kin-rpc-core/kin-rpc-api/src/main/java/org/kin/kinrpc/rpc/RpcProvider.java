@@ -56,9 +56,7 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
     private volatile boolean isStopped = false;
     /** 是否使用字节码技术 */
     private final boolean isByteCodeInvoke;
-    /**
-     *
-     */
+    /** 服务器启动配置 */
     private ServerTransportOption transportOption;
     /** 流控 */
     private RateLimiter rateLimiter = RateLimiter.create(Constants.SERVER_REQUEST_THRESHOLD);
