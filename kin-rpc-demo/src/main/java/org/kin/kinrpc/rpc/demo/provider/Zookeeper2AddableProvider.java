@@ -1,9 +1,9 @@
-package org.kin.kinrpc.demo.provider;
+package org.kin.kinrpc.rpc.demo.provider;
 
 import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.config.Services;
-import org.kin.kinrpc.demo.service.Addable;
-import org.kin.kinrpc.demo.service.Adder;
+import org.kin.kinrpc.rpc.demo.service.Addable;
+import org.kin.kinrpc.rpc.demo.service.Adder;
 
 /**
  * @author huangjianqin
