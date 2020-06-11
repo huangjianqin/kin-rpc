@@ -8,7 +8,7 @@
     <version>0.1.0.0</version>
     <modules>
         <module>kin-rpc</module>
-        <module>kin-rpc-common</module>
+        <module>kin-rpc-transport</module>
         <module>kin-rpc-cluster</module>
         <module>kin-rpc-config</module>
         <module>kin-rpc-core</module>
