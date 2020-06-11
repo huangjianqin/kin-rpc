@@ -1,4 +1,4 @@
-package org.kin.kinrpc.rpc.demo.reference;
+package org.kin.kinrpc.demo.rpc.reference;
 
 import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.config.ReferenceConfig;
