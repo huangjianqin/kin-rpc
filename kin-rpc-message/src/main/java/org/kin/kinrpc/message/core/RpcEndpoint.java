@@ -10,6 +10,21 @@ import org.slf4j.LoggerFactory;
  */
 public class RpcEndpoint extends Receiver<RpcMessageCallContext> {
     private static final Logger msgLog = LoggerFactory.getLogger("message");
+    /**
+     *
+     */
+    private RpcEnv rpcEnv;
+
+    /**
+     * 更新rpc环境
+     */
+    public void updateRpcEnv(RpcEnv rpcEnv) {
+        this.rpcEnv = rpcEnv;
+    }
+
+    public RpcEndpointRef ref() {
+        return rpcEnv.rpcEndpointRef(this);
+    }
 
     @Override
     protected void onStart() {

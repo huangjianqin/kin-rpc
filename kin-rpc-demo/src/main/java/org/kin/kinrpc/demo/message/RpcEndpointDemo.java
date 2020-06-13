@@ -8,6 +8,8 @@ import org.kin.kinrpc.message.core.RpcEnv;
 import org.kin.kinrpc.message.core.RpcMessageCallContext;
 import org.kin.kinrpc.transport.serializer.Serializers;
 
+import java.io.Serializable;
+
 /**
  * @author huangjianqin
  * @date 2020-06-13
@@ -40,11 +42,36 @@ public class RpcEndpointDemo extends RpcEndpoint {
     @Override
     public void receive(RpcMessageCallContext context) {
         super.receive(context);
-        System.out.println(context);
+        System.out.println(context.getMessage());
+        context.reply(ref(), new ReplyMessage(context.getRequestId()));
     }
 
     @Override
     public boolean threadSafe() {
         return true;
+    }
+
+    private class ReplyMessage implements Serializable {
+        private static final long serialVersionUID = -1586292592951384110L;
+        private long requestId;
+
+        public ReplyMessage(long requestId) {
+            this.requestId = requestId;
+        }
+
+        public long getRequestId() {
+            return requestId;
+        }
+
+        public void setRequestId(long requestId) {
+            this.requestId = requestId;
+        }
+
+        @Override
+        public String toString() {
+            return "ReplyMessage{" +
+                    "requestId='" + requestId + '\'' +
+                    '}';
+        }
     }
 }

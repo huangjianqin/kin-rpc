@@ -20,6 +20,7 @@ import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
 import org.kin.kinrpc.transport.serializer.Serializer;
 import org.kin.transport.netty.core.ServerTransportOption;
 import org.kin.transport.netty.core.TransportOption;
+import org.kin.transport.netty.core.protocol.ProtocolFactory;
 import org.kin.transport.netty.core.statistic.InOutBoundStatisicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +40,10 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class RpcEnv {
     private static final Logger log = LoggerFactory.getLogger(RpcEnv.class);
+
+    static {
+        ProtocolFactory.init(RpcRequestProtocol.class.getPackage().getName());
+    }
     /**
      * rpc环境公用线程池, 除了dispatcher以外, 都用这个线程池
      */
@@ -57,7 +62,11 @@ public class RpcEnv {
     private volatile boolean isStopped = false;
     /** 基于本rpc环境下的client */
     private Map<RpcAddress, TransportClient> clients = new ConcurrentHashMap<>();
+    /**
+     *
+     */
     private Map<RpcAddress, OutBox> outBoxs = new ConcurrentHashMap<>();
+    /** */
     private Map<RpcEndpoint, RpcEndpointRef> endpoint2Ref = new ConcurrentHashMap<>();
 
     public RpcEnv(String host, int port, int parallelism, Serializer serializer, boolean compression) {
@@ -122,7 +131,11 @@ public class RpcEnv {
         }
 
         dispatcher.register(name, rpcEndpoint, !rpcEndpoint.threadSafe());
-        endpoint2Ref.put(rpcEndpoint, new RpcEndpointRef(RpcEndpointAddress.of(address, name)));
+        RpcEndpointRef endpointRef = new RpcEndpointRef(RpcEndpointAddress.of(address, name));
+        endpoint2Ref.put(rpcEndpoint, endpointRef);
+
+        rpcEndpoint.updateRpcEnv(this);
+        endpointRef.updateRpcEnv(this);
     }
 
     /**

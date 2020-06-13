@@ -34,13 +34,13 @@ public class RpcEndpointRefDemo extends RpcEndpoint {
 
         RpcEndpointRef endpointRef = new RpcEndpointRef(
                 RpcEndpointAddress.of(
-                        RpcAddress.of("0.0.0.0", 16888), "Master"));
+                        RpcAddress.of("0.0.0.0", 16888), "rpcEndpointDemo"));
         endpointRef.updateRpcEnv(rpcEnv);
 
         int count = 0;
         while (count < 10000) {
             try {
-                endpointRef.send(endpointRef, new PrintMessage(++count + ""));
+                endpointRef.send(rpcEnv.rpcEndpointRef(rpcEndpointRefDemo), new PrintMessage(++count + ""));
             } catch (Exception e) {
                 System.err.println(e);
             }
@@ -64,7 +64,7 @@ public class RpcEndpointRefDemo extends RpcEndpoint {
     @Override
     public void receive(RpcMessageCallContext context) {
         super.receive(context);
-        System.out.println(context);
+        System.out.println(context.getMessage());
     }
 
     @Override
@@ -73,6 +73,8 @@ public class RpcEndpointRefDemo extends RpcEndpoint {
     }
 
     private static class PrintMessage implements Serializable {
+        private static final long serialVersionUID = -1632194863001778858L;
+
         private String content;
 
         public PrintMessage() {
@@ -88,6 +90,13 @@ public class RpcEndpointRefDemo extends RpcEndpoint {
 
         public void setContent(String content) {
             this.content = content;
+        }
+
+        @Override
+        public String toString() {
+            return "PrintMessage{" +
+                    "content='" + content + '\'' +
+                    '}';
         }
     }
 }

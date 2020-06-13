@@ -66,7 +66,7 @@ public class TransportClient {
      * @return 是否有效
      */
     public boolean isActive() {
-        return isStopped && rpcEndpointRefHandler.isActive();
+        return !isStopped && rpcEndpointRefHandler.isActive();
     }
 
     public void stop() {

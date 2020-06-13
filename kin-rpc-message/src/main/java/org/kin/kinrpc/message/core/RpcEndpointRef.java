@@ -24,8 +24,8 @@ public class RpcEndpointRef implements Serializable {
         this.rpcEnv = rpcEnv;
     }
 
-    public void send(RpcEndpointRef replier, Serializable message) {
-        rpcEnv.send(new RpcMessage(RpcRequestIdGenerator.next(), replier, this, message));
+    public void send(RpcEndpointRef sender, Serializable message) {
+        rpcEnv.send(new RpcMessage(RpcRequestIdGenerator.next(), sender, this, message));
     }
 
     //------------------------------------------------------------------------------------------------------------------
