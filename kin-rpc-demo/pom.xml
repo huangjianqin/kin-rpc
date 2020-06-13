@@ -27,6 +27,12 @@
             <artifactId>kin-rpc-registry-zookeeper</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-rpc-message</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 </project>

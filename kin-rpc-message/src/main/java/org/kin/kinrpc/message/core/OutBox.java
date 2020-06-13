@@ -68,6 +68,11 @@ public class OutBox {
                 return;
             }
 
+            if (draining) {
+                //有其他线程正在drainOutbox
+                return;
+            }
+
             if (Objects.nonNull(clientConnectFuture)) {
                 //客户端正在连接服务器
                 return;
@@ -76,11 +81,6 @@ public class OutBox {
             if (Objects.isNull(client)) {
                 //没有连接好的客户端, 创建一个
                 clientConnect();
-                return;
-            }
-
-            if (draining) {
-                //有其他线程正在drainOutbox
                 return;
             }
 
@@ -126,7 +126,6 @@ public class OutBox {
         synchronized (this) {
             if (Objects.isNull(clientConnectFuture)) {
                 stop();
-                //TODO rpcEnv移除该outbox
             }
         }
     }
@@ -172,6 +171,7 @@ public class OutBox {
             }
 
             isStopped = true;
+            rpcEnv.removeOutBox(address);
             if (Objects.nonNull(clientConnectFuture)) {
                 clientConnectFuture.cancel(true);
             }

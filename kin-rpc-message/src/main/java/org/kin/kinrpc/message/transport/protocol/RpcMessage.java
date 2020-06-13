@@ -1,6 +1,6 @@
 package org.kin.kinrpc.message.transport.protocol;
 
-import org.kin.kinrpc.message.api.RpcEndpointRef;
+import org.kin.kinrpc.message.core.RpcEndpointRef;
 
 import java.io.Serializable;
 import java.util.Objects;

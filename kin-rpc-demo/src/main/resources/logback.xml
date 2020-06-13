@@ -121,6 +121,20 @@
         </rollingPolicy>
     </appender>
 
+    <appender name="messageAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <Append>true</Append>
+        <encoder>
+            <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>DEBUG</level>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/%d{yyyy-MM-dd}/message.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <!--<maxHistory>30</maxHistory>-->
+        </rollingPolicy>
+    </appender>
+
     <!--                                       async                                                       -->
     <appender name="asyncSTDOUT" class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="STDOUT"/>
@@ -154,6 +168,10 @@
         <appender-ref ref="clusterAppender"/>
     </appender>
 
+    <appender name="asyncMessageAppender" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="messageAppender"/>
+    </appender>
+
     <!--                                       logger                                                       -->
     <logger name="error" level="ERROR">
         <appender-ref ref="asyncERROR"/>
@@ -161,7 +179,6 @@
 
     <logger name="org.kin.kinrpc.transport" level="INFO">
         <appender-ref ref="asyncTransportAppender"/>
-        <appender-ref ref="asyncERROR" level="ERROR"/>
     </logger>
 
     <logger name="org.kin.kinrpc.transport.reqStatistic" level="INFO">
@@ -174,17 +191,18 @@
 
     <logger name="org.kin.kinrpc.rpc" level="INFO">
         <appender-ref ref="asyncInvokerAppender"/>
-        <appender-ref ref="asyncERROR" level="ERROR"/>
     </logger>
 
     <logger name="org.kin.kinrpc.registry" level="INFO">
         <appender-ref ref="asyncRegistryAppender"/>
-        <appender-ref ref="asyncERROR" level="ERROR"/>
     </logger>
 
     <logger name="org.kin.kinrpc.cluster" level="INFO">
         <appender-ref ref="asyncClusterAppender"/>
-        <appender-ref ref="asyncERROR" level="ERROR"/>
+    </logger>
+
+    <logger name="message" level="INFO">
+        <appender-ref ref="asyncMessageAppender"/>
     </logger>
 
     <root level="INFO">

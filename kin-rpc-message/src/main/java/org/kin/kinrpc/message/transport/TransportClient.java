@@ -26,21 +26,19 @@ public class TransportClient {
     private static final Logger log = LoggerFactory.getLogger(TransportClient.class);
     /** 序列化 */
     private RpcEnv rpcEnv;
+    /** 客户端配置 */
+    private ClientTransportOption clientTransportOption;
+    /** 服务器地址 */
+    private InetSocketAddress address;
+
     private RpcEndpointRefHandlerImpl rpcEndpointRefHandler;
     private volatile boolean isStopped;
 
-    public TransportClient(RpcEnv rpcEnv) {
+    public TransportClient(RpcEnv rpcEnv, String remoteHost, int remotePort, boolean compression) {
         this.rpcEnv = rpcEnv;
-    }
-
-    public void connect(String remoteHost, int remotePort, boolean compression) {
-        if (isStopped) {
-            return;
-        }
-        rpcEndpointRefHandler = new RpcEndpointRefHandlerImpl();
-
-        InetSocketAddress address = new InetSocketAddress(remoteHost, remotePort);
-        ClientTransportOption clientTransportOption =
+        this.rpcEndpointRefHandler = new RpcEndpointRefHandlerImpl();
+        this.address = new InetSocketAddress(remoteHost, remotePort);
+        this.clientTransportOption =
                 TransportOption.client()
                         .channelOption(ChannelOption.TCP_NODELAY, true)
                         .channelOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
@@ -52,7 +50,13 @@ public class TransportClient {
                         .transportHandler(rpcEndpointRefHandler);
 
         if (compression) {
-            clientTransportOption.compress();
+            this.clientTransportOption.compress();
+        }
+    }
+
+    public void connect() {
+        if (isStopped) {
+            return;
         }
 
         rpcEndpointRefHandler.connect(clientTransportOption, address);
@@ -66,6 +70,9 @@ public class TransportClient {
     }
 
     public void stop() {
+        if (isStopped) {
+            return;
+        }
         isStopped = true;
         rpcEndpointRefHandler.close();
     }
@@ -75,10 +82,8 @@ public class TransportClient {
      */
     public void send(RpcMessage message) {
         if (isActive()) {
-            //TODO
             byte[] data = rpcEnv.serialize(message);
             if (Objects.isNull(data)) {
-                //TODO 序列化错误
                 return;
             }
 
@@ -101,13 +106,14 @@ public class TransportClient {
                 return;
             }
 
-            //TODO
+            rpcEnv.postMessage(message.getTo().getEndpointAddress().getName(), message);
         }
 
         @Override
         protected void reconnect() {
             if (!isStopped) {
-                //TODO
+                log.warn("transport client({}) reconnecting...", address);
+                connect(clientTransportOption, address);
             }
         }
 
@@ -126,7 +132,6 @@ public class TransportClient {
         @Override
         public void operationComplete(ChannelFuture future) {
             if (!future.isSuccess()) {
-                //TODO
             }
         }
     }

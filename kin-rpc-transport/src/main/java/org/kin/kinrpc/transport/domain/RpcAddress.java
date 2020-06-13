@@ -1,6 +1,7 @@
 package org.kin.kinrpc.transport.domain;
 
 import org.kin.framework.utils.ExceptionUtils;
+import org.kin.framework.utils.NetUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +47,11 @@ public class RpcAddress implements Serializable {
     }
 
     //------------------------------------------------------------------------------------------------------------
+    public String str() {
+        return NetUtils.getIpPort(host, port);
+    }
 
+    //------------------------------------------------------------------------------------------------------------
     public String getHost() {
         return host;
     }

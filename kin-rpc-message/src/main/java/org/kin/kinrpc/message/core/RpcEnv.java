@@ -10,9 +10,7 @@ import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.framework.utils.SysUtils;
-import org.kin.kinrpc.message.api.RpcEndpoint;
-import org.kin.kinrpc.message.api.RpcEndpointRef;
-import org.kin.kinrpc.message.api.RpcMessageCallContext;
+import org.kin.kinrpc.message.RpcEndpointThreadPool;
 import org.kin.kinrpc.message.transport.TransportClient;
 import org.kin.kinrpc.message.transport.domain.RpcEndpointAddress;
 import org.kin.kinrpc.message.transport.protocol.RpcMessage;
@@ -118,12 +116,12 @@ public class RpcEnv {
      * @param rpcEndpoint      rpc服务消息处理实现
      * @param enableConcurrent 是否支持并发处理消息
      */
-    public final void register(String name, RpcEndpoint rpcEndpoint, boolean enableConcurrent) {
+    public final void register(String name, RpcEndpoint rpcEndpoint) {
         if (isStopped) {
             return;
         }
 
-        dispatcher.register(name, rpcEndpoint, enableConcurrent);
+        dispatcher.register(name, rpcEndpoint, !rpcEndpoint.threadSafe());
         endpoint2Ref.put(rpcEndpoint, new RpcEndpointRef(RpcEndpointAddress.of(address, name)));
     }
 
@@ -155,11 +153,12 @@ public class RpcEnv {
         if (Objects.nonNull(rpcEndpoint)) {
             rpcEndpoint.close();
         }
-        for (TransportClient transportClient : clients.values()) {
-            transportClient.stop();
+        for (RpcAddress rpcAddress : clients.keySet()) {
+            removeClient(rpcAddress);
         }
         executors.shutdown();
         dispatcher.shutdown();
+        RpcEndpointThreadPool.EXECUTORS.shutdown();
     }
 
     /**
@@ -200,6 +199,11 @@ public class RpcEnv {
         return null;
     }
 
+    /**
+     * 获取客户端
+     *
+     * @param address remote地址
+     */
     public TransportClient getClient(RpcAddress address) {
         TransportClient transportClient;
         synchronized (clients) {
@@ -210,19 +214,22 @@ public class RpcEnv {
                 return clients.get(address);
             }
 
-            transportClient = new TransportClient(this);
-            transportClient.connect(address.getHost(), address.getPort(), compression);
+            transportClient = new TransportClient(this, address.getHost(), address.getPort(), compression);
+            transportClient.connect();
             clients.put(address, transportClient);
         }
 
         return transportClient;
     }
 
+    /**
+     * 发送消息
+     */
     public void send(RpcMessage message) {
         RpcEndpointAddress endpointAddress = message.getTo().getEndpointAddress();
         if (endpointAddress.getRpcAddress().equals(address)) {
             //local
-            postMessage0(endpointAddress.getName(), message);
+            postMessage(endpointAddress.getName(), message);
         } else {
             post2OutBox(new OutBoxMessage(message));
         }
@@ -252,11 +259,37 @@ public class RpcEnv {
         }
     }
 
-    private void postMessage0(String name, RpcMessage message) {
-        //TODO 可能需要统计一些消息处理具体信息
+    /**
+     * 分派并处理接受到的消息
+     */
+    public void postMessage(String name, RpcMessage message) {
         RpcMessageCallContext rpcMessageCallContext =
-                new RpcMessageCallContext(message.getFrom(), message.getMessage(), message.getRequestId(), message.getCreateTime());
+                new RpcMessageCallContext(message.getFrom(), message.getTo(), message.getMessage(), message.getRequestId(), message.getCreateTime());
+        rpcMessageCallContext.setEventTime(System.currentTimeMillis());
         dispatcher.postMessage(name, rpcMessageCallContext);
+    }
+
+    /**
+     * 移除启动了的客户端
+     */
+    public void removeClient(RpcAddress address) {
+        synchronized (clients) {
+            if (isStopped) {
+                return;
+            }
+            TransportClient client = clients.remove(address);
+            client.stop();
+        }
+    }
+
+    /**
+     * 移除启动了的客户端
+     */
+    public void removeOutBox(RpcAddress address) {
+        if (isStopped) {
+            return;
+        }
+        outBoxs.remove(address);
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -270,6 +303,10 @@ public class RpcEnv {
 
     public ExecutionContext executors() {
         return executors;
+    }
+
+    public Dispatcher<String, RpcMessageCallContext> dispatcher() {
+        return dispatcher;
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -287,7 +324,7 @@ public class RpcEnv {
                 return;
             }
 
-            postMessage0(message.getTo().getEndpointAddress().getName(), message);
+            postMessage(message.getTo().getEndpointAddress().getName(), message);
         }
     }
 }

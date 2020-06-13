@@ -1,6 +1,5 @@
-package org.kin.kinrpc.message.api;
+package org.kin.kinrpc.message.core;
 
-import org.kin.kinrpc.message.core.RpcEnv;
 import org.kin.kinrpc.message.transport.domain.RpcEndpointAddress;
 import org.kin.kinrpc.message.transport.protocol.RpcMessage;
 import org.kin.kinrpc.transport.domain.RpcRequestIdGenerator;

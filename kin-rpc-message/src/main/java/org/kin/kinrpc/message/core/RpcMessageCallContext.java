@@ -1,4 +1,4 @@
-package org.kin.kinrpc.message.api;
+package org.kin.kinrpc.message.core;
 
 import java.io.Serializable;
 
@@ -9,6 +9,8 @@ import java.io.Serializable;
 public class RpcMessageCallContext {
     /** sender */
     private RpcEndpointRef from;
+    /** receive */
+    private RpcEndpointRef to;
     /** 消息 */
     private final Serializable message;
     /** request唯一id */
@@ -20,8 +22,9 @@ public class RpcMessageCallContext {
     /** request处理时间 */
     private long handleTime;
 
-    public RpcMessageCallContext(RpcEndpointRef from, Serializable message, long requestId, long createTime) {
+    public RpcMessageCallContext(RpcEndpointRef from, RpcEndpointRef to, Serializable message, long requestId, long createTime) {
         this.from = from;
+        this.to = to;
         this.message = message;
         this.requestId = requestId;
         this.createTime = createTime;
@@ -35,6 +38,14 @@ public class RpcMessageCallContext {
     }
 
     //------------------------------------------------------------------------------------------------------------------
+    public RpcEndpointRef getFrom() {
+        return from;
+    }
+
+    public RpcEndpointRef getTo() {
+        return to;
+    }
+
     public Serializable getMessage() {
         return message;
     }
