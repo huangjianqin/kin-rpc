@@ -57,7 +57,7 @@ public class RpcFuture implements Future<RpcResponse> {
 
     @Override
     public boolean isDone() {
-        return sync.isDone();
+        return sync.isDone() || isCancelled();
     }
 
     @Override
