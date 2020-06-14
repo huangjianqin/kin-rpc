@@ -1,10 +1,13 @@
 package org.kin.kinrpc.message.core;
 
+import io.netty.channel.Channel;
 import org.kin.kinrpc.message.transport.domain.RpcEndpointAddress;
 import org.kin.kinrpc.message.transport.protocol.RpcMessage;
 import org.kin.kinrpc.transport.domain.RpcAddress;
+import org.kin.kinrpc.transport.protocol.RpcResponseProtocol;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author huangjianqin
@@ -15,6 +18,7 @@ public class RpcMessageCallContext {
     private RpcEnv rpcEnv;
     /** sender地址 */
     private RpcAddress fromAddress;
+    private Channel channel;
     /** receive */
     private RpcEndpointRef to;
     /** 消息 */
@@ -28,9 +32,10 @@ public class RpcMessageCallContext {
     /** request处理时间 */
     private long handleTime;
 
-    public RpcMessageCallContext(RpcEnv rpcEnv, RpcAddress fromAddress, RpcEndpointRef to, Serializable message, long requestId, long createTime) {
+    public RpcMessageCallContext(RpcEnv rpcEnv, RpcAddress fromAddress, Channel channel, RpcEndpointRef to, Serializable message, long requestId, long createTime) {
         this.rpcEnv = rpcEnv;
         this.fromAddress = fromAddress;
+        this.channel = channel;
         this.to = to;
         this.message = message;
         this.requestId = requestId;
@@ -41,9 +46,18 @@ public class RpcMessageCallContext {
      * 响应客户端请求
      */
     public void reply(Serializable message) {
-        RpcMessage rpcMessage =
-                new RpcMessage(requestId, to.getEndpointAddress().getRpcAddress(), new RpcEndpointRef(RpcEndpointAddress.of(fromAddress, "")), message);
-        rpcEnv.send(rpcMessage);
+        if (Objects.nonNull(channel)) {
+            RpcMessage rpcMessage =
+                    new RpcMessage(requestId, to.getEndpointAddress().getRpcAddress(), new RpcEndpointRef(RpcEndpointAddress.of(fromAddress, "")), message);
+
+            byte[] data = rpcEnv.serialize(rpcMessage);
+            if (Objects.isNull(data)) {
+                return;
+            }
+
+            RpcResponseProtocol protocol = RpcResponseProtocol.create(data);
+            channel.writeAndFlush(protocol.write());
+        }
     }
 
     //------------------------------------------------------------------------------------------------------------------

@@ -3,10 +3,7 @@ package org.kin.kinrpc.demo.message;
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.config.SerializerType;
-import org.kin.kinrpc.message.core.RpcEndpoint;
-import org.kin.kinrpc.message.core.RpcEndpointRef;
-import org.kin.kinrpc.message.core.RpcEnv;
-import org.kin.kinrpc.message.core.RpcMessageCallContext;
+import org.kin.kinrpc.message.core.*;
 import org.kin.kinrpc.message.transport.domain.RpcEndpointAddress;
 import org.kin.kinrpc.transport.domain.RpcAddress;
 import org.kin.kinrpc.transport.serializer.Serializers;
@@ -40,7 +37,10 @@ public class RpcEndpointRefDemo extends RpcEndpoint {
         int count = 0;
         while (count < 10000) {
             try {
-                endpointRef.send(new PrintMessage(++count + ""));
+                RpcEndpointRef self = rpcEnv.rpcEndpointRef(rpcEndpointRefDemo);
+                endpointRef.send(new PrintMessage(++count + "", self));
+                RpcFuture<RpcEndpointDemo.ReplyMessage> future = endpointRef.ask(new PrintMessage(++count + "", self));
+                System.out.println(future.get());
             } catch (Exception e) {
                 System.err.println(e);
             }
@@ -64,7 +64,7 @@ public class RpcEndpointRefDemo extends RpcEndpoint {
     @Override
     public void receive(RpcMessageCallContext context) {
         super.receive(context);
-        System.out.println(context.getMessage());
+        System.err.println(context.getMessage());
     }
 
     @Override
@@ -72,16 +72,18 @@ public class RpcEndpointRefDemo extends RpcEndpoint {
         return true;
     }
 
-    private static class PrintMessage implements Serializable {
+    public static class PrintMessage implements Serializable {
         private static final long serialVersionUID = -1632194863001778858L;
 
         private String content;
+        private RpcEndpointRef from;
 
         public PrintMessage() {
         }
 
-        public PrintMessage(String content) {
+        public PrintMessage(String content, RpcEndpointRef from) {
             this.content = content;
+            this.from = from;
         }
 
         public String getContent() {
@@ -92,10 +94,19 @@ public class RpcEndpointRefDemo extends RpcEndpoint {
             this.content = content;
         }
 
+        public RpcEndpointRef getFrom() {
+            return from;
+        }
+
+        public void setFrom(RpcEndpointRef from) {
+            this.from = from;
+        }
+
         @Override
         public String toString() {
             return "PrintMessage{" +
                     "content='" + content + '\'' +
+                    ", rpcEndpointRef=" + from +
                     '}';
         }
     }

@@ -42,8 +42,13 @@ public class RpcEndpointDemo extends RpcEndpoint {
     @Override
     public void receive(RpcMessageCallContext context) {
         super.receive(context);
-        System.out.println(context.getMessage());
+        Serializable message = context.getMessage();
+        System.out.println(message);
         context.reply(new ReplyMessage(context.getRequestId()));
+        if (message instanceof RpcEndpointRefDemo.PrintMessage) {
+            RpcEndpointRefDemo.PrintMessage printMessage = (RpcEndpointRefDemo.PrintMessage) message;
+            printMessage.getFrom().send(new ReplyMessage(context.getRequestId()));
+        }
     }
 
     @Override
@@ -51,7 +56,7 @@ public class RpcEndpointDemo extends RpcEndpoint {
         return true;
     }
 
-    private class ReplyMessage implements Serializable {
+    public static class ReplyMessage implements Serializable {
         private static final long serialVersionUID = -1586292592951384110L;
         private long requestId;
 

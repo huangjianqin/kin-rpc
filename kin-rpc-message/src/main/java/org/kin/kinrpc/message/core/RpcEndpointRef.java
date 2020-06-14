@@ -5,6 +5,7 @@ import org.kin.kinrpc.message.transport.protocol.RpcMessage;
 import org.kin.kinrpc.transport.domain.RpcRequestIdGenerator;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author huangjianqin
@@ -24,16 +25,24 @@ public class RpcEndpointRef implements Serializable {
         this.rpcEnv = rpcEnv;
     }
 
+    private RpcEnv rpcEnv() {
+        RpcEnv rpcEnv = this.rpcEnv;
+        if (Objects.isNull(rpcEnv)) {
+            rpcEnv = RpcEnv.currentRpcEnv();
+        }
+        return rpcEnv;
+    }
+
     private RpcMessage rpcMessage(Serializable message) {
-        return new RpcMessage(RpcRequestIdGenerator.next(), rpcEnv.address(), this, message);
+        return new RpcMessage(RpcRequestIdGenerator.next(), rpcEnv().address(), this, message);
     }
 
     public void send(Serializable message) {
-        rpcEnv.send(rpcMessage(message));
+        rpcEnv().send(rpcMessage(message));
     }
 
     public <R extends Serializable> RpcFuture<R> ask(Serializable message) {
-        return rpcEnv.ask(rpcMessage(message));
+        return rpcEnv().ask(rpcMessage(message));
     }
 
     //------------------------------------------------------------------------------------------------------------------

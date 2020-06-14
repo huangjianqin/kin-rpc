@@ -46,6 +46,16 @@ public class RpcEnv {
         ProtocolFactory.init(RpcRequestProtocol.class.getPackage().getName());
     }
 
+    private static ThreadLocal<RpcEnv> currentRpcEnv = new ThreadLocal<>();
+
+    public static RpcEnv currentRpcEnv() {
+        return currentRpcEnv.get();
+    }
+
+    public static void updateCurrentRpcEnv(RpcEnv rpcEnv) {
+        currentRpcEnv.set(rpcEnv);
+    }
+    //----------------------------------------------------------------------------------------------------------------
     /**
      * rpc环境公用线程池, 除了dispatcher以外, 都用这个线程池
      */
@@ -184,6 +194,7 @@ public class RpcEnv {
         RpcMessage message;
         try {
             message = serializer.deserialize(data, RpcMessage.class);
+            updateCurrentRpcEnv(this);
 
             InOutBoundStatisicService.instance().statisticReq(
                     message.getMessage().getClass().getName(), data.length
@@ -272,8 +283,15 @@ public class RpcEnv {
      * 分派并处理接受到的消息
      */
     public void postMessage(RpcMessage message) {
+        postMessage(null, message);
+    }
+
+    /**
+     * 分派并处理接受到的消息
+     */
+    public void postMessage(Channel channel, RpcMessage message) {
         RpcMessageCallContext rpcMessageCallContext =
-                new RpcMessageCallContext(this, message.getFromAddress(), message.getTo(), message.getMessage(), message.getRequestId(), message.getCreateTime());
+                new RpcMessageCallContext(this, message.getFromAddress(), channel, message.getTo(), message.getMessage(), message.getRequestId(), message.getCreateTime());
         rpcMessageCallContext.setEventTime(System.currentTimeMillis());
         dispatcher.postMessage(message.getTo().getEndpointAddress().getName(), rpcMessageCallContext);
     }
@@ -350,7 +368,7 @@ public class RpcEnv {
                 return;
             }
 
-            postMessage(message);
+            postMessage(channel, message);
         }
     }
 }

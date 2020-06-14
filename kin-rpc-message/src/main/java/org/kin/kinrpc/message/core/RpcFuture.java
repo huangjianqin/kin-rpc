@@ -84,7 +84,7 @@ public class RpcFuture<R extends Serializable> implements Future<R> {
     }
 
     public void done(R reply) {
-        if (!isDone()) {
+        if (isDone()) {
             return;
         }
         sync.release(1);
@@ -92,7 +92,7 @@ public class RpcFuture<R extends Serializable> implements Future<R> {
     }
 
     public void fail(Throwable e) {
-        if (!isDone()) {
+        if (isDone()) {
             return;
         }
         sync.release(1);

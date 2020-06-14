@@ -11,9 +11,7 @@ import org.slf4j.LoggerFactory;
  */
 public class RpcEndpoint extends Receiver<RpcMessageCallContext> {
     private static final Logger msgLog = LoggerFactory.getLogger("message");
-    /**
-     *
-     */
+    /** rpc环境 */
     private RpcEnv rpcEnv;
 
     /**
@@ -39,6 +37,7 @@ public class RpcEndpoint extends Receiver<RpcMessageCallContext> {
 
     @Override
     public void receive(RpcMessageCallContext context) {
+        RpcEnv.updateCurrentRpcEnv(rpcEnv);
         //default do nothing
         context.setHandleTime(System.currentTimeMillis());
 
