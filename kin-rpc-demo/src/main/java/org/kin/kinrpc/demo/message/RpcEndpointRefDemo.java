@@ -31,8 +31,8 @@ public class RpcEndpointRefDemo extends RpcEndpoint {
 
         RpcEndpointRef endpointRef = new RpcEndpointRef(
                 RpcEndpointAddress.of(
-                        RpcAddress.of("0.0.0.0", 16888), "rpcEndpointDemo"));
-        endpointRef.updateRpcEnv(rpcEnv);
+                        RpcAddress.of("0.0.0.0", 16888), "rpcEndpointDemo"),
+                rpcEnv);
 
         int count = 0;
         while (count < 10000) {
