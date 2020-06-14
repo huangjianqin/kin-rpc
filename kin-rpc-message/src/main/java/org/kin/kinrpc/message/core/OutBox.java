@@ -88,6 +88,8 @@ public class OutBox {
             if (Objects.isNull(outBoxMessage)) {
                 return;
             }
+
+            //TODO 考虑处理client unactive 的情况
             draining = true;
         }
 
