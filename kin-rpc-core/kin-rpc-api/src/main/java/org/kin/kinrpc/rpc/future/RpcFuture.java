@@ -1,6 +1,7 @@
 package org.kin.kinrpc.rpc.future;
 
 
+import org.kin.framework.concurrent.lock.OneLock;
 import org.kin.kinrpc.rpc.RpcReference;
 import org.kin.kinrpc.rpc.RpcThreadPool;
 import org.kin.kinrpc.rpc.transport.RpcRequest;
@@ -13,7 +14,6 @@ import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
 /**
  * Created by 健勤 on 2017/2/15.
@@ -25,14 +25,14 @@ public class RpcFuture implements Future<RpcResponse> {
     private long startTime;
     private long responseTimeThreshold = 5000;
 
-    private Sync sync;
+    private OneLock sync;
     private RpcRequest request;
     private RpcResponse response;
     private List<AsyncRpcCallback> callbacks = new ArrayList<>();
     private RpcReference rpcReference;
 
     public RpcFuture(RpcRequest request, RpcReference rpcReference) {
-        this.sync = new Sync();
+        this.sync = new OneLock();
         this.request = request;
         this.startTime = System.currentTimeMillis();
         this.rpcReference = rpcReference;
@@ -124,29 +124,6 @@ public class RpcFuture implements Future<RpcResponse> {
         }
 
         return this;
-    }
-
-    private class Sync extends AbstractQueuedSynchronizer {
-        private final int DONE = 1;
-        private final int PENDING = 0;
-
-        @Override
-        protected boolean tryAcquire(int acquires) {
-            return getState() == DONE;
-        }
-
-        @Override
-        protected boolean tryRelease(int releases) {
-            if (getState() == PENDING) {
-                return compareAndSetState(PENDING, DONE);
-            }
-
-            return false;
-        }
-
-        public boolean isDone() {
-            return getState() == DONE;
-        }
     }
 
     public RpcRequest getRequest() {
