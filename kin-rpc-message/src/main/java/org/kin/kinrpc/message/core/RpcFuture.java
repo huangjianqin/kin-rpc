@@ -1,48 +1,105 @@
 package org.kin.kinrpc.message.core;
 
 import org.kin.framework.concurrent.lock.OneLock;
+import org.kin.kinrpc.message.transport.TransportClient;
+import org.kin.kinrpc.transport.domain.RpcAddress;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author huangjianqin
  * @date 2020-06-14
  */
 public class RpcFuture<R extends Serializable> implements Future<R> {
-    private OneLock sync = new OneLock();
-    private R reply;
+    /** rpc环境 */
+    private final RpcEnv rpcEnv;
+    /** rpc请求地址 */
+    private final RpcAddress address;
+    /** 请求唯一id */
+    private final long requestId;
 
+    private OneLock sync = new OneLock();
+    private volatile R reply;
+    private volatile Throwable exception;
+    private AtomicBoolean cancelled = new AtomicBoolean();
+
+    public RpcFuture(RpcEnv rpcEnv, RpcAddress address, long requestId) {
+        this.rpcEnv = rpcEnv;
+        this.address = address;
+        this.requestId = requestId;
+    }
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
+        if (!isDone() && cancelled.compareAndSet(false, true)) {
+            TransportClient client = rpcEnv.getClient(address);
+            if (Objects.nonNull(client)) {
+                client.removeRpcMessage(requestId);
+            }
+        }
         return false;
     }
 
     @Override
     public boolean isCancelled() {
-        return false;
+        return cancelled.get();
     }
 
     @Override
     public boolean isDone() {
-        return false;
+        return sync.isDone() || isCancelled();
     }
 
     @Override
     public R get() throws InterruptedException, ExecutionException {
+        sync.acquire(-1);
+        if (isDone()) {
+            return reply;
+        }
         return null;
     }
 
     @Override
     public R get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        return null;
+        boolean success = sync.tryAcquireNanos(-1, unit.toNanos(timeout));
+        if (success) {
+            if (isDone()) {
+                return reply;
+            } else {
+                return null;
+            }
+        } else {
+            throw new TimeoutException(getTimeoutMessage());
+        }
     }
 
-    public void done() {
+    private String getTimeoutMessage() {
+        return "Timeout exception. Request id: " + requestId;
+    }
+
+    public void done(R reply) {
+        if (!isDone()) {
+            return;
+        }
         sync.release(1);
+        this.reply = reply;
+    }
+
+    public void fail(Throwable e) {
+        if (!isDone()) {
+            return;
+        }
+        sync.release(1);
+        exception = e;
+    }
+
+    public Throwable getException() {
+        return exception;
     }
 }

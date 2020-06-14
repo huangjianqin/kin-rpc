@@ -4,7 +4,10 @@ import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
+import org.kin.framework.utils.StringUtils;
+import org.kin.kinrpc.message.core.OutBoxMessage;
 import org.kin.kinrpc.message.core.RpcEnv;
+import org.kin.kinrpc.message.core.RpcResponseCallback;
 import org.kin.kinrpc.message.transport.protocol.RpcMessage;
 import org.kin.kinrpc.transport.RpcEndpointRefHandler;
 import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
@@ -16,7 +19,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author huangjianqin
@@ -33,6 +38,8 @@ public class TransportClient {
 
     private RpcEndpointRefHandlerImpl rpcEndpointRefHandler;
     private volatile boolean isStopped;
+    /** 请求返回回调 */
+    private Map<Long, RpcResponseCallback> respCallbacks = new ConcurrentHashMap<>();
 
     public TransportClient(RpcEnv rpcEnv, String remoteHost, int remotePort, boolean compression) {
         this.rpcEnv = rpcEnv;
@@ -80,16 +87,22 @@ public class TransportClient {
     /**
      * 发送消息
      */
-    public void send(RpcMessage message) {
+    public void send(OutBoxMessage outBoxMessage) {
         if (isActive()) {
+            RpcMessage message = outBoxMessage.getMessage();
             byte[] data = rpcEnv.serialize(message);
             if (Objects.isNull(data)) {
                 return;
             }
 
             RpcRequestProtocol protocol = RpcRequestProtocol.create(data);
+            respCallbacks.put(message.getRequestId(), outBoxMessage);
             rpcEndpointRefHandler.client().request(protocol, new ReferenceRequestListener(message.getRequestId()));
         }
+    }
+
+    public void removeRpcMessage(long requestId) {
+        respCallbacks.remove(requestId);
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -106,7 +119,16 @@ public class TransportClient {
                 return;
             }
 
-            rpcEnv.postMessage(message.getTo().getEndpointAddress().getName(), message);
+            String targetReceiver = message.getTo().getEndpointAddress().getName();
+            if (StringUtils.isBlank(targetReceiver)) {
+                RpcResponseCallback callback = respCallbacks.get(message.getRequestId());
+                if (Objects.nonNull(callback)) {
+                    callback.onSuccess(message.getMessage());
+                }
+            } else {
+                //消息请求包
+                rpcEnv.postMessage(message);
+            }
         }
 
         @Override

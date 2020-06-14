@@ -1,5 +1,9 @@
 package org.kin.kinrpc.message.core;
 
+import org.kin.kinrpc.message.transport.domain.RpcEndpointAddress;
+import org.kin.kinrpc.message.transport.protocol.RpcMessage;
+import org.kin.kinrpc.transport.domain.RpcAddress;
+
 import java.io.Serializable;
 
 /**
@@ -7,8 +11,10 @@ import java.io.Serializable;
  * @date 2020-06-08
  */
 public class RpcMessageCallContext {
-    /** sender */
-    private RpcEndpointRef from;
+    /** rpc环境 */
+    private RpcEnv rpcEnv;
+    /** sender地址 */
+    private RpcAddress fromAddress;
     /** receive */
     private RpcEndpointRef to;
     /** 消息 */
@@ -22,8 +28,9 @@ public class RpcMessageCallContext {
     /** request处理时间 */
     private long handleTime;
 
-    public RpcMessageCallContext(RpcEndpointRef from, RpcEndpointRef to, Serializable message, long requestId, long createTime) {
-        this.from = from;
+    public RpcMessageCallContext(RpcEnv rpcEnv, RpcAddress fromAddress, RpcEndpointRef to, Serializable message, long requestId, long createTime) {
+        this.rpcEnv = rpcEnv;
+        this.fromAddress = fromAddress;
         this.to = to;
         this.message = message;
         this.requestId = requestId;
@@ -33,13 +40,15 @@ public class RpcMessageCallContext {
     /**
      * 响应客户端请求
      */
-    public void reply(RpcEndpointRef replier, Serializable message) {
-        from.send(replier, message);
+    public void reply(Serializable message) {
+        RpcMessage rpcMessage =
+                new RpcMessage(requestId, to.getEndpointAddress().getRpcAddress(), new RpcEndpointRef(RpcEndpointAddress.of(fromAddress, "")), message);
+        rpcEnv.send(rpcMessage);
     }
 
     //------------------------------------------------------------------------------------------------------------------
-    public RpcEndpointRef getFrom() {
-        return from;
+    public RpcAddress getFromAddress() {
+        return fromAddress;
     }
 
     public RpcEndpointRef getTo() {

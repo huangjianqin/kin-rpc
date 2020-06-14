@@ -1,6 +1,7 @@
 package org.kin.kinrpc.message.core;
 
 import org.kin.framework.concurrent.actor.Receiver;
+import org.kin.kinrpc.transport.domain.RpcAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,10 +42,10 @@ public class RpcEndpoint extends Receiver<RpcMessageCallContext> {
         //default do nothing
         context.setHandleTime(System.currentTimeMillis());
 
-        RpcEndpointRef from = context.getFrom();
+        RpcAddress fromAddress = context.getFromAddress();
         RpcEndpointRef to = context.getTo();
-        msgLog.info("receive message from {}({}) to {}({}), {}-{}-{}-{}-{}",
-                from.getEndpointAddress().getName(), from.getEndpointAddress().getRpcAddress().str(),
+        msgLog.info("receive message from {} to {}({}), {}-{}-{}-{}-{}",
+                fromAddress.str(),
                 to.getEndpointAddress().getName(), to.getEndpointAddress().getRpcAddress().str(),
                 context.getRequestId(),
                 context.getCreateTime(), context.getEventTime(), context.getHandleTime(),

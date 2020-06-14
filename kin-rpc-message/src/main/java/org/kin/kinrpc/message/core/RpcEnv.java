@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Objects;
@@ -44,6 +45,7 @@ public class RpcEnv {
     static {
         ProtocolFactory.init(RpcRequestProtocol.class.getPackage().getName());
     }
+
     /**
      * rpc环境公用线程池, 除了dispatcher以外, 都用这个线程池
      */
@@ -66,7 +68,9 @@ public class RpcEnv {
      *
      */
     private Map<RpcAddress, OutBox> outBoxs = new ConcurrentHashMap<>();
-    /** */
+    /**
+     *
+     */
     private Map<RpcEndpoint, RpcEndpointRef> endpoint2Ref = new ConcurrentHashMap<>();
 
     public RpcEnv(String host, int port, int parallelism, Serializer serializer, boolean compression) {
@@ -121,9 +125,8 @@ public class RpcEnv {
     /**
      * 注册rpc服务
      *
-     * @param name             rpc服务名
-     * @param rpcEndpoint      rpc服务消息处理实现
-     * @param enableConcurrent 是否支持并发处理消息
+     * @param name        rpc服务名
+     * @param rpcEndpoint rpc服务消息处理实现
      */
     public final void register(String name, RpcEndpoint rpcEndpoint) {
         if (isStopped) {
@@ -181,7 +184,6 @@ public class RpcEnv {
         RpcMessage message;
         try {
             message = serializer.deserialize(data, RpcMessage.class);
-            message.getFrom().updateRpcEnv(this);
 
             InOutBoundStatisicService.instance().statisticReq(
                     message.getMessage().getClass().getName(), data.length
@@ -239,13 +241,7 @@ public class RpcEnv {
      * 发送消息
      */
     public void send(RpcMessage message) {
-        RpcEndpointAddress endpointAddress = message.getTo().getEndpointAddress();
-        if (endpointAddress.getRpcAddress().equals(address)) {
-            //local
-            postMessage(endpointAddress.getName(), message);
-        } else {
-            post2OutBox(new OutBoxMessage(message));
-        }
+        post2OutBox(new OutBoxMessage(message));
     }
 
     private void post2OutBox(OutBoxMessage message) {
@@ -275,11 +271,11 @@ public class RpcEnv {
     /**
      * 分派并处理接受到的消息
      */
-    public void postMessage(String name, RpcMessage message) {
+    public void postMessage(RpcMessage message) {
         RpcMessageCallContext rpcMessageCallContext =
-                new RpcMessageCallContext(message.getFrom(), message.getTo(), message.getMessage(), message.getRequestId(), message.getCreateTime());
+                new RpcMessageCallContext(this, message.getFromAddress(), message.getTo(), message.getMessage(), message.getRequestId(), message.getCreateTime());
         rpcMessageCallContext.setEventTime(System.currentTimeMillis());
-        dispatcher.postMessage(name, rpcMessageCallContext);
+        dispatcher.postMessage(message.getTo().getEndpointAddress().getName(), rpcMessageCallContext);
     }
 
     /**
@@ -305,8 +301,25 @@ public class RpcEnv {
         outBoxs.remove(address);
     }
 
+    public <R extends Serializable> RpcFuture<R> ask(RpcMessage message) {
+        RpcFuture<R> future = new RpcFuture<>(this, message.getTo().getEndpointAddress().getRpcAddress(), message.getRequestId());
+        RpcResponseCallback callback = new RpcResponseCallback() {
+            @Override
+            public void onSuccess(Serializable message) {
+                future.done((R) message);
+            }
+
+            @Override
+            public void onFail(Throwable e) {
+                future.fail(e);
+            }
+        };
+        post2OutBox(new OutBoxMessage(message, callback));
+        return future;
+    }
+
     //------------------------------------------------------------------------------------------------------------------
-    public RpcAddress getAddress() {
+    public RpcAddress address() {
         return address;
     }
 
@@ -337,7 +350,7 @@ public class RpcEnv {
                 return;
             }
 
-            postMessage(message.getTo().getEndpointAddress().getName(), message);
+            postMessage(message);
         }
     }
 }
