@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by 健勤 on 2017/2/15.
@@ -30,6 +31,7 @@ public class RpcFuture implements Future<RpcResponse> {
     private RpcResponse response;
     private List<AsyncRpcCallback> callbacks = new ArrayList<>();
     private RpcReference rpcReference;
+    private AtomicBoolean cancelled;
 
     public RpcFuture(RpcRequest request, RpcReference rpcReference) {
         this.sync = new OneLock();
@@ -40,12 +42,17 @@ public class RpcFuture implements Future<RpcResponse> {
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
-        throw new UnsupportedOperationException();
+        if (cancelled.compareAndSet(false, true)) {
+            rpcReference.onFail(request.getRequestId(), "canncelled");
+            return true;
+        }
+
+        return false;
     }
 
     @Override
     public boolean isCancelled() {
-        throw new UnsupportedOperationException();
+        return cancelled.get();
     }
 
     @Override
