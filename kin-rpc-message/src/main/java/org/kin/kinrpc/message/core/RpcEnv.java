@@ -225,29 +225,6 @@ public class RpcEnv {
     }
 
     /**
-     * 获取客户端
-     *
-     * @param address remote地址
-     */
-    public TransportClient getClient(RpcAddress address) {
-        TransportClient transportClient;
-        synchronized (clients) {
-            if (isStopped) {
-                return null;
-            }
-            if (clients.containsKey(address)) {
-                return clients.get(address);
-            }
-
-            transportClient = new TransportClient(this, address.getHost(), address.getPort(), compression);
-            transportClient.connect();
-            clients.put(address, transportClient);
-        }
-
-        return transportClient;
-    }
-
-    /**
      * 发送消息
      */
     public void send(RpcMessage message) {
@@ -282,6 +259,26 @@ public class RpcEnv {
     }
 
     /**
+     * 支持future的消息发送
+     */
+    public <R extends Serializable> RpcFuture<R> ask(RpcMessage message) {
+        RpcFuture<R> future = new RpcFuture<>(this, message.getTo().getEndpointAddress().getRpcAddress(), message.getRequestId());
+        RpcResponseCallback<R> callback = new RpcResponseCallback<R>() {
+            @Override
+            public void onSuccess(R message) {
+                future.done(message);
+            }
+
+            @Override
+            public void onFail(Throwable e) {
+                future.fail(e);
+            }
+        };
+        post2OutBox(new OutBoxMessage(message, callback));
+        return future;
+    }
+
+    /**
      * 分派并处理接受到的消息
      */
     public void postMessage(RpcMessage message) {
@@ -296,6 +293,29 @@ public class RpcEnv {
                 new RpcMessageCallContext(this, message.getFromAddress(), channel, message.getTo(), message.getMessage(), message.getRequestId(), message.getCreateTime());
         rpcMessageCallContext.setEventTime(System.currentTimeMillis());
         dispatcher.postMessage(message.getTo().getEndpointAddress().getName(), rpcMessageCallContext);
+    }
+
+    /**
+     * 获取客户端
+     *
+     * @param address remote地址
+     */
+    public TransportClient getClient(RpcAddress address) {
+        TransportClient transportClient;
+        synchronized (clients) {
+            if (isStopped) {
+                return null;
+            }
+            if (clients.containsKey(address)) {
+                return clients.get(address);
+            }
+
+            transportClient = new TransportClient(this, address.getHost(), address.getPort(), compression);
+            transportClient.connect();
+            clients.put(address, transportClient);
+        }
+
+        return transportClient;
     }
 
     /**
@@ -321,24 +341,11 @@ public class RpcEnv {
         outBoxs.remove(address);
     }
 
-    /**
-     * 支持future的消息发送
-     */
-    public <R extends Serializable> RpcFuture<R> ask(RpcMessage message) {
-        RpcFuture<R> future = new RpcFuture<>(this, message.getTo().getEndpointAddress().getRpcAddress(), message.getRequestId());
-        RpcResponseCallback<R> callback = new RpcResponseCallback<R>() {
-            @Override
-            public void onSuccess(R message) {
-                future.done(message);
-            }
-
-            @Override
-            public void onFail(Throwable e) {
-                future.fail(e);
-            }
-        };
-        post2OutBox(new OutBoxMessage(message, callback));
-        return future;
+    public RpcEndpointRef createEndpointRef(String host, int port, String receiverName) {
+        return new RpcEndpointRef(
+                RpcEndpointAddress.of(
+                        RpcAddress.of(host, port), receiverName),
+                this);
     }
 
     //------------------------------------------------------------------------------------------------------------------

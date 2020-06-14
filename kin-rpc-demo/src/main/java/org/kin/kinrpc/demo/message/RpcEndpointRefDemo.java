@@ -4,8 +4,6 @@ import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.config.SerializerType;
 import org.kin.kinrpc.message.core.*;
-import org.kin.kinrpc.message.transport.domain.RpcEndpointAddress;
-import org.kin.kinrpc.transport.domain.RpcAddress;
 import org.kin.kinrpc.transport.serializer.Serializers;
 
 import java.io.Serializable;
@@ -29,10 +27,7 @@ public class RpcEndpointRefDemo extends RpcEndpoint {
             rpcEnv.stop();
         });
 
-        RpcEndpointRef endpointRef = new RpcEndpointRef(
-                RpcEndpointAddress.of(
-                        RpcAddress.of("0.0.0.0", 16888), "rpcEndpointDemo"),
-                rpcEnv);
+        RpcEndpointRef endpointRef = rpcEnv.createEndpointRef("0.0.0.0", 16888, "rpcEndpointDemo");
 
         int count = 0;
         while (count < 10000) {
