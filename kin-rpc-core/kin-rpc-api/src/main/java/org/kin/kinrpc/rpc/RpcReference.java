@@ -144,7 +144,7 @@ public class RpcReference {
         this.pendingRpcFutureMap.remove(rpcRequest.getRequestId());
     }
 
-    private void onFail(long requestId, String reason) {
+    public void onFail(long requestId, String reason) {
         RpcFuture future = pendingRpcFutureMap.remove(requestId);
         if (Objects.nonNull(future)) {
             future.done(RpcResponse.respWithError(future.getRequest(), reason));
