@@ -43,7 +43,7 @@ public class RpcEndpointDemo extends RpcEndpoint {
     public void receive(RpcMessageCallContext context) {
         super.receive(context);
         System.out.println(context.getMessage());
-        context.reply(ref(), new ReplyMessage(context.getRequestId()));
+        context.reply(new ReplyMessage(context.getRequestId()));
     }
 
     @Override

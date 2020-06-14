@@ -23,7 +23,7 @@ public class OutBoxMessage implements RpcResponseCallback {
     }
 
     public void sendWith(TransportClient client) {
-        client.send(message);
+        client.send(this);
     }
 
     public RpcMessage getMessage() {

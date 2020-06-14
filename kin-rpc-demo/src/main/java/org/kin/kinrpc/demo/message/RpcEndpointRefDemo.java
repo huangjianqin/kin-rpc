@@ -40,7 +40,7 @@ public class RpcEndpointRefDemo extends RpcEndpoint {
         int count = 0;
         while (count < 10000) {
             try {
-                endpointRef.send(rpcEnv.rpcEndpointRef(rpcEndpointRefDemo), new PrintMessage(++count + ""));
+                endpointRef.send(new PrintMessage(++count + ""));
             } catch (Exception e) {
                 System.err.println(e);
             }
