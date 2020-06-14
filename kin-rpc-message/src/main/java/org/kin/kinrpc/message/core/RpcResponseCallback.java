@@ -6,7 +6,7 @@ import java.io.Serializable;
  * @author huangjianqin
  * @date 2020-06-14
  */
-public interface RpcResponseCallback {
+public interface RpcResponseCallback<R extends Serializable> {
     RpcResponseCallback EMPTY = new RpcResponseCallback() {
         @Override
         public void onSuccess(Serializable message) {
@@ -19,7 +19,7 @@ public interface RpcResponseCallback {
         }
     };
 
-    void onSuccess(Serializable message);
+    void onSuccess(R message);
 
     void onFail(Throwable e);
 }

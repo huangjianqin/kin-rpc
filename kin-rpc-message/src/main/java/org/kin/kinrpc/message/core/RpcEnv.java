@@ -303,10 +303,10 @@ public class RpcEnv {
 
     public <R extends Serializable> RpcFuture<R> ask(RpcMessage message) {
         RpcFuture<R> future = new RpcFuture<>(this, message.getTo().getEndpointAddress().getRpcAddress(), message.getRequestId());
-        RpcResponseCallback callback = new RpcResponseCallback() {
+        RpcResponseCallback<R> callback = new RpcResponseCallback<R>() {
             @Override
-            public void onSuccess(Serializable message) {
-                future.done((R) message);
+            public void onSuccess(R message) {
+                future.done(message);
             }
 
             @Override
