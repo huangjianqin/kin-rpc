@@ -19,7 +19,13 @@ public interface RpcResponseCallback<R extends Serializable> {
         }
     };
 
+    /**
+     * 消息处理完并返回
+     */
     void onSuccess(R message);
 
+    /**
+     * 消息处理完并返回, 但遇到错误
+     */
     void onFail(Throwable e);
 }

@@ -144,11 +144,10 @@ public class RpcEnv {
         }
 
         dispatcher.register(name, rpcEndpoint, !rpcEndpoint.threadSafe());
-        RpcEndpointRef endpointRef = new RpcEndpointRef(RpcEndpointAddress.of(address, name));
+        RpcEndpointRef endpointRef = new RpcEndpointRef(RpcEndpointAddress.of(address, name), this);
         endpoint2Ref.put(rpcEndpoint, endpointRef);
 
         rpcEndpoint.updateRpcEnv(this);
-        endpointRef.updateRpcEnv(this);
     }
 
     /**
@@ -255,6 +254,9 @@ public class RpcEnv {
         post2OutBox(new OutBoxMessage(message));
     }
 
+    /**
+     * 把消息推到outbox
+     */
     private void post2OutBox(OutBoxMessage message) {
         RpcEndpointAddress endpointAddress = message.getMessage().getTo().getEndpointAddress();
 
@@ -319,6 +321,9 @@ public class RpcEnv {
         outBoxs.remove(address);
     }
 
+    /**
+     * 支持future的消息发送
+     */
     public <R extends Serializable> RpcFuture<R> ask(RpcMessage message) {
         RpcFuture<R> future = new RpcFuture<>(this, message.getTo().getEndpointAddress().getRpcAddress(), message.getRequestId());
         RpcResponseCallback<R> callback = new RpcResponseCallback<R>() {
@@ -337,18 +342,31 @@ public class RpcEnv {
     }
 
     //------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * 该rpc环境的地址
+     */
     public RpcAddress address() {
         return address;
     }
 
+    /**
+     * 该rpc环境的rpcEndpointRef
+     */
     public RpcEndpointRef rpcEndpointRef(RpcEndpoint endpoint) {
         return endpoint2Ref.get(endpoint);
     }
 
+    /**
+     * rpc环境公用线程池
+     */
     public ExecutionContext executors() {
         return executors;
     }
 
+    /**
+     * dispatcher
+     */
     public Dispatcher<String, RpcMessageCallContext> dispatcher() {
         return dispatcher;
     }
@@ -357,6 +375,7 @@ public class RpcEnv {
     private class RpcEndpointImpl extends RpcEndpointHandler {
         @Override
         protected final void handleRpcRequestProtocol(Channel channel, RpcRequestProtocol requestProtocol) {
+            //处理接收到的消息
             if (isStopped) {
                 return;
             }

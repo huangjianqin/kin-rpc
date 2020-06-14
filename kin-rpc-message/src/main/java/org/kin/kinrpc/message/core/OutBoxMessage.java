@@ -22,6 +22,9 @@ public class OutBoxMessage implements RpcResponseCallback {
         this.proxy = proxy;
     }
 
+    /**
+     * 由某个client发送消息
+     */
     public void sendWith(TransportClient client) {
         client.send(this);
     }

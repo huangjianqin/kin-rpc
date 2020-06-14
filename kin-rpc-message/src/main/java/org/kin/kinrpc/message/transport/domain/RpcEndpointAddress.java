@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * RpcEndpoint地址
  * @author huangjianqin
  * @date 2020-06-10
  */

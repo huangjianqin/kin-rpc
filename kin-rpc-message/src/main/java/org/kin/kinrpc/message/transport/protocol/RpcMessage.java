@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * 请求和返回封装的消息
  * @author huangjianqin
  * @date 2020-06-08
  */

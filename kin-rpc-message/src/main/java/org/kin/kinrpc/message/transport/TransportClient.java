@@ -61,6 +61,9 @@ public class TransportClient {
         }
     }
 
+    /**
+     * 连接remote
+     */
     public void connect() {
         if (isStopped) {
             return;
@@ -101,6 +104,9 @@ public class TransportClient {
         }
     }
 
+    /**
+     * 移除无效请求绑定的callback
+     */
     public void removeRpcMessage(long requestId) {
         respCallbacks.remove(requestId);
     }
@@ -109,6 +115,7 @@ public class TransportClient {
     private class RpcEndpointRefHandlerImpl extends RpcEndpointRefHandler {
         @Override
         protected void handleRpcResponseProtocol(RpcResponseProtocol responseProtocol) {
+            //处理receiver返回的消息
             if (!TransportClient.this.isActive()) {
                 return;
             }
@@ -125,15 +132,13 @@ public class TransportClient {
                 if (Objects.nonNull(callback)) {
                     callback.onSuccess(message.getMessage());
                 }
-            } else {
-                //消息请求包
-                rpcEnv.postMessage(message);
             }
         }
 
         @Override
         protected void reconnect() {
             if (!isStopped) {
+                //处理重连
                 log.warn("transport client({}) reconnecting...", address);
                 connect(clientTransportOption, address);
             }
@@ -154,6 +159,8 @@ public class TransportClient {
         @Override
         public void operationComplete(ChannelFuture future) {
             if (!future.isSuccess()) {
+                //发送消息时遇到异常
+                removeRpcMessage(requestId);
             }
         }
     }

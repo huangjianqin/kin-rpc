@@ -27,6 +27,7 @@ public class RpcFuture<R extends Serializable> implements Future<R> {
     private OneLock sync = new OneLock();
     private volatile R reply;
     private volatile Throwable exception;
+    /** 标识future的取消状态 */
     private AtomicBoolean cancelled = new AtomicBoolean();
 
     public RpcFuture(RpcEnv rpcEnv, RpcAddress address, long requestId) {
@@ -83,6 +84,9 @@ public class RpcFuture<R extends Serializable> implements Future<R> {
         return "Timeout exception. Request id: " + requestId;
     }
 
+    /**
+     * 消息处理完并返回
+     */
     public void done(R reply) {
         if (isDone()) {
             return;
@@ -91,6 +95,9 @@ public class RpcFuture<R extends Serializable> implements Future<R> {
         this.reply = reply;
     }
 
+    /**
+     * 消息处理完并返回, 但遇到错误
+     */
     public void fail(Throwable e) {
         if (isDone()) {
             return;
@@ -99,6 +106,9 @@ public class RpcFuture<R extends Serializable> implements Future<R> {
         exception = e;
     }
 
+    /**
+     * @return 发送消息和消息处理的异常
+     */
     public Throwable getException() {
         return exception;
     }

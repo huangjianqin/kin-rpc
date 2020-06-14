@@ -21,6 +21,9 @@ public class RpcEndpoint extends Receiver<RpcMessageCallContext> {
         this.rpcEnv = rpcEnv;
     }
 
+    /**
+     * 获取指向这个RpcEndpoint的RpcEndpointRef
+     */
     public RpcEndpointRef ref() {
         return rpcEnv.rpcEndpointRef(this);
     }
@@ -37,10 +40,12 @@ public class RpcEndpoint extends Receiver<RpcMessageCallContext> {
 
     @Override
     public void receive(RpcMessageCallContext context) {
+        //更新该线程的rpc环境
         RpcEnv.updateCurrentRpcEnv(rpcEnv);
         //default do nothing
         context.setHandleTime(System.currentTimeMillis());
 
+        //log 一些消息日志
         RpcAddress fromAddress = context.getFromAddress();
         RpcEndpointRef to = context.getTo();
         msgLog.info("receive message from {} to {}({}), {}-{}-{}-{}-{}",
