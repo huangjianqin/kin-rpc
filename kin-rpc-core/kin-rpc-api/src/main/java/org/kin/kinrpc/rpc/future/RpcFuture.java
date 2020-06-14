@@ -31,7 +31,7 @@ public class RpcFuture implements Future<RpcResponse> {
     private RpcResponse response;
     private List<AsyncRpcCallback> callbacks = new ArrayList<>();
     private RpcReference rpcReference;
-    private AtomicBoolean cancelled;
+    private AtomicBoolean cancelled = new AtomicBoolean();
 
     public RpcFuture(RpcRequest request, RpcReference rpcReference) {
         this.sync = new OneLock();
