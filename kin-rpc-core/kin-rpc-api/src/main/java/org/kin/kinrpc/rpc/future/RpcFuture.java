@@ -42,7 +42,7 @@ public class RpcFuture implements Future<RpcResponse> {
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
-        if (cancelled.compareAndSet(false, true)) {
+        if (!isDone() && cancelled.compareAndSet(false, true)) {
             rpcReference.onFail(request.getRequestId(), "canncelled");
             return true;
         }
