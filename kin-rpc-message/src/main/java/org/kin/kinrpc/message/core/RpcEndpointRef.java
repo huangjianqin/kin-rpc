@@ -42,7 +42,7 @@ public class RpcEndpointRef implements Serializable {
     }
 
     private RpcMessage rpcMessage(Serializable message) {
-        return new RpcMessage(RpcRequestIdGenerator.next(), rpcEnv().address(), this, message);
+        return RpcMessage.of(RpcRequestIdGenerator.next(), rpcEnv().address(), this, message);
     }
 
     /**

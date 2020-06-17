@@ -2,10 +2,10 @@ package org.kin.kinrpc.demo.message;
 
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.utils.SysUtils;
-import org.kin.kinrpc.config.SerializerType;
 import org.kin.kinrpc.message.core.RpcEndpoint;
 import org.kin.kinrpc.message.core.RpcEnv;
 import org.kin.kinrpc.message.core.RpcMessageCallContext;
+import org.kin.kinrpc.transport.serializer.SerializerType;
 import org.kin.kinrpc.transport.serializer.Serializers;
 
 import java.io.Serializable;
@@ -15,12 +15,16 @@ import java.io.Serializable;
  * @date 2020-06-13
  */
 public class RpcEndpointDemo extends RpcEndpoint {
+    public RpcEndpointDemo(RpcEnv rpcEnv) {
+        super(rpcEnv);
+    }
+
     public static void main(String[] args) {
         RpcEnv rpcEnv = new RpcEnv("0.0.0.0", 16888, SysUtils.CPU_NUM,
-                Serializers.getSerializer(SerializerType.KRYO.name()), false);
+                Serializers.getSerializer(SerializerType.KRYO), false);
         rpcEnv.startServer();
         String name = "rpcEndpointDemo";
-        RpcEndpointDemo rpcEndpointDemo = new RpcEndpointDemo();
+        RpcEndpointDemo rpcEndpointDemo = new RpcEndpointDemo(rpcEnv);
         rpcEnv.register(name, rpcEndpointDemo);
 
         JvmCloseCleaner.DEFAULT().add(() -> {

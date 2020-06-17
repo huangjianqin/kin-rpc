@@ -25,15 +25,14 @@ public class RpcMessage implements Serializable {
     /** request创建时间 */
     private long createTime;
 
-    public RpcMessage() {
-    }
-
-    public RpcMessage(long requestId, RpcAddress fromAddress, RpcEndpointRef to, Serializable message) {
-        this.requestId = requestId;
-        this.fromAddress = fromAddress;
-        this.to = to;
-        this.message = message;
-        this.createTime = System.currentTimeMillis();
+    public static RpcMessage of(long requestId, RpcAddress fromAddress, RpcEndpointRef to, Serializable message) {
+        RpcMessage rpcMessage = new RpcMessage();
+        rpcMessage.requestId = requestId;
+        rpcMessage.fromAddress = fromAddress;
+        rpcMessage.to = to;
+        rpcMessage.message = message;
+        rpcMessage.createTime = System.currentTimeMillis();
+        return rpcMessage;
     }
 
     //----------------------------------------------------------------------------------------------------------------

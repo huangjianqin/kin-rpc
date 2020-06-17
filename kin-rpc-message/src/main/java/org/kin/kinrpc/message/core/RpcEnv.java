@@ -146,8 +146,6 @@ public class RpcEnv {
         dispatcher.register(name, rpcEndpoint, !rpcEndpoint.threadSafe());
         RpcEndpointRef endpointRef = new RpcEndpointRef(RpcEndpointAddress.of(address, name), this);
         endpoint2Ref.put(rpcEndpoint, endpointRef);
-
-        rpcEndpoint.updateRpcEnv(this);
     }
 
     /**
@@ -224,11 +222,18 @@ public class RpcEnv {
         return null;
     }
 
+    //--------------------------------------------------------------------------------------------------------------------------------
+
     /**
      * 发送消息
      */
     public void send(RpcMessage message) {
-        post2OutBox(new OutBoxMessage(message));
+        RpcEndpointAddress endpointAddress = message.getTo().getEndpointAddress();
+        if (address.equals(endpointAddress.getRpcAddress())) {
+            postMessage(message);
+        } else {
+            post2OutBox(new OutBoxMessage(message));
+        }
     }
 
     /**
@@ -278,6 +283,8 @@ public class RpcEnv {
         return future;
     }
 
+    //--------------------------------------------------------------------------------------------------------------------------------
+
     /**
      * 分派并处理接受到的消息
      */
@@ -295,12 +302,21 @@ public class RpcEnv {
         dispatcher.postMessage(message.getTo().getEndpointAddress().getName(), rpcMessageCallContext);
     }
 
+    public RpcEndpointRef createEndpointRef(String host, int port, String receiverName) {
+        return new RpcEndpointRef(
+                RpcEndpointAddress.of(
+                        RpcAddress.of(host, port), receiverName),
+                this);
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------
+
     /**
      * 获取客户端
      *
      * @param address remote地址
      */
-    public TransportClient getClient(RpcAddress address) {
+    TransportClient getClient(RpcAddress address) {
         TransportClient transportClient;
         synchronized (clients) {
             if (isStopped) {
@@ -321,7 +337,7 @@ public class RpcEnv {
     /**
      * 移除启动了的客户端
      */
-    public void removeClient(RpcAddress address) {
+    void removeClient(RpcAddress address) {
         synchronized (clients) {
             if (isStopped) {
                 return;
@@ -334,18 +350,11 @@ public class RpcEnv {
     /**
      * 移除启动了的客户端
      */
-    public void removeOutBox(RpcAddress address) {
+    void removeOutBox(RpcAddress address) {
         if (isStopped) {
             return;
         }
         outBoxs.remove(address);
-    }
-
-    public RpcEndpointRef createEndpointRef(String host, int port, String receiverName) {
-        return new RpcEndpointRef(
-                RpcEndpointAddress.of(
-                        RpcAddress.of(host, port), receiverName),
-                this);
     }
 
     //------------------------------------------------------------------------------------------------------------------

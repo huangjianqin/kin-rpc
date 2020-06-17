@@ -48,7 +48,7 @@ public class RpcMessageCallContext {
     public void reply(Serializable message) {
         if (Objects.nonNull(channel)) {
             RpcMessage rpcMessage =
-                    new RpcMessage(requestId, to.getEndpointAddress().getRpcAddress(), new RpcEndpointRef(RpcEndpointAddress.of(fromAddress, "")), message);
+                    RpcMessage.of(requestId, to.getEndpointAddress().getRpcAddress(), new RpcEndpointRef(RpcEndpointAddress.of(fromAddress, "")), message);
 
             byte[] data = rpcEnv.serialize(rpcMessage);
             if (Objects.isNull(data)) {

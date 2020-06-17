@@ -1,9 +1,13 @@
 package org.kin.kinrpc.message.core;
 
 import org.kin.framework.concurrent.actor.Receiver;
+import org.kin.kinrpc.message.transport.protocol.RpcMessage;
 import org.kin.kinrpc.transport.domain.RpcAddress;
+import org.kin.kinrpc.transport.domain.RpcRequestIdGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
 
 /**
  * @author huangjianqin
@@ -12,20 +16,10 @@ import org.slf4j.LoggerFactory;
 public class RpcEndpoint extends Receiver<RpcMessageCallContext> {
     private static final Logger msgLog = LoggerFactory.getLogger("message");
     /** rpc环境 */
-    private RpcEnv rpcEnv;
+    protected final RpcEnv rpcEnv;
 
-    /**
-     * 更新rpc环境
-     */
-    public void updateRpcEnv(RpcEnv rpcEnv) {
+    public RpcEndpoint(RpcEnv rpcEnv) {
         this.rpcEnv = rpcEnv;
-    }
-
-    /**
-     * 获取指向这个RpcEndpoint的RpcEndpointRef
-     */
-    public RpcEndpointRef ref() {
-        return rpcEnv.rpcEndpointRef(this);
     }
 
     @Override
@@ -57,7 +51,25 @@ public class RpcEndpoint extends Receiver<RpcMessageCallContext> {
         );
     }
 
+    /**
+     * 标识是否线程安全
+     */
     public boolean threadSafe() {
         return false;
     }
+
+    /**
+     * 获取指向这个RpcEndpoint的RpcEndpointRef
+     */
+    public RpcEndpointRef ref() {
+        return rpcEnv.rpcEndpointRef(this);
+    }
+
+    /**
+     * 分派并处理接受到的消息
+     */
+    public void send2Self(Serializable message) {
+        rpcEnv.postMessage(RpcMessage.of(RpcRequestIdGenerator.next(), rpcEnv.address(), rpcEnv.rpcEndpointRef(this), message));
+    }
+
 }

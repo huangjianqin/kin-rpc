@@ -20,6 +20,10 @@ public class Serializers {
     private Serializers() {
     }
 
+    public static Serializer getSerializer(SerializerType serializerType) {
+        return getSerializer(serializerType.getType());
+    }
+
     public static Serializer getSerializer(String type) {
         //从整个classpath寻找Serializer子类
         type = type.toLowerCase();

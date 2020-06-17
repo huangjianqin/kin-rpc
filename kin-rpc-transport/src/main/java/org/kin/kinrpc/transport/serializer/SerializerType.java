@@ -1,4 +1,4 @@
-package org.kin.kinrpc.config;
+package org.kin.kinrpc.transport.serializer;
 
 /**
  * Created by huangjianqin on 2019/6/4.

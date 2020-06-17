@@ -3,7 +3,7 @@ package org.kin.kinrpc.demo.rpc.reference;
 import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.References;
-import org.kin.kinrpc.config.SerializerType;
+import org.kin.kinrpc.transport.serializer.SerializerType;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
