@@ -171,9 +171,9 @@ public class Clusters {
             Registries.closeRegistry(clusterInvoker.getUrl());
         }
         //没有任何RPC 实例运行中
-        RpcThreadPool.PROVIDER_WORKER.shutdownNow();
-        RpcThreadPool.EXECUTORS.shutdownNow();
-        RpcEndpointRefHandler.RECONNECT_EXECUTORS.shutdownNow();
+        RpcThreadPool.PROVIDER_WORKER.shutdown();
+        RpcThreadPool.EXECUTORS.shutdown();
+        RpcEndpointRefHandler.RECONNECT_EXECUTORS.shutdown();
         PinnedThreadSafeFuturesManager.instance().close();
         InOutBoundStatisicService.instance().close();
     }

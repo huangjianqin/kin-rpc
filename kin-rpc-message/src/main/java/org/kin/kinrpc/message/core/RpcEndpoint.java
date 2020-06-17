@@ -43,8 +43,8 @@ public class RpcEndpoint extends Receiver<RpcMessageCallContext> {
         RpcAddress fromAddress = context.getFromAddress();
         RpcEndpointRef to = context.getTo();
         msgLog.info("receive message from {} to {}({}), {}-{}-{}-{}-{}",
-                fromAddress.str(),
-                to.getEndpointAddress().getName(), to.getEndpointAddress().getRpcAddress().str(),
+                fromAddress.address(),
+                to.getEndpointAddress().getName(), to.getEndpointAddress().getRpcAddress().address(),
                 context.getRequestId(),
                 context.getCreateTime(), context.getEventTime(), context.getHandleTime(),
                 context.getMessage()
@@ -61,14 +61,14 @@ public class RpcEndpoint extends Receiver<RpcMessageCallContext> {
     /**
      * 获取指向这个RpcEndpoint的RpcEndpointRef
      */
-    public RpcEndpointRef ref() {
+    public final RpcEndpointRef ref() {
         return rpcEnv.rpcEndpointRef(this);
     }
 
     /**
      * 分派并处理接受到的消息
      */
-    public void send2Self(Serializable message) {
+    public final void send2Self(Serializable message) {
         rpcEnv.postMessage(RpcMessage.of(RpcRequestIdGenerator.next(), rpcEnv.address(), rpcEnv.rpcEndpointRef(this), message));
     }
 

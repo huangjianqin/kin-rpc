@@ -47,7 +47,7 @@ public class RpcAddress implements Serializable {
     }
 
     //------------------------------------------------------------------------------------------------------------
-    public String str() {
+    public String address() {
         return NetUtils.getIpPort(host, port);
     }
 
