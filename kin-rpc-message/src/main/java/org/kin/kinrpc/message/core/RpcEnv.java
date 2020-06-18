@@ -143,9 +143,9 @@ public class RpcEnv {
             return;
         }
 
-        dispatcher.register(name, rpcEndpoint, !rpcEndpoint.threadSafe());
         RpcEndpointRef endpointRef = new RpcEndpointRef(RpcEndpointAddress.of(address, name), this);
         endpoint2Ref.put(rpcEndpoint, endpointRef);
+        dispatcher.register(name, rpcEndpoint, !rpcEndpoint.threadSafe());
     }
 
     /**
