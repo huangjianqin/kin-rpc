@@ -34,9 +34,9 @@ public class RpcEndpoint extends Receiver<RpcMessageCallContext> {
 
     @Override
     public void receive(RpcMessageCallContext context) {
-        //更新该线程的rpc环境
+        //更新该线程本地的rpc环境
         RpcEnv.updateCurrentRpcEnv(rpcEnv);
-        //default do nothing
+        //设置message handle时间
         context.setHandleTime(System.currentTimeMillis());
 
         //log 一些消息日志
@@ -66,7 +66,8 @@ public class RpcEndpoint extends Receiver<RpcMessageCallContext> {
     }
 
     /**
-     * 分派并处理接受到的消息
+     * 给自己分派消息
+     *
      */
     public final void send2Self(Serializable message) {
         rpcEnv.postMessage(RpcMessage.of(RpcRequestIdGenerator.next(), rpcEnv.address(), rpcEnv.rpcEndpointRef(this), message));

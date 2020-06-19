@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * 请求和返回封装的消息
+ * rpc请求封装的消息
  * @author huangjianqin
  * @date 2020-06-08
  */
@@ -22,7 +22,7 @@ public class RpcMessage implements Serializable {
     private RpcEndpointRef to;
     /** 消息 */
     private Serializable message;
-    /** request创建时间 */
+    /** 消息创建时间 */
     private long createTime;
 
     public static RpcMessage of(long requestId, RpcAddress fromAddress, RpcEndpointRef to, Serializable message) {

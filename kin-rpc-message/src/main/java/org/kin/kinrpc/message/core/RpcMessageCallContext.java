@@ -18,18 +18,19 @@ public class RpcMessageCallContext {
     private RpcEnv rpcEnv;
     /** sender地址 */
     private RpcAddress fromAddress;
+    /** sender channel */
     private Channel channel;
-    /** receive */
+    /** receiver */
     private RpcEndpointRef to;
     /** 消息 */
     private final Serializable message;
-    /** request唯一id */
+    /** 消息rpc request唯一id */
     private final long requestId;
-    /** request创建时间 */
+    /** 消息创建时间 */
     private final long createTime;
-    /** request事件时间即, 到达service端的时间 */
+    /** 消息事件时间即, 到达receiver端但还未处理的时间 */
     private long eventTime;
-    /** request处理时间 */
+    /** 消息处理时间 */
     private long handleTime;
 
     public RpcMessageCallContext(RpcEnv rpcEnv, RpcAddress fromAddress, Channel channel, RpcEndpointRef to, Serializable message, long requestId, long createTime) {
@@ -48,13 +49,15 @@ public class RpcMessageCallContext {
     public void reply(Serializable message) {
         if (Objects.nonNull(channel)) {
             RpcMessage rpcMessage =
-                    RpcMessage.of(requestId, to.getEndpointAddress().getRpcAddress(), new RpcEndpointRef(RpcEndpointAddress.of(fromAddress, "")), message);
+                    RpcMessage.of(requestId, to.getEndpointAddress().getRpcAddress(), RpcEndpointRef.of(RpcEndpointAddress.of(fromAddress, "")), message);
 
+            //序列化
             byte[] data = rpcEnv.serialize(rpcMessage);
             if (Objects.isNull(data)) {
                 return;
             }
 
+            //直接推回去, 不走outbox
             RpcResponseProtocol protocol = RpcResponseProtocol.create(data);
             channel.writeAndFlush(protocol.write());
         }

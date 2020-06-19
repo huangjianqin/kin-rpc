@@ -23,9 +23,11 @@ public class RpcFuture<R extends Serializable> implements Future<R> {
     private final RpcAddress address;
     /** 请求唯一id */
     private final long requestId;
-
+    /** 锁 */
     private OneLock sync = new OneLock();
+    /** 消息处理返回 */
     private volatile R reply;
+    /** 消息处理异常 */
     private volatile Throwable exception;
     /** 标识future的取消状态 */
     private AtomicBoolean cancelled = new AtomicBoolean();

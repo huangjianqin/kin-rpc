@@ -8,8 +8,11 @@ import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.message.core.OutBoxMessage;
 import org.kin.kinrpc.message.core.RpcEnv;
 import org.kin.kinrpc.message.core.RpcResponseCallback;
+import org.kin.kinrpc.message.exception.ClientConnectFailException;
+import org.kin.kinrpc.message.exception.ClientStoppedException;
 import org.kin.kinrpc.message.transport.protocol.RpcMessage;
 import org.kin.kinrpc.transport.RpcEndpointRefHandler;
+import org.kin.kinrpc.transport.domain.RpcAddress;
 import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
 import org.kin.kinrpc.transport.protocol.RpcResponseProtocol;
 import org.kin.transport.netty.core.Client;
@@ -34,20 +37,21 @@ public class TransportClient {
     /** 客户端配置 */
     private ClientTransportOption clientTransportOption;
     /** 服务器地址 */
-    private InetSocketAddress address;
-
+    private RpcAddress rpcAddress;
+    /** client handler */
     private RpcEndpointRefHandlerImpl rpcEndpointRefHandler;
     private volatile boolean isStopped;
     /** 请求返回回调 */
     private Map<Long, RpcResponseCallback> respCallbacks = new ConcurrentHashMap<>();
 
-    public TransportClient(RpcEnv rpcEnv, String remoteHost, int remotePort, boolean compression) {
+    public TransportClient(RpcEnv rpcEnv, RpcAddress rpcAddress, boolean compression) {
         this.rpcEnv = rpcEnv;
         this.rpcEndpointRefHandler = new RpcEndpointRefHandlerImpl();
-        this.address = new InetSocketAddress(remoteHost, remotePort);
+        this.rpcAddress = rpcAddress;
         this.clientTransportOption =
                 TransportOption.client()
                         .channelOption(ChannelOption.TCP_NODELAY, true)
+                        .channelOption(ChannelOption.SO_KEEPALIVE, true)
                         .channelOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
                         .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                         //receive窗口缓存6mb
@@ -69,7 +73,7 @@ public class TransportClient {
             return;
         }
 
-        rpcEndpointRefHandler.connect(clientTransportOption, address);
+        rpcEndpointRefHandler.connect(clientTransportOption, new InetSocketAddress(rpcAddress.getHost(), rpcAddress.getPort()));
     }
 
     /**
@@ -85,6 +89,9 @@ public class TransportClient {
         }
         isStopped = true;
         rpcEndpointRefHandler.close();
+        for (RpcResponseCallback callback : respCallbacks.values()) {
+            callback.onFail(new ClientStoppedException(rpcAddress.address()));
+        }
     }
 
     /**
@@ -105,7 +112,7 @@ public class TransportClient {
     }
 
     /**
-     * 移除无效请求绑定的callback
+     * 移除无效request绑定的callback
      */
     public void removeRpcMessage(long requestId) {
         respCallbacks.remove(requestId);
@@ -126,6 +133,7 @@ public class TransportClient {
                 return;
             }
 
+            //callback回调
             String targetReceiver = message.getTo().getEndpointAddress().getName();
             if (StringUtils.isBlank(targetReceiver)) {
                 RpcResponseCallback callback = respCallbacks.get(message.getRequestId());
@@ -137,10 +145,10 @@ public class TransportClient {
 
         @Override
         protected void reconnect() {
-            if (!isStopped) {
-                //处理重连
-                log.warn("transport client({}) reconnecting...", address);
-                connect(clientTransportOption, address);
+            //不处理, 由outbox发现in active时, 重新连接
+            rpcEnv.removeClient(rpcAddress);
+            for (RpcResponseCallback callback : respCallbacks.values()) {
+                callback.onFail(new ClientConnectFailException(rpcAddress.address()));
             }
         }
 

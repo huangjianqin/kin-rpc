@@ -19,28 +19,40 @@ public class RpcEndpointRef implements Serializable {
     private transient volatile RpcEnv rpcEnv;
 
     public RpcEndpointRef() {
+        //更新local RpcEnv
+        rpcEnv = RpcEnv.currentRpcEnv();
     }
 
-    public RpcEndpointRef(RpcEndpointAddress endpointAddress) {
-        this.endpointAddress = endpointAddress;
+    public static RpcEndpointRef of(RpcEndpointAddress endpointAddress) {
+        RpcEndpointRef rpcEndpointRef = new RpcEndpointRef();
+        rpcEndpointRef.endpointAddress = endpointAddress;
+        return rpcEndpointRef;
     }
 
-    public RpcEndpointRef(RpcEndpointAddress endpointAddress, RpcEnv rpcEnv) {
-        this.endpointAddress = endpointAddress;
-        this.rpcEnv = rpcEnv;
+    public static RpcEndpointRef of(RpcEndpointAddress endpointAddress, RpcEnv rpcEnv) {
+        RpcEndpointRef rpcEndpointRef = RpcEndpointRef.of(endpointAddress);
+        rpcEndpointRef.rpcEnv = rpcEnv;
+        return rpcEndpointRef;
     }
 
     /**
      * 获取rpc环境, 如果实例成员变量没有赋值, 则从ThreadLocal获取
      */
     private RpcEnv rpcEnv() {
-        RpcEnv rpcEnv = this.rpcEnv;
+        //反序列化时没有获取到RpcEnv, 则尝试从执行线程获取RpcEnv
         if (Objects.isNull(rpcEnv)) {
-            rpcEnv = RpcEnv.currentRpcEnv();
+            synchronized (this) {
+                if (Objects.isNull(rpcEnv)) {
+                    rpcEnv = RpcEnv.currentRpcEnv();
+                }
+            }
         }
         return rpcEnv;
     }
 
+    /**
+     * 封装成RpcMessage
+     */
     private RpcMessage rpcMessage(Serializable message) {
         return RpcMessage.of(RpcRequestIdGenerator.next(), rpcEnv().address(), this, message);
     }

@@ -5,6 +5,8 @@ import java.io.Serializable;
 /**
  * @author huangjianqin
  * @date 2020-06-14
+ *
+ * 消息处理返回回调接口
  */
 public interface RpcResponseCallback<R extends Serializable> {
     RpcResponseCallback EMPTY = new RpcResponseCallback() {

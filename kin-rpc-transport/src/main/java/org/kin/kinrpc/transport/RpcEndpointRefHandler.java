@@ -67,8 +67,8 @@ public abstract class RpcEndpointRefHandler extends TransportHandler {
      * 关闭客户端
      */
     public final void close() {
+        isStopped = true;
         if (Objects.nonNull(client)) {
-            isStopped = true;
             client.close();
         }
     }

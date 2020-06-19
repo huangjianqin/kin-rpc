@@ -23,7 +23,7 @@ public class OutBox {
     private RpcAddress address;
     /** 所属rpc环境 */
     private RpcEnv rpcEnv;
-    /** 该OutBox绑定的邮箱 */
+    /** 该OutBox邮箱绑定的client */
     private TransportClient client;
     /** 待发送队列 */
     private LinkedList<OutBoxMessage> pendingMessages = new LinkedList<>();
@@ -59,6 +59,26 @@ public class OutBox {
     }
 
     /**
+     * 校验client是否有效
+     */
+    private boolean validClient() {
+        if (Objects.isNull(client)) {
+            //没有连接好的客户端, 创建一个
+            clientConnect();
+            return false;
+        }
+
+        if (!client.isActive()) {
+            //client inactive
+            closeClient();
+            rpcEnv.removeClient(address);
+            clientConnect();
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * 消息真正发送的逻辑
      */
     private void drainOutbox() {
@@ -78,9 +98,7 @@ public class OutBox {
                 return;
             }
 
-            if (Objects.isNull(client)) {
-                //没有连接好的客户端, 创建一个
-                clientConnect();
+            if (!validClient()) {
                 return;
             }
 
@@ -89,7 +107,6 @@ public class OutBox {
                 return;
             }
 
-            //TODO 考虑处理client unactive 的情况
             draining = true;
         }
 
@@ -97,11 +114,13 @@ public class OutBox {
             try {
                 TransportClient client;
                 synchronized (this) {
+                    if (!validClient()) {
+                        return;
+                    }
+
                     client = this.client;
                 }
-                if (Objects.nonNull(client)) {
-                    outBoxMessage.sendWith(client);
-                }
+                outBoxMessage.sendWith(client);
             } catch (Exception e) {
                 handleException(e);
                 return;
@@ -127,14 +146,15 @@ public class OutBox {
         ExceptionUtils.log(e);
         synchronized (this) {
             if (Objects.isNull(clientConnectFuture)) {
-                stop();
+                //移除该outbox
+                rpcEnv.removeOutBox(address);
             }
         }
     }
 
     /** 获取与该OutBox绑定的client */
     private void clientConnect() {
-        clientConnectFuture = rpcEnv.executors.submit(() -> {
+        clientConnectFuture = rpcEnv.commonExecutors.submit(() -> {
             try {
                 TransportClient client = rpcEnv.getClient(address);
                 synchronized (OutBox.this) {
@@ -159,7 +179,7 @@ public class OutBox {
 
     /** 关闭client */
     private void closeClient() {
-        //为了复用client
+        //复用client
         client = null;
     }
 
@@ -173,7 +193,6 @@ public class OutBox {
             }
 
             isStopped = true;
-            rpcEnv.removeOutBox(address);
             if (Objects.nonNull(clientConnectFuture)) {
                 clientConnectFuture.cancel(true);
             }
@@ -182,7 +201,7 @@ public class OutBox {
 
         OutBoxMessage outBoxMessage;
         while (Objects.nonNull((outBoxMessage = pendingMessages.poll()))) {
-            log.warn("drop message, because of outbox stopped >>>> {}", outBoxMessage);
+            log.warn("drop message, due to outbox stopped >>>> {}", outBoxMessage);
         }
     }
 }
