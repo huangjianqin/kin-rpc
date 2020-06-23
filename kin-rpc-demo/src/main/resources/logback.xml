@@ -2,6 +2,7 @@
 <configuration scan="true" scanPeriod="60 seconds">
     <!--  不输出logback状态信息  -->
     <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
+    <property name="logDir" value="logs"/>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -18,7 +19,7 @@
             <level>DEBUG</level>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/%d{yyyy-MM-dd}/stdout.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <fileNamePattern>${logDir}/%d{yyyy-MM-dd}/stdout.log.%d{yyyy-MM-dd}</fileNamePattern>
             <!--<maxHistory>30</maxHistory>-->
         </rollingPolicy>
     </appender>
@@ -32,7 +33,7 @@
             <level>ERROR</level>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/%d{yyyy-MM-dd}/error.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <fileNamePattern>${logDir}/%d{yyyy-MM-dd}/error.log.%d{yyyy-MM-dd}</fileNamePattern>
             <!--<maxHistory>30</maxHistory>-->
         </rollingPolicy>
     </appender>
@@ -46,7 +47,7 @@
             <level>DEBUG</level>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/%d{yyyy-MM-dd}/transport.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <fileNamePattern>${logDir}/%d{yyyy-MM-dd}/transport.log.%d{yyyy-MM-dd}</fileNamePattern>
             <!--<maxHistory>30</maxHistory>-->
         </rollingPolicy>
     </appender>
@@ -60,7 +61,7 @@
             <level>DEBUG</level>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/%d{yyyy-MM-dd}/reqStatistic.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <fileNamePattern>${logDir}/%d{yyyy-MM-dd}/reqStatistic.log.%d{yyyy-MM-dd}</fileNamePattern>
             <!--<maxHistory>30</maxHistory>-->
         </rollingPolicy>
     </appender>
@@ -74,7 +75,7 @@
             <level>DEBUG</level>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/%d{yyyy-MM-dd}/respStatistic.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <fileNamePattern>${logDir}/%d{yyyy-MM-dd}/respStatistic.log.%d{yyyy-MM-dd}</fileNamePattern>
             <!--<maxHistory>30</maxHistory>-->
         </rollingPolicy>
     </appender>
@@ -88,7 +89,7 @@
             <level>DEBUG</level>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/%d{yyyy-MM-dd}/invoker.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <fileNamePattern>${logDir}/%d{yyyy-MM-dd}/invoker.log.%d{yyyy-MM-dd}</fileNamePattern>
             <!--<maxHistory>30</maxHistory>-->
         </rollingPolicy>
     </appender>
@@ -102,7 +103,7 @@
             <level>DEBUG</level>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/%d{yyyy-MM-dd}/registry.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <fileNamePattern>${logDir}/%d{yyyy-MM-dd}/registry.log.%d{yyyy-MM-dd}</fileNamePattern>
             <!--<maxHistory>30</maxHistory>-->
         </rollingPolicy>
     </appender>
@@ -116,7 +117,7 @@
             <level>DEBUG</level>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/%d{yyyy-MM-dd}/cluster.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <fileNamePattern>${logDir}/%d{yyyy-MM-dd}/cluster.log.%d{yyyy-MM-dd}</fileNamePattern>
             <!--<maxHistory>30</maxHistory>-->
         </rollingPolicy>
     </appender>
@@ -130,7 +131,7 @@
             <level>DEBUG</level>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/%d{yyyy-MM-dd}/message.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <fileNamePattern>${logDir}/%d{yyyy-MM-dd}/message.log.%d{yyyy-MM-dd}</fileNamePattern>
             <!--<maxHistory>30</maxHistory>-->
         </rollingPolicy>
     </appender>
