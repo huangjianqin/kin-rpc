@@ -14,7 +14,7 @@ import java.io.Serializable;
  * @date 2020-06-08
  */
 public class RpcEndpoint extends Receiver<RpcMessageCallContext> {
-    private static final Logger msgLog = LoggerFactory.getLogger("message");
+    private static final Logger msgLog = LoggerFactory.getLogger(RpcEndpoint.class);
     /** rpc环境 */
     protected final RpcEnv rpcEnv;
 
