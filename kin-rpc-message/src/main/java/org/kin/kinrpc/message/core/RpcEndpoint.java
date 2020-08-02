@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author huangjianqin
@@ -44,7 +45,8 @@ public class RpcEndpoint extends Receiver<RpcMessageCallContext> {
         RpcEndpointRef to = context.getTo();
         msgLog.info("receive message from {} to {}({}), {}-{}-{}-{}-{}",
                 fromAddress.address(),
-                to.getEndpointAddress().getName(), to.getEndpointAddress().getRpcAddress().address(),
+                Objects.nonNull(to) ? to.getEndpointAddress().getName() : "internal",
+                Objects.nonNull(to) ? to.getEndpointAddress().getRpcAddress().address() : "internal",
                 context.getRequestId(),
                 context.getCreateTime(), context.getEventTime(), context.getHandleTime(),
                 context.getMessage()
@@ -67,7 +69,6 @@ public class RpcEndpoint extends Receiver<RpcMessageCallContext> {
 
     /**
      * 给自己分派消息
-     *
      */
     public final void send2Self(Serializable message) {
         rpcEnv.postMessage(RpcMessage.of(RpcRequestIdGenerator.next(), rpcEnv.address(), rpcEnv.rpcEndpointRef(this), message));

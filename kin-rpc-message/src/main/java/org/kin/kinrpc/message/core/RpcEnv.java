@@ -10,6 +10,8 @@ import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.framework.utils.SysUtils;
+import org.kin.kinrpc.message.core.message.RemoteConnected;
+import org.kin.kinrpc.message.core.message.RemoteDisconnected;
 import org.kin.kinrpc.message.transport.TransportClient;
 import org.kin.kinrpc.message.transport.domain.RpcEndpointAddress;
 import org.kin.kinrpc.message.transport.protocol.RpcMessage;
@@ -171,22 +173,26 @@ public class RpcEnv {
         }
 
         isStopped = true;
-        //关闭server
-        if (Objects.nonNull(rpcEndpoint)) {
-            rpcEndpoint.close();
-        }
         //移除outbox 及 client
         for (RpcAddress rpcAddress : outBoxs.keySet()) {
             removeOutBox(rpcAddress);
         }
+
         for (RpcAddress rpcAddress : clients.keySet()) {
             removeClient(rpcAddress);
+        }
+
+        //关闭注册endpoint
+        dispatcher.shutdown();
+
+        //关闭server
+        if (Objects.nonNull(rpcEndpoint)) {
+            rpcEndpoint.close();
         }
 
         //shutdown 线程资源
         commonExecutors.shutdown();
         RpcEndpointRefHandler.RECONNECT_EXECUTORS.shutdown();
-        dispatcher.shutdown();
     }
 
     /**
@@ -236,6 +242,9 @@ public class RpcEnv {
      * 发送消息
      */
     public void send(RpcMessage message) {
+        if (isStopped) {
+            return;
+        }
         RpcEndpointAddress endpointAddress = message.getTo().getEndpointAddress();
         if (address.equals(endpointAddress.getRpcAddress())) {
             //local, 直接分派
@@ -275,6 +284,9 @@ public class RpcEnv {
      * 支持future的消息发送
      */
     public <R extends Serializable> RpcFuture<R> ask(RpcMessage message) {
+        if (isStopped) {
+            throw new IllegalStateException("rpcEnv stopped");
+        }
         RpcFuture<R> future = new RpcFuture<>(this, message.getTo().getEndpointAddress().getRpcAddress(), message.getRequestId());
         RpcResponseCallback<R> callback = new RpcResponseCallback<R>() {
             @Override
@@ -297,6 +309,9 @@ public class RpcEnv {
      * 分派并处理接受到的消息
      */
     public void postMessage(RpcMessage message) {
+        if (isStopped) {
+            return;
+        }
         postMessage(null, message);
     }
 
@@ -311,6 +326,9 @@ public class RpcEnv {
     }
 
     public RpcEndpointRef createEndpointRef(String host, int port, String receiverName) {
+        if (isStopped) {
+            throw new IllegalStateException("rpcEnv stopped");
+        }
         return RpcEndpointRef.of(
                 RpcEndpointAddress.of(
                         RpcAddress.of(host, port), receiverName),
@@ -324,7 +342,7 @@ public class RpcEnv {
      */
     public TransportClient getClient(RpcAddress address) {
         if (isStopped) {
-            return null;
+            throw new IllegalStateException("rpcEnv stopped");
         }
 
         //加锁处理, 保证获取一个active client
@@ -401,13 +419,11 @@ public class RpcEnv {
 
     //------------------------------------------------------------------------------------------------------------------
     private class RpcEndpointImpl extends RpcEndpointHandler {
+        /** client连接信息 -> 远程服务绑定的端口信息 */
+        private Map<RpcAddress, RpcAddress> clientAddr2RemoteBindAddr = new ConcurrentHashMap<>();
+
         @Override
         protected final void handleRpcRequestProtocol(Channel channel, RpcRequestProtocol requestProtocol) {
-            //处理接收到的消息
-            if (isStopped) {
-                return;
-            }
-
             //反序列化内容
             byte[] data = requestProtocol.getReqContent();
             RpcMessage message = deserialize(data);
@@ -415,8 +431,49 @@ public class RpcEnv {
                 return;
             }
 
+            InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
+            RpcAddress clientAddr = RpcAddress.of(remoteAddress.getHostName(), remoteAddress.getPort());
+            clientAddr2RemoteBindAddr.put(clientAddr, message.getFromAddress());
+
             //分派
             postMessage(channel, message);
+        }
+
+        @Override
+        public void channelActive(Channel channel) {
+            super.channelActive(channel);
+
+            if (isStopped) {
+                return;
+            }
+
+            InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
+            RpcAddress clientAddr = RpcAddress.of(remoteAddress.getHostName(), remoteAddress.getPort());
+            RemoteConnected remoteConnected = RemoteConnected.of(clientAddr);
+            RpcMessageCallContext rpcMessageCallContext =
+                    new RpcMessageCallContext(RpcEnv.this, clientAddr, channel, remoteConnected);
+            //分派
+            dispatcher.post2All(rpcMessageCallContext);
+        }
+
+        @Override
+        public void channelInactive(Channel channel) {
+            super.channelInactive(channel);
+
+            if (isStopped) {
+                return;
+            }
+
+            InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
+            RpcAddress clientAddr = RpcAddress.of(remoteAddress.getHostName(), remoteAddress.getPort());
+            RpcAddress remoteBindAddr = clientAddr2RemoteBindAddr.remove(clientAddr);
+            if (Objects.nonNull(remoteBindAddr)) {
+                RemoteDisconnected remoteDisconnected = RemoteDisconnected.of(remoteBindAddr);
+                RpcMessageCallContext rpcMessageCallContext =
+                        new RpcMessageCallContext(RpcEnv.this, remoteBindAddr, channel, remoteDisconnected);
+                //分派
+                dispatcher.post2All(rpcMessageCallContext);
+            }
         }
     }
 }

@@ -43,6 +43,10 @@ public class RpcMessageCallContext {
         this.createTime = createTime;
     }
 
+    public RpcMessageCallContext(RpcEnv rpcEnv, RpcAddress address, Channel channel, Serializable message) {
+        this(rpcEnv, address, channel, null, message, 0, System.currentTimeMillis());
+    }
+
     /**
      * 响应客户端请求
      */

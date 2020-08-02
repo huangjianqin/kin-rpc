@@ -103,6 +103,7 @@ public class OutBox {
             }
 
             outBoxMessage = pendingMessages.poll();
+            notify();
             if (Objects.isNull(outBoxMessage)) {
                 return;
             }
@@ -131,6 +132,7 @@ public class OutBox {
                 }
 
                 outBoxMessage = pendingMessages.poll();
+                notify();
                 if (Objects.isNull(outBoxMessage)) {
                     draining = false;
                     return;
@@ -191,17 +193,25 @@ public class OutBox {
             if (isStopped) {
                 return;
             }
+            while (pendingMessages.size() > 0) {
+                //等待所有消息处理完才处理stop逻辑
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+
+                }
+            }
+        }
+        synchronized (this) {
+            if (isStopped) {
+                return;
+            }
 
             isStopped = true;
             if (Objects.nonNull(clientConnectFuture)) {
                 clientConnectFuture.cancel(true);
             }
             closeClient();
-        }
-
-        OutBoxMessage outBoxMessage;
-        while (Objects.nonNull((outBoxMessage = pendingMessages.poll()))) {
-            log.warn("drop message, due to outbox stopped >>>> {}", outBoxMessage);
         }
     }
 }
