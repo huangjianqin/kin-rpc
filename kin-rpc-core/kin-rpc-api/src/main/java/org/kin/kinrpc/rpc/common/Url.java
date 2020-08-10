@@ -1,7 +1,8 @@
 package org.kin.kinrpc.rpc.common;
 
-import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -13,6 +14,8 @@ import java.util.Map;
  * Created by huangjianqin on 2019/6/18.
  */
 public class Url implements Serializable {
+    private static final Logger log = LoggerFactory.getLogger(Url.class);
+
     private String protocol;
     private String username;
     private String password;
@@ -63,7 +66,7 @@ public class Url implements Serializable {
                         try {
                             parameters.put(part.substring(0, j), URLDecoder.decode(part.substring(j + 1), "UTF-8"));
                         } catch (UnsupportedEncodingException e) {
-                            ExceptionUtils.log(e);
+                            log.error("", e);
                         }
                     } else {
                         parameters.put(part, part);

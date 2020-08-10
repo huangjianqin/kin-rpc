@@ -1,8 +1,9 @@
 package org.kin.kinrpc.config;
 
-import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -13,6 +14,7 @@ import java.util.Map;
  * Created by huangjianqin on 2019/6/25.
  */
 abstract class AbstractConfig {
+    private static final Logger log = LoggerFactory.getLogger(AbstractConfig.class);
     /**
      * 检查配置参数正确性
      * @throws Exception 异常
@@ -48,7 +50,7 @@ abstract class AbstractConfig {
             try {
                 sb.append(entry.getKey()).append("=").append(URLEncoder.encode(entry.getValue(), "UTF-8")).append("&");
             } catch (UnsupportedEncodingException e) {
-                ExceptionUtils.log(e);
+                log.error("", e);
             }
         }
 

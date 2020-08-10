@@ -1,6 +1,5 @@
 package org.kin.kinrpc.message.core;
 
-import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.message.transport.TransportClient;
 import org.kin.kinrpc.transport.domain.RpcAddress;
 import org.slf4j.Logger;
@@ -145,7 +144,7 @@ public class OutBox {
      * 处理消息发送中遇到的异常
      */
     private void handleException(Exception e) {
-        ExceptionUtils.log(e);
+        log.error("", e);
         synchronized (this) {
             if (Objects.isNull(clientConnectFuture)) {
                 //移除该outbox
