@@ -16,13 +16,6 @@
     </properties>
 
     <dependencies>
-        <!--配置redis-->
-        <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
-            <version>${jedis.version}</version>
-        </dependency>
-
         <dependency>
             <groupId>org.kin</groupId>
             <artifactId>kin-rpc-registry-api</artifactId>
