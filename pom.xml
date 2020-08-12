@@ -36,6 +36,7 @@
         <jmh.version>1.21</jmh.version>
         <jackson.version>2.10.1</jackson.version>
         <javassist.version>3.25.0-GA</javassist.version>
+        <lettuce.version>5.3.3.RELEASE</lettuce.version>
     </properties>
 
     <dependencies>

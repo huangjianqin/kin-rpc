@@ -21,5 +21,12 @@
             <artifactId>kin-rpc-registry-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <!-- redis客户端-->
+        <dependency>
+            <groupId>io.lettuce</groupId>
+            <artifactId>lettuce-core</artifactId>
+            <version>${lettuce.version}</version>
+        </dependency>
     </dependencies>
 </project>
