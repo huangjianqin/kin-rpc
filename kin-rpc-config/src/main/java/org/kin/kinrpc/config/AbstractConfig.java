@@ -15,6 +15,7 @@ import java.util.Map;
  */
 abstract class AbstractConfig {
     private static final Logger log = LoggerFactory.getLogger(AbstractConfig.class);
+
     /**
      * 检查配置参数正确性
      *
@@ -22,6 +23,9 @@ abstract class AbstractConfig {
      */
     abstract void check();
 
+    /**
+     * 根据配置创建唯一URL
+     */
     protected Url createURL(ApplicationConfig applicationConfig,
                             String hostPort,
                             AbstractRegistryConfig registryConfig,

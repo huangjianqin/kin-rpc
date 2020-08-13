@@ -16,23 +16,34 @@ import java.util.Map;
  * Created by 健勤 on 2017/2/12.
  */
 public class ServiceConfig extends AbstractConfig {
-    /** 配置 */
+    /** 应用配置 */
     private ApplicationConfig applicationConfig = new ApplicationConfig();
+    /** 网络配置 */
     private ServerConfig serverConfig = ServerConfig.DEFAULT;
+    /** 注册中心配置 */
     private AbstractRegistryConfig registryConfig;
+    /** 服务实例 */
     private Object ref;
+    /** 接口 */
     private Class<?> interfaceClass;
+    /** 服务名 */
     private String serviceName;
+    /** 序列化类型 */
     private String serialize = SerializerType.KRYO.getType();
+    /** 服务调用类型(invoker收到请求后, 用哪种方式调用服务) */
     private InvokeType invokeType = InvokeType.JAVASSIST;
+    /** 版本号 */
     private String version = "0.1.0.0";
+    /** 是否支持压缩 */
     private boolean compression;
     /** 默认支持并发执行 */
     private boolean parallelism = true;
     /** 流控, 每秒最多处理多少个request */
     private int rate = Constants.PROVIDER_REQUEST_THRESHOLD;
 
+    /** 唯一url */
     private Url url;
+    /** 是否已暴露服务 */
     private volatile boolean isExport;
 
     ServiceConfig(Object ref, Class<?> interfaceClass) {

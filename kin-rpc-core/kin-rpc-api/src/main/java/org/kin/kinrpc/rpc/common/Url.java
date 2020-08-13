@@ -15,15 +15,21 @@ import java.util.Map;
  */
 public class Url implements Serializable {
     private static final Logger log = LoggerFactory.getLogger(Url.class);
-
+    /** 协议号 */
     private String protocol;
+    /** 用户名 */
     private String username;
+    /** 密码 */
     private String password;
+    /** 主机号 */
     private String host;
+    /** 端口 */
     private int port;
+    /** url */
     private String path;
+    /** 参数 */
     private Map<String, String> params;
-
+    /** 服务名 */
     private String serviceName;
 
     public Url(String protocol, String username, String password, String host, int port, String path, Map<String, String> params) {

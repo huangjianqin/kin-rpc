@@ -19,24 +19,40 @@ import java.util.Map;
 public class ReferenceConfig<T> extends AbstractConfig {
     private static final Logger log = LoggerFactory.getLogger(ReferenceConfig.class);
 
+    /** 应用配置 */
     private ApplicationConfig applicationConfig = new ApplicationConfig();
+    /** 注册中心配置 */
     private AbstractRegistryConfig registryConfig;
+    /** 服务接口 */
     private Class<T> interfaceClass;
+    /** 连接超时 */
     private int timeout = Constants.REFERENCE_DEFAULT_CONNECT_TIMEOUT;
+    /** 服务名 */
     private String serviceName;
+    /** 重试次数 */
     private int retryTimes;
+    /** 重试超时 */
     private long retryTimeout = Constants.RETRY_TIMEOUT;
+    /** 序列化类型 */
     private String serialize = SerializerType.KRYO.getType();
+    /** 负载均衡类型 */
     private String loadBalanceType = LoadBalanceType.ROUNDROBIN.getType();
+    /** 路由类型 */
     private String routerType = RouterType.NONE.getType();
+    /** 客户端服务invoker调用类型 */
     private InvokeType invokeType = InvokeType.JAVASSIST;
+    /** 版本号 */
     private String version = "0.1.0.0";
+    /** 是否支持压缩 */
     private boolean compression;
     /** 服务限流, 每秒发送多少个 */
     private int rate = Constants.REFERENCE_REQUEST_THRESHOLD;
 
+    /** 唯一url */
     private Url url;
+    /** 服务引用, 也就是客户端服务invoker */
     private volatile T reference;
+    /** 是否已暴露引用 */
     private boolean isReference;
 
     ReferenceConfig(Class<T> interfaceClass) {
