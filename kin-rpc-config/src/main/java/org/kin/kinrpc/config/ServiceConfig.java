@@ -44,7 +44,7 @@ public class ServiceConfig extends AbstractConfig {
     //---------------------------------------------------------------------------------------------------------
 
     @Override
-    void check() throws Exception{
+    void check() {
         Preconditions.checkNotNull(this.ref, "provider object must be not null");
         Preconditions.checkNotNull(this.interfaceClass, "provider object interface must be not");
 
@@ -70,7 +70,7 @@ public class ServiceConfig extends AbstractConfig {
     /**
      * 暴露服务
      */
-    public void export() throws Exception {
+    public void export() {
         if (!isExport) {
             check();
 
@@ -150,16 +150,23 @@ public class ServiceConfig extends AbstractConfig {
         return this;
     }
 
-    public ServiceConfig zookeeper2(String address) {
+    public ServiceConfig redis(String address) {
         if (!isExport) {
-            this.registryConfig = new Zookeeper2RegistryConfig(address);
+            this.registryConfig = new RedisRegistryConfig(address);
         }
         return this;
     }
 
-    public ServiceConfig registrySessionTimeout(int sessionTimeout) {
+    public ServiceConfig registrySessionTimeout(long sessionTimeout) {
         if (!isExport) {
             this.registryConfig.setSessionTimeout(sessionTimeout);
+        }
+        return this;
+    }
+
+    public ServiceConfig registryWatchInterval(long watchInterval) {
+        if (!isExport) {
+            this.registryConfig.setWatchInterval(watchInterval);
         }
         return this;
     }

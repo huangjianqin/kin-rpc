@@ -14,14 +14,14 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @author huangjianqin
- * @date 2019/7/2
+ * @date 2019/7/3
  */
 public class ZookeeperAddableReference {
     public static void main(String[] args) throws InterruptedException {
         ReferenceConfig<AddableReference.Addable> referenceConfig =
                 References.reference(AddableReference.Addable.class)
                         .serviceName("test/Add")
-                        .zookeeper("127.0.0.1:2181").registrySessionTimeout(60 * 1000);
+                        .zookeeper("127.0.0.1:2181").registrySessionTimeout(1000);
 
         AddableReference.Addable service = referenceConfig.get();
         int count = 0;

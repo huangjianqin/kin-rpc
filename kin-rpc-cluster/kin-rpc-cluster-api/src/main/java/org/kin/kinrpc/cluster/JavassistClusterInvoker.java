@@ -26,7 +26,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker {
     private Class<T> interfaceClass;
     private int rate;
 
-    public JavassistClusterInvoker(Cluster cluster, int retryTimes, int retryTimeout, Url url, Class<T> interfaceClass) {
+    public JavassistClusterInvoker(Cluster cluster, int retryTimes, long retryTimeout, Url url, Class<T> interfaceClass) {
         super(cluster, retryTimes, retryTimeout, url);
         this.interfaceClass = interfaceClass;
         this.rate = Integer.parseInt(url.getParam(Constants.RATE_KEY));

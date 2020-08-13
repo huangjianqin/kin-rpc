@@ -11,7 +11,7 @@ class ZookeeperRegistryConfig extends AbstractRegistryConfig {
     ZookeeperRegistryConfig(String adress) {
         super(adress);
         //连接注册中心的会话超时,以毫秒算,默认5s
-        setSessionTimeout(Constants.ZOOKEEPER_SESSION_TIMEOUT);
+        setSessionTimeout(Constants.SESSION_TIMEOUT);
     }
 
     @Override

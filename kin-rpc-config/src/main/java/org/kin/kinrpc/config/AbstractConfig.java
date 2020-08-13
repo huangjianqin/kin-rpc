@@ -17,9 +17,10 @@ abstract class AbstractConfig {
     private static final Logger log = LoggerFactory.getLogger(AbstractConfig.class);
     /**
      * 检查配置参数正确性
+     *
      * @throws Exception 异常
      */
-    abstract void check() throws Exception;
+    abstract void check();
 
     protected Url createURL(ApplicationConfig applicationConfig,
                             String hostPort,
@@ -35,13 +36,14 @@ abstract class AbstractConfig {
                 params.put(Constants.REGISTRY_KEY, RegistryType.DIRECTURLS.getType());
             } else if (registryConfig instanceof ZookeeperRegistryConfig) {
                 params.put(Constants.REGISTRY_KEY, RegistryType.ZOOKEEPER.getType());
-            } else if (registryConfig instanceof Zookeeper2RegistryConfig) {
-                params.put(Constants.REGISTRY_KEY, RegistryType.ZOOKEEPER2.getType());
+            } else if (registryConfig instanceof RedisRegistryConfig) {
+                params.put(Constants.REGISTRY_KEY, RegistryType.REDIS.getType());
             } else {
                 throw new IllegalStateException("unknown registry");
             }
             params.put(Constants.REGISTRY_URL_KEY, registryConfig.getAddress());
             params.put(Constants.SESSION_TIMEOUT_KEY, registryConfig.getSessionTimeout() + "");
+            params.put(Constants.WATCH_INTERVAL_KEY, registryConfig.getWatchInterval() + "");
         }
 
         params.putAll(otherParams);

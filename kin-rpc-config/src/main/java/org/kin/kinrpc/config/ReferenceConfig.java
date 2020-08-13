@@ -25,7 +25,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
     private int timeout = Constants.REFERENCE_DEFAULT_CONNECT_TIMEOUT;
     private String serviceName;
     private int retryTimes;
-    private int retryTimeout = Constants.RETRY_TIMEOUT;
+    private long retryTimeout = Constants.RETRY_TIMEOUT;
     private String serialize = SerializerType.KRYO.getType();
     private String loadBalanceType = LoadBalanceType.ROUNDROBIN.getType();
     private String routerType = RouterType.NONE.getType();
@@ -49,7 +49,9 @@ public class ReferenceConfig<T> extends AbstractConfig {
     @Override
     void check() {
         Preconditions.checkNotNull(this.applicationConfig, "reference must need to configure application");
+        this.applicationConfig.check();
         Preconditions.checkNotNull(this.registryConfig, "reference must need to configure register");
+        this.registryConfig.check();
         Preconditions.checkNotNull(this.interfaceClass, "reference subscribed interface must be not null");
         Preconditions.checkArgument(this.timeout > 0, "connection's timeout must greater than 0");
         Preconditions.checkArgument(this.retryTimeout > 0, "retrytimeout must greater than 0");
@@ -119,16 +121,23 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return this;
     }
 
-    public ReferenceConfig<T> zookeeper2(String address) {
+    public ReferenceConfig<T> redis(String address) {
         if (!isReference) {
-            this.registryConfig = new Zookeeper2RegistryConfig(address);
+            this.registryConfig = new RedisRegistryConfig(address);
         }
         return this;
     }
 
-    public ReferenceConfig<T> registrySessionTimeout(int sessionTimeout) {
+    public ReferenceConfig<T> registrySessionTimeout(long sessionTimeout) {
         if (!isReference) {
             this.registryConfig.setSessionTimeout(sessionTimeout);
+        }
+        return this;
+    }
+
+    public ReferenceConfig<T> registryWatchInterval(long watchInterval) {
+        if (!isReference) {
+            this.registryConfig.setWatchInterval(watchInterval);
         }
         return this;
     }
@@ -154,7 +163,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return this;
     }
 
-    public ReferenceConfig<T> retryTimeout(int retryTimeout) {
+    public ReferenceConfig<T> retryTimeout(long retryTimeout) {
         if (!isReference) {
             this.retryTimeout = retryTimeout;
         }
@@ -259,7 +268,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return retryTimes;
     }
 
-    public int getRetryTimeout() {
+    public long getRetryTimeout() {
         return retryTimeout;
     }
 

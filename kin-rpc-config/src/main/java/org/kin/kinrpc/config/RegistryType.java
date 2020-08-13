@@ -6,17 +6,18 @@ package org.kin.kinrpc.config;
  */
 public enum RegistryType {
     /**
-     * 自带api的zookeeper注册中心
+     * zookeeper注册中心
      */
     ZOOKEEPER,
     /**
-     * 使用curator框架的zookeeper注册中心
-     */
-    ZOOKEEPER2,
-    /**
-     * hession序列化
+     * url直连
      */
     DIRECTURLS,
+
+    /**
+     * redis注册中心
+     */
+    REDIS,
     ;
 
     public String getType() {

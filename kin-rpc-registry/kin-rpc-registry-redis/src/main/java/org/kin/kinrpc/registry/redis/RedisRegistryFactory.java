@@ -1,6 +1,8 @@
-package org.kin.kinrpc.registry.zookeeper2;
+package org.kin.kinrpc.registry.redis;
 
 import com.google.common.base.Preconditions;
+import org.kin.framework.log.LoggerOprs;
+import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.registry.AbstractRegistryFactory;
 import org.kin.kinrpc.registry.Registry;
 import org.kin.kinrpc.rpc.common.Constants;
@@ -10,14 +12,22 @@ import org.kin.kinrpc.transport.serializer.Serializers;
 import java.util.concurrent.ExecutionException;
 
 /**
+ * redis注册中心工厂
+ *
  * @author huangjianqin
- * @date 2019/7/2
+ * @date 2020/8/12
  */
-public class Zookeeper2RegistryFactory extends AbstractRegistryFactory {
+public class RedisRegistryFactory extends AbstractRegistryFactory implements LoggerOprs {
     @Override
     public Registry getRegistry(Url url) {
         String address = url.getParam(Constants.REGISTRY_URL_KEY);
-        int sessionTimeout = Integer.parseInt(url.getParam(Constants.SESSION_TIMEOUT_KEY));
+        //解析地址
+        Object[] addressParseResult = NetUtils.parseIpPort(address);
+        String host = addressParseResult[0].toString();
+        int port = Integer.parseInt(addressParseResult[1].toString());
+
+        long sessionTimeout = Long.parseLong(url.getParam(Constants.SESSION_TIMEOUT_KEY));
+        long watchInterval = Long.parseLong(url.getParam(Constants.WATCH_INTERVAL_KEY));
         boolean compression = Boolean.parseBoolean(url.getParam(Constants.COMPRESSION_KEY));
 
         String serializerType = url.getParam(Constants.SERIALIZE_KEY);
@@ -25,7 +35,7 @@ public class Zookeeper2RegistryFactory extends AbstractRegistryFactory {
         Preconditions.checkNotNull(Serializers.getSerializer(serializerType), "unvalid serializer type: [" + serializerType + "]");
 
         try {
-            Registry registry = REGISTRY_CACHE.get(address, () -> new Zookeeper2Registry(address, sessionTimeout, serializerType, compression));
+            Registry registry = REGISTRY_CACHE.get(address, () -> new RedisRegistry(host, port, serializerType, compression, sessionTimeout, watchInterval));
             registry.connect();
             registry.retain();
             return registry;

@@ -31,10 +31,10 @@ abstract class ClusterInvoker<I> implements Closeable {
 
     private final Cluster cluster;
     private final int retryTimes;
-    private final int retryTimeout;
+    private final long retryTimeout;
     private final Url url;
 
-    public ClusterInvoker(Cluster cluster, int retryTimes, int retryTimeout, Url url) {
+    public ClusterInvoker(Cluster cluster, int retryTimes, long retryTimeout, Url url) {
         this.cluster = cluster;
         this.retryTimes = retryTimes;
         this.retryTimeout = retryTimeout;

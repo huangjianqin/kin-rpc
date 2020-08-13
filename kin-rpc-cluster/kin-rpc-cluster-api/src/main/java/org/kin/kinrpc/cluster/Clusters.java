@@ -115,7 +115,7 @@ public class Clusters {
         //构建Cluster类
         int timeout = Integer.parseInt(url.getParam(Constants.TIMEOUT_KEY));
         int retryTimes = Integer.parseInt(url.getParam(Constants.RETRY_TIMES_KEY));
-        int retryTimeout = Integer.parseInt(url.getParam(Constants.RETRY_TIMEOUT_KEY));
+        long retryTimeout = Long.parseLong(url.getParam(Constants.RETRY_TIMEOUT_KEY));
         String loadBalanceType = url.getParam(Constants.LOADBALANCE_KEY);
         LoadBalance loadBalance = LoadBalances.getLoadBalance(loadBalanceType);
         String routerType = url.getParam(Constants.ROUTER_KEY);

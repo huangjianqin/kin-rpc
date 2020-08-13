@@ -19,7 +19,7 @@ import java.util.concurrent.Future;
 class ReflectClusterInvoker extends ClusterInvoker implements InvocationHandler {
     private RateLimiter rateLimiter;
 
-    public ReflectClusterInvoker(Cluster cluster, int retryTimes, int retryTimeout, Url url) {
+    public ReflectClusterInvoker(Cluster cluster, int retryTimes, long retryTimeout, Url url) {
         super(cluster, retryTimes, retryTimeout, url);
         int rate = Integer.parseInt(url.getParam(Constants.RATE_KEY));
         if (rate > 0) {

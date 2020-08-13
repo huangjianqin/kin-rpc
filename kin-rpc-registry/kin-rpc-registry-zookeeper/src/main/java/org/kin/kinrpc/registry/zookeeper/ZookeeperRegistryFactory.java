@@ -10,16 +10,17 @@ import org.kin.kinrpc.transport.serializer.Serializers;
 import java.util.concurrent.ExecutionException;
 
 /**
- * Created by huangjianqin on 2019/6/18.
+ * @author huangjianqin
+ * @date 2019/7/2
  */
 public class ZookeeperRegistryFactory extends AbstractRegistryFactory {
     @Override
     public Registry getRegistry(Url url) {
         String address = url.getParam(Constants.REGISTRY_URL_KEY);
-        int sessionTimeout = Integer.parseInt(url.getParam(Constants.SESSION_TIMEOUT_KEY));
-        String serializerType = url.getParam(Constants.SERIALIZE_KEY);
+        long sessionTimeout = Long.parseLong(url.getParam(Constants.SESSION_TIMEOUT_KEY));
         boolean compression = Boolean.parseBoolean(url.getParam(Constants.COMPRESSION_KEY));
 
+        String serializerType = url.getParam(Constants.SERIALIZE_KEY);
         //先校验, 顺便初始化
         Preconditions.checkNotNull(Serializers.getSerializer(serializerType), "unvalid serializer type: [" + serializerType + "]");
 
