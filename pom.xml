@@ -31,8 +31,8 @@
         <kryo.version>4.0.0</kryo.version>
         <junit.version>4.11</junit.version>
         <javassist.version>3.20.0-GA</javassist.version>
-        <zookeeper.version>3.4.9</zookeeper.version>
-        <curator.version>4.2.0</curator.version>
+        <zookeeper.version>3.5.8</zookeeper.version>
+        <curator.version>5.1.0</curator.version>
         <jmh.version>1.21</jmh.version>
         <jackson.version>2.10.1</jackson.version>
         <javassist.version>3.25.0-GA</javassist.version>
