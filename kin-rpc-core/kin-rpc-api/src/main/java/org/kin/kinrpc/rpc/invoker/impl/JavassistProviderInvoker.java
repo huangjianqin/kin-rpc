@@ -1,8 +1,8 @@
 package org.kin.kinrpc.rpc.invoker.impl;
 
+import org.kin.framework.proxy.ProxyEnhanceUtils;
 import org.kin.framework.proxy.ProxyInvoker;
 import org.kin.framework.proxy.ProxyMethodDefinition;
-import org.kin.framework.proxy.utils.ProxyEnhanceUtils;
 import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;

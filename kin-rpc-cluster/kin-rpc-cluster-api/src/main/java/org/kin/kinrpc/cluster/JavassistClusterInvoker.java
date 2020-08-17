@@ -2,7 +2,7 @@ package org.kin.kinrpc.cluster;
 
 import com.google.common.util.concurrent.RateLimiter;
 import javassist.*;
-import org.kin.framework.proxy.utils.ProxyEnhanceUtils;
+import org.kin.framework.proxy.ProxyEnhanceUtils;
 import org.kin.framework.utils.ClassUtils;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
