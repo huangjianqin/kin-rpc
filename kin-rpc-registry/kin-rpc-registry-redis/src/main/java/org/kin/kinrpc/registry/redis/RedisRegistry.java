@@ -49,7 +49,7 @@ public class RedisRegistry extends AbstractRegistry implements LoggerOprs {
     /** 定时轮询redis services key, 判断对应服务地址是否有变化 */
     private Keeper.KeeperStopper serviceWatcher;
     /** 执行RedisDirectory discover 的worker */
-    private ExecutionContext watcherCtx = ExecutionContext.fix(SysUtils.CPU_NUM / 2 + 1, "redis-watcher");
+    private ExecutionContext watcherCtx = ExecutionContext.fix(SysUtils.CPU_NUM + 1, "redis-watcher");
 
     public RedisRegistry(String host, int port, String serializerType, boolean compression, long sessionTimeout, long watchInterval) {
         this.host = host;

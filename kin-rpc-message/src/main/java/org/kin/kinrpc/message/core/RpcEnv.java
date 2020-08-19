@@ -63,7 +63,7 @@ public class RpcEnv {
      * rpc环境公用线程池, 除了dispatcher以外, 都用这个线程池
      */
     public ExecutionContext commonExecutors =
-            ExecutionContext.forkjoin(SysUtils.getSuitableThreadNum(), "rpc-env", 5, "rpc-env-schedule");
+            ExecutionContext.fix(SysUtils.getSuitableThreadNum(), "rpc-env", 5, "rpc-env-schedule");
     /** 事件调度 */
     private Dispatcher<String, RpcMessageCallContext> dispatcher;
     private final RpcAddress address;
