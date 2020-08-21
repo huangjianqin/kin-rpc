@@ -155,7 +155,7 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
     /**
      * 启动Server
      */
-    public void start() throws Exception {
+    public void start() {
         if (isStopped) {
             throw new RuntimeException("try start stopped provider");
         }

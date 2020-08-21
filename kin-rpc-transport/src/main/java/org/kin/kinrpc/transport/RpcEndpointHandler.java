@@ -23,7 +23,7 @@ public abstract class RpcEndpointHandler extends TransportHandler {
     /**
      * 绑定端口并启动服务器
      */
-    public final void bind(ServerTransportOption transportOption, InetSocketAddress address) throws Exception {
+    public final void bind(ServerTransportOption transportOption, InetSocketAddress address) {
         if (server != null) {
             server.close();
         }
