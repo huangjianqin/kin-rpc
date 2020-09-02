@@ -18,9 +18,9 @@ import org.kin.kinrpc.transport.RpcEndpointHandler;
 import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
 import org.kin.kinrpc.transport.protocol.RpcResponseProtocol;
 import org.kin.kinrpc.transport.serializer.Serializer;
-import org.kin.transport.netty.core.ServerTransportOption;
-import org.kin.transport.netty.core.TransportOption;
-import org.kin.transport.netty.core.statistic.InOutBoundStatisicService;
+import org.kin.transport.netty.Transports;
+import org.kin.transport.netty.socket.protocol.ProtocolStatisicService;
+import org.kin.transport.netty.socket.server.SocketServerTransportOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +57,7 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
     /** 是否使用字节码技术 */
     private final boolean isByteCodeInvoke;
     /** 服务器启动配置 */
-    private ServerTransportOption transportOption;
+    private SocketServerTransportOption transportOption;
     /** 流控 */
     private RateLimiter rateLimiter = RateLimiter.create(Constants.SERVER_REQUEST_THRESHOLD);
 
@@ -75,7 +75,7 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
         }
 
         this.providerHandler = new ProviderHandler();
-        this.transportOption = TransportOption.server()
+        this.transportOption = Transports.socket().server()
                 .channelOption(ChannelOption.TCP_NODELAY, true)
                 .channelOption(ChannelOption.SO_KEEPALIVE, true)
                 .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
@@ -85,7 +85,7 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
                 .channelOption(ChannelOption.SO_RCVBUF, 10 * 1024 * 1024)
                 //send窗口缓存64kb
                 .channelOption(ChannelOption.SO_SNDBUF, 64 * 1024)
-                .transportHandler(providerHandler);
+                .protocolHandler(providerHandler);
         if (compression) {
             this.transportOption.compress();
         }
@@ -321,9 +321,10 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
             }
 
             RpcResponseProtocol rpcResponseProtocol = RpcResponseProtocol.create(data);
-            channel.writeAndFlush(rpcResponseProtocol.write());
+            channel.writeAndFlush(rpcResponseProtocol);
 
-            InOutBoundStatisicService.instance().statisticResp(
+
+            ProtocolStatisicService.instance().statisticResp(
                     rpcResponse.getServiceName() + "-" + rpcResponse.getMethod(), data.length
             );
         }
@@ -336,7 +337,7 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
             try {
                 rpcRequest = serializer.deserialize(data, RpcRequest.class);
 
-                InOutBoundStatisicService.instance().statisticReq(
+                ProtocolStatisicService.instance().statisticReq(
                         rpcRequest.getServiceName() + "-" + rpcRequest.getMethod(), data.length
                 );
 
@@ -351,12 +352,12 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
             if (!rateLimiter.tryAcquire()) {
                 RpcResponse rpcResponse = RpcResponse.respWithError(rpcRequest, "server rate limited, just reject");
                 rpcRequest.setHandleTime(System.currentTimeMillis());
-                channel.writeAndFlush(rpcResponse);
+                response(channel, rpcResponse);
                 return;
             }
 
             RpcRequest finalRpcRequest = rpcRequest;
-            handle(rpcProvider -> handleRpcRequest(finalRpcRequest, channel));
+            RpcProvider.this.handle(rpcProvider -> handleRpcRequest(finalRpcRequest, channel));
         }
     }
 }

@@ -1,11 +1,12 @@
 package org.kin.kinrpc.transport;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
-import org.kin.transport.netty.core.Server;
-import org.kin.transport.netty.core.ServerTransportOption;
-import org.kin.transport.netty.core.TransportHandler;
-import org.kin.transport.netty.core.protocol.AbstractProtocol;
+import org.kin.transport.netty.Server;
+import org.kin.transport.netty.socket.SocketProtocolHandler;
+import org.kin.transport.netty.socket.protocol.SocketProtocol;
+import org.kin.transport.netty.socket.server.SocketServerTransportOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +16,7 @@ import java.net.InetSocketAddress;
  * @author huangjianqin
  * @date 2020-06-08
  */
-public abstract class RpcEndpointHandler extends TransportHandler {
+public abstract class RpcEndpointHandler extends SocketProtocolHandler {
     private static final Logger log = LoggerFactory.getLogger(RpcEndpointHandler.class);
     /** 服务器引用 */
     protected Server server;
@@ -23,11 +24,11 @@ public abstract class RpcEndpointHandler extends TransportHandler {
     /**
      * 绑定端口并启动服务器
      */
-    public final void bind(ServerTransportOption transportOption, InetSocketAddress address) {
+    public final void bind(SocketServerTransportOption transportOption, InetSocketAddress address) {
         if (server != null) {
             server.close();
         }
-        server = transportOption.tcp(address);
+        server = transportOption.build(address);
     }
 
     /**
@@ -50,7 +51,8 @@ public abstract class RpcEndpointHandler extends TransportHandler {
      * 处理请求协议
      */
     @Override
-    public final void handleProtocol(Channel channel, AbstractProtocol protocol) {
+    public void handle(ChannelHandlerContext ctx, SocketProtocol protocol) {
+        Channel channel = ctx.channel();
         if (protocol == null) {
             return;
         }

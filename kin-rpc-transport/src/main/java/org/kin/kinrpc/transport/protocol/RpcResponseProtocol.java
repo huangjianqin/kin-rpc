@@ -1,18 +1,14 @@
 package org.kin.kinrpc.transport.protocol;
 
 import org.kin.kinrpc.transport.RpcProtocolId;
-import org.kin.transport.netty.core.protocol.AbstractProtocol;
-import org.kin.transport.netty.core.protocol.Protocol;
-import org.kin.transport.netty.core.protocol.ProtocolFactory;
-import org.kin.transport.netty.core.protocol.domain.Request;
-import org.kin.transport.netty.core.protocol.domain.Response;
+import org.kin.transport.netty.socket.protocol.*;
 
 /**
  * Created by huangjianqin on 2019/6/14.
  * 相对server而言
  */
 @Protocol(id = RpcProtocolId.RPC_RESPONSE_PROTOCOL_ID)
-public class RpcResponseProtocol extends AbstractProtocol {
+public class RpcResponseProtocol extends SocketProtocol {
     private byte[] respContent;
 
     public static RpcResponseProtocol create(byte[] respContent) {
@@ -22,12 +18,12 @@ public class RpcResponseProtocol extends AbstractProtocol {
     }
 
     @Override
-    public void read(Request request) {
+    public void read(SocketRequestOprs request) {
         respContent = request.readBytes();
     }
 
     @Override
-    public void write(Response response) {
+    public void write(SocketResponseOprs response) {
         response.writeBytes(respContent);
     }
 

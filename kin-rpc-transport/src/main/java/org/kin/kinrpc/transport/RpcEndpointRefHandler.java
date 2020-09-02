@@ -1,13 +1,14 @@
 package org.kin.kinrpc.transport;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.concurrent.ExecutionContext;
 import org.kin.kinrpc.transport.protocol.RpcResponseProtocol;
-import org.kin.transport.netty.core.Client;
-import org.kin.transport.netty.core.ClientTransportOption;
-import org.kin.transport.netty.core.TransportHandler;
-import org.kin.transport.netty.core.protocol.AbstractProtocol;
+import org.kin.transport.netty.Client;
+import org.kin.transport.netty.socket.SocketProtocolHandler;
+import org.kin.transport.netty.socket.client.SocketClientTransportOption;
+import org.kin.transport.netty.socket.protocol.SocketProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +20,7 @@ import java.util.concurrent.TimeUnit;
  * @author huangjianqin
  * @date 2020-06-08
  */
-public abstract class RpcEndpointRefHandler extends TransportHandler {
+public abstract class RpcEndpointRefHandler extends SocketProtocolHandler {
     private static final Logger log = LoggerFactory.getLogger(RpcEndpointRefHandler.class);
     /** 客户端重连线程池 */
     public static ExecutionContext RECONNECT_EXECUTORS =
@@ -31,14 +32,14 @@ public abstract class RpcEndpointRefHandler extends TransportHandler {
     }
 
     /** 客户端引用 */
-    protected volatile Client client;
+    protected volatile Client<SocketProtocol> client;
     /** 是否已关闭 */
     protected volatile boolean isStopped;
 
     /**
      * 连接服务器
      */
-    public final void connect(ClientTransportOption transportOption, InetSocketAddress address) {
+    public final void connect(SocketClientTransportOption transportOption, InetSocketAddress address) {
         if (isStopped) {
             return;
         }
@@ -51,7 +52,7 @@ public abstract class RpcEndpointRefHandler extends TransportHandler {
         }
         if (client == null) {
             try {
-                client = transportOption.tcp(address);
+                client = transportOption.build(address);
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
@@ -83,7 +84,8 @@ public abstract class RpcEndpointRefHandler extends TransportHandler {
      * 处理返回协议
      */
     @Override
-    public final void handleProtocol(Channel channel, AbstractProtocol protocol) {
+    public final void handle(ChannelHandlerContext ctx, SocketProtocol protocol) {
+        Channel channel = ctx.channel();
         if (!isActive()) {
             return;
         }
@@ -102,11 +104,9 @@ public abstract class RpcEndpointRefHandler extends TransportHandler {
 
     /**
      * 客户端断开处理
-     *
-     * @param channel
      */
     @Override
-    public final void channelInactive(Channel channel) {
+    public final void channelInactive(ChannelHandlerContext ctx) {
         RECONNECT_EXECUTORS.execute(this::reconnect);
     }
 

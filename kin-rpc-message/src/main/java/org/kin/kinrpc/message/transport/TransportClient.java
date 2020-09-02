@@ -15,9 +15,10 @@ import org.kin.kinrpc.transport.RpcEndpointRefHandler;
 import org.kin.kinrpc.transport.domain.RpcAddress;
 import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
 import org.kin.kinrpc.transport.protocol.RpcResponseProtocol;
-import org.kin.transport.netty.core.Client;
-import org.kin.transport.netty.core.ClientTransportOption;
-import org.kin.transport.netty.core.TransportOption;
+import org.kin.transport.netty.Client;
+import org.kin.transport.netty.Transports;
+import org.kin.transport.netty.socket.client.SocketClientTransportOption;
+import org.kin.transport.netty.socket.protocol.SocketProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +36,7 @@ public class TransportClient {
     /** 序列化 */
     private RpcEnv rpcEnv;
     /** 客户端配置 */
-    private ClientTransportOption clientTransportOption;
+    private SocketClientTransportOption clientTransportOption;
     /** 服务器地址 */
     private RpcAddress rpcAddress;
     /** client handler */
@@ -49,7 +50,7 @@ public class TransportClient {
         this.rpcEndpointRefHandler = new RpcEndpointRefHandlerImpl();
         this.rpcAddress = rpcAddress;
         this.clientTransportOption =
-                TransportOption.client()
+                Transports.socket().client()
                         .channelOption(ChannelOption.TCP_NODELAY, true)
                         .channelOption(ChannelOption.SO_KEEPALIVE, true)
                         .channelOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
@@ -58,7 +59,7 @@ public class TransportClient {
                         .channelOption(ChannelOption.SO_RCVBUF, 10 * 1024 * 1024)
                         //send窗口缓存64kb
                         .channelOption(ChannelOption.SO_SNDBUF, 64 * 1024)
-                        .transportHandler(rpcEndpointRefHandler);
+                        .protocolHandler(rpcEndpointRefHandler);
 
         if (compression) {
             this.clientTransportOption.compress();
@@ -152,7 +153,7 @@ public class TransportClient {
             }
         }
 
-        public Client client() {
+        public Client<SocketProtocol> client() {
             return client;
         }
     }

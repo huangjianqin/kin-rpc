@@ -2,6 +2,7 @@ package org.kin.kinrpc.message.core;
 
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.concurrent.ExecutionContext;
 import org.kin.framework.concurrent.actor.Dispatcher;
@@ -19,10 +20,10 @@ import org.kin.kinrpc.transport.RpcEndpointRefHandler;
 import org.kin.kinrpc.transport.domain.RpcAddress;
 import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
 import org.kin.kinrpc.transport.serializer.Serializer;
-import org.kin.transport.netty.core.ServerTransportOption;
-import org.kin.transport.netty.core.TransportOption;
-import org.kin.transport.netty.core.protocol.ProtocolFactory;
-import org.kin.transport.netty.core.statistic.InOutBoundStatisicService;
+import org.kin.transport.netty.Transports;
+import org.kin.transport.netty.socket.protocol.ProtocolFactory;
+import org.kin.transport.netty.socket.protocol.ProtocolStatisicService;
+import org.kin.transport.netty.socket.server.SocketServerTransportOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,7 +110,7 @@ public class RpcEnv {
             address = new InetSocketAddress(port);
         }
 
-        ServerTransportOption transportOption = TransportOption.server()
+        SocketServerTransportOption transportOption = Transports.socket().server()
                 .channelOption(ChannelOption.TCP_NODELAY, true)
                 .channelOption(ChannelOption.SO_KEEPALIVE, true)
                 .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
@@ -119,7 +120,7 @@ public class RpcEnv {
                 .channelOption(ChannelOption.SO_RCVBUF, 10 * 1024 * 1024)
                 //send窗口缓存64kb
                 .channelOption(ChannelOption.SO_SNDBUF, 64 * 1024)
-                .transportHandler(rpcEndpoint);
+                .protocolHandler(rpcEndpoint);
         if (compression) {
             transportOption.compress();
         }
@@ -206,7 +207,7 @@ public class RpcEnv {
             //反序列化
             message = serializer.deserialize(data, RpcMessage.class);
             //统计消息次数及长度
-            InOutBoundStatisicService.instance().statisticReq(
+            ProtocolStatisicService.instance().statisticReq(
                     message.getMessage().getClass().getName(), data.length
             );
             return message;
@@ -224,7 +225,7 @@ public class RpcEnv {
             //序列化
             byte[] data = serializer.serialize(message);
             //统计消息次数及长度
-            InOutBoundStatisicService.instance().statisticReq(
+            ProtocolStatisicService.instance().statisticReq(
                     message.getMessage().getClass().getName(), data.length
             );
 
@@ -439,8 +440,9 @@ public class RpcEnv {
         }
 
         @Override
-        public void channelActive(Channel channel) {
-            super.channelActive(channel);
+        public void channelActive(ChannelHandlerContext ctx) {
+            super.channelActive(ctx);
+            Channel channel = ctx.channel();
 
             if (isStopped) {
                 return;
@@ -456,8 +458,9 @@ public class RpcEnv {
         }
 
         @Override
-        public void channelInactive(Channel channel) {
-            super.channelInactive(channel);
+        public void channelInactive(ChannelHandlerContext ctx) {
+            super.channelInactive(ctx);
+            Channel channel = ctx.channel();
 
             if (isStopped) {
                 return;

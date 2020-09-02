@@ -13,9 +13,9 @@ import org.kin.kinrpc.transport.RpcEndpointRefHandler;
 import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
 import org.kin.kinrpc.transport.protocol.RpcResponseProtocol;
 import org.kin.kinrpc.transport.serializer.Serializer;
-import org.kin.transport.netty.core.ClientTransportOption;
-import org.kin.transport.netty.core.TransportOption;
-import org.kin.transport.netty.core.statistic.InOutBoundStatisicService;
+import org.kin.transport.netty.Transports;
+import org.kin.transport.netty.socket.client.SocketClientTransportOption;
+import org.kin.transport.netty.socket.protocol.ProtocolStatisicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +38,7 @@ public class RpcReference {
     private String serviceName;
     private InetSocketAddress address;
     private Serializer serializer;
-    private ClientTransportOption clientTransportOption;
+    private SocketClientTransportOption clientTransportOption;
     private ReferenceHandler referenceHandler;
 
     public RpcReference(String serviceName, InetSocketAddress address, Serializer serializer, int connectTimeout, boolean compression) {
@@ -47,7 +47,7 @@ public class RpcReference {
         this.serializer = serializer;
         this.referenceHandler = new ReferenceHandler();
         this.clientTransportOption =
-                TransportOption.client()
+                Transports.socket().client()
                         .channelOption(ChannelOption.TCP_NODELAY, true)
                         .channelOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout)
                         .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
@@ -55,7 +55,7 @@ public class RpcReference {
                         .channelOption(ChannelOption.SO_RCVBUF, 10 * 1024 * 1024)
                         //send窗口缓存64kb
                         .channelOption(ChannelOption.SO_SNDBUF, 64 * 1024)
-                        .transportHandler(this.referenceHandler);
+                        .protocolHandler(this.referenceHandler);
 
         if (compression) {
             this.clientTransportOption.compress();
@@ -180,7 +180,7 @@ public class RpcReference {
                     RpcRequestProtocol protocol = RpcRequestProtocol.create(data);
                     client.request(protocol, new ReferenceRequestListener(request.getRequestId()));
 
-                    InOutBoundStatisicService.instance().statisticReq(
+                    ProtocolStatisicService.instance().statisticReq(
                             request.getServiceName() + "-" + request.getMethod(), data.length
                     );
                 } catch (IOException e) {
@@ -202,7 +202,7 @@ public class RpcReference {
                     return;
                 }
 
-                InOutBoundStatisicService.instance().statisticResp(
+                ProtocolStatisicService.instance().statisticResp(
                         rpcResponse.getServiceName() + "-" + rpcResponse.getMethod(), responseProtocol.getRespContent().length
                 );
 

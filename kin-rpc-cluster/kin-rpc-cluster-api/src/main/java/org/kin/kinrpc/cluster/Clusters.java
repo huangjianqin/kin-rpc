@@ -21,8 +21,8 @@ import org.kin.kinrpc.transport.RpcEndpointRefHandler;
 import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
 import org.kin.kinrpc.transport.serializer.Serializer;
 import org.kin.kinrpc.transport.serializer.Serializers;
-import org.kin.transport.netty.core.protocol.ProtocolFactory;
-import org.kin.transport.netty.core.statistic.InOutBoundStatisicService;
+import org.kin.transport.netty.socket.protocol.ProtocolFactory;
+import org.kin.transport.netty.socket.protocol.ProtocolStatisicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -175,6 +175,6 @@ public class Clusters {
         RpcThreadPool.EXECUTORS.shutdown();
         RpcEndpointRefHandler.RECONNECT_EXECUTORS.shutdown();
         PinnedThreadSafeFuturesManager.instance().close();
-        InOutBoundStatisicService.instance().close();
+        ProtocolStatisicService.instance().close();
     }
 }
