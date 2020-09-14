@@ -75,7 +75,6 @@ public class Directory {
                 }
             }
             log.info("discover service '{}'..."
-                    .concat(System.lineSeparator())
                     .concat("current service address: ")
                     .concat(sb.toString()), getServiceName());
 

@@ -17,7 +17,7 @@ public class AddableReference {
     public static void main(String[] args) throws InterruptedException {
         ReferenceConfig<Addable> referenceConfig =
                 References.reference(Addable.class)
-                        .serviceName("org.kin.kinrpc.demo.service.Addable").urls(NetUtils.getIpPort(16888))
+                        .serviceName("org.kin.kinrpc.demo.rpc.service.Addable").urls(NetUtils.getIpPort(16888))
                         .serialize(SerializerType.JSON.getType())
                         .version("001")
                         .rate(10000);
