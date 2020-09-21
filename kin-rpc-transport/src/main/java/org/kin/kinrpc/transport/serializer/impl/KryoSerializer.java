@@ -14,10 +14,12 @@ import java.io.ByteArrayOutputStream;
  * Created by huangjianqin on 2019/5/29.
  */
 public class KryoSerializer implements Serializer {
-    //解决多线程访问问题
-    //1.池化,
-    //2.ThreadLocal
-    private static final KryoPool pool = new KryoPool.Builder(() -> {
+    /**
+     * 解决多线程访问问题
+     * 1.池化,
+     * 2.ThreadLocal
+     */
+    private static final KryoPool kryoPool = new KryoPool.Builder(() -> {
         final Kryo kryo = new Kryo();
         kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(
                 new StdInstantiatorStrategy()));
@@ -26,24 +28,32 @@ public class KryoSerializer implements Serializer {
 
     @Override
     public byte[] serialize(Object target) {
-        Kryo kryo = pool.borrow();
-        Output output = new Output(new ByteArrayOutputStream());
-        kryo.writeObject(output, target);
-        byte[] bytes = output.toBytes();
-        output.close();
-        pool.release(kryo);
-
-        return bytes;
+        Kryo kryo = kryoPool.borrow();
+        try {
+            Output output = new Output(new ByteArrayOutputStream());
+            kryo.writeObject(output, target);
+            byte[] bytes = output.toBytes();
+            output.close();
+            return bytes;
+        } catch (Exception e) {
+            throw new IllegalStateException("kryo serializer encounter error, when serialize", e);
+        } finally {
+            kryoPool.release(kryo);
+        }
     }
 
     @Override
     public <T> T deserialize(byte[] bytes, Class<T> tagetClass) {
-        Input input = new Input(new ByteArrayInputStream(bytes));
-        Kryo kryo = pool.borrow();
-        T request = kryo.readObject(input, tagetClass);
-        input.close();
-        pool.release(kryo);
-
-        return request;
+        Kryo kryo = kryoPool.borrow();
+        try {
+            Input input = new Input(new ByteArrayInputStream(bytes));
+            T request = kryo.readObject(input, tagetClass);
+            input.close();
+            return request;
+        } catch (Exception e) {
+            throw new IllegalStateException("kryo serializer encounter error, when deserialize", e);
+        } finally {
+            kryoPool.release(kryo);
+        }
     }
 }
