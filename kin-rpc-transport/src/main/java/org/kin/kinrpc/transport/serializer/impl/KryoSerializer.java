@@ -19,7 +19,7 @@ public class KryoSerializer implements Serializer {
      * 1.池化,
      * 2.ThreadLocal
      */
-    private static final KryoPool kryoPool = new KryoPool.Builder(() -> {
+    private static final KryoPool KRYO_POOL = new KryoPool.Builder(() -> {
         final Kryo kryo = new Kryo();
         kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(
                 new StdInstantiatorStrategy()));
@@ -28,7 +28,7 @@ public class KryoSerializer implements Serializer {
 
     @Override
     public byte[] serialize(Object target) {
-        Kryo kryo = kryoPool.borrow();
+        Kryo kryo = KRYO_POOL.borrow();
         try {
             Output output = new Output(new ByteArrayOutputStream());
             kryo.writeObject(output, target);
@@ -38,13 +38,13 @@ public class KryoSerializer implements Serializer {
         } catch (Exception e) {
             throw new IllegalStateException("kryo serializer encounter error, when serialize", e);
         } finally {
-            kryoPool.release(kryo);
+            KRYO_POOL.release(kryo);
         }
     }
 
     @Override
     public <T> T deserialize(byte[] bytes, Class<T> tagetClass) {
-        Kryo kryo = kryoPool.borrow();
+        Kryo kryo = KRYO_POOL.borrow();
         try {
             Input input = new Input(new ByteArrayInputStream(bytes));
             T request = kryo.readObject(input, tagetClass);
@@ -53,7 +53,7 @@ public class KryoSerializer implements Serializer {
         } catch (Exception e) {
             throw new IllegalStateException("kryo serializer encounter error, when deserialize", e);
         } finally {
-            kryoPool.release(kryo);
+            KRYO_POOL.release(kryo);
         }
     }
 }
