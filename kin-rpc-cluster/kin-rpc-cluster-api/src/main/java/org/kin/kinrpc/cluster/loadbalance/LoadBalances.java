@@ -1,49 +1,67 @@
 package org.kin.kinrpc.cluster.loadbalance;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import org.kin.framework.utils.ClassUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
+import java.util.*;
 
 /**
  * @author huangjianqin
  * @date 2019/7/29
  */
 public class LoadBalances {
-    private static final Logger log = LoggerFactory.getLogger(LoadBalances.class);
-    private static final Cache<String, LoadBalance> LOADBALANCE_CACHE = CacheBuilder.newBuilder().build();
+    /** key-> class name, value -> LoadBalance instance */
+    private static volatile Map<String, LoadBalance> LOADBALANCE_CACHE = Collections.emptyMap();
+
+    static {
+        load();
+    }
 
     private LoadBalances() {
     }
 
-    public static LoadBalance getLoadBalance(String type) {
-        //从整个classpath寻找LoadBalance子类
-        type = type.toLowerCase();
-        try {
-            String loadBalanceName = (type + LoadBalance.class.getSimpleName()).toLowerCase();
-
-            return LOADBALANCE_CACHE.get(type, () -> {
-                Set<Class<? extends LoadBalance>> classes = ClassUtils.getSubClass(LoadBalance.class.getPackage().getName(), LoadBalance.class, true);
-                //TODO 考虑增加加载外部自定义的LoadBalance
-                if (classes.size() > 0) {
-                    for (Class<? extends LoadBalance> claxx : classes) {
-                        String className = claxx.getSimpleName().toLowerCase();
-                        if (className.equals(loadBalanceName)) {
-                            return claxx.newInstance();
-                        }
-                    }
+    /**
+     * 加载LoadBalance
+     */
+    private static void load() {
+        Map<String, LoadBalance> loadBalanceCache = new HashMap<>();
+        //加载内部提供的LoadBalance
+        Set<Class<? extends LoadBalance>> classes = ClassUtils.getSubClass(LoadBalance.class.getPackage().getName(), LoadBalance.class, true);
+        if (classes.size() > 0) {
+            for (Class<? extends LoadBalance> claxx : classes) {
+                String className = claxx.getSimpleName().toLowerCase();
+                if (loadBalanceCache.containsKey(className)) {
+                    throw new LoadBalanceConflictException(claxx, loadBalanceCache.get(className).getClass());
                 }
-
-                return null;
-            });
-        } catch (ExecutionException e) {
-            log.error(e.getMessage(), e);
+                try {
+                    LoadBalance loadBalance = claxx.newInstance();
+                    loadBalanceCache.put(className, loadBalance);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
 
-        throw new IllegalStateException("init loadbalance error >>>" + type);
+        //通过spi机制加载自定义的LoadBalance
+        ServiceLoader<LoadBalance> serviceLoader = ServiceLoader.load(LoadBalance.class);
+        Iterator<LoadBalance> customLoadBalances = serviceLoader.iterator();
+        while (customLoadBalances.hasNext()) {
+            LoadBalance loadBalance = customLoadBalances.next();
+            Class<? extends LoadBalance> claxx = loadBalance.getClass();
+            String className = claxx.getSimpleName().toLowerCase();
+            if (loadBalanceCache.containsKey(className)) {
+                throw new LoadBalanceConflictException(claxx, loadBalanceCache.get(className).getClass());
+            }
+
+            loadBalanceCache.put(className, loadBalance);
+        }
+
+        LOADBALANCE_CACHE = loadBalanceCache;
+    }
+
+    /**
+     * 根据LoadBalance name 获取LoadBalance instance
+     */
+    public static LoadBalance getLoadBalance(String type) {
+        return LOADBALANCE_CACHE.get(type);
     }
 }

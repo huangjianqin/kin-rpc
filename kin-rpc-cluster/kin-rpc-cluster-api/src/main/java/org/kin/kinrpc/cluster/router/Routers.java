@@ -1,49 +1,67 @@
 package org.kin.kinrpc.cluster.router;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import org.kin.framework.utils.ClassUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
+import java.util.*;
 
 /**
  * @author huangjianqin
  * @date 2019/7/29
  */
 public class Routers {
-    private static final Logger log = LoggerFactory.getLogger(Routers.class);
-    private static final Cache<String, Router> ROUTER_CACHE = CacheBuilder.newBuilder().build();
+    /** key-> class name, value -> Router instance */
+    private static volatile Map<String, Router> ROUTER_CACHE = Collections.emptyMap();
+
+    static {
+        load();
+    }
 
     private Routers() {
     }
 
-    public static Router getRouter(String type) {
-        //从整个classpath寻找Router子类
-        type = type.toLowerCase();
-        try {
-            String routerName = (type + Router.class.getSimpleName()).toLowerCase();
-
-            return ROUTER_CACHE.get(type, () -> {
-                Set<Class<? extends Router>> classes = ClassUtils.getSubClass(Router.class.getPackage().getName(), Router.class, true);
-                //TODO 考虑增加加载外部自定义的Router
-                if (classes.size() > 0) {
-                    for (Class<? extends Router> claxx : classes) {
-                        String className = claxx.getSimpleName().toLowerCase();
-                        if (className.equals(routerName)) {
-                            return claxx.newInstance();
-                        }
-                    }
+    /**
+     * 加载Router
+     */
+    private static void load() {
+        Map<String, Router> routerCache = new HashMap<>();
+        //加载内部提供的Router
+        Set<Class<? extends Router>> classes = ClassUtils.getSubClass(Router.class.getPackage().getName(), Router.class, true);
+        if (classes.size() > 0) {
+            for (Class<? extends Router> claxx : classes) {
+                String className = claxx.getSimpleName().toLowerCase();
+                if (routerCache.containsKey(className)) {
+                    throw new RouterConflictException(claxx, routerCache.get(className).getClass());
                 }
-
-                return null;
-            });
-        } catch (ExecutionException e) {
-            log.error(e.getMessage(), e);
+                try {
+                    Router router = claxx.newInstance();
+                    routerCache.put(className, router);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
 
-        throw new IllegalStateException("init router error >>>" + type);
+        //通过spi机制加载自定义的Router
+        ServiceLoader<Router> serviceLoader = ServiceLoader.load(Router.class);
+        Iterator<Router> customRouters = serviceLoader.iterator();
+        while (customRouters.hasNext()) {
+            Router router = customRouters.next();
+            Class<? extends Router> claxx = router.getClass();
+            String className = claxx.getSimpleName().toLowerCase();
+            if (routerCache.containsKey(className)) {
+                throw new RouterConflictException(claxx, routerCache.get(className).getClass());
+            }
+
+            routerCache.put(className, router);
+        }
+
+        ROUTER_CACHE = routerCache;
+    }
+
+    /**
+     * 根据Router name 获取Router instance
+     */
+    public static Router getRouter(String type) {
+        return ROUTER_CACHE.get(type);
     }
 }

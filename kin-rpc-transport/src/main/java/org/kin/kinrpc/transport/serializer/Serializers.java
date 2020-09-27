@@ -9,7 +9,7 @@ import java.util.*;
  * @date 2019/7/29
  */
 public class Serializers {
-    /** serializer缓存 */
+    /** serializer缓存, key -> serializer type, value -> Serializer instance */
     private static volatile Map<Integer, Serializer> SERIALIZER_CACHE = Collections.emptyMap();
 
     static {
