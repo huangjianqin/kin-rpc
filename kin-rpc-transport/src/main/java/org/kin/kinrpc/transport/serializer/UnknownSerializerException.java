@@ -1,6 +1,8 @@
 package org.kin.kinrpc.transport.serializer;
 
 /**
+ * 未知serializer异常
+ *
  * @author huangjianqin
  * @date 2020/9/27
  */

@@ -2,10 +2,7 @@ package org.kin.kinrpc.transport.serializer;
 
 import org.kin.framework.utils.ClassUtils;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author huangjianqin
@@ -54,24 +51,51 @@ public class Serializers {
     }
 
     /**
+     * 加载Serializer
+     */
+    private static Serializer load0(Map<Integer, Serializer> serializerCache, Class<? extends Serializer> serializerClass) {
+        try {
+            Serializer serializer = serializerClass.newInstance();
+            return load1(serializerCache, serializer);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * 加载Serializer
+     */
+    private static Serializer load1(Map<Integer, Serializer> serializerCache, Serializer serializer) {
+        int type = serializer.type();
+        if (serializerCache.containsKey(type)) {
+            throw new SerializerTypeConflictException(type, serializer.getClass(), serializerCache.get(type).getClass());
+        }
+        serializerCache.put(type, serializer);
+        return serializer;
+    }
+
+    /**
      * 加载已知所有Serializer
      */
     private static void load() {
-        //从整个classpath寻找Serializer子类
+        Map<Integer, Serializer> serializerCache = new HashMap<>();
+
+        //加载内部提供的Serializer
         Set<Class<? extends Serializer>> classes = ClassUtils.getSubClass(Serializer.class.getPackage().getName(), Serializer.class, true);
-        //TODO 考虑增加加载外部自定义的Serializer 通过spi方式
         if (classes.size() > 0) {
-            Map<Integer, Serializer> serializerCache = new HashMap<>();
             for (Class<? extends Serializer> claxx : classes) {
-                try {
-                    Serializer serializer = claxx.newInstance();
-                    serializerCache.put(serializer.type(), serializer);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
+                load0(serializerCache, claxx);
             }
-            SERIALIZER_CACHE = Collections.unmodifiableMap(serializerCache);
         }
+
+        //通过spi机制加载自定义的Serializer
+        ServiceLoader<Serializer> serviceLoader = ServiceLoader.load(Serializer.class);
+        Iterator<Serializer> customSerializers = serviceLoader.iterator();
+        while (customSerializers.hasNext()) {
+            load1(serializerCache, customSerializers.next());
+        }
+
+        SERIALIZER_CACHE = Collections.unmodifiableMap(serializerCache);
     }
 
     /**
@@ -80,8 +104,7 @@ public class Serializers {
     private static int loadNew(Class<? extends Serializer> serializerClass) {
         Map<Integer, Serializer> serializerCache = new HashMap<>(SERIALIZER_CACHE);
         try {
-            Serializer serializer = serializerClass.newInstance();
-            serializerCache.put(serializer.type(), serializer);
+            Serializer serializer = load0(serializerCache, serializerClass);
 
             SERIALIZER_CACHE = Collections.unmodifiableMap(serializerCache);
 
