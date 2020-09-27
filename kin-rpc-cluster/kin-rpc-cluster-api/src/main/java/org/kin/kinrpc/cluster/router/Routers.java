@@ -19,6 +19,15 @@ public class Routers {
     private Routers() {
     }
 
+    private static String getKey(String className) {
+        int index = className.indexOf(Router.class.getSimpleName());
+        if (index > 0) {
+            className = className.substring(0, index);
+        }
+
+        return className.toLowerCase();
+    }
+
     /**
      * 加载Router
      */
@@ -28,13 +37,13 @@ public class Routers {
         Set<Class<? extends Router>> classes = ClassUtils.getSubClass(Router.class.getPackage().getName(), Router.class, true);
         if (classes.size() > 0) {
             for (Class<? extends Router> claxx : classes) {
-                String className = claxx.getSimpleName().toLowerCase();
-                if (routerCache.containsKey(className)) {
-                    throw new RouterConflictException(claxx, routerCache.get(className).getClass());
+                String key = getKey(claxx.getSimpleName());
+                if (routerCache.containsKey(key)) {
+                    throw new RouterConflictException(claxx, routerCache.get(key).getClass());
                 }
                 try {
                     Router router = claxx.newInstance();
-                    routerCache.put(className, router);
+                    routerCache.put(key, router);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -47,12 +56,12 @@ public class Routers {
         while (customRouters.hasNext()) {
             Router router = customRouters.next();
             Class<? extends Router> claxx = router.getClass();
-            String className = claxx.getSimpleName().toLowerCase();
-            if (routerCache.containsKey(className)) {
-                throw new RouterConflictException(claxx, routerCache.get(className).getClass());
+            String key = getKey(claxx.getSimpleName());
+            if (routerCache.containsKey(key)) {
+                throw new RouterConflictException(claxx, routerCache.get(key).getClass());
             }
 
-            routerCache.put(className, router);
+            routerCache.put(key, router);
         }
 
         ROUTER_CACHE = routerCache;
@@ -63,5 +72,29 @@ public class Routers {
      */
     public static Router getRouter(String type) {
         return ROUTER_CACHE.get(type);
+    }
+
+    /**
+     * 根据Router class 返回Router name, 如果没有加载到, 则主动重新加载
+     */
+    public static synchronized String getOrLoadRouter(Class<? extends Router> routerClass) {
+        String key = getKey(routerClass.getSimpleName());
+        if (ROUTER_CACHE.containsKey(key)) {
+            //已加载
+            return key;
+        }
+
+        Map<String, Router> routerCache = new HashMap<>(ROUTER_CACHE);
+        //未加载
+        try {
+            Router router = routerClass.newInstance();
+            routerCache.put(key, router);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        ROUTER_CACHE = Collections.unmodifiableMap(routerCache);
+
+        return key;
     }
 }

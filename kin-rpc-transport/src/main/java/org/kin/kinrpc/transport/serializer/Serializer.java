@@ -1,13 +1,13 @@
 package org.kin.kinrpc.transport.serializer;
 
-import org.kin.kinrpc.rpc.common.Spi;
+import org.kin.kinrpc.rpc.common.SPI;
 
 import java.io.IOException;
 
 /**
  * Created by 健勤 on 2017/2/10.
  */
-@Spi
+@SPI
 public interface Serializer {
     /**
      * 序列化

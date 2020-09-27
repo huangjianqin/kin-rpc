@@ -4,6 +4,10 @@ import com.google.common.base.Preconditions;
 import org.kin.framework.utils.NetUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.cluster.Clusters;
+import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
+import org.kin.kinrpc.cluster.loadbalance.LoadBalances;
+import org.kin.kinrpc.cluster.router.Router;
+import org.kin.kinrpc.cluster.router.Routers;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.transport.serializer.Serializer;
@@ -219,6 +223,13 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return this;
     }
 
+    public ReferenceConfig<T> loadbalance(Class<? extends LoadBalance> loadBalanceClass) {
+        if (!isReference) {
+            this.loadBalanceType = LoadBalances.getOrLoadLoadBalance(loadBalanceClass);
+        }
+        return this;
+    }
+
     public ReferenceConfig<T> router(String router) {
         if (!isReference) {
             this.routerType = router;
@@ -229,6 +240,13 @@ public class ReferenceConfig<T> extends AbstractConfig {
     public ReferenceConfig<T> router(RouterType routerType) {
         if (!isReference) {
             this.routerType = routerType.getType();
+        }
+        return this;
+    }
+
+    public ReferenceConfig<T> router(Class<? extends Router> routerClass) {
+        if (!isReference) {
+            this.routerType = Routers.getOrLoadRouter(routerClass);
         }
         return this;
     }

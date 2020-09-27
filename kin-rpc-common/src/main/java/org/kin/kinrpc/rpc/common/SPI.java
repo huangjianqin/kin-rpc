@@ -11,5 +11,5 @@ import java.lang.annotation.*;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.CLASS)
 @Inherited
-public @interface Spi {
+public @interface SPI {
 }

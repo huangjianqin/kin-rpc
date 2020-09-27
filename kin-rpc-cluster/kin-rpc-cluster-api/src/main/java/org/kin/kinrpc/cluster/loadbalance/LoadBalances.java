@@ -19,6 +19,15 @@ public class LoadBalances {
     private LoadBalances() {
     }
 
+    private static String getKey(String className) {
+        int index = className.indexOf(LoadBalance.class.getSimpleName());
+        if (index > 0) {
+            className = className.substring(0, index);
+        }
+
+        return className.toLowerCase();
+    }
+
     /**
      * 加载LoadBalance
      */
@@ -28,13 +37,13 @@ public class LoadBalances {
         Set<Class<? extends LoadBalance>> classes = ClassUtils.getSubClass(LoadBalance.class.getPackage().getName(), LoadBalance.class, true);
         if (classes.size() > 0) {
             for (Class<? extends LoadBalance> claxx : classes) {
-                String className = claxx.getSimpleName().toLowerCase();
-                if (loadBalanceCache.containsKey(className)) {
-                    throw new LoadBalanceConflictException(claxx, loadBalanceCache.get(className).getClass());
+                String key = getKey(claxx.getSimpleName());
+                if (loadBalanceCache.containsKey(key)) {
+                    throw new LoadBalanceConflictException(claxx, loadBalanceCache.get(key).getClass());
                 }
                 try {
                     LoadBalance loadBalance = claxx.newInstance();
-                    loadBalanceCache.put(className, loadBalance);
+                    loadBalanceCache.put(key, loadBalance);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -47,15 +56,15 @@ public class LoadBalances {
         while (customLoadBalances.hasNext()) {
             LoadBalance loadBalance = customLoadBalances.next();
             Class<? extends LoadBalance> claxx = loadBalance.getClass();
-            String className = claxx.getSimpleName().toLowerCase();
-            if (loadBalanceCache.containsKey(className)) {
-                throw new LoadBalanceConflictException(claxx, loadBalanceCache.get(className).getClass());
+            String key = getKey(claxx.getSimpleName());
+            if (loadBalanceCache.containsKey(key)) {
+                throw new LoadBalanceConflictException(claxx, loadBalanceCache.get(key).getClass());
             }
 
-            loadBalanceCache.put(className, loadBalance);
+            loadBalanceCache.put(key, loadBalance);
         }
 
-        LOADBALANCE_CACHE = loadBalanceCache;
+        LOADBALANCE_CACHE = Collections.unmodifiableMap(loadBalanceCache);
     }
 
     /**
@@ -63,5 +72,29 @@ public class LoadBalances {
      */
     public static LoadBalance getLoadBalance(String type) {
         return LOADBALANCE_CACHE.get(type);
+    }
+
+    /**
+     * 根据LoadBalance class 返回LoadBalance name, 如果没有加载到, 则主动重新加载
+     */
+    public static synchronized String getOrLoadLoadBalance(Class<? extends LoadBalance> loadBalanceClass) {
+        String key = getKey(loadBalanceClass.getSimpleName());
+        if (LOADBALANCE_CACHE.containsKey(key)) {
+            //已加载
+            return key;
+        }
+
+        Map<String, LoadBalance> loadBalanceCache = new HashMap<>(LOADBALANCE_CACHE);
+        //未加载
+        try {
+            LoadBalance loadBalance = loadBalanceClass.newInstance();
+            loadBalanceCache.put(key, loadBalance);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        LOADBALANCE_CACHE = Collections.unmodifiableMap(loadBalanceCache);
+
+        return key;
     }
 }
