@@ -6,7 +6,9 @@ import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.cluster.Clusters;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
+import org.kin.kinrpc.transport.serializer.Serializer;
 import org.kin.kinrpc.transport.serializer.SerializerType;
+import org.kin.kinrpc.transport.serializer.Serializers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -189,9 +191,9 @@ public class ReferenceConfig<T> extends AbstractConfig {
     /**
      * @param serialize 序列化标识
      */
-    public ReferenceConfig<T> serialize(int serialize) {
+    public ReferenceConfig<T> serialize(Class<? extends Serializer> serializerClass) {
         if (!isReference) {
-            this.serialize = serialize;
+            this.serialize = Serializers.getOrLoadSerializer(serializerClass);
         }
         return this;
     }

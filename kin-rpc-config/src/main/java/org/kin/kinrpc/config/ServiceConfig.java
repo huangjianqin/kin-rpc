@@ -7,7 +7,9 @@ import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.cluster.Clusters;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
+import org.kin.kinrpc.transport.serializer.Serializer;
 import org.kin.kinrpc.transport.serializer.SerializerType;
+import org.kin.kinrpc.transport.serializer.Serializers;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -189,9 +191,9 @@ public class ServiceConfig extends AbstractConfig {
         return this;
     }
 
-    public ServiceConfig serialize(int serialize) {
+    public ServiceConfig serialize(Class<? extends Serializer> serializerClass) {
         if (!isExport) {
-            this.serialize = serialize;
+            this.serialize = Serializers.getOrLoadSerializer(serializerClass);
         }
         return this;
     }
