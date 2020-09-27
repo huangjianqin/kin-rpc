@@ -15,10 +15,10 @@ public class DirectURLsRegistry extends AbstractRegistry {
     private static final Logger log = LoggerFactory.getLogger(DirectURLsRegistry.class);
 
     private List<String> hostAndPorts;
-    private final String serializerType;
+    private final int serializerType;
     private final boolean compression;
 
-    public DirectURLsRegistry(List<String> hostAndPorts, String serializerType, boolean compression) {
+    public DirectURLsRegistry(List<String> hostAndPorts, int serializerType, boolean compression) {
         this.hostAndPorts = hostAndPorts;
         this.serializerType = serializerType;
         this.compression = compression;

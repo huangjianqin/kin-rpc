@@ -23,14 +23,14 @@ public class Directory {
 
     protected final String serviceName;
     protected final int connectTimeout;
-    protected final String serializerType;
+    protected final int serializerType;
     protected final boolean compression;
 
     /** 所有directory的discover和destroy操作都是单线程操作, 利用copy-on-write思想更新可用invokers, 提高list效率 */
     private volatile List<ReferenceInvoker> invokers = Collections.emptyList();
     private volatile boolean isStopped;
 
-    public Directory(String serviceName, int connectTimeout, String serializerType, boolean compression) {
+    public Directory(String serviceName, int connectTimeout, int serializerType, boolean compression) {
         this.serviceName = serviceName;
         this.connectTimeout = connectTimeout;
         this.serializerType = serializerType;

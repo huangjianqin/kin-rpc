@@ -18,7 +18,7 @@ public class AddableReference {
         ReferenceConfig<Addable> referenceConfig =
                 References.reference(Addable.class)
                         .serviceName("org.kin.kinrpc.demo.rpc.service.Addable").urls(NetUtils.getIpPort(16888))
-                        .serialize(SerializerType.JSON.getType())
+                        .serialize(SerializerType.KRYO)
                         .version("001")
                         .rate(10000);
 

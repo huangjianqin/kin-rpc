@@ -62,7 +62,7 @@ public class RpcMessageCallContext {
             }
 
             //直接推回去, 不走outbox
-            RpcResponseProtocol protocol = RpcResponseProtocol.create(data);
+            RpcResponseProtocol protocol = RpcResponseProtocol.create(requestId, (byte) rpcEnv.serializer().type(), data);
             channel.writeAndFlush(protocol);
         }
     }

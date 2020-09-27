@@ -33,10 +33,10 @@ public class ZookeeperRegistry extends AbstractRegistry {
 
     private CuratorFramework client;
     private final long sessionTimeOut;
-    private final String serializerType;
+    private final int serializerType;
     private final boolean compression;
 
-    public ZookeeperRegistry(String address, long sessionTimeOut, String serializerType, boolean compression) {
+    public ZookeeperRegistry(String address, long sessionTimeOut, int serializerType, boolean compression) {
         this.address = address;
         this.sessionTimeOut = sessionTimeOut;
         this.serializerType = serializerType;

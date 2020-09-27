@@ -18,6 +18,8 @@ import org.kin.kinrpc.transport.RpcEndpointHandler;
 import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
 import org.kin.kinrpc.transport.protocol.RpcResponseProtocol;
 import org.kin.kinrpc.transport.serializer.Serializer;
+import org.kin.kinrpc.transport.serializer.Serializers;
+import org.kin.kinrpc.transport.serializer.UnknownSerializerException;
 import org.kin.transport.netty.Transports;
 import org.kin.transport.netty.socket.protocol.ProtocolStatisicService;
 import org.kin.transport.netty.socket.server.SocketServerTransportOption;
@@ -29,6 +31,7 @@ import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -320,7 +323,7 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
                 }
             }
 
-            RpcResponseProtocol rpcResponseProtocol = RpcResponseProtocol.create(data);
+            RpcResponseProtocol rpcResponseProtocol = RpcResponseProtocol.create(rpcResponse.getRequestId(), (byte) serializer.type(), data);
             channel.writeAndFlush(rpcResponseProtocol);
 
 
@@ -331,10 +334,19 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
 
         @Override
         protected void handleRpcRequestProtocol(Channel channel, RpcRequestProtocol requestProtocol) {
+            long requestId = requestProtocol.getRequestId();
+            byte serializerType = requestProtocol.getSerializer();
             byte[] data = requestProtocol.getReqContent();
 
             RpcRequest rpcRequest;
             try {
+                //request的序列化类型
+                Serializer serializer = Serializers.getSerializer(serializerType);
+                if (Objects.isNull(serializer)) {
+                    //未知序列化类型
+                    throw new UnknownSerializerException(serializerType);
+                }
+
                 rpcRequest = serializer.deserialize(data, RpcRequest.class);
 
                 ProtocolStatisicService.instance().statisticReq(
@@ -342,7 +354,10 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
                 );
 
                 rpcRequest.setEventTime(System.currentTimeMillis());
-            } catch (IOException | ClassNotFoundException e) {
+            } catch (Exception e) {
+                RpcResponse rpcResponse = RpcResponse.respWithError(requestId, e.getMessage());
+                response(channel, rpcResponse);
+
                 log.error(e.getMessage(), e);
                 return;
             }

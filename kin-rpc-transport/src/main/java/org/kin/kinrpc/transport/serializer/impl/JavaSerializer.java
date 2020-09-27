@@ -1,6 +1,7 @@
 package org.kin.kinrpc.transport.serializer.impl;
 
 import org.kin.kinrpc.transport.serializer.Serializer;
+import org.kin.kinrpc.transport.serializer.SerializerType;
 
 import java.io.*;
 
@@ -28,7 +29,7 @@ public class JavaSerializer implements Serializer {
     }
 
     @Override
-    public <T> T deserialize(byte[] bytes, Class<T> tagetClass) throws IOException, ClassNotFoundException {
+    public <T> T deserialize(byte[] bytes, Class<T> targetClass) throws IOException, ClassNotFoundException {
         if (bytes == null || bytes.length <= 0) {
             throw new IllegalStateException("byte array must be not null or it's length must be greater than zero");
         }
@@ -38,5 +39,10 @@ public class JavaSerializer implements Serializer {
         Object result = objectInputStream.readObject();
 
         return (T) result;
+    }
+
+    @Override
+    public int type() {
+        return SerializerType.JAVA.getCode();
     }
 }

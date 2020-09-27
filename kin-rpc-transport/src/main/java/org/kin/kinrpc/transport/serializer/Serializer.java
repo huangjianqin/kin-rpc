@@ -17,12 +17,18 @@ public interface Serializer {
 
     /**
      * 反序列化
-     * @param bytes 字节数组
-     * @param tagetClass 指定类
-     * @param <T> 指定类
+     *
+     * @param bytes       字节数组
+     * @param targetClass 指定类
+     * @param <T>         指定类
      * @return 反序列化结果
-     * @throws IOException IO异常
+     * @throws IOException            IO异常
      * @throws ClassNotFoundException 找不到class异常
      */
-    <T> T deserialize(byte[] bytes, Class<T> tagetClass) throws IOException, ClassNotFoundException;
+    <T> T deserialize(byte[] bytes, Class<T> targetClass) throws IOException, ClassNotFoundException;
+
+    /**
+     * @return 序列化类型code
+     */
+    int type();
 }

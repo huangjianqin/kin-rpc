@@ -20,6 +20,8 @@ import org.kin.kinrpc.transport.RpcEndpointRefHandler;
 import org.kin.kinrpc.transport.domain.RpcAddress;
 import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
 import org.kin.kinrpc.transport.serializer.Serializer;
+import org.kin.kinrpc.transport.serializer.Serializers;
+import org.kin.kinrpc.transport.serializer.UnknownSerializerException;
 import org.kin.transport.netty.Transports;
 import org.kin.transport.netty.socket.protocol.ProtocolFactory;
 import org.kin.transport.netty.socket.protocol.ProtocolStatisicService;
@@ -197,8 +199,10 @@ public class RpcEnv {
 
     /**
      * 反序列化消息
+     *
+     * @param serializer 目标序列化类型
      */
-    public RpcMessage deserialize(byte[] data) {
+    public RpcMessage deserialize(Serializer serializer, byte[] data) {
         //更新线程本地RpcEnv
         updateCurrentRpcEnv(this);
 
@@ -417,6 +421,11 @@ public class RpcEnv {
         return dispatcher;
     }
 
+    /** serializer */
+    public Serializer serializer() {
+        return serializer;
+    }
+
     //------------------------------------------------------------------------------------------------------------------
     private class RpcEndpointImpl extends RpcEndpointHandler {
         /** client连接信息 -> 远程服务绑定的端口信息 */
@@ -424,9 +433,15 @@ public class RpcEnv {
 
         @Override
         protected final void handleRpcRequestProtocol(Channel channel, RpcRequestProtocol requestProtocol) {
+            byte serializerType = requestProtocol.getSerializer();
             //反序列化内容
             byte[] data = requestProtocol.getReqContent();
-            RpcMessage message = deserialize(data);
+
+            Serializer serializer = Serializers.getSerializer(serializerType);
+            if (Objects.isNull(serializer)) {
+                throw new UnknownSerializerException(serializerType);
+            }
+            RpcMessage message = deserialize(serializer, data);
             if (Objects.isNull(message)) {
                 return;
             }

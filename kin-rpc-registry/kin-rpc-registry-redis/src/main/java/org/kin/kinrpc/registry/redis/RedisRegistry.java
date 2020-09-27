@@ -34,7 +34,7 @@ public class RedisRegistry extends AbstractRegistry implements LoggerOprs {
     /** 端口 */
     private final int port;
     /** 序列化方式 */
-    private final String serializerType;
+    private final int serializerType;
     /** 是否压缩 */
     private final boolean compression;
     /** 连接会话超时 */
@@ -51,7 +51,7 @@ public class RedisRegistry extends AbstractRegistry implements LoggerOprs {
     /** 执行RedisDirectory discover 的worker */
     private ExecutionContext watcherCtx = ExecutionContext.fix(SysUtils.CPU_NUM + 1, "redis-watcher");
 
-    public RedisRegistry(String host, int port, String serializerType, boolean compression, long sessionTimeout, long watchInterval) {
+    public RedisRegistry(String host, int port, int serializerType, boolean compression, long sessionTimeout, long watchInterval) {
         this.host = host;
         this.port = port;
         this.serializerType = serializerType;

@@ -29,7 +29,7 @@ public class ServiceConfig extends AbstractConfig {
     /** 服务名 */
     private String serviceName;
     /** 序列化类型 */
-    private String serialize = SerializerType.KRYO.getType();
+    private int serialize = SerializerType.KRYO.getCode();
     /** 服务调用类型(invoker收到请求后, 用哪种方式调用服务) */
     private InvokeType invokeType = InvokeType.JAVASSIST;
     /** 版本号 */
@@ -87,7 +87,7 @@ public class ServiceConfig extends AbstractConfig {
 
             Map<String, String> params = new HashMap<>(50);
             params.put(Constants.SERVICE_NAME_KEY, serviceName);
-            params.put(Constants.SERIALIZE_KEY, serialize);
+            params.put(Constants.SERIALIZE_KEY, serialize + "");
             params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(InvokeType.JAVASSIST.equals(invokeType)));
             params.put(Constants.VERSION_KEY, version);
             params.put(Constants.COMPRESSION_KEY, Boolean.toString(compression));
@@ -110,7 +110,7 @@ public class ServiceConfig extends AbstractConfig {
     public void exportSync() throws Exception {
         export();
 
-        synchronized (this){
+        synchronized (this) {
             wait();
         }
     }
@@ -189,9 +189,16 @@ public class ServiceConfig extends AbstractConfig {
         return this;
     }
 
-    public ServiceConfig serialize(String serialize) {
+    public ServiceConfig serialize(int serialize) {
         if (!isExport) {
             this.serialize = serialize;
+        }
+        return this;
+    }
+
+    public ServiceConfig serialize(SerializerType serializerType) {
+        if (!isExport) {
+            this.serialize = serializerType.getCode();
         }
         return this;
     }
@@ -257,7 +264,7 @@ public class ServiceConfig extends AbstractConfig {
         return serviceName;
     }
 
-    public String getSerialize() {
+    public int getSerialize() {
         return serialize;
     }
 

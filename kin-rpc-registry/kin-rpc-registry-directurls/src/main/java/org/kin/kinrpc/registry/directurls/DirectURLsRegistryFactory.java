@@ -19,7 +19,7 @@ public class DirectURLsRegistryFactory extends AbstractRegistryFactory {
     @Override
     public Registry getRegistry(Url url) {
         String address = url.getParam(Constants.REGISTRY_URL_KEY);
-        String serializerType = url.getParam(Constants.SERIALIZE_KEY);
+        int serializerType = Integer.parseInt(url.getParam(Constants.SERIALIZE_KEY));
         boolean compression = Boolean.parseBoolean(url.getParam(Constants.COMPRESSION_KEY));
 
         //先校验, 顺便初始化

@@ -58,6 +58,12 @@ public class RpcResponse extends AbstractRpcMessage implements Serializable {
         return new RpcResponse(requestId, serviceName, method);
     }
 
+    public static RpcResponse respWithError(long requestId, String errorMsg) {
+        RpcResponse rpcResponse = respWith(requestId, "", "");
+        rpcResponse.setState(RpcResponse.State.ERROR, errorMsg);
+        return rpcResponse;
+    }
+
     public static RpcResponse respWithError(long requestId, String serviceName, String method, String errorMsg) {
         RpcResponse rpcResponse = respWith(requestId, serviceName, method);
         rpcResponse.setState(RpcResponse.State.ERROR, errorMsg);

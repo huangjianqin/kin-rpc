@@ -1,13 +1,13 @@
 package org.kin.kinrpc.transport.serializer;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import org.kin.framework.utils.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 
 /**
  * @author huangjianqin
@@ -15,39 +15,41 @@ import java.util.concurrent.ExecutionException;
  */
 public class Serializers {
     private static final Logger log = LoggerFactory.getLogger(Serializers.class);
-    private static final Cache<String, Serializer> SERIALIZER_CACHE = CacheBuilder.newBuilder().build();
+    /** serializer缓存 */
+    private static volatile Map<Integer, Serializer> SERIALIZER_CACHE = Collections.emptyMap();
+
+    static {
+        load();
+    }
 
     private Serializers() {
     }
 
-    public static Serializer getSerializer(SerializerType serializerType) {
-        return getSerializer(serializerType.getType());
+    /**
+     * @param code 序列化类型
+     */
+    public static Serializer getSerializer(int code) {
+        return SERIALIZER_CACHE.get(code);
     }
 
-    public static Serializer getSerializer(String type) {
+    /**
+     * 加载已知所有Serializer
+     */
+    public static void load() {
         //从整个classpath寻找Serializer子类
-        type = type.toLowerCase();
-        try {
-            String serializerName = (type + Serializer.class.getSimpleName()).toLowerCase();
-
-            return SERIALIZER_CACHE.get(type, () -> {
-                Set<Class<? extends Serializer>> classes = ClassUtils.getSubClass(Serializer.class.getPackage().getName(), Serializer.class, true);
-                //TODO 考虑增加加载外部自定义的Serializer
-                if (classes.size() > 0) {
-                    for (Class<? extends Serializer> claxx : classes) {
-                        String className = claxx.getSimpleName().toLowerCase();
-                        if (className.equals(serializerName)) {
-                            return claxx.newInstance();
-                        }
-                    }
+        Set<Class<? extends Serializer>> classes = ClassUtils.getSubClass(Serializer.class.getPackage().getName(), Serializer.class, true);
+        //TODO 考虑增加加载外部自定义的Serializer 通过spi方式
+        if (classes.size() > 0) {
+            Map<Integer, Serializer> serializerCache = new HashMap<>();
+            for (Class<? extends Serializer> claxx : classes) {
+                try {
+                    Serializer serializer = claxx.newInstance();
+                    serializerCache.put(serializer.type(), serializer);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
-
-                return null;
-            });
-        } catch (ExecutionException e) {
-            log.error(e.getMessage(), e);
+            }
+            SERIALIZER_CACHE = Collections.unmodifiableMap(serializerCache);
         }
-
-        throw new IllegalStateException("init serializer error >>>" + type);
     }
 }

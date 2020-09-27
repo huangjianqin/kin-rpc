@@ -5,6 +5,7 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.pool.KryoPool;
 import org.kin.kinrpc.transport.serializer.Serializer;
+import org.kin.kinrpc.transport.serializer.SerializerType;
 import org.objenesis.strategy.StdInstantiatorStrategy;
 
 import java.io.ByteArrayInputStream;
@@ -43,11 +44,11 @@ public class KryoSerializer implements Serializer {
     }
 
     @Override
-    public <T> T deserialize(byte[] bytes, Class<T> tagetClass) {
+    public <T> T deserialize(byte[] bytes, Class<T> targetClass) {
         Kryo kryo = KRYO_POOL.borrow();
         try {
             Input input = new Input(new ByteArrayInputStream(bytes));
-            T request = kryo.readObject(input, tagetClass);
+            T request = kryo.readObject(input, targetClass);
             input.close();
             return request;
         } catch (Exception e) {
@@ -55,5 +56,10 @@ public class KryoSerializer implements Serializer {
         } finally {
             KRYO_POOL.release(kryo);
         }
+    }
+
+    @Override
+    public int type() {
+        return SerializerType.KRYO.getCode();
     }
 }

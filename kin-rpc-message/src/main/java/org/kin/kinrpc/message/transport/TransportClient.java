@@ -15,6 +15,9 @@ import org.kin.kinrpc.transport.RpcEndpointRefHandler;
 import org.kin.kinrpc.transport.domain.RpcAddress;
 import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
 import org.kin.kinrpc.transport.protocol.RpcResponseProtocol;
+import org.kin.kinrpc.transport.serializer.Serializer;
+import org.kin.kinrpc.transport.serializer.Serializers;
+import org.kin.kinrpc.transport.serializer.UnknownSerializerException;
 import org.kin.transport.netty.Client;
 import org.kin.transport.netty.Transports;
 import org.kin.transport.netty.socket.client.SocketClientTransportOption;
@@ -106,9 +109,10 @@ public class TransportClient {
                 return;
             }
 
-            RpcRequestProtocol protocol = RpcRequestProtocol.create(data);
-            respCallbacks.put(message.getRequestId(), outBoxMessage);
-            rpcEndpointRefHandler.client().request(protocol, new ReferenceRequestListener(message.getRequestId()));
+            long requestId = message.getRequestId();
+            RpcRequestProtocol protocol = RpcRequestProtocol.create(requestId, (byte) rpcEnv.serializer().type(), data);
+            respCallbacks.put(requestId, outBoxMessage);
+            rpcEndpointRefHandler.client().request(protocol, new ReferenceRequestListener(requestId));
         }
     }
 
@@ -123,13 +127,19 @@ public class TransportClient {
     private class RpcEndpointRefHandlerImpl extends RpcEndpointRefHandler {
         @Override
         protected void handleRpcResponseProtocol(RpcResponseProtocol responseProtocol) {
+            byte serializerType = responseProtocol.getSerializer();
+            Serializer serializer = Serializers.getSerializer(serializerType);
+            if (Objects.isNull(serializer)) {
+                throw new UnknownSerializerException(serializerType);
+            }
+
+            //反序列化内容
+            byte[] data = responseProtocol.getRespContent();
             //处理receiver返回的消息
             if (!TransportClient.this.isActive()) {
                 return;
             }
-            //反序列化内容
-            byte[] data = responseProtocol.getRespContent();
-            RpcMessage message = rpcEnv.deserialize(data);
+            RpcMessage message = rpcEnv.deserialize(serializer, data);
             if (Objects.isNull(message)) {
                 return;
             }

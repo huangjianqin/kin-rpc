@@ -20,7 +20,7 @@ public class ZookeeperRegistryFactory extends AbstractRegistryFactory {
         long sessionTimeout = Long.parseLong(url.getParam(Constants.SESSION_TIMEOUT_KEY));
         boolean compression = Boolean.parseBoolean(url.getParam(Constants.COMPRESSION_KEY));
 
-        String serializerType = url.getParam(Constants.SERIALIZE_KEY);
+        int serializerType = Integer.parseInt(url.getParam(Constants.SERIALIZE_KEY));
         //先校验, 顺便初始化
         Preconditions.checkNotNull(Serializers.getSerializer(serializerType), "unvalid serializer type: [" + serializerType + "]");
 

@@ -3,6 +3,7 @@ package org.kin.kinrpc.transport.serializer.impl;
 import com.caucho.hessian.io.Hessian2Input;
 import com.caucho.hessian.io.Hessian2Output;
 import org.kin.kinrpc.transport.serializer.Serializer;
+import org.kin.kinrpc.transport.serializer.SerializerType;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -34,18 +35,23 @@ public class Hessian2Serializer implements Serializer {
     }
 
     @Override
-    public <T> T deserialize(byte[] bytes, Class<T> tagetClass) throws IOException {
+    public <T> T deserialize(byte[] bytes, Class<T> targetClass) throws IOException {
         if (bytes == null || bytes.length <= 0) {
             throw new IllegalStateException("byte array must be not null or it's length must be greater than zero");
         }
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
         Hessian2Input hessian2Input = new Hessian2Input(inputStream);
-        Object request = hessian2Input.readObject(tagetClass);
+        Object request = hessian2Input.readObject(targetClass);
 
         hessian2Input.close();
         inputStream.close();
 
         return (T) request;
+    }
+
+    @Override
+    public int type() {
+        return SerializerType.HESSION2.getCode();
     }
 }

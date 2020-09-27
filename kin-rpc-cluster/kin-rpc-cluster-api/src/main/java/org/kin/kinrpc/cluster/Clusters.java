@@ -48,7 +48,7 @@ public class Clusters {
     public static synchronized void export(Url url, Class interfaceClass, Object instance) {
         String host = url.getHost();
         int port = url.getPort();
-        String serializerType = url.getParam(Constants.SERIALIZE_KEY);
+        int serializerType = Integer.parseInt(url.getParam(Constants.SERIALIZE_KEY));
         boolean byteCodeInvoke = Boolean.parseBoolean(url.getParam(Constants.BYTE_CODE_INVOKE_KEY));
         Serializer serializer = Serializers.getSerializer(serializerType);
         Preconditions.checkNotNull(serializer, "unvalid serializer type: [" + serializerType + "]");

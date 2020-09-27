@@ -20,7 +20,7 @@ public class RpcEndpointRefDemo extends RpcEndpoint {
 
     public static void main(String[] args) throws InterruptedException {
         RpcEnv rpcEnv = new RpcEnv("0.0.0.0", 16889, SysUtils.CPU_NUM,
-                Serializers.getSerializer(SerializerType.KRYO), false);
+                Serializers.getSerializer(SerializerType.KRYO.getCode()), false);
         rpcEnv.startServer();
         String name = "rpcEndpointRefDemo";
         RpcEndpointRefDemo rpcEndpointRefDemo = new RpcEndpointRefDemo(rpcEnv);

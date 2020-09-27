@@ -13,6 +13,8 @@ import org.kin.kinrpc.transport.RpcEndpointRefHandler;
 import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
 import org.kin.kinrpc.transport.protocol.RpcResponseProtocol;
 import org.kin.kinrpc.transport.serializer.Serializer;
+import org.kin.kinrpc.transport.serializer.Serializers;
+import org.kin.kinrpc.transport.serializer.UnknownSerializerException;
 import org.kin.transport.netty.Transports;
 import org.kin.transport.netty.socket.client.SocketClientTransportOption;
 import org.kin.transport.netty.socket.protocol.ProtocolStatisicService;
@@ -63,12 +65,20 @@ public class RpcReference {
     }
 
     /**
+     * 异常处理
+     * channel线程
+     */
+    public void handleResponseError(long requestId, Throwable cause) {
+        RpcFuture pendRpcFuture = pendingRpcFutureMap.get(requestId);
+        if (pendRpcFuture != null) {
+            pendRpcFuture.done(RpcResponse.respWithError(requestId, cause.getMessage()));
+        }
+    }
+
+    /**
      * channel线程
      */
     public void handleResponse(RpcResponse rpcResponse) {
-        if (isStopped) {
-            return;
-        }
         rpcResponse.setHandleTime(System.currentTimeMillis());
 
         log.debug("receive a response >>> " + System.lineSeparator() + rpcResponse);
@@ -177,7 +187,7 @@ public class RpcReference {
                     request.setCreateTime(System.currentTimeMillis());
                     byte[] data = serializer.serialize(request);
 
-                    RpcRequestProtocol protocol = RpcRequestProtocol.create(data);
+                    RpcRequestProtocol protocol = RpcRequestProtocol.create(request.getRequestId(), (byte) serializer.type(), data);
                     client.request(protocol, new ReferenceRequestListener(request.getRequestId()));
 
                     ProtocolStatisicService.instance().statisticReq(
@@ -192,12 +202,22 @@ public class RpcReference {
 
         @Override
         protected void handleRpcResponseProtocol(RpcResponseProtocol responseProtocol) {
+            long requestId = responseProtocol.getRequestId();
+            byte serializerType = responseProtocol.getSerializer();
             try {
                 RpcResponse rpcResponse;
                 try {
+                    Serializer serializer = Serializers.getSerializer(serializerType);
+                    if (Objects.isNull(serializer)) {
+                        //未知序列化类型
+                        throw new UnknownSerializerException(serializerType);
+                    }
+
                     rpcResponse = serializer.deserialize(responseProtocol.getRespContent(), RpcResponse.class);
                     rpcResponse.setEventTime(System.currentTimeMillis());
-                } catch (IOException | ClassNotFoundException e) {
+                } catch (Exception e) {
+                    handleResponseError(requestId, e);
+
                     log.error(e.getMessage(), e);
                     return;
                 }
@@ -209,6 +229,8 @@ public class RpcReference {
                 handleResponse(rpcResponse);
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
+
+                throw new RuntimeException(e);
             }
         }
 

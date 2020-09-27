@@ -21,7 +21,7 @@ public class RpcEndpointDemo extends RpcEndpoint {
 
     public static void main(String[] args) {
         RpcEnv rpcEnv = new RpcEnv("0.0.0.0", 16888, SysUtils.CPU_NUM,
-                Serializers.getSerializer(SerializerType.KRYO), false);
+                Serializers.getSerializer(SerializerType.KRYO.getCode()), false);
         rpcEnv.startServer();
         String name = "rpcEndpointDemo";
         RpcEndpointDemo rpcEndpointDemo = new RpcEndpointDemo(rpcEnv);

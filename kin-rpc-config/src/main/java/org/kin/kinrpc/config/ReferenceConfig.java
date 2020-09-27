@@ -34,7 +34,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
     /** 重试超时 */
     private long retryTimeout = Constants.RETRY_TIMEOUT;
     /** 序列化类型 */
-    private String serialize = SerializerType.KRYO.getType();
+    private int serialize = SerializerType.KRYO.getCode();
     /** 负载均衡类型 */
     private String loadBalanceType = LoadBalanceType.ROUNDROBIN.getType();
     /** 路由类型 */
@@ -83,7 +83,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
             params.put(Constants.RETRY_TIMES_KEY, retryTimes + "");
             params.put(Constants.RETRY_TIMEOUT_KEY, retryTimeout + "");
             params.put(Constants.SERVICE_NAME_KEY, serviceName);
-            params.put(Constants.SERIALIZE_KEY, serialize);
+            params.put(Constants.SERIALIZE_KEY, serialize + "");
             params.put(Constants.LOADBALANCE_KEY, loadBalanceType);
             params.put(Constants.ROUTER_KEY, routerType);
             params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(InvokeType.JAVASSIST.equals(invokeType)));
@@ -186,7 +186,10 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return this;
     }
 
-    public ReferenceConfig<T> serialize(String serialize) {
+    /**
+     * @param serialize 序列化标识
+     */
+    public ReferenceConfig<T> serialize(int serialize) {
         if (!isReference) {
             this.serialize = serialize;
         }
@@ -195,7 +198,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
     public ReferenceConfig<T> serialize(SerializerType serializerType) {
         if (!isReference) {
-            this.serialize = serializerType.getType();
+            this.serialize = serializerType.getCode();
         }
         return this;
     }
@@ -288,7 +291,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return retryTimeout;
     }
 
-    public String getSerialize() {
+    public int getSerialize() {
         return serialize;
     }
 
