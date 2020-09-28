@@ -1,6 +1,7 @@
 package org.kin.kinrpc.transport.serializer;
 
 import org.kin.framework.utils.ClassUtils;
+import org.kin.kinrpc.rpc.common.RpcServiceLoader;
 
 import java.util.*;
 
@@ -89,8 +90,7 @@ public class Serializers {
         }
 
         //通过spi机制加载自定义的Serializer
-        ServiceLoader<Serializer> serviceLoader = ServiceLoader.load(Serializer.class);
-        Iterator<Serializer> customSerializers = serviceLoader.iterator();
+        Iterator<Serializer> customSerializers = RpcServiceLoader.LOADER.iterator(Serializer.class);
         while (customSerializers.hasNext()) {
             load1(serializerCache, customSerializers.next());
         }

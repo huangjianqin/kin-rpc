@@ -1,6 +1,7 @@
 package org.kin.kinrpc.cluster.loadbalance;
 
 import org.kin.framework.utils.ClassUtils;
+import org.kin.kinrpc.rpc.common.RpcServiceLoader;
 
 import java.util.*;
 
@@ -51,8 +52,7 @@ public class LoadBalances {
         }
 
         //通过spi机制加载自定义的LoadBalance
-        ServiceLoader<LoadBalance> serviceLoader = ServiceLoader.load(LoadBalance.class);
-        Iterator<LoadBalance> customLoadBalances = serviceLoader.iterator();
+        Iterator<LoadBalance> customLoadBalances = RpcServiceLoader.LOADER.iterator(LoadBalance.class);
         while (customLoadBalances.hasNext()) {
             LoadBalance loadBalance = customLoadBalances.next();
             Class<? extends LoadBalance> claxx = loadBalance.getClass();

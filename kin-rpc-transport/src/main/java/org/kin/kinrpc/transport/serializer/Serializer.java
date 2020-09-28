@@ -1,13 +1,14 @@
 package org.kin.kinrpc.transport.serializer;
 
-import org.kin.kinrpc.rpc.common.SPI;
+
+import org.kin.framework.utils.SPI;
 
 import java.io.IOException;
 
 /**
  * Created by 健勤 on 2017/2/10.
  */
-@SPI
+@SPI("serializer")
 public interface Serializer {
     /**
      * 序列化
@@ -31,7 +32,7 @@ public interface Serializer {
     <T> T deserialize(byte[] bytes, Class<T> targetClass) throws IOException, ClassNotFoundException;
 
     /**
-     * @return 序列化类型code
+     * @return 序列化类型code, 必须>0
      */
     int type();
 }

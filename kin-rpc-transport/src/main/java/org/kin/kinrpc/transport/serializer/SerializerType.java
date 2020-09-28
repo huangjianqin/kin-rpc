@@ -7,19 +7,19 @@ public enum SerializerType {
     /**
      * java自带序列化
      */
-    JAVA(0),
+    JAVA(1),
     /**
      * kryo序列化
      */
-    KRYO(1),
+    KRYO(2),
     /**
      * hession2序列化
      */
-    HESSION2(2),
+    HESSION2(3),
     /**
      * json序列化
      */
-    JSON(3),
+    JSON(4),
     ;
     /** 唯一标识 */
     private int code;

@@ -1,6 +1,7 @@
 package org.kin.kinrpc.cluster.router;
 
 import org.kin.framework.utils.ClassUtils;
+import org.kin.kinrpc.rpc.common.RpcServiceLoader;
 
 import java.util.*;
 
@@ -51,8 +52,7 @@ public class Routers {
         }
 
         //通过spi机制加载自定义的Router
-        ServiceLoader<Router> serviceLoader = ServiceLoader.load(Router.class);
-        Iterator<Router> customRouters = serviceLoader.iterator();
+        Iterator<Router> customRouters = RpcServiceLoader.LOADER.iterator(Router.class);
         while (customRouters.hasNext()) {
             Router router = customRouters.next();
             Class<? extends Router> claxx = router.getClass();
