@@ -13,6 +13,7 @@ import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.transport.serializer.Serializer;
 import org.kin.kinrpc.transport.serializer.SerializerType;
 import org.kin.kinrpc.transport.serializer.Serializers;
+import org.kin.transport.netty.CompressionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,8 +50,8 @@ public class ReferenceConfig<T> extends AbstractConfig {
     private InvokeType invokeType = InvokeType.JAVASSIST;
     /** 版本号 */
     private String version = "0.1.0.0";
-    /** 是否支持压缩 */
-    private boolean compression;
+    /** 压缩类型 */
+    private CompressionType compressionType = CompressionType.NONE;
     /** 服务限流, 每秒发送多少个 */
     private int rate = Constants.REFERENCE_REQUEST_THRESHOLD;
 
@@ -94,7 +95,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
             params.put(Constants.ROUTER_KEY, routerType);
             params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(InvokeType.JAVASSIST.equals(invokeType)));
             params.put(Constants.VERSION_KEY, version);
-            params.put(Constants.COMPRESSION_KEY, Boolean.toString(compression));
+            params.put(Constants.COMPRESSION_KEY, Integer.toString(compressionType.getId()));
             params.put(Constants.RATE_KEY, rate + "");
 
             url = createURL(applicationConfig, NetUtils.getIp(), registryConfig, params);
@@ -193,7 +194,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
     }
 
     /**
-     * @param serialize 序列化标识
+     * @param serializerClass 序列化标识
      */
     public ReferenceConfig<T> serialize(Class<? extends Serializer> serializerClass) {
         if (!isReference) {
@@ -266,13 +267,8 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return this;
     }
 
-    public ReferenceConfig<T> compress() {
-        this.compression = true;
-        return this;
-    }
-
-    public ReferenceConfig<T> uncompress() {
-        this.compression = false;
+    public ReferenceConfig<T> compress(CompressionType compressionType) {
+        this.compressionType = compressionType;
         return this;
     }
 
@@ -331,8 +327,8 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return version;
     }
 
-    public boolean isCompression() {
-        return compression;
+    public CompressionType isCompression() {
+        return compressionType;
     }
 
     public int getRate() {

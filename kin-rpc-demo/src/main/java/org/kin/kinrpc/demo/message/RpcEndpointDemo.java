@@ -1,12 +1,9 @@
 package org.kin.kinrpc.demo.message;
 
 import org.kin.framework.JvmCloseCleaner;
-import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.message.core.RpcEndpoint;
 import org.kin.kinrpc.message.core.RpcEnv;
 import org.kin.kinrpc.message.core.RpcMessageCallContext;
-import org.kin.kinrpc.transport.serializer.SerializerType;
-import org.kin.kinrpc.transport.serializer.Serializers;
 
 import java.io.Serializable;
 
@@ -20,8 +17,7 @@ public class RpcEndpointDemo extends RpcEndpoint {
     }
 
     public static void main(String[] args) {
-        RpcEnv rpcEnv = new RpcEnv("0.0.0.0", 16888, SysUtils.CPU_NUM,
-                Serializers.getSerializer(SerializerType.KRYO.getCode()), false);
+        RpcEnv rpcEnv = new RpcEnv("0.0.0.0", 16888);
         rpcEnv.startServer();
         String name = "rpcEndpointDemo";
         RpcEndpointDemo rpcEndpointDemo = new RpcEndpointDemo(rpcEnv);

@@ -15,6 +15,7 @@ import org.kin.kinrpc.transport.protocol.RpcResponseProtocol;
 import org.kin.kinrpc.transport.serializer.Serializer;
 import org.kin.kinrpc.transport.serializer.Serializers;
 import org.kin.kinrpc.transport.serializer.UnknownSerializerException;
+import org.kin.transport.netty.CompressionType;
 import org.kin.transport.netty.Transports;
 import org.kin.transport.netty.socket.client.SocketClientTransportOption;
 import org.kin.transport.netty.socket.protocol.ProtocolStatisicService;
@@ -43,7 +44,7 @@ public class RpcReference {
     private SocketClientTransportOption clientTransportOption;
     private ReferenceHandler referenceHandler;
 
-    public RpcReference(String serviceName, InetSocketAddress address, Serializer serializer, int connectTimeout, boolean compression) {
+    public RpcReference(String serviceName, InetSocketAddress address, Serializer serializer, int connectTimeout, CompressionType compressionType) {
         this.serviceName = serviceName;
         this.address = address;
         this.serializer = serializer;
@@ -57,11 +58,9 @@ public class RpcReference {
                         .channelOption(ChannelOption.SO_RCVBUF, 10 * 1024 * 1024)
                         //send窗口缓存64kb
                         .channelOption(ChannelOption.SO_SNDBUF, 64 * 1024)
-                        .protocolHandler(this.referenceHandler);
-
-        if (compression) {
-            this.clientTransportOption.compress();
-        }
+                        .protocolHandler(this.referenceHandler)
+                        .compress(compressionType)
+                        .build();
     }
 
     /**

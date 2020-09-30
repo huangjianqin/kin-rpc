@@ -2,6 +2,7 @@ package org.kin.kinrpc.registry.directurls;
 
 import org.kin.kinrpc.registry.AbstractRegistry;
 import org.kin.kinrpc.registry.Directory;
+import org.kin.transport.netty.CompressionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,12 +17,12 @@ public class DirectURLsRegistry extends AbstractRegistry {
 
     private List<String> hostAndPorts;
     private final int serializerType;
-    private final boolean compression;
+    private final CompressionType compressionType;
 
-    public DirectURLsRegistry(List<String> hostAndPorts, int serializerType, boolean compression) {
+    public DirectURLsRegistry(List<String> hostAndPorts, int serializerType, CompressionType compressionType) {
         this.hostAndPorts = hostAndPorts;
         this.serializerType = serializerType;
-        this.compression = compression;
+        this.compressionType = compressionType;
     }
 
     @Override
@@ -42,7 +43,7 @@ public class DirectURLsRegistry extends AbstractRegistry {
     @Override
     public Directory subscribe(String serviceName, int connectTimeout) {
         log.info("reference subscribe service '{}' ", serviceName);
-        Directory directory = new Directory(serviceName, connectTimeout, serializerType, compression);
+        Directory directory = new Directory(serviceName, connectTimeout, serializerType, compressionType);
         directory.discover(hostAndPorts);
         directoryCache.put(serviceName, directory);
         return directory;

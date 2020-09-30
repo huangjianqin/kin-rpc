@@ -20,6 +20,7 @@ import org.kin.kinrpc.transport.protocol.RpcResponseProtocol;
 import org.kin.kinrpc.transport.serializer.Serializer;
 import org.kin.kinrpc.transport.serializer.Serializers;
 import org.kin.kinrpc.transport.serializer.UnknownSerializerException;
+import org.kin.transport.netty.CompressionType;
 import org.kin.transport.netty.Transports;
 import org.kin.transport.netty.socket.protocol.ProtocolStatisicService;
 import org.kin.transport.netty.socket.server.SocketServerTransportOption;
@@ -64,7 +65,7 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
     /** 流控 */
     private RateLimiter rateLimiter = RateLimiter.create(Constants.SERVER_REQUEST_THRESHOLD);
 
-    public RpcProvider(String host, int port, Serializer serializer, boolean isByteCodeInvoke, boolean compression) {
+    public RpcProvider(String host, int port, Serializer serializer, boolean isByteCodeInvoke, CompressionType compressionType) {
         super(RpcThreadPool.PROVIDER_WORKER);
         this.host = host;
         this.port = port;
@@ -88,10 +89,9 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
                 .channelOption(ChannelOption.SO_RCVBUF, 10 * 1024 * 1024)
                 //send窗口缓存64kb
                 .channelOption(ChannelOption.SO_SNDBUF, 64 * 1024)
-                .protocolHandler(providerHandler);
-        if (compression) {
-            this.transportOption.compress();
-        }
+                .protocolHandler(providerHandler)
+                .compress(compressionType)
+                .build();
     }
 
     /**

@@ -28,7 +28,7 @@ public abstract class RpcEndpointHandler extends SocketProtocolHandler {
         if (server != null) {
             server.close();
         }
-        server = transportOption.build(address);
+        server = transportOption.bind(address);
     }
 
     /**

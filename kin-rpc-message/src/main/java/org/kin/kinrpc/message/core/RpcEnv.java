@@ -20,8 +20,10 @@ import org.kin.kinrpc.transport.RpcEndpointRefHandler;
 import org.kin.kinrpc.transport.domain.RpcAddress;
 import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
 import org.kin.kinrpc.transport.serializer.Serializer;
+import org.kin.kinrpc.transport.serializer.SerializerType;
 import org.kin.kinrpc.transport.serializer.Serializers;
 import org.kin.kinrpc.transport.serializer.UnknownSerializerException;
+import org.kin.transport.netty.CompressionType;
 import org.kin.transport.netty.Transports;
 import org.kin.transport.netty.socket.protocol.ProtocolFactory;
 import org.kin.transport.netty.socket.protocol.ProtocolStatisicService;
@@ -73,7 +75,7 @@ public class RpcEnv {
     /** 序列化方式 */
     private final Serializer serializer;
     /** 通讯层是否支持压缩 */
-    private final boolean compression;
+    private final CompressionType compressionType;
     /** 服务器 */
     private RpcEndpointImpl rpcEndpoint;
     /** 标识是否stopped */
@@ -85,12 +87,39 @@ public class RpcEnv {
     /** key -> RpcEndpoint, value -> RpcEndpoint对应的RpcEndpointRef */
     private Map<RpcEndpoint, RpcEndpointRef> endpoint2Ref = new ConcurrentHashMap<>();
 
-    public RpcEnv(String host, int port, int parallelism, Serializer serializer, boolean compression) {
+    public RpcEnv(String host, int port) {
+        this(host, port, SysUtils.getSuitableThreadNum(),
+                Serializers.getSerializer(SerializerType.KRYO.getCode()), CompressionType.NONE);
+    }
+
+    public RpcEnv(String host, int port, int parallelism) {
+        this(host, port, parallelism,
+                Serializers.getSerializer(SerializerType.KRYO.getCode()), CompressionType.NONE);
+    }
+
+    public RpcEnv(String host, int port, Serializer serializer) {
+        this(host, port, SysUtils.getSuitableThreadNum(),
+                serializer, org.kin.transport.netty.CompressionType.NONE);
+    }
+
+    public RpcEnv(String host, int port, int parallelism, Serializer serializer) {
+        this(host, port, parallelism,
+                serializer, org.kin.transport.netty.CompressionType.NONE);
+    }
+
+    public RpcEnv(String host, int port, int parallelism, CompressionType compressionType) {
+        this(host, port, parallelism,
+                Serializers.getSerializer(SerializerType.KRYO.getCode()), compressionType);
+    }
+
+    public RpcEnv(String host, int port, int parallelism, Serializer serializer, CompressionType compressionType) {
         this.address = RpcAddress.of(host, port);
         this.dispatcher = new EventBasedDispatcher<>(parallelism);
         this.serializer = serializer;
-        this.compression = compression;
+        this.compressionType = compressionType;
     }
+
+    //--------------------------------------------------------------------------------------------------------------------------------
 
     /**
      * 启动rpc环境, 即绑定某端口的服务器
@@ -122,10 +151,9 @@ public class RpcEnv {
                 .channelOption(ChannelOption.SO_RCVBUF, 10 * 1024 * 1024)
                 //send窗口缓存64kb
                 .channelOption(ChannelOption.SO_SNDBUF, 64 * 1024)
-                .protocolHandler(rpcEndpoint);
-        if (compression) {
-            transportOption.compress();
-        }
+                .protocolHandler(rpcEndpoint)
+                .compress(compressionType)
+                .build();
 
         try {
             rpcEndpoint.bind(transportOption, address);
@@ -240,8 +268,6 @@ public class RpcEnv {
         return null;
     }
 
-    //--------------------------------------------------------------------------------------------------------------------------------
-
     /**
      * 发送消息
      */
@@ -307,8 +333,6 @@ public class RpcEnv {
         return future;
     }
 
-    //--------------------------------------------------------------------------------------------------------------------------------
-
     /**
      * 分派并处理接受到的消息
      */
@@ -359,7 +383,7 @@ public class RpcEnv {
                 }
                 transportClient.stop();
             }
-            transportClient = new TransportClient(this, address, compression);
+            transportClient = new TransportClient(this, address, compressionType);
             transportClient.connect();
             clients.put(address, transportClient);
         }

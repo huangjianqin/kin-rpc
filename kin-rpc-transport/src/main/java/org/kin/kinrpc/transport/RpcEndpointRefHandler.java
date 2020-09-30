@@ -52,7 +52,7 @@ public abstract class RpcEndpointRefHandler extends SocketProtocolHandler {
         }
         if (client == null) {
             try {
-                client = transportOption.build(address);
+                client = transportOption.connect(address);
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }

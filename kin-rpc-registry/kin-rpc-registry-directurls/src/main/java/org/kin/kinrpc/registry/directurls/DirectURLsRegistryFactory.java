@@ -6,6 +6,7 @@ import org.kin.kinrpc.registry.Registry;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.transport.serializer.Serializers;
+import org.kin.transport.netty.CompressionType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,15 +21,18 @@ public class DirectURLsRegistryFactory extends AbstractRegistryFactory {
     public Registry getRegistry(Url url) {
         String address = url.getParam(Constants.REGISTRY_URL_KEY);
         int serializerType = Integer.parseInt(url.getParam(Constants.SERIALIZE_KEY));
-        boolean compression = Boolean.parseBoolean(url.getParam(Constants.COMPRESSION_KEY));
+        int compression = Integer.parseInt(url.getParam(Constants.COMPRESSION_KEY));
 
         //先校验, 顺便初始化
         Preconditions.checkNotNull(Serializers.getSerializer(serializerType), "unvalid serializer type: [" + serializerType + "]");
 
+        CompressionType compressionType = CompressionType.getById(compression);
+        Preconditions.checkNotNull(compressionType, "unvalid compression type: id=" + compression + "");
+
         List<String> hostAndPorts = new ArrayList<>(Arrays.asList(address.split(Constants.DIRECT_URLS_REGISTRY_SPLITOR)));
 
         try {
-            Registry registry = REGISTRY_CACHE.get(address, () -> new DirectURLsRegistry(hostAndPorts, serializerType, compression));
+            Registry registry = REGISTRY_CACHE.get(address, () -> new DirectURLsRegistry(hostAndPorts, serializerType, compressionType));
             registry.connect();
             registry.retain();
             return registry;

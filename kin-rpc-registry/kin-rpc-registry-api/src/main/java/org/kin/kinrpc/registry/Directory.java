@@ -5,6 +5,7 @@ import org.kin.framework.utils.CollectionUtils;
 import org.kin.kinrpc.rpc.RpcReference;
 import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
 import org.kin.kinrpc.transport.serializer.Serializers;
+import org.kin.transport.netty.CompressionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,17 +25,17 @@ public class Directory {
     protected final String serviceName;
     protected final int connectTimeout;
     protected final int serializerType;
-    protected final boolean compression;
+    protected final CompressionType compressionType;
 
     /** 所有directory的discover和destroy操作都是单线程操作, 利用copy-on-write思想更新可用invokers, 提高list效率 */
     private volatile List<ReferenceInvoker> invokers = Collections.emptyList();
     private volatile boolean isStopped;
 
-    public Directory(String serviceName, int connectTimeout, int serializerType, boolean compression) {
+    public Directory(String serviceName, int connectTimeout, int serializerType, CompressionType compressionType) {
         this.serviceName = serviceName;
         this.connectTimeout = connectTimeout;
         this.serializerType = serializerType;
-        this.compression = compression;
+        this.compressionType = compressionType;
     }
 
 
@@ -101,7 +102,7 @@ public class Directory {
             for (HostAndPort hostAndPort : hostAndPorts) {
                 //创建新的ReferenceInvoker,连接Service Server
                 RpcReference rpcReference = new RpcReference(serviceName, new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPort()),
-                        Serializers.getSerializer(serializerType), connectTimeout, compression);
+                        Serializers.getSerializer(serializerType), connectTimeout, compressionType);
                 ReferenceInvoker refereneceInvoker = new ReferenceInvoker(serviceName, rpcReference);
                 //真正启动连接
                 refereneceInvoker.init();

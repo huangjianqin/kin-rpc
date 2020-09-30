@@ -21,6 +21,7 @@ import org.kin.kinrpc.transport.RpcEndpointRefHandler;
 import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
 import org.kin.kinrpc.transport.serializer.Serializer;
 import org.kin.kinrpc.transport.serializer.Serializers;
+import org.kin.transport.netty.CompressionType;
 import org.kin.transport.netty.socket.protocol.ProtocolFactory;
 import org.kin.transport.netty.socket.protocol.ProtocolStatisicService;
 import org.slf4j.Logger;
@@ -50,12 +51,18 @@ public class Clusters {
         int port = url.getPort();
         int serializerType = Integer.parseInt(url.getParam(Constants.SERIALIZE_KEY));
         boolean byteCodeInvoke = Boolean.parseBoolean(url.getParam(Constants.BYTE_CODE_INVOKE_KEY));
+
         Serializer serializer = Serializers.getSerializer(serializerType);
         Preconditions.checkNotNull(serializer, "unvalid serializer type: [" + serializerType + "]");
+
+        int compression = Integer.parseInt(url.getParam(Constants.COMPRESSION_KEY));
+        CompressionType compressionType = CompressionType.getById(compression);
+        Preconditions.checkNotNull(serializer, "unvalid compression type: id=[" + compression + "]");
+
         RpcProvider provider;
         try {
             provider = PROVIDER_CACHE.get(port, () -> {
-                RpcProvider provider0 = new RpcProvider(host, port, serializer, byteCodeInvoke, Boolean.parseBoolean(url.getParam(Constants.COMPRESSION_KEY)));
+                RpcProvider provider0 = new RpcProvider(host, port, serializer, byteCodeInvoke, compressionType);
                 try {
                     provider0.start();
                 } catch (Exception e) {

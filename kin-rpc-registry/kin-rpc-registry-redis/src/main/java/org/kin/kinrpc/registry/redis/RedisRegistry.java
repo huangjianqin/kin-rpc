@@ -12,6 +12,7 @@ import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.registry.AbstractRegistry;
 import org.kin.kinrpc.registry.Directory;
 import org.kin.kinrpc.registry.exception.AddressFormatErrorException;
+import org.kin.transport.netty.CompressionType;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -36,7 +37,7 @@ public class RedisRegistry extends AbstractRegistry implements LoggerOprs {
     /** 序列化方式 */
     private final int serializerType;
     /** 是否压缩 */
-    private final boolean compression;
+    private final CompressionType compressionType;
     /** 连接会话超时 */
     private final long sessionTimeout;
     /** 轮询redis services key间隔 */
@@ -51,11 +52,11 @@ public class RedisRegistry extends AbstractRegistry implements LoggerOprs {
     /** 执行RedisDirectory discover 的worker */
     private ExecutionContext watcherCtx = ExecutionContext.fix(SysUtils.CPU_NUM + 1, "redis-watcher");
 
-    public RedisRegistry(String host, int port, int serializerType, boolean compression, long sessionTimeout, long watchInterval) {
+    public RedisRegistry(String host, int port, int serializerType, CompressionType compressionType, long sessionTimeout, long watchInterval) {
         this.host = host;
         this.port = port;
         this.serializerType = serializerType;
-        this.compression = compression;
+        this.compressionType = compressionType;
         this.sessionTimeout = sessionTimeout;
         this.watchInterval = watchInterval;
     }
@@ -127,7 +128,7 @@ public class RedisRegistry extends AbstractRegistry implements LoggerOprs {
     @Override
     public Directory subscribe(String serviceName, int connectTimeout) {
         log().info("reference subscribe service '{}' ", serviceName);
-        Directory directory = new Directory(serviceName, connectTimeout, serializerType, compression);
+        Directory directory = new Directory(serviceName, connectTimeout, serializerType, compressionType);
         directoryCache.put(serviceName, directory);
         return directory;
     }

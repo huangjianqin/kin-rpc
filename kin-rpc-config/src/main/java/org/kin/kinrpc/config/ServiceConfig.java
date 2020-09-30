@@ -10,6 +10,7 @@ import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.transport.serializer.Serializer;
 import org.kin.kinrpc.transport.serializer.SerializerType;
 import org.kin.kinrpc.transport.serializer.Serializers;
+import org.kin.transport.netty.CompressionType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,8 +37,9 @@ public class ServiceConfig extends AbstractConfig {
     private InvokeType invokeType = InvokeType.JAVASSIST;
     /** 版本号 */
     private String version = "0.1.0.0";
-    /** 是否支持压缩 */
-    private boolean compression;
+    /** 压缩类型 */
+    private CompressionType compressionType = CompressionType.NONE;
+    ;
     /** 默认支持并发执行 */
     private boolean parallelism = true;
     /** 流控, 每秒最多处理多少个request */
@@ -92,7 +94,7 @@ public class ServiceConfig extends AbstractConfig {
             params.put(Constants.SERIALIZE_KEY, serialize + "");
             params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(InvokeType.JAVASSIST.equals(invokeType)));
             params.put(Constants.VERSION_KEY, version);
-            params.put(Constants.COMPRESSION_KEY, Boolean.toString(compression));
+            params.put(Constants.COMPRESSION_KEY, Integer.toString(compressionType.getId()));
             params.put(Constants.PARALLELISM_KEY, parallelism + "");
             params.put(Constants.RATE_KEY, rate + "");
 
@@ -220,13 +222,8 @@ public class ServiceConfig extends AbstractConfig {
         return this;
     }
 
-    public ServiceConfig compress() {
-        this.compression = true;
-        return this;
-    }
-
-    public ServiceConfig uncompress() {
-        this.compression = false;
+    public ServiceConfig compress(CompressionType compressionType) {
+        this.compressionType = compressionType;
         return this;
     }
 
@@ -278,8 +275,8 @@ public class ServiceConfig extends AbstractConfig {
         return version;
     }
 
-    public boolean isCompression() {
-        return compression;
+    public CompressionType isCompression() {
+        return compressionType;
     }
 
     public boolean isParallelism() {

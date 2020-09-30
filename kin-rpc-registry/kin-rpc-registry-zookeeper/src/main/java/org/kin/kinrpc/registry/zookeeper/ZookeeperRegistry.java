@@ -12,6 +12,7 @@ import org.kin.kinrpc.registry.AbstractRegistry;
 import org.kin.kinrpc.registry.Directory;
 import org.kin.kinrpc.registry.common.RegistryConstants;
 import org.kin.kinrpc.registry.exception.AddressFormatErrorException;
+import org.kin.transport.netty.CompressionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,13 +35,13 @@ public class ZookeeperRegistry extends AbstractRegistry {
     private CuratorFramework client;
     private final long sessionTimeOut;
     private final int serializerType;
-    private final boolean compression;
+    private final CompressionType compressionType;
 
-    public ZookeeperRegistry(String address, long sessionTimeOut, int serializerType, boolean compression) {
+    public ZookeeperRegistry(String address, long sessionTimeOut, int serializerType, CompressionType compressionType) {
         this.address = address;
         this.sessionTimeOut = sessionTimeOut;
         this.serializerType = serializerType;
-        this.compression = compression;
+        this.compressionType = compressionType;
     }
 
     @Override
@@ -139,7 +140,7 @@ public class ZookeeperRegistry extends AbstractRegistry {
     @Override
     public Directory subscribe(String serviceName, int connectTimeout) {
         log.info("reference subscribe service '{}' ", serviceName);
-        Directory directory = new Directory(serviceName, connectTimeout, serializerType, compression);
+        Directory directory = new Directory(serviceName, connectTimeout, serializerType, compressionType);
         watch(directory);
         directoryCache.put(serviceName, directory);
         return directory;

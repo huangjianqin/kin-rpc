@@ -19,6 +19,7 @@ import org.kin.kinrpc.transport.serializer.Serializer;
 import org.kin.kinrpc.transport.serializer.Serializers;
 import org.kin.kinrpc.transport.serializer.UnknownSerializerException;
 import org.kin.transport.netty.Client;
+import org.kin.transport.netty.CompressionType;
 import org.kin.transport.netty.Transports;
 import org.kin.transport.netty.socket.client.SocketClientTransportOption;
 import org.kin.transport.netty.socket.protocol.SocketProtocol;
@@ -48,7 +49,7 @@ public class TransportClient {
     /** 请求返回回调 */
     private Map<Long, RpcResponseCallback> respCallbacks = new ConcurrentHashMap<>();
 
-    public TransportClient(RpcEnv rpcEnv, RpcAddress rpcAddress, boolean compression) {
+    public TransportClient(RpcEnv rpcEnv, RpcAddress rpcAddress, CompressionType compressionType) {
         this.rpcEnv = rpcEnv;
         this.rpcEndpointRefHandler = new RpcEndpointRefHandlerImpl();
         this.rpcAddress = rpcAddress;
@@ -62,11 +63,9 @@ public class TransportClient {
                         .channelOption(ChannelOption.SO_RCVBUF, 10 * 1024 * 1024)
                         //send窗口缓存64kb
                         .channelOption(ChannelOption.SO_SNDBUF, 64 * 1024)
-                        .protocolHandler(rpcEndpointRefHandler);
-
-        if (compression) {
-            this.clientTransportOption.compress();
-        }
+                        .protocolHandler(rpcEndpointRefHandler)
+                        .compress(compressionType)
+                        .build();
     }
 
     /**
