@@ -1,7 +1,9 @@
 package org.kin.kinrpc.transport.protocol;
 
 import org.kin.kinrpc.transport.RpcProtocolId;
-import org.kin.transport.netty.socket.protocol.*;
+import org.kin.transport.netty.socket.protocol.Protocol;
+import org.kin.transport.netty.socket.protocol.ProtocolFactory;
+import org.kin.transport.netty.socket.protocol.SocketProtocol;
 
 /**
  * Created by huangjianqin on 2019/6/14.
@@ -24,31 +26,28 @@ public class RpcRequestProtocol extends SocketProtocol {
         return protocol;
     }
 
-    @Override
-    public void read(SocketRequestOprs request) {
-        requestId = request.readLong();
-        serializer = request.readByte();
-        reqContent = request.readBytes();
-    }
-
-    @Override
-    public void write(SocketResponseOprs response) {
-        response.writeLong(requestId);
-        response.writeByte(serializer);
-        response.writeBytes(reqContent);
-    }
-
     //setter && getter
-
     public long getRequestId() {
         return requestId;
+    }
+
+    public void setRequestId(long requestId) {
+        this.requestId = requestId;
     }
 
     public byte getSerializer() {
         return serializer;
     }
 
+    public void setSerializer(byte serializer) {
+        this.serializer = serializer;
+    }
+
     public byte[] getReqContent() {
         return reqContent;
+    }
+
+    public void setReqContent(byte[] reqContent) {
+        this.reqContent = reqContent;
     }
 }

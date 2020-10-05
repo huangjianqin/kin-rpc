@@ -126,7 +126,7 @@ abstract class ClusterInvoker<I> implements Closeable {
             //超过重试次数, 抛弃异常
             throw new RpcRetryOutException(retryTimes);
         } else {
-            ReferenceInvoker invoker = cluster.get(Collections.EMPTY_LIST);
+            ReferenceInvoker invoker = cluster.get(Collections.emptyList());
             if (Objects.nonNull(invoker)) {
                 try {
                     return invoker.invoke(methodName, isVoid, params);

@@ -58,7 +58,7 @@ public abstract class RpcEndpointRefHandler extends SocketProtocolHandler {
             }
             if (!isActive()) {
                 //n秒后重连
-                RECONNECT_EXECUTORS.schedule(() -> connect(transportOption, address), 5, TimeUnit.SECONDS);
+                RECONNECT_EXECUTORS.schedule(() -> connect(transportOption, address), 3, TimeUnit.SECONDS);
             }
         }
     }
