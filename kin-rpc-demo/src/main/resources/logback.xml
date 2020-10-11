@@ -38,7 +38,7 @@
         </rollingPolicy>
     </appender>
 
-    <appender name="transportAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="TRANSPORT" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <Append>true</Append>
         <encoder>
             <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
@@ -52,35 +52,7 @@
         </rollingPolicy>
     </appender>
 
-    <appender name="reqStatisticAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <Append>true</Append>
-        <encoder>
-            <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
-        </encoder>
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>DEBUG</level>
-        </filter>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${logDir}/%d{yyyy-MM-dd}/reqStatistic.log.%d{yyyy-MM-dd}</fileNamePattern>
-            <!--<maxHistory>30</maxHistory>-->
-        </rollingPolicy>
-    </appender>
-
-    <appender name="respStatisticAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <Append>true</Append>
-        <encoder>
-            <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
-        </encoder>
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>DEBUG</level>
-        </filter>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${logDir}/%d{yyyy-MM-dd}/respStatistic.log.%d{yyyy-MM-dd}</fileNamePattern>
-            <!--<maxHistory>30</maxHistory>-->
-        </rollingPolicy>
-    </appender>
-
-    <appender name="invokerAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="INVOKER" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <Append>true</Append>
         <encoder>
             <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
@@ -94,7 +66,7 @@
         </rollingPolicy>
     </appender>
 
-    <appender name="registryAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="REGISTRY" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <Append>true</Append>
         <encoder>
             <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
@@ -108,7 +80,7 @@
         </rollingPolicy>
     </appender>
 
-    <appender name="clusterAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="CLUSTER" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <Append>true</Append>
         <encoder>
             <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
@@ -122,7 +94,7 @@
         </rollingPolicy>
     </appender>
 
-    <appender name="messageAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="MESSAGE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <Append>true</Append>
         <encoder>
             <pattern>[%p] %d{yyyy-MM-dd HH:mm:ss SSS} [%t] | %C.%M\(%L\) : %msg%n%ex</pattern>
@@ -136,80 +108,40 @@
         </rollingPolicy>
     </appender>
 
-    <!--                                       async                                                       -->
-    <appender name="asyncSTDOUT" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="STDOUT"/>
-    </appender>
-
-    <appender name="asyncERROR" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="ERROR"/>
-    </appender>
-
-    <appender name="asyncTransportAppender" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="transportAppender"/>
-    </appender>
-
-    <appender name="asyncReqStatisticAppender" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="reqStatisticAppender"/>
-    </appender>
-
-    <appender name="asyncRespStatisticAppender" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="respStatisticAppender"/>
-    </appender>
-
-    <appender name="asyncInvokerAppender" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="invokerAppender"/>
-    </appender>
-
-    <appender name="asyncRegistryAppender" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="registryAppender"/>
-    </appender>
-
-    <appender name="asyncClusterAppender" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="clusterAppender"/>
-    </appender>
-
-    <appender name="asyncMessageAppender" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="messageAppender"/>
-    </appender>
-
     <!--                                       logger                                                       -->
     <logger name="error" level="ERROR">
-        <appender-ref ref="asyncERROR"/>
+        <appender-ref ref="ERROR"/>
     </logger>
 
     <logger name="org.kin.kinrpc.transport" level="INFO">
-        <appender-ref ref="asyncTransportAppender"/>
-    </logger>
-
-    <logger name="org.kin.kinrpc.transport.reqStatistic" level="INFO">
-        <appender-ref ref="asyncReqStatisticAppender"/>
-    </logger>
-
-    <logger name="org.kin.kinrpc.transport.respStatistic" level="INFO">
-        <appender-ref ref="asyncRespStatisticAppender"/>
+        <appender-ref ref="TRANSPORT"/>
+        <appender-ref ref="ERROR"/>
     </logger>
 
     <logger name="org.kin.kinrpc.rpc" level="INFO">
-        <appender-ref ref="asyncInvokerAppender"/>
+        <appender-ref ref="INVOKER"/>
+        <appender-ref ref="ERROR"/>
     </logger>
 
     <logger name="org.kin.kinrpc.registry" level="INFO">
-        <appender-ref ref="asyncRegistryAppender"/>
+        <appender-ref ref="REGISTRY"/>
+        <appender-ref ref="ERROR"/>
     </logger>
 
     <logger name="org.kin.kinrpc.cluster" level="INFO">
-        <appender-ref ref="asyncClusterAppender"/>
+        <appender-ref ref="CLUSTER"/>
+        <appender-ref ref="ERROR"/>
     </logger>
 
-    <logger name="message" level="INFO">
-        <appender-ref ref="asyncMessageAppender"/>
+    <logger name="org.kin.kinrpc.message" level="INFO">
+        <appender-ref ref="MESSAGE"/>
+        <appender-ref ref="ERROR"/>
     </logger>
 
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="asyncSTDOUT"/>
-        <appender-ref ref="asyncERROR"/>
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="ERROR"/>
     </root>
 
     <!--<appender name="FILE" class="ch.qos.logback.core.FileAppender">-->
