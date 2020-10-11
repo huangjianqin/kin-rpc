@@ -28,6 +28,16 @@ public class Serializers {
     }
 
     /**
+     * @param name 序列化名称
+     */
+    public static Serializer getSerializer(String name) {
+        return SERIALIZER_CACHE.values().stream()
+                .filter(serializer -> serializer.getClass().getSimpleName().toLowerCase().startsWith(name))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
      * 根据Serializer class 返回type code
      */
     public static int getSerializerType(Class<? extends Serializer> serializerClass) {
