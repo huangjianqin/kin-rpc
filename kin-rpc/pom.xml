@@ -13,9 +13,6 @@
     <version>0.1.0.0</version>
     <packaging>jar</packaging>
 
-    <properties>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.kin</groupId>
