@@ -234,12 +234,8 @@ public class RpcReference {
         }
 
         @Override
-        protected void reconnect() {
+        protected void connectionInactive() {
             RpcReference.this.clean();
-            if (!isStopped) {
-                log.warn("reference({}, {}) reconnecting...", serviceName, getAddress());
-                connect(clientTransportOption, address);
-            }
         }
     }
 

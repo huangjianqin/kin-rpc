@@ -2,8 +2,6 @@ package org.kin.kinrpc.transport;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
-import org.kin.framework.JvmCloseCleaner;
-import org.kin.framework.concurrent.ExecutionContext;
 import org.kin.kinrpc.transport.protocol.RpcResponseProtocol;
 import org.kin.transport.netty.Client;
 import org.kin.transport.netty.socket.SocketProtocolHandler;
@@ -14,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author huangjianqin
@@ -22,14 +19,6 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class RpcEndpointRefHandler extends SocketProtocolHandler {
     private static final Logger log = LoggerFactory.getLogger(RpcEndpointRefHandler.class);
-    /** 客户端重连线程池 */
-    public static ExecutionContext RECONNECT_EXECUTORS =
-            ExecutionContext.cache("endpointRef-reconnect",
-                    1, "endpointRef-reconnect-scheduler");
-
-    static {
-        JvmCloseCleaner.DEFAULT().add(() -> RECONNECT_EXECUTORS.shutdownNow());
-    }
 
     /** 客户端引用 */
     protected volatile Client<SocketProtocol> client;
@@ -52,13 +41,9 @@ public abstract class RpcEndpointRefHandler extends SocketProtocolHandler {
         }
         if (client == null) {
             try {
-                client = transportOption.connect(address);
+                client = transportOption.withReconnect(address, false);
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
-            }
-            if (!isActive()) {
-                //n秒后重连
-                RECONNECT_EXECUTORS.schedule(() -> connect(transportOption, address), 3, TimeUnit.SECONDS);
             }
         }
     }
@@ -107,7 +92,7 @@ public abstract class RpcEndpointRefHandler extends SocketProtocolHandler {
      */
     @Override
     public final void channelInactive(ChannelHandlerContext ctx) {
-        RECONNECT_EXECUTORS.execute(this::reconnect);
+        connectionInactive();
     }
 
     /**
@@ -116,7 +101,7 @@ public abstract class RpcEndpointRefHandler extends SocketProtocolHandler {
     protected abstract void handleRpcResponseProtocol(RpcResponseProtocol responseProtocol);
 
     /**
-     * 重连逻辑
+     * 连接断开逻辑处理
      */
-    protected abstract void reconnect();
+    protected abstract void connectionInactive();
 }

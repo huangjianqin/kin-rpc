@@ -16,7 +16,6 @@ import org.kin.kinrpc.message.transport.TransportClient;
 import org.kin.kinrpc.message.transport.domain.RpcEndpointAddress;
 import org.kin.kinrpc.message.transport.protocol.RpcMessage;
 import org.kin.kinrpc.transport.RpcEndpointHandler;
-import org.kin.kinrpc.transport.RpcEndpointRefHandler;
 import org.kin.kinrpc.transport.domain.RpcAddress;
 import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
 import org.kin.kinrpc.transport.serializer.Serializer;
@@ -222,7 +221,6 @@ public class RpcEnv {
 
         //shutdown 线程资源
         commonExecutors.shutdown();
-        RpcEndpointRefHandler.RECONNECT_EXECUTORS.shutdown();
     }
 
     /**

@@ -154,7 +154,7 @@ public class TransportClient {
         }
 
         @Override
-        protected void reconnect() {
+        protected void connectionInactive() {
             //不处理, 由outbox发现in active时, 重新连接
             rpcEnv.removeClient(rpcAddress);
             for (RpcResponseCallback callback : respCallbacks.values()) {
