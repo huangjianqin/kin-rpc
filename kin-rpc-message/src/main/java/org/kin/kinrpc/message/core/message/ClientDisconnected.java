@@ -8,13 +8,13 @@ import java.io.Serializable;
  * @author huangjianqin
  * @date 2020/8/2
  */
-public class RemoteConnected implements Serializable {
-    private static final long serialVersionUID = -2958636572550283276L;
+public class ClientDisconnected implements Serializable {
+    private static final long serialVersionUID = 5344051735870164432L;
 
     private RpcAddress rpcAddress;
 
-    public static RemoteConnected of(RpcAddress rpcAddress) {
-        RemoteConnected msg = new RemoteConnected();
+    public static ClientDisconnected of(RpcAddress rpcAddress) {
+        ClientDisconnected msg = new ClientDisconnected();
         msg.rpcAddress = rpcAddress;
         return msg;
     }
@@ -27,4 +27,3 @@ public class RemoteConnected implements Serializable {
         this.rpcAddress = rpcAddress;
     }
 }
-

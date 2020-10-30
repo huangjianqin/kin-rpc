@@ -69,9 +69,6 @@ public class OutBox {
 
         if (!client.isActive()) {
             //client inactive
-            closeClient();
-            rpcEnv.removeClient(address);
-            clientConnect();
             return false;
         }
         return true;
@@ -159,9 +156,9 @@ public class OutBox {
             try {
                 TransportClient client = rpcEnv.getClient(address);
                 synchronized (OutBox.this) {
-                    OutBox.this.client = client;
-                    if (isStopped) {
-                        closeClient();
+                    if (!isStopped) {
+                        OutBox.this.client = client;
+                        OutBox.this.client.updateOutBox(this);
                     }
                 }
             } catch (Exception e) {
@@ -174,14 +171,8 @@ public class OutBox {
             synchronized (OutBox.this) {
                 clientConnectFuture = null;
             }
-            drainOutbox();
+            //等待client connected回调
         });
-    }
-
-    /** 关闭client */
-    private void closeClient() {
-        //复用client
-        client = null;
     }
 
     /**
@@ -210,7 +201,12 @@ public class OutBox {
             if (Objects.nonNull(clientConnectFuture)) {
                 clientConnectFuture.cancel(true);
             }
-            closeClient();
+            client = null;
         }
+    }
+
+    /** client连接成功时触发 */
+    public void clientConnected() {
+        drainOutbox();
     }
 }

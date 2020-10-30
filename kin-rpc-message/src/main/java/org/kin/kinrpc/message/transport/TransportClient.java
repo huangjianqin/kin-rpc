@@ -3,8 +3,10 @@ package org.kin.kinrpc.message.transport;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.utils.StringUtils;
+import org.kin.kinrpc.message.core.OutBox;
 import org.kin.kinrpc.message.core.OutBoxMessage;
 import org.kin.kinrpc.message.core.RpcEnv;
 import org.kin.kinrpc.message.core.RpcResponseCallback;
@@ -38,16 +40,18 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TransportClient {
     private static final Logger log = LoggerFactory.getLogger(TransportClient.class);
     /** 序列化 */
-    private RpcEnv rpcEnv;
+    private final RpcEnv rpcEnv;
     /** 客户端配置 */
-    private SocketClientTransportOption clientTransportOption;
+    private final SocketClientTransportOption clientTransportOption;
     /** 服务器地址 */
-    private RpcAddress rpcAddress;
+    private final RpcAddress rpcAddress;
     /** client handler */
-    private RpcEndpointRefHandlerImpl rpcEndpointRefHandler;
+    private final RpcEndpointRefHandlerImpl rpcEndpointRefHandler;
     private volatile boolean isStopped;
     /** 请求返回回调 */
     private Map<Long, RpcResponseCallback> respCallbacks = new ConcurrentHashMap<>();
+    /** out方向邮箱 */
+    private OutBox outBox;
 
     public TransportClient(RpcEnv rpcEnv, RpcAddress rpcAddress, CompressionType compressionType) {
         this.rpcEnv = rpcEnv;
@@ -122,6 +126,13 @@ public class TransportClient {
         respCallbacks.remove(requestId);
     }
 
+    /**
+     * 更新与其绑定的outbox
+     */
+    public void updateOutBox(OutBox outBox) {
+        this.outBox = outBox;
+    }
+
     //------------------------------------------------------------------------------------------------------------------
     private class RpcEndpointRefHandlerImpl extends RpcEndpointRefHandler {
         @Override
@@ -154,9 +165,14 @@ public class TransportClient {
         }
 
         @Override
+        public void channelActive(ChannelHandlerContext ctx) {
+            if (Objects.nonNull(outBox)) {
+                rpcEnv.commonExecutors.execute(outBox::clientConnected);
+            }
+        }
+
+        @Override
         protected void connectionInactive() {
-            //不处理, 由outbox发现in active时, 重新连接
-            rpcEnv.removeClient(rpcAddress);
             for (RpcResponseCallback callback : respCallbacks.values()) {
                 callback.onFail(new ClientConnectFailException(rpcAddress.address()));
             }

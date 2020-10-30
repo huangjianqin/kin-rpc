@@ -10,8 +10,8 @@ import org.kin.framework.concurrent.actor.EventBasedDispatcher;
 import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.framework.utils.SysUtils;
-import org.kin.kinrpc.message.core.message.RemoteConnected;
-import org.kin.kinrpc.message.core.message.RemoteDisconnected;
+import org.kin.kinrpc.message.core.message.ClientConnected;
+import org.kin.kinrpc.message.core.message.ClientDisconnected;
 import org.kin.kinrpc.message.transport.TransportClient;
 import org.kin.kinrpc.message.transport.domain.RpcEndpointAddress;
 import org.kin.kinrpc.message.transport.protocol.RpcMessage;
@@ -487,9 +487,9 @@ public class RpcEnv {
 
             InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
             RpcAddress clientAddr = RpcAddress.of(remoteAddress.getHostName(), remoteAddress.getPort());
-            RemoteConnected remoteConnected = RemoteConnected.of(clientAddr);
+            ClientConnected clientConnected = ClientConnected.of(clientAddr);
             RpcMessageCallContext rpcMessageCallContext =
-                    new RpcMessageCallContext(RpcEnv.this, clientAddr, channel, remoteConnected);
+                    new RpcMessageCallContext(RpcEnv.this, clientAddr, channel, clientConnected);
             //分派
             dispatcher.post2All(rpcMessageCallContext);
         }
@@ -507,9 +507,9 @@ public class RpcEnv {
             RpcAddress clientAddr = RpcAddress.of(remoteAddress.getHostName(), remoteAddress.getPort());
             RpcAddress remoteBindAddr = clientAddr2RemoteBindAddr.remove(clientAddr);
             if (Objects.nonNull(remoteBindAddr)) {
-                RemoteDisconnected remoteDisconnected = RemoteDisconnected.of(remoteBindAddr);
+                ClientDisconnected clientDisconnected = ClientDisconnected.of(remoteBindAddr);
                 RpcMessageCallContext rpcMessageCallContext =
-                        new RpcMessageCallContext(RpcEnv.this, remoteBindAddr, channel, remoteDisconnected);
+                        new RpcMessageCallContext(RpcEnv.this, remoteBindAddr, channel, clientDisconnected);
                 //分派
                 dispatcher.post2All(rpcMessageCallContext);
             }
