@@ -10,7 +10,11 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>kin-rpc-transport</artifactId>
     <version>0.1.0.0</version>
-    <packaging>jar</packaging>
+    <modules>
+        <module>kin-rpc-transport-kinrpc</module>
+        <module>kin-rpc-transport-api</module>
+    </modules>
+    <packaging>pom</packaging>
 
     <properties>
     </properties>
