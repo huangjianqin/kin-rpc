@@ -6,7 +6,6 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.utils.StringUtils;
-import org.kin.kinrpc.message.core.OutBox;
 import org.kin.kinrpc.message.core.OutBoxMessage;
 import org.kin.kinrpc.message.core.RpcEnv;
 import org.kin.kinrpc.message.core.RpcResponseCallback;
@@ -37,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author huangjianqin
  * @date 2020-06-10
  */
-public class TransportClient {
+public final class TransportClient {
     private static final Logger log = LoggerFactory.getLogger(TransportClient.class);
     /** 序列化 */
     private final RpcEnv rpcEnv;
@@ -49,9 +48,9 @@ public class TransportClient {
     private final RpcEndpointRefHandlerImpl rpcEndpointRefHandler;
     private volatile boolean isStopped;
     /** 请求返回回调 */
-    private Map<Long, RpcResponseCallback> respCallbacks = new ConcurrentHashMap<>();
-    /** out方向邮箱 */
-    private OutBox outBox;
+    private final Map<Long, RpcResponseCallback> respCallbacks = new ConcurrentHashMap<>();
+    /** 相当于OutBox发送消息逻辑, 用于重连时, 触发发送OutBox中仍然没有发送的消息 */
+    private Runnable connectionInitCallback;
 
     public TransportClient(RpcEnv rpcEnv, RpcAddress rpcAddress, CompressionType compressionType) {
         this.rpcEnv = rpcEnv;
@@ -127,10 +126,10 @@ public class TransportClient {
     }
 
     /**
-     * 更新与其绑定的outbox
+     * 更新client 连接成功建立callback
      */
-    public void updateOutBox(OutBox outBox) {
-        this.outBox = outBox;
+    public void updateConnectionInitCallback(Runnable connectionInitCallback) {
+        this.connectionInitCallback = connectionInitCallback;
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -166,8 +165,8 @@ public class TransportClient {
 
         @Override
         public void channelActive(ChannelHandlerContext ctx) {
-            if (Objects.nonNull(outBox)) {
-                rpcEnv.commonExecutors.execute(outBox::clientConnected);
+            if (Objects.nonNull(connectionInitCallback)) {
+                connectionInitCallback.run();
             }
         }
 

@@ -60,23 +60,19 @@ public class RpcEndpointRef implements Serializable {
     /**
      * 发送消息
      */
-    public void send(Serializable message) {
+    public final void send(Serializable message) {
         rpcEnv().send(rpcMessage(message));
     }
 
     /**
      * 发送消息,并返回Future, 支持阻塞等待待消息处理完并返回
      */
-    public <R extends Serializable> RpcFuture<R> ask(Serializable message) {
+    public final <R extends Serializable> RpcFuture<R> ask(Serializable message) {
         return rpcEnv().ask(rpcMessage(message));
     }
 
     //------------------------------------------------------------------------------------------------------------------
-    public RpcEndpointAddress getEndpointAddress() {
+    public final RpcEndpointAddress getEndpointAddress() {
         return endpointAddress;
-    }
-
-    public void setEndpointAddress(RpcEndpointAddress endpointAddress) {
-        this.endpointAddress = endpointAddress;
     }
 }

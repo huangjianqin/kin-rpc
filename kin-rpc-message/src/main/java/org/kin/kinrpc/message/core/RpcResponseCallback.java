@@ -3,13 +3,13 @@ package org.kin.kinrpc.message.core;
 import java.io.Serializable;
 
 /**
+ * 消息处理返回回调接口
+ *
  * @author huangjianqin
  * @date 2020-06-14
- *
- * 消息处理返回回调接口
  */
 public interface RpcResponseCallback<R extends Serializable> {
-    RpcResponseCallback EMPTY = new RpcResponseCallback() {
+    RpcResponseCallback<Serializable> EMPTY = new RpcResponseCallback<Serializable>() {
         @Override
         public void onSuccess(Serializable message) {
             //do nothing

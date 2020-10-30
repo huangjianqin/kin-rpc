@@ -14,7 +14,7 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2020-06-08
  */
-public class RpcEndpoint extends Receiver<RpcMessageCallContext> {
+public abstract class RpcEndpoint extends Receiver<RpcMessageCallContext> {
     private static final Logger msgLog = LoggerFactory.getLogger(RpcEndpoint.class);
     /** rpc环境 */
     protected final RpcEnv rpcEnv;
@@ -34,7 +34,7 @@ public class RpcEndpoint extends Receiver<RpcMessageCallContext> {
     }
 
     @Override
-    public void receive(RpcMessageCallContext context) {
+    public final void receive(RpcMessageCallContext context) {
         //更新该线程本地的rpc环境
         RpcEnv.updateCurrentRpcEnv(rpcEnv);
         //设置message handle时间
@@ -51,7 +51,13 @@ public class RpcEndpoint extends Receiver<RpcMessageCallContext> {
                 context.getCreateTime(), context.getEventTime(), context.getHandleTime(),
                 context.getMessage()
         );
+        onReceiveMessage(context);
     }
+
+    /**
+     * 处理消息逻辑实现
+     */
+    protected abstract void onReceiveMessage(RpcMessageCallContext context);
 
     /**
      * 标识是否线程安全

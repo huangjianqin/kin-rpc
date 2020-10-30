@@ -13,7 +13,7 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2020-06-08
  */
-public class RpcMessageCallContext {
+public final class RpcMessageCallContext {
     /** rpc环境 */
     private RpcEnv rpcEnv;
     /** sender地址 */

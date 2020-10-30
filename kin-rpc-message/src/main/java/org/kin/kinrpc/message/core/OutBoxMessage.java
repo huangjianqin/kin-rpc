@@ -9,7 +9,7 @@ import java.io.Serializable;
  * @author huangjianqin
  * @date 2020-06-10
  */
-public class OutBoxMessage implements RpcResponseCallback {
+public final class OutBoxMessage implements RpcResponseCallback<Serializable> {
     private RpcMessage message;
     private RpcResponseCallback proxy = RpcResponseCallback.EMPTY;
 
@@ -17,7 +17,7 @@ public class OutBoxMessage implements RpcResponseCallback {
         this.message = message;
     }
 
-    public OutBoxMessage(RpcMessage message, RpcResponseCallback proxy) {
+    public OutBoxMessage(RpcMessage message, RpcResponseCallback<?> proxy) {
         this.message = message;
         this.proxy = proxy;
     }

@@ -44,7 +44,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author huangjianqin
  * @date 2020-06-08
  */
-public class RpcEnv {
+public final class RpcEnv {
     private static final Logger log = LoggerFactory.getLogger(RpcEnv.class);
 
     static {

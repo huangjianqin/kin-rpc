@@ -7,10 +7,11 @@ import java.util.Objects;
 
 /**
  * RpcEndpoint地址
+ *
  * @author huangjianqin
  * @date 2020-06-10
  */
-public class RpcEndpointAddress implements Serializable {
+public final class RpcEndpointAddress implements Serializable {
     private static final long serialVersionUID = 5376277467578311383L;
 
     /** rpc地址 */

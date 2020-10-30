@@ -15,7 +15,7 @@ import java.util.concurrent.Future;
  * @author huangjianqin
  * @date 2020-06-10
  */
-public class OutBox {
+final class OutBox {
     private static final Logger log = LoggerFactory.getLogger(OutBox.class);
 
     /** 接收方地址 */
@@ -32,7 +32,7 @@ public class OutBox {
     /** 客户端连接的Future */
     private Future clientConnectFuture;
 
-    public OutBox(RpcAddress address, RpcEnv rpcEnv) {
+    OutBox(RpcAddress address, RpcEnv rpcEnv) {
         this.address = address;
         this.rpcEnv = rpcEnv;
     }
@@ -40,7 +40,7 @@ public class OutBox {
     /**
      * 发送消息, 本质上是消息入队, 并等待client发送
      */
-    public void sendMessage(OutBoxMessage outBoxMessage) {
+    void sendMessage(OutBoxMessage outBoxMessage) {
         boolean dropped = false;
         synchronized (this) {
             if (isStopped) {
@@ -158,7 +158,9 @@ public class OutBox {
                 synchronized (OutBox.this) {
                     if (!isStopped) {
                         OutBox.this.client = client;
-                        OutBox.this.client.updateOutBox(this);
+                        OutBox.this.client.updateConnectionInitCallback(() -> {
+                            rpcEnv.commonExecutors.execute(OutBox.this::drainOutbox);
+                        });
                     }
                 }
             } catch (Exception e) {
@@ -178,7 +180,7 @@ public class OutBox {
     /**
      * outbox stopped
      */
-    public void stop() {
+    void stop() {
         synchronized (this) {
             if (isStopped) {
                 return;
@@ -203,10 +205,5 @@ public class OutBox {
             }
             client = null;
         }
-    }
-
-    /** client连接成功时触发 */
-    public void clientConnected() {
-        drainOutbox();
     }
 }

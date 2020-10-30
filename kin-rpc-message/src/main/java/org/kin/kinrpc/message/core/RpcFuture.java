@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author huangjianqin
  * @date 2020-06-14
  */
-public class RpcFuture<R extends Serializable> implements Future<R> {
+public final class RpcFuture<R extends Serializable> implements Future<R> {
     /** rpc环境 */
     private final RpcEnv rpcEnv;
     /** rpc请求地址 */

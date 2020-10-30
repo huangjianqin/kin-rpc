@@ -40,8 +40,7 @@ public class RpcEndpointDemo extends RpcEndpoint {
     }
 
     @Override
-    public void receive(RpcMessageCallContext context) {
-        super.receive(context);
+    protected void onReceiveMessage(RpcMessageCallContext context) {
         Serializable message = context.getMessage();
         System.out.println(message);
         context.reply(new ReplyMessage(context.getRequestId()));

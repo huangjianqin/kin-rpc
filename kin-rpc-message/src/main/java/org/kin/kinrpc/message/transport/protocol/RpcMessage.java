@@ -8,10 +8,11 @@ import java.util.Objects;
 
 /**
  * rpc请求封装的消息
+ *
  * @author huangjianqin
  * @date 2020-06-08
  */
-public class RpcMessage implements Serializable {
+public final class RpcMessage implements Serializable {
     private static final long serialVersionUID = -7580281019273609173L;
 
     /** 请求唯一id */

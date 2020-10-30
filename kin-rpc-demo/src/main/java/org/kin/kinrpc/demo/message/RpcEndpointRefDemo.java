@@ -57,8 +57,7 @@ public class RpcEndpointRefDemo extends RpcEndpoint {
     }
 
     @Override
-    public void receive(RpcMessageCallContext context) {
-        super.receive(context);
+    protected void onReceiveMessage(RpcMessageCallContext context) {
         System.err.println(context.getMessage());
     }
 
