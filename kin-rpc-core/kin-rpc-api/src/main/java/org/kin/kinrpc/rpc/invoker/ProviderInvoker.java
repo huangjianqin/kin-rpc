@@ -11,13 +11,15 @@ import java.util.StringJoiner;
  * @author huangjianqin
  * @date 2019-08-22
  */
-public abstract class ProviderInvoker extends AbstractInvoker {
+public abstract class ProviderInvoker<T> extends AbstractInvoker<T> {
     protected static final Logger log = LoggerFactory.getLogger(ProviderInvoker.class);
+    private final Class<T> interfaceC;
     /** 流控 */
     private RateLimiter rateLimiter;
 
-    protected ProviderInvoker(String serviceName, int rate) {
+    protected ProviderInvoker(String serviceName, Class<T> interfaceC, int rate) {
         super(serviceName);
+        this.interfaceC = interfaceC;
         rateLimiter = RateLimiter.create(rate);
     }
 
@@ -65,5 +67,10 @@ public abstract class ProviderInvoker extends AbstractInvoker {
      */
     public double getRate() {
         return rateLimiter.getRate();
+    }
+
+    @Override
+    public Class<T> getInterface() {
+        return interfaceC;
     }
 }

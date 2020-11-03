@@ -21,7 +21,7 @@ import java.util.concurrent.Future;
 /**
  * Created by 健勤 on 2017/2/15.
  */
-public class ReferenceInvoker extends AbstractInvoker implements AsyncInvoker {
+public class ReferenceInvoker<T> extends AbstractInvoker<T> implements AsyncInvoker<T> {
     protected static final Logger log = LoggerFactory.getLogger(ReferenceInvoker.class);
     protected RpcReference rpcReference;
 
@@ -79,6 +79,12 @@ public class ReferenceInvoker extends AbstractInvoker implements AsyncInvoker {
             log.error("pending result execute error >>> {}", e.getMessage());
             throw e;
         }
+    }
+
+    @Override
+    public Class<T> getInterface() {
+        //todo directory带上service interface
+        return null;
     }
 
     @Override

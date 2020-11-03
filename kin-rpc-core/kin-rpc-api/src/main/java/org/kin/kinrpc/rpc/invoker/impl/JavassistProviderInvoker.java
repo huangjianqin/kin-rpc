@@ -18,19 +18,19 @@ import java.util.Map;
  * <p>
  * 调用方法速度接近于直接调用, 比反射要快很多
  */
-public class JavassistProviderInvoker extends ProviderInvoker {
+public class JavassistProviderInvoker<T> extends ProviderInvoker<T> {
     /**
      * 方法调用入口
      */
     private Map<String, ProxyInvoker> methodMap = new HashMap<>();
 
-    public JavassistProviderInvoker(String serviceName, Object service, Class interfaceClass, int rate) {
-        super(serviceName, rate);
+    public JavassistProviderInvoker(String serviceName, T service, Class<T> interfaceClass, int rate) {
+        super(serviceName, interfaceClass, rate);
         //生成方法代理类
         init(service, interfaceClass);
     }
 
-    private void init(Object service, Class interfaceClass) {
+    private void init(Object service, Class<T> interfaceClass) {
         Method[] declaredMethods = interfaceClass.getDeclaredMethods();
 
         Map<String, ProxyInvoker> methodMap = new HashMap<>(declaredMethods.length);

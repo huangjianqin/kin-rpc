@@ -18,7 +18,7 @@ import java.util.Map;
 /**
  * Created by 健勤 on 2017/2/12.
  */
-public class ServiceConfig extends AbstractConfig {
+public class ServiceConfig<T> extends AbstractConfig {
     /** 应用配置 */
     private ApplicationConfig applicationConfig = new ApplicationConfig();
     /** 网络配置 */
@@ -26,9 +26,9 @@ public class ServiceConfig extends AbstractConfig {
     /** 注册中心配置 */
     private AbstractRegistryConfig registryConfig;
     /** 服务实例 */
-    private Object ref;
+    private T ref;
     /** 接口 */
-    private Class<?> interfaceClass;
+    private Class<T> interfaceClass;
     /** 服务名 */
     private String serviceName;
     /** 序列化类型 */
@@ -50,7 +50,7 @@ public class ServiceConfig extends AbstractConfig {
     /** 是否已暴露服务 */
     private volatile boolean isExport;
 
-    ServiceConfig(Object ref, Class<?> interfaceClass) {
+    ServiceConfig(T ref, Class<T> interfaceClass) {
         this.ref = ref;
         this.interfaceClass = interfaceClass;
         this.serviceName = interfaceClass.getName();

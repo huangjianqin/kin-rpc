@@ -45,7 +45,7 @@ public class Clusters {
     private Clusters() {
     }
 
-    public static synchronized void export(Url url, Class interfaceClass, Object instance) {
+    public static synchronized <T> void export(Url url, Class<T> interfaceClass, T instance) {
         String host = url.getHost();
         int port = url.getPort();
         int serializerType = Integer.parseInt(url.getParam(Constants.SERIALIZE_KEY));

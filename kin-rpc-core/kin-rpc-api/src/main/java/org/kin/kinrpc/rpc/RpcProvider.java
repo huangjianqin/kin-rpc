@@ -97,19 +97,19 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
     /**
      * 支持动态添加服务
      */
-    public void addService(Url url, Class<?> interfaceClass, Object service) {
+    public <T> void addService(Url url, Class<T> interfaceClass, T service) {
         handle((rpcProvider) -> {
             if (isAlive()) {
                 String serviceName = url.getServiceName();
-                ProviderInvoker invoker;
+                ProviderInvoker<T> invoker;
 
                 int rate = Integer.parseInt(url.getParam(Constants.RATE_KEY));
                 if (isByteCodeInvoke) {
                     //使用javassist调用服务类接口方法
-                    invoker = new JavassistProviderInvoker(serviceName, service, interfaceClass, rate);
+                    invoker = new JavassistProviderInvoker<>(serviceName, service, interfaceClass, rate);
                 } else {
                     //使用反射调用服务类接口方法
-                    invoker = new ReflectProviderInvoker(serviceName, service, interfaceClass, rate);
+                    invoker = new ReflectProviderInvoker<>(serviceName, service, interfaceClass, rate);
                 }
 
                 if (!serviceMap.containsKey(serviceName)) {

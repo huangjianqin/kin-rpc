@@ -12,24 +12,24 @@ import java.util.Map;
 /**
  * Created by 健勤 on 2017/2/12.
  */
-public class ReflectProviderInvoker extends ProviderInvoker {
+public class ReflectProviderInvoker<T> extends ProviderInvoker<T> {
     /**
      * 服务类
      */
-    private Object serivce;
+    private T serivce;
     /**
      * 方法调用入口
      */
     private Map<String, Method> methodMap = new HashMap<>();
 
 
-    public ReflectProviderInvoker(String serviceName, Object service, Class interfaceClass, int rate) {
-        super(serviceName, rate);
+    public ReflectProviderInvoker(String serviceName, T service, Class<T> interfaceClass, int rate) {
+        super(serviceName, interfaceClass, rate);
         this.serivce = service;
         init(interfaceClass);
     }
 
-    private void init(Class interfaceClass) {
+    private void init(Class<T> interfaceClass) {
         Method[] methods = interfaceClass.getMethods();
 
         for (Method method : methods) {
