@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Created by 健勤 on 2017/2/15.
  */
-@SPI("router")
+@SPI(key = "router")
 public interface Router {
     /**
      * invokers路由
