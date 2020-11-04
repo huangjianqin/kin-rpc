@@ -1,4 +1,4 @@
-package org.kin.kinrpc.transport.domain;
+package org.kin.kinrpc.transport.kinrpc;
 
 import org.kin.framework.utils.NetUtils;
 import org.slf4j.Logger;
@@ -13,28 +13,28 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2020-06-10
  */
-public class RpcAddress implements Serializable {
-    private static final Logger log = LoggerFactory.getLogger(RpcAddress.class);
+public class KinRpcAddress implements Serializable {
+    private static final Logger log = LoggerFactory.getLogger(KinRpcAddress.class);
     private static final long serialVersionUID = 145033673996597409L;
 
     private String host;
     private int port;
 
-    public RpcAddress() {
+    public KinRpcAddress() {
     }
 
     //------------------------------------------------------------------------------------------------------------
-    public static RpcAddress of(String host, int port) {
-        RpcAddress address = new RpcAddress();
+    public static KinRpcAddress of(String host, int port) {
+        KinRpcAddress address = new KinRpcAddress();
         address.host = host;
         address.port = port;
         return address;
     }
 
-    public static RpcAddress of(String uriStr) {
+    public static KinRpcAddress of(String uriStr) {
         try {
             URI uri = new URI(uriStr);
-            RpcAddress address = new RpcAddress();
+            KinRpcAddress address = new KinRpcAddress();
             address.host = uri.getHost();
             address.port = uri.getPort();
             return address;
@@ -71,7 +71,7 @@ public class RpcAddress implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        RpcAddress that = (RpcAddress) o;
+        KinRpcAddress that = (KinRpcAddress) o;
         return port == that.port &&
                 Objects.equals(host, that.host);
     }

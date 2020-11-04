@@ -48,7 +48,7 @@ public class Url implements Serializable {
         }
     }
 
-    public static Url valueOf(String url) {
+    public static Url of(String url) {
         if (StringUtils.isBlank(url)) {
             throw new IllegalArgumentException("url == null");
         }

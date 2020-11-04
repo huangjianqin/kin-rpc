@@ -2,7 +2,7 @@ package org.kin.kinrpc.cluster.router;
 
 
 import org.kin.framework.utils.SPI;
-import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
+import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
 
 import java.util.List;
 

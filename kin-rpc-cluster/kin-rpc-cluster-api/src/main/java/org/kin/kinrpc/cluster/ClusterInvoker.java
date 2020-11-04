@@ -4,15 +4,14 @@ import com.google.common.net.HostAndPort;
 import org.kin.framework.Closeable;
 import org.kin.framework.utils.ClassUtils;
 import org.kin.kinrpc.cluster.exception.CannotFindInvokerException;
+import org.kin.kinrpc.rpc.RpcResponse;
 import org.kin.kinrpc.rpc.RpcThreadPool;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 import org.kin.kinrpc.rpc.exception.RpcRetryException;
 import org.kin.kinrpc.rpc.exception.RpcRetryOutException;
 import org.kin.kinrpc.rpc.exception.UnknownRpcResponseStateCodeException;
-import org.kin.kinrpc.rpc.future.RpcFuture;
-import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
-import org.kin.kinrpc.rpc.transport.RpcResponse;
+import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,12 +90,8 @@ abstract class ClusterInvoker<I> implements Closeable {
                                     throw new UnknownRpcResponseStateCodeException(rpcResponse.getState().getCode());
                             }
                         } else {
-                            tryTimes++;
-                            ((RpcFuture) future).doneTimeout();
-                            failureHostAndPorts.add(invoker.getAddress());
+                            throw new RpcCallErrorException("rpc response call success, but get null");
                         }
-                    } catch (InterruptedException e) {
-
                     } catch (ExecutionException e) {
                         log.error("pending result execute error >>> {}", e.getMessage());
                         break;

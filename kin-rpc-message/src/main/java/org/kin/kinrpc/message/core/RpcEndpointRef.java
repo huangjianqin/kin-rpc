@@ -2,7 +2,7 @@ package org.kin.kinrpc.message.core;
 
 import org.kin.kinrpc.message.transport.domain.RpcEndpointAddress;
 import org.kin.kinrpc.message.transport.protocol.RpcMessage;
-import org.kin.kinrpc.transport.domain.RpcRequestIdGenerator;
+import org.kin.kinrpc.transport.kinrpc.KinRpcRequestIdGenerator;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -54,7 +54,7 @@ public class RpcEndpointRef implements Serializable {
      * 封装成RpcMessage
      */
     private RpcMessage rpcMessage(Serializable message) {
-        return RpcMessage.of(RpcRequestIdGenerator.next(), rpcEnv().address(), this, message);
+        return RpcMessage.of(KinRpcRequestIdGenerator.next(), rpcEnv().address(), this, message);
     }
 
     /**

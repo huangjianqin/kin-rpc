@@ -1,6 +1,6 @@
 package org.kin.kinrpc.message.core.message;
 
-import org.kin.kinrpc.transport.domain.RpcAddress;
+import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
 
 import java.io.Serializable;
 
@@ -11,19 +11,19 @@ import java.io.Serializable;
 public class ClientDisconnected implements Serializable {
     private static final long serialVersionUID = 5344051735870164432L;
 
-    private RpcAddress rpcAddress;
+    private KinRpcAddress rpcAddress;
 
-    public static ClientDisconnected of(RpcAddress rpcAddress) {
+    public static ClientDisconnected of(KinRpcAddress rpcAddress) {
         ClientDisconnected msg = new ClientDisconnected();
         msg.rpcAddress = rpcAddress;
         return msg;
     }
 
-    public RpcAddress getRpcAddress() {
+    public KinRpcAddress getRpcAddress() {
         return rpcAddress;
     }
 
-    public void setRpcAddress(RpcAddress rpcAddress) {
+    public void setRpcAddress(KinRpcAddress rpcAddress) {
         this.rpcAddress = rpcAddress;
     }
 }

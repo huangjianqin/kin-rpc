@@ -2,8 +2,8 @@ package org.kin.kinrpc.message.core;
 
 import org.kin.framework.concurrent.actor.Receiver;
 import org.kin.kinrpc.message.transport.protocol.RpcMessage;
-import org.kin.kinrpc.transport.domain.RpcAddress;
-import org.kin.kinrpc.transport.domain.RpcRequestIdGenerator;
+import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
+import org.kin.kinrpc.transport.kinrpc.KinRpcRequestIdGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +41,7 @@ public abstract class RpcEndpoint extends Receiver<RpcMessageCallContext> {
         context.setHandleTime(System.currentTimeMillis());
 
         //log 一些消息日志
-        RpcAddress fromAddress = context.getFromAddress();
+        KinRpcAddress fromAddress = context.getFromAddress();
         RpcEndpointRef to = context.getTo();
         msgLog.info("receive message from {} to {}({}), {}-{}-{}-{}-{}",
                 fromAddress.address(),
@@ -77,7 +77,7 @@ public abstract class RpcEndpoint extends Receiver<RpcMessageCallContext> {
      * 给自己分派消息
      */
     public final void send2Self(Serializable message) {
-        rpcEnv.postMessage(RpcMessage.of(RpcRequestIdGenerator.next(), rpcEnv.address(), rpcEnv.rpcEndpointRef(this), message));
+        rpcEnv.postMessage(RpcMessage.of(KinRpcRequestIdGenerator.next(), rpcEnv.address(), rpcEnv.rpcEndpointRef(this), message));
     }
 
 }

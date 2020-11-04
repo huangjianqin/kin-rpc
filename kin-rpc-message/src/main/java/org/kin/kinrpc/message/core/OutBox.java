@@ -1,7 +1,7 @@
 package org.kin.kinrpc.message.core;
 
 import org.kin.kinrpc.message.transport.TransportClient;
-import org.kin.kinrpc.transport.domain.RpcAddress;
+import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +19,7 @@ final class OutBox {
     private static final Logger log = LoggerFactory.getLogger(OutBox.class);
 
     /** 接收方地址 */
-    private RpcAddress address;
+    private KinRpcAddress address;
     /** 所属rpc环境 */
     private RpcEnv rpcEnv;
     /** 该OutBox邮箱绑定的client */
@@ -32,7 +32,7 @@ final class OutBox {
     /** 客户端连接的Future */
     private Future clientConnectFuture;
 
-    OutBox(RpcAddress address, RpcEnv rpcEnv) {
+    OutBox(KinRpcAddress address, RpcEnv rpcEnv) {
         this.address = address;
         this.rpcEnv = rpcEnv;
     }

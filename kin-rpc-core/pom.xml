@@ -35,11 +35,5 @@
             <artifactId>javassist</artifactId>
             <version>${javassist.version}</version>
         </dependency>
-
-        <dependency>
-            <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-transport-kinrpc</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 </project>

@@ -1,9 +1,9 @@
-package org.kin.kinrpc.rpc.invoker;
+package org.kin.kinrpc.rpc;
 
 /**
  * Created by 健勤 on 2017/2/11.
  */
-public interface Invoker<T> {
+public interface Invoker<T> extends Node {
     /**
      * rpc调用方法
      *

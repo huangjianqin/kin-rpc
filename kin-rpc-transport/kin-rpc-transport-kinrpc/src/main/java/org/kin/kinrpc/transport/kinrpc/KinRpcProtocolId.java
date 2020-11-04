@@ -1,10 +1,10 @@
-package org.kin.kinrpc.transport;
+package org.kin.kinrpc.transport.kinrpc;
 
 /**
  * Created by huangjianqin on 2019/6/14.
  */
-public class RpcProtocolId {
-    private RpcProtocolId() {
+public class KinRpcProtocolId {
+    private KinRpcProtocolId() {
 
     }
 

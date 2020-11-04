@@ -3,8 +3,8 @@ package org.kin.kinrpc.message.core;
 import io.netty.channel.Channel;
 import org.kin.kinrpc.message.transport.domain.RpcEndpointAddress;
 import org.kin.kinrpc.message.transport.protocol.RpcMessage;
-import org.kin.kinrpc.transport.domain.RpcAddress;
-import org.kin.kinrpc.transport.protocol.RpcResponseProtocol;
+import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
+import org.kin.kinrpc.transport.kinrpc.KinRpcResponseProtocol;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -17,7 +17,7 @@ public final class RpcMessageCallContext {
     /** rpc环境 */
     private RpcEnv rpcEnv;
     /** sender地址 */
-    private RpcAddress fromAddress;
+    private KinRpcAddress fromAddress;
     /** sender channel */
     private Channel channel;
     /** receiver */
@@ -33,7 +33,7 @@ public final class RpcMessageCallContext {
     /** 消息处理时间 */
     private long handleTime;
 
-    public RpcMessageCallContext(RpcEnv rpcEnv, RpcAddress fromAddress, Channel channel, RpcEndpointRef to, Serializable message, long requestId, long createTime) {
+    public RpcMessageCallContext(RpcEnv rpcEnv, KinRpcAddress fromAddress, Channel channel, RpcEndpointRef to, Serializable message, long requestId, long createTime) {
         this.rpcEnv = rpcEnv;
         this.fromAddress = fromAddress;
         this.channel = channel;
@@ -43,7 +43,7 @@ public final class RpcMessageCallContext {
         this.createTime = createTime;
     }
 
-    public RpcMessageCallContext(RpcEnv rpcEnv, RpcAddress address, Channel channel, Serializable message) {
+    public RpcMessageCallContext(RpcEnv rpcEnv, KinRpcAddress address, Channel channel, Serializable message) {
         this(rpcEnv, address, channel, null, message, 0, System.currentTimeMillis());
     }
 
@@ -62,13 +62,13 @@ public final class RpcMessageCallContext {
             }
 
             //直接推回去, 不走outbox
-            RpcResponseProtocol protocol = RpcResponseProtocol.create(requestId, (byte) rpcEnv.serializer().type(), data);
+            KinRpcResponseProtocol protocol = KinRpcResponseProtocol.create(requestId, (byte) rpcEnv.serializer().type(), data);
             channel.writeAndFlush(protocol);
         }
     }
 
     //------------------------------------------------------------------------------------------------------------------
-    public RpcAddress getFromAddress() {
+    public KinRpcAddress getFromAddress() {
         return fromAddress;
     }
 

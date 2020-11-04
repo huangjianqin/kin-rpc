@@ -1,4 +1,4 @@
-package org.kin.kinrpc.transport.protocol;
+package org.kin.kinrpc.rpc;
 
 import java.io.Serializable;
 import java.util.Objects;

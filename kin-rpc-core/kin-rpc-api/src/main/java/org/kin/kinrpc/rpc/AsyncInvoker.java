@@ -1,4 +1,4 @@
-package org.kin.kinrpc.rpc.invoker;
+package org.kin.kinrpc.rpc;
 
 
 import java.util.concurrent.Future;

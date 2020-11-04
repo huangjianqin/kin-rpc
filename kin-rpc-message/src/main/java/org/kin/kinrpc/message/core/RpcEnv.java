@@ -15,9 +15,9 @@ import org.kin.kinrpc.message.core.message.ClientDisconnected;
 import org.kin.kinrpc.message.transport.TransportClient;
 import org.kin.kinrpc.message.transport.domain.RpcEndpointAddress;
 import org.kin.kinrpc.message.transport.protocol.RpcMessage;
-import org.kin.kinrpc.transport.RpcEndpointHandler;
-import org.kin.kinrpc.transport.domain.RpcAddress;
-import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
+import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
+import org.kin.kinrpc.transport.kinrpc.KinRpcEndpointHandler;
+import org.kin.kinrpc.transport.kinrpc.KinRpcRequestProtocol;
 import org.kin.kinrpc.transport.serializer.Serializer;
 import org.kin.kinrpc.transport.serializer.SerializerType;
 import org.kin.kinrpc.transport.serializer.Serializers;
@@ -49,7 +49,7 @@ public final class RpcEnv {
 
     static {
         //加载底层通信协议
-        ProtocolFactory.init(RpcRequestProtocol.class.getPackage().getName());
+        ProtocolFactory.init(KinRpcRequestProtocol.class.getPackage().getName());
     }
 
     /** 线程本地RpcEnv */
@@ -70,7 +70,7 @@ public final class RpcEnv {
             ExecutionContext.fix(SysUtils.getSuitableThreadNum(), "rpc-env", 5, "rpc-env-schedule");
     /** 事件调度 */
     private Dispatcher<String, RpcMessageCallContext> dispatcher;
-    private final RpcAddress address;
+    private final KinRpcAddress address;
     /** 序列化方式 */
     private final Serializer serializer;
     /** 通讯层是否支持压缩 */
@@ -80,9 +80,9 @@ public final class RpcEnv {
     /** 标识是否stopped */
     private volatile boolean isStopped = false;
     /** 基于本rpc环境下的client */
-    private final Map<RpcAddress, TransportClient> clients = new ConcurrentHashMap<>();
+    private final Map<KinRpcAddress, TransportClient> clients = new ConcurrentHashMap<>();
     /** outBoxs */
-    private Map<RpcAddress, OutBox> outBoxs = new ConcurrentHashMap<>();
+    private Map<KinRpcAddress, OutBox> outBoxs = new ConcurrentHashMap<>();
     /** key -> RpcEndpoint, value -> RpcEndpoint对应的RpcEndpointRef */
     private Map<RpcEndpoint, RpcEndpointRef> endpoint2Ref = new ConcurrentHashMap<>();
 
@@ -112,7 +112,7 @@ public final class RpcEnv {
     }
 
     public RpcEnv(String host, int port, int parallelism, Serializer serializer, CompressionType compressionType) {
-        this.address = RpcAddress.of(host, port);
+        this.address = KinRpcAddress.of(host, port);
         this.dispatcher = new EventBasedDispatcher<>(parallelism);
         this.serializer = serializer;
         this.compressionType = compressionType;
@@ -203,11 +203,11 @@ public final class RpcEnv {
 
         isStopped = true;
         //移除outbox 及 client
-        for (RpcAddress rpcAddress : outBoxs.keySet()) {
+        for (KinRpcAddress rpcAddress : outBoxs.keySet()) {
             removeOutBox(rpcAddress);
         }
 
-        for (RpcAddress rpcAddress : clients.keySet()) {
+        for (KinRpcAddress rpcAddress : clients.keySet()) {
             removeClient(rpcAddress);
         }
 
@@ -289,7 +289,7 @@ public final class RpcEnv {
         RpcEndpointAddress endpointAddress = message.getMessage().getTo().getEndpointAddress();
 
         OutBox targetOutBox;
-        RpcAddress toRpcAddress = endpointAddress.getRpcAddress();
+        KinRpcAddress toRpcAddress = endpointAddress.getRpcAddress();
         targetOutBox = outBoxs.get(toRpcAddress);
         if (Objects.isNull(targetOutBox)) {
             OutBox newOutBox = new OutBox(toRpcAddress, this);
@@ -357,7 +357,7 @@ public final class RpcEnv {
         }
         return RpcEndpointRef.of(
                 RpcEndpointAddress.of(
-                        RpcAddress.of(host, port), receiverName),
+                        KinRpcAddress.of(host, port), receiverName),
                 this);
     }
 
@@ -366,7 +366,7 @@ public final class RpcEnv {
      *
      * @param address remote地址
      */
-    public TransportClient getClient(RpcAddress address) {
+    public TransportClient getClient(KinRpcAddress address) {
         if (isStopped) {
             throw new IllegalStateException("rpcEnv stopped");
         }
@@ -392,7 +392,7 @@ public final class RpcEnv {
     /**
      * 移除启动了的客户端
      */
-    public void removeClient(RpcAddress address) {
+    public void removeClient(KinRpcAddress address) {
         synchronized (clients) {
             TransportClient client = clients.remove(address);
             if (Objects.nonNull(client)) {
@@ -404,7 +404,7 @@ public final class RpcEnv {
     /**
      * 移除outbox
      */
-    public void removeOutBox(RpcAddress address) {
+    public void removeOutBox(KinRpcAddress address) {
         OutBox outBox = outBoxs.remove(address);
         if (Objects.nonNull(outBox)) {
             outBox.stop();
@@ -418,7 +418,7 @@ public final class RpcEnv {
     /**
      * 该rpc环境的地址
      */
-    public RpcAddress address() {
+    public KinRpcAddress address() {
         return address;
     }
 
@@ -449,12 +449,12 @@ public final class RpcEnv {
     }
 
     //------------------------------------------------------------------------------------------------------------------
-    private class RpcEndpointImpl extends RpcEndpointHandler {
+    private class RpcEndpointImpl extends KinRpcEndpointHandler {
         /** client连接信息 -> 远程服务绑定的端口信息 */
-        private Map<RpcAddress, RpcAddress> clientAddr2RemoteBindAddr = new ConcurrentHashMap<>();
+        private Map<KinRpcAddress, KinRpcAddress> clientAddr2RemoteBindAddr = new ConcurrentHashMap<>();
 
         @Override
-        protected final void handleRpcRequestProtocol(Channel channel, RpcRequestProtocol requestProtocol) {
+        protected final void handleRpcRequestProtocol(Channel channel, KinRpcRequestProtocol requestProtocol) {
             byte serializerType = requestProtocol.getSerializer();
             //反序列化内容
             byte[] data = requestProtocol.getReqContent();
@@ -469,7 +469,7 @@ public final class RpcEnv {
             }
 
             InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
-            RpcAddress clientAddr = RpcAddress.of(remoteAddress.getHostName(), remoteAddress.getPort());
+            KinRpcAddress clientAddr = KinRpcAddress.of(remoteAddress.getHostName(), remoteAddress.getPort());
             clientAddr2RemoteBindAddr.put(clientAddr, message.getFromAddress());
 
             //分派
@@ -486,7 +486,7 @@ public final class RpcEnv {
             }
 
             InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
-            RpcAddress clientAddr = RpcAddress.of(remoteAddress.getHostName(), remoteAddress.getPort());
+            KinRpcAddress clientAddr = KinRpcAddress.of(remoteAddress.getHostName(), remoteAddress.getPort());
             ClientConnected clientConnected = ClientConnected.of(clientAddr);
             RpcMessageCallContext rpcMessageCallContext =
                     new RpcMessageCallContext(RpcEnv.this, clientAddr, channel, clientConnected);
@@ -504,8 +504,8 @@ public final class RpcEnv {
             }
 
             InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
-            RpcAddress clientAddr = RpcAddress.of(remoteAddress.getHostName(), remoteAddress.getPort());
-            RpcAddress remoteBindAddr = clientAddr2RemoteBindAddr.remove(clientAddr);
+            KinRpcAddress clientAddr = KinRpcAddress.of(remoteAddress.getHostName(), remoteAddress.getPort());
+            KinRpcAddress remoteBindAddr = clientAddr2RemoteBindAddr.remove(clientAddr);
             if (Objects.nonNull(remoteBindAddr)) {
                 ClientDisconnected clientDisconnected = ClientDisconnected.of(remoteBindAddr);
                 RpcMessageCallContext rpcMessageCallContext =

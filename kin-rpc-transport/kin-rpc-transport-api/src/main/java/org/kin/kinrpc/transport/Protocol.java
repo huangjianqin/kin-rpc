@@ -2,7 +2,8 @@ package org.kin.kinrpc.transport;
 
 import org.kin.framework.utils.SPI;
 import org.kin.kinrpc.rpc.Exporter;
-import org.kin.kinrpc.rpc.invoker.Invoker;
+import org.kin.kinrpc.rpc.Invoker;
+import org.kin.kinrpc.rpc.common.Url;
 
 /**
  * 传输层协议, 目前仅仅支持kinrpc(自己实现, 基于netty), grpc, http, protobuf, thrift
@@ -10,7 +11,7 @@ import org.kin.kinrpc.rpc.invoker.Invoker;
  * @author huangjianqin
  * @date 2020/11/3
  */
-@SPI(value = "kinrpc", key = "kinrpc.protocol")
+@SPI(value = "kinrpc", key = "protocol")
 public interface Protocol {
     /**
      * @return 获取该协议默认端口
@@ -33,7 +34,7 @@ public interface Protocol {
      * @param <T>  service类型
      * @return protocol wrappered invoker
      */
-    <T> Invoker<T> reference(Class<T> type);
+    <T> Invoker<T> reference(Url url);
 
     /**
      * 释放占用资源

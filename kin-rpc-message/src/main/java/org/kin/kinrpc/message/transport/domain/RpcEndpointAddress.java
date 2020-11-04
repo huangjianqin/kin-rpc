@@ -1,6 +1,6 @@
 package org.kin.kinrpc.message.transport.domain;
 
-import org.kin.kinrpc.transport.domain.RpcAddress;
+import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -15,12 +15,12 @@ public final class RpcEndpointAddress implements Serializable {
     private static final long serialVersionUID = 5376277467578311383L;
 
     /** rpc地址 */
-    private RpcAddress rpcAddress;
+    private KinRpcAddress rpcAddress;
     /** receiver name */
     private String name;
 
     //------------------------------------------------------------------------------------------------------------
-    public static RpcEndpointAddress of(RpcAddress rpcAddress, String name) {
+    public static RpcEndpointAddress of(KinRpcAddress rpcAddress, String name) {
         RpcEndpointAddress endpointAddress = new RpcEndpointAddress();
         endpointAddress.rpcAddress = rpcAddress;
         endpointAddress.name = name;
@@ -28,11 +28,11 @@ public final class RpcEndpointAddress implements Serializable {
     }
 
     //------------------------------------------------------------------------------------------------------------
-    public RpcAddress getRpcAddress() {
+    public KinRpcAddress getRpcAddress() {
         return rpcAddress;
     }
 
-    public void setRpcAddress(RpcAddress rpcAddress) {
+    public void setRpcAddress(KinRpcAddress rpcAddress) {
         this.rpcAddress = rpcAddress;
     }
 

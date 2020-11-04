@@ -1,22 +1,18 @@
-package org.kin.kinrpc.rpc;
+package org.kin.kinrpc.transport.kinrpc;
 
-import com.google.common.util.concurrent.RateLimiter;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.concurrent.actor.PinnedThreadSafeHandler;
 import org.kin.framework.utils.StringUtils;
+import org.kin.kinrpc.rpc.Invoker;
+import org.kin.kinrpc.rpc.RpcRequest;
+import org.kin.kinrpc.rpc.RpcResponse;
+import org.kin.kinrpc.rpc.RpcThreadPool;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RateLimitException;
-import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
-import org.kin.kinrpc.rpc.invoker.impl.JavassistProviderInvoker;
-import org.kin.kinrpc.rpc.invoker.impl.ReflectProviderInvoker;
-import org.kin.kinrpc.rpc.transport.RpcRequest;
-import org.kin.kinrpc.rpc.transport.RpcResponse;
-import org.kin.kinrpc.transport.RpcEndpointHandler;
-import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
-import org.kin.kinrpc.transport.protocol.RpcResponseProtocol;
+import org.kin.kinrpc.rpc.invoker.RateLimitInvoker;
 import org.kin.kinrpc.transport.serializer.Serializer;
 import org.kin.kinrpc.transport.serializer.Serializers;
 import org.kin.kinrpc.transport.serializer.UnknownSerializerException;
@@ -37,45 +33,34 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
- * Created by 健勤 on 2017/2/10.
  * 可以作为多个服务的Server
+ * Created by 健勤 on 2017/2/10.
  */
-public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
-    private static final Logger log = LoggerFactory.getLogger(RpcProvider.class);
+public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
+    private static final Logger log = LoggerFactory.getLogger(KinRpcProvider.class);
 
     /** 服务 */
-    private Map<String, ProviderInvokerWrapper> serviceMap = new ConcurrentHashMap<>();
+    private final Map<String, InvokerWrapper> services = new ConcurrentHashMap<>();
 
-    /** 占用主机名 */
-    private final String host;
-    /** 占用端口 */
-    private final int port;
     /** 绑定地址 */
-    protected InetSocketAddress address;
+    protected final InetSocketAddress address;
     /** 序列化方式 */
     private final Serializer serializer;
     /** 底层的连接 */
-    private ProviderHandler providerHandler;
+    private final ProviderHandler providerHandler;
+    /** 服务器启动配置 */
+    private final SocketServerTransportOption transportOption;
     /** 标识是否stopped */
     private volatile boolean isStopped = false;
-    /** 是否使用字节码技术 */
-    private final boolean isByteCodeInvoke;
-    /** 服务器启动配置 */
-    private SocketServerTransportOption transportOption;
-    /** 流控 */
-    private RateLimiter rateLimiter = RateLimiter.create(Constants.SERVER_REQUEST_THRESHOLD);
 
-    public RpcProvider(String host, int port, Serializer serializer, boolean isByteCodeInvoke, CompressionType compressionType) {
+    public KinRpcProvider(String host, int port, Serializer serializer, CompressionType compressionType) {
         super(RpcThreadPool.PROVIDER_WORKER);
-        this.host = host;
-        this.port = port;
         this.serializer = serializer;
-        this.isByteCodeInvoke = isByteCodeInvoke;
 
         if (StringUtils.isNotBlank(host)) {
-            this.address = new InetSocketAddress(this.host, this.port);
+            this.address = new InetSocketAddress(host, port);
         } else {
-            this.address = new InetSocketAddress(this.port);
+            this.address = new InetSocketAddress(port);
         }
 
         this.providerHandler = new ProviderHandler();
@@ -97,24 +82,26 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
     /**
      * 支持动态添加服务
      */
-    public <T> void addService(Url url, Class<T> interfaceClass, T service) {
+    public <T> void addService(Invoker<T> proxy) {
         handle((rpcProvider) -> {
             if (isAlive()) {
+                Url url = proxy.url();
                 String serviceName = url.getServiceName();
-                ProviderInvoker<T> invoker;
+                Invoker<T> invoker = new RateLimitInvoker<>(proxy);
+                ;
 
-                int rate = Integer.parseInt(url.getParam(Constants.RATE_KEY));
-                if (isByteCodeInvoke) {
-                    //使用javassist调用服务类接口方法
-                    invoker = new JavassistProviderInvoker<>(serviceName, service, interfaceClass, rate);
-                } else {
-                    //使用反射调用服务类接口方法
-                    invoker = new ReflectProviderInvoker<>(serviceName, service, interfaceClass, rate);
-                }
+//                todo
+//                if (isByteCodeInvoke) {
+//                    //使用javassist调用服务类接口方法
+//                    invoker = new
+//                } else {
+//                    //使用反射调用服务类接口方法
+//                    invoker = new ReflectProviderInvoker<>(url, service, interfaceClass)
+//                }
 
-                if (!serviceMap.containsKey(serviceName)) {
-                    serviceMap.put(serviceName, new ProviderInvokerWrapper(url, invoker));
-                    log.info("provider(serviceName={}, port={}) registered", serviceName, port);
+                if (!services.containsKey(serviceName)) {
+                    services.put(serviceName, new InvokerWrapper(invoker));
+                    log.info("provider(serviceName={}, port={}) registered", serviceName, getPort());
                 } else {
                     throw new IllegalStateException("service'" + serviceName + "' has registered. can not register again");
                 }
@@ -128,31 +115,8 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
     public void disableService(Url url) {
         handle(rpcProvider -> {
             String serviceName = url.getServiceName();
-            serviceMap.remove(serviceName);
+            services.remove(serviceName);
         });
-    }
-
-    public boolean isBusy() {
-        return isAlive() && !serviceMap.isEmpty();
-    }
-
-    public boolean isAlive() {
-        return !isStopped && providerHandler.isActive();
-    }
-
-    public Collection<Url> getAvailableServices() {
-        if (!isAlive()) {
-            return Collections.emptyList();
-        }
-        return serviceMap.values().stream().map(ProviderInvokerWrapper::getUrl).collect(Collectors.toList());
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    public int getPort() {
-        return port;
     }
 
     /**
@@ -162,12 +126,14 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
         if (isStopped) {
             throw new RuntimeException("try start stopped provider");
         }
-        log.info("provider(port={}) starting...", port);
+        handle(rpcProvider -> {
+            log.info("provider(port={}) starting...", getPort());
 
-        //启动连接
-        providerHandler.bind(transportOption, address);
+            //启动连接
+            providerHandler.bind(transportOption, address);
 
-        log.info("provider(port={}) started", port);
+            log.info("provider(port={}) started", getPort());
+        });
     }
 
     /**
@@ -192,7 +158,7 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
             if (this.providerHandler == null) {
                 throw new IllegalStateException("Provider Server has not started");
             }
-            log.info("server(port= " + port + ") shutdowning...");
+            log.info("server(port= " + getPort() + ") shutdowning...");
             isStopped = true;
 
             //让所有请求都拒绝返回时, 才关闭channel
@@ -221,8 +187,8 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
 
             RpcResponse rpcResponse = new RpcResponse(rpcRequest.getRequestId(),
                     rpcRequest.getServiceName(), rpcRequest.getMethod());
-            if (serviceMap.containsKey(serviceName)) {
-                ProviderInvokerWrapper invokerWrapper = serviceMap.get(serviceName);
+            if (services.containsKey(serviceName)) {
+                InvokerWrapper invokerWrapper = services.get(serviceName);
                 if (invokerWrapper.parallelism) {
                     //并发处理
                     RpcThreadPool.PROVIDER_WORKER.execute(() -> handlerRpcRequest0(invokerWrapper.getInvoker(), methodName, params, channel, rpcRequest, rpcResponse));
@@ -256,7 +222,7 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
      * 处理rpc请求
      * 调用invoker处理rpc请求
      */
-    private void handlerRpcRequest0(ProviderInvoker invoker, String methodName, Object[] params,
+    private void handlerRpcRequest0(Invoker invoker, String methodName, Object[] params,
                                     Channel channel, RpcRequest rpcRequest, RpcResponse rpcResponse) {
         Object result = null;
         try {
@@ -279,25 +245,56 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
     }
 
     //--------------------------------------------------------------------------------------------------------------
+    public boolean isBusy() {
+        return isAlive() && !services.isEmpty();
+    }
 
-    private class ProviderInvokerWrapper extends PinnedThreadSafeHandler<ProviderInvokerWrapper> {
-        private Url url;
-        private ProviderInvoker invoker;
-        private boolean parallelism;
+    public boolean isAlive() {
+        return !isStopped && providerHandler.isActive();
+    }
 
-        public ProviderInvokerWrapper(Url url, ProviderInvoker invoker) {
+    public Collection<Url> getAvailableServices() {
+        if (!isAlive()) {
+            return Collections.emptyList();
+        }
+        return services.values().stream().map(InvokerWrapper::getUrl).collect(Collectors.toList());
+    }
+
+    public String getHost() {
+        return address.getHostName();
+    }
+
+    public int getPort() {
+        return address.getPort();
+    }
+
+    public Serializer getSerializer() {
+        return serializer;
+    }
+
+    //--------------------------------------------------------------------------------------------------------------
+
+    /**
+     * 类actor的invoker
+     */
+    private class InvokerWrapper extends PinnedThreadSafeHandler<InvokerWrapper> {
+        /** 包装的invoker */
+        private final Invoker invoker;
+        /** invoker invoke方式, 并发或者类actor */
+        private final boolean parallelism;
+
+        public InvokerWrapper(Invoker invoker) {
             super(RpcThreadPool.PROVIDER_WORKER);
-            this.url = url;
             this.invoker = invoker;
-            this.parallelism = Boolean.parseBoolean(url.getParam(Constants.PARALLELISM_KEY));
+            this.parallelism = Boolean.parseBoolean(invoker.url().getParam(Constants.PARALLELISM_KEY));
         }
 
         //getter
         public Url getUrl() {
-            return url;
+            return invoker.url();
         }
 
-        public ProviderInvoker getInvoker() {
+        public Invoker getInvoker() {
             return invoker;
         }
 
@@ -306,7 +303,10 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
         }
     }
 
-    private class ProviderHandler extends RpcEndpointHandler {
+    /**
+     * rpc消息传输逻辑处理
+     */
+    private class ProviderHandler extends KinRpcEndpointHandler {
         public void response(Channel channel, RpcResponse rpcResponse) {
             byte[] data;
             try {
@@ -323,7 +323,7 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
                 }
             }
 
-            RpcResponseProtocol rpcResponseProtocol = RpcResponseProtocol.create(rpcResponse.getRequestId(), (byte) serializer.type(), data);
+            KinRpcResponseProtocol rpcResponseProtocol = KinRpcResponseProtocol.create(rpcResponse.getRequestId(), (byte) serializer.type(), data);
             channel.writeAndFlush(rpcResponseProtocol);
 
 
@@ -333,7 +333,7 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
         }
 
         @Override
-        protected void handleRpcRequestProtocol(Channel channel, RpcRequestProtocol requestProtocol) {
+        protected void handleRpcRequestProtocol(Channel channel, KinRpcRequestProtocol requestProtocol) {
             long requestId = requestProtocol.getRequestId();
             byte serializerType = requestProtocol.getSerializer();
             byte[] data = requestProtocol.getReqContent();
@@ -362,17 +362,8 @@ public class RpcProvider extends PinnedThreadSafeHandler<RpcProvider> {
                 return;
             }
 
-            //简单地添加到任务队列交由上层的线程池去完成服务调用
-            //流控
-            if (!rateLimiter.tryAcquire()) {
-                RpcResponse rpcResponse = RpcResponse.respWithError(rpcRequest, "server rate limited, just reject");
-                rpcRequest.setHandleTime(System.currentTimeMillis());
-                response(channel, rpcResponse);
-                return;
-            }
-
             RpcRequest finalRpcRequest = rpcRequest;
-            RpcProvider.this.handle(rpcProvider -> handleRpcRequest(finalRpcRequest, channel));
+            KinRpcProvider.this.handle(rpcProvider -> handleRpcRequest(finalRpcRequest, channel));
         }
     }
 }

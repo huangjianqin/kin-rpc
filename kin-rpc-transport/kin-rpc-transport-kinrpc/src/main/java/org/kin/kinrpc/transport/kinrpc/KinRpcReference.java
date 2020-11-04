@@ -1,17 +1,17 @@
-package org.kin.kinrpc.rpc;
+package org.kin.kinrpc.transport.kinrpc;
 
+import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.utils.ExceptionUtils;
-import org.kin.kinrpc.rpc.future.RpcFuture;
-import org.kin.kinrpc.rpc.transport.RpcRequest;
-import org.kin.kinrpc.rpc.transport.RpcResponse;
-import org.kin.kinrpc.transport.RpcEndpointRefHandler;
-import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
-import org.kin.kinrpc.transport.protocol.RpcResponseProtocol;
+import org.kin.kinrpc.rpc.RpcFuture;
+import org.kin.kinrpc.rpc.RpcRequest;
+import org.kin.kinrpc.rpc.RpcResponse;
+import org.kin.kinrpc.rpc.common.Constants;
+import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.transport.serializer.Serializer;
 import org.kin.kinrpc.transport.serializer.Serializers;
 import org.kin.kinrpc.transport.serializer.UnknownSerializerException;
@@ -32,22 +32,30 @@ import java.util.concurrent.Future;
 /**
  * Created by huangjianqin on 2019/6/14.
  */
-public class RpcReference {
-    private static final Logger log = LoggerFactory.getLogger(RpcReference.class);
+public class KinRpcReference {
+    private static final Logger log = LoggerFactory.getLogger(KinRpcReference.class);
     private volatile boolean isStopped;
-
+    /** 异步rpc call future */
     private Map<Long, RpcFuture> pendingRpcFutureMap = new ConcurrentHashMap<>();
 
-    private String serviceName;
-    private InetSocketAddress address;
-    private Serializer serializer;
-    private SocketClientTransportOption clientTransportOption;
-    private ReferenceHandler referenceHandler;
+    private final Url url;
+    private final SocketClientTransportOption clientTransportOption;
+    private final ReferenceHandler referenceHandler;
+    private final Serializer serializer;
 
-    public RpcReference(String serviceName, InetSocketAddress address, Serializer serializer, int connectTimeout, CompressionType compressionType) {
-        this.serviceName = serviceName;
-        this.address = address;
-        this.serializer = serializer;
+    public KinRpcReference(Url url) {
+        this.url = url;
+        int connectTimeout = Integer.parseInt(url.getParam(Constants.SESSION_TIMEOUT_KEY));
+        int compression = Integer.parseInt(url.getParam(Constants.COMPRESSION_KEY));
+
+        int serializerType = Integer.parseInt(url.getParam(Constants.SERIALIZE_KEY));
+        //先校验, 顺便初始化
+        Preconditions.checkNotNull(Serializers.getSerializer(serializerType), "unvalid serializer type: [" + serializerType + "]");
+
+        CompressionType compressionType = CompressionType.getById(compression);
+        Preconditions.checkNotNull(compressionType, "unvalid compression type: id=" + compression + "");
+
+        this.serializer = Serializers.getSerializer(serializerType);
         this.referenceHandler = new ReferenceHandler();
         this.clientTransportOption =
                 Transports.socket().client()
@@ -93,7 +101,7 @@ public class RpcReference {
      * 其他线程
      */
     public Future<RpcResponse> request(RpcRequest request) {
-        RpcFuture future = new RpcFuture(request, this);
+        RpcFuture future = new RpcFuture(request);
         if (!isActive()) {
             future.done(RpcResponse.respWithError(request, "client channel closed"));
             return future;
@@ -120,7 +128,7 @@ public class RpcReference {
     }
 
     public HostAndPort getAddress() {
-        return HostAndPort.fromString(this.address.getHostName() + ":" + this.address.getPort());
+        return HostAndPort.fromString(url.getParam(Constants.REGISTRY_URL_KEY));
     }
 
     public boolean isActive() {
@@ -134,7 +142,8 @@ public class RpcReference {
         if (isStopped) {
             return;
         }
-        referenceHandler.connect(clientTransportOption, address);
+        HostAndPort hostAndPort = getAddress();
+        referenceHandler.connect(clientTransportOption, new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPort()));
     }
 
     public void shutdown() {
@@ -160,33 +169,15 @@ public class RpcReference {
         }
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        RpcReference that = (RpcReference) o;
-        return serviceName.equals(that.serviceName) &&
-                address.equals(that.address);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(serviceName, address);
-    }
-
     //------------------------------------------------------------------------------------------------------------------
-    private class ReferenceHandler extends RpcEndpointRefHandler {
+    private class ReferenceHandler extends KinRpcEndpointRefHandler {
         public void request(RpcRequest request) {
             if (isActive()) {
                 try {
                     request.setCreateTime(System.currentTimeMillis());
                     byte[] data = serializer.serialize(request);
 
-                    RpcRequestProtocol protocol = RpcRequestProtocol.create(request.getRequestId(), (byte) serializer.type(), data);
+                    KinRpcRequestProtocol protocol = KinRpcRequestProtocol.create(request.getRequestId(), (byte) serializer.type(), data);
                     client.request(protocol, new ReferenceRequestListener(request.getRequestId()));
 
                     ProtocolStatisicService.instance().statisticReq(
@@ -200,7 +191,7 @@ public class RpcReference {
         }
 
         @Override
-        protected void handleRpcResponseProtocol(RpcResponseProtocol responseProtocol) {
+        protected void handleRpcResponseProtocol(KinRpcResponseProtocol responseProtocol) {
             long requestId = responseProtocol.getRequestId();
             byte serializerType = responseProtocol.getSerializer();
             try {
@@ -235,7 +226,7 @@ public class RpcReference {
 
         @Override
         protected void connectionInactive() {
-            RpcReference.this.clean();
+            KinRpcReference.this.clean();
         }
     }
 

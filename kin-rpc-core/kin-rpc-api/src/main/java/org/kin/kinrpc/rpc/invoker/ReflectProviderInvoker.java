@@ -1,8 +1,8 @@
-package org.kin.kinrpc.rpc.invoker.impl;
+package org.kin.kinrpc.rpc.invoker;
 
 import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.StringUtils;
-import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
+import org.kin.kinrpc.rpc.common.Url;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -23,8 +23,8 @@ public class ReflectProviderInvoker<T> extends ProviderInvoker<T> {
     private Map<String, Method> methodMap = new HashMap<>();
 
 
-    public ReflectProviderInvoker(String serviceName, T service, Class<T> interfaceClass, int rate) {
-        super(serviceName, interfaceClass, rate);
+    public ReflectProviderInvoker(Url url, T service, Class<T> interfaceClass) {
+        super(url, interfaceClass);
         this.serivce = service;
         init(interfaceClass);
     }

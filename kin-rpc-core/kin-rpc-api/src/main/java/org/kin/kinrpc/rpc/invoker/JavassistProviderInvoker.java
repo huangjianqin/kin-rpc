@@ -1,11 +1,11 @@
-package org.kin.kinrpc.rpc.invoker.impl;
+package org.kin.kinrpc.rpc.invoker;
 
 import org.kin.framework.proxy.ProxyEnhanceUtils;
 import org.kin.framework.proxy.ProxyInvoker;
 import org.kin.framework.proxy.ProxyMethodDefinition;
 import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.StringUtils;
-import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
+import org.kin.kinrpc.rpc.common.Url;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -24,8 +24,8 @@ public class JavassistProviderInvoker<T> extends ProviderInvoker<T> {
      */
     private Map<String, ProxyInvoker> methodMap = new HashMap<>();
 
-    public JavassistProviderInvoker(String serviceName, T service, Class<T> interfaceClass, int rate) {
-        super(serviceName, interfaceClass, rate);
+    public JavassistProviderInvoker(Url url, T service, Class<T> interfaceClass) {
+        super(url, interfaceClass);
         //生成方法代理类
         init(service, interfaceClass);
     }

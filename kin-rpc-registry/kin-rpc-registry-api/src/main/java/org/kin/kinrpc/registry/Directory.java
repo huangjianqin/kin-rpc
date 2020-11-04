@@ -2,8 +2,8 @@ package org.kin.kinrpc.registry;
 
 import com.google.common.net.HostAndPort;
 import org.kin.framework.utils.CollectionUtils;
-import org.kin.kinrpc.rpc.RpcReference;
-import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
+import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
+import org.kin.kinrpc.transport.RpcReference;
 import org.kin.kinrpc.transport.serializer.Serializers;
 import org.kin.transport.netty.CompressionType;
 import org.slf4j.Logger;

@@ -2,7 +2,7 @@ package org.kin.kinrpc.cluster.loadbalance.impl;
 
 import org.kin.framework.utils.TimeUtils;
 import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
-import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
+import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;

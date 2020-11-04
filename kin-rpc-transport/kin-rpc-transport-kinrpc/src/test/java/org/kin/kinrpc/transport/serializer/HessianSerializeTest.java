@@ -1,8 +1,9 @@
-package org.kin.kinrpc.rpc.transport;
+package org.kin.kinrpc.transport.serializer;
 
 import com.caucho.hessian.io.Hessian2Input;
 import com.caucho.hessian.io.Hessian2Output;
-import org.kin.kinrpc.transport.domain.RpcRequestIdGenerator;
+import org.kin.kinrpc.rpc.RpcRequest;
+import org.kin.kinrpc.transport.kinrpc.KinRpcRequestIdGenerator;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -11,9 +12,9 @@ import java.io.IOException;
 /**
  * Created by 健勤 on 2017/2/9.
  */
-public class RpcRequestHessianSerializeTest {
+public class HessianSerializeTest {
     public static void main(String[] args) throws IOException {
-        RpcRequest request = new RpcRequest(RpcRequestIdGenerator.next(), "system.service.Addable", "add", new Object[]{1, 1});
+        RpcRequest request = new RpcRequest(KinRpcRequestIdGenerator.next(), "system.service.Addable", "add", new Object[]{1, 1});
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         Hessian2Output hessian2Output = new Hessian2Output(baos);

@@ -1,6 +1,4 @@
-package org.kin.kinrpc.rpc.transport;
-
-import org.kin.kinrpc.transport.protocol.AbstractRpcMessage;
+package org.kin.kinrpc.rpc;
 
 import java.io.Serializable;
 import java.util.Arrays;

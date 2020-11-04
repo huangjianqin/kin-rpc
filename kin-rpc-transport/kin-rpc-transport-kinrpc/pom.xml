@@ -15,6 +15,12 @@
     <dependencies>
         <dependency>
             <groupId>org.kin</groupId>
+            <artifactId>kin-rpc-transport-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.kin</groupId>
             <artifactId>kin-transport-netty</artifactId>
             <version>${kin-transport-netty.version}</version>
         </dependency>

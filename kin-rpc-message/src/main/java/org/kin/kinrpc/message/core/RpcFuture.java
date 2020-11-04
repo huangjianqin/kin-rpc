@@ -2,7 +2,7 @@ package org.kin.kinrpc.message.core;
 
 import org.kin.framework.concurrent.lock.OneLock;
 import org.kin.kinrpc.message.transport.TransportClient;
-import org.kin.kinrpc.transport.domain.RpcAddress;
+import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -20,7 +20,7 @@ public final class RpcFuture<R extends Serializable> implements Future<R> {
     /** rpc环境 */
     private final RpcEnv rpcEnv;
     /** rpc请求地址 */
-    private final RpcAddress address;
+    private final KinRpcAddress address;
     /** 请求唯一id */
     private final long requestId;
     /** 锁 */
@@ -32,7 +32,7 @@ public final class RpcFuture<R extends Serializable> implements Future<R> {
     /** 标识future的取消状态 */
     private AtomicBoolean cancelled = new AtomicBoolean();
 
-    public RpcFuture(RpcEnv rpcEnv, RpcAddress address, long requestId) {
+    public RpcFuture(RpcEnv rpcEnv, KinRpcAddress address, long requestId) {
         this.rpcEnv = rpcEnv;
         this.address = address;
         this.requestId = requestId;

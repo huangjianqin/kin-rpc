@@ -1,7 +1,7 @@
 package org.kin.kinrpc.message.transport.protocol;
 
 import org.kin.kinrpc.message.core.RpcEndpointRef;
-import org.kin.kinrpc.transport.domain.RpcAddress;
+import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -18,7 +18,7 @@ public final class RpcMessage implements Serializable {
     /** 请求唯一id */
     private long requestId;
     /** 发送者地址 */
-    private RpcAddress fromAddress;
+    private KinRpcAddress fromAddress;
     /** 接收方 */
     private RpcEndpointRef to;
     /** 消息 */
@@ -26,7 +26,7 @@ public final class RpcMessage implements Serializable {
     /** 消息创建时间 */
     private long createTime;
 
-    public static RpcMessage of(long requestId, RpcAddress fromAddress, RpcEndpointRef to, Serializable message) {
+    public static RpcMessage of(long requestId, KinRpcAddress fromAddress, RpcEndpointRef to, Serializable message) {
         RpcMessage rpcMessage = new RpcMessage();
         rpcMessage.requestId = requestId;
         rpcMessage.fromAddress = fromAddress;
@@ -46,11 +46,11 @@ public final class RpcMessage implements Serializable {
         this.requestId = requestId;
     }
 
-    public RpcAddress getFromAddress() {
+    public KinRpcAddress getFromAddress() {
         return fromAddress;
     }
 
-    public void setFromAddress(RpcAddress fromAddress) {
+    public void setFromAddress(KinRpcAddress fromAddress) {
         this.fromAddress = fromAddress;
     }
 

@@ -63,6 +63,6 @@ abstract class AbstractConfig {
         //去掉最后一个&
         sb.replace(sb.length() - 1, sb.length(), "");
 
-        return Url.valueOf(sb.toString());
+        return Url.of(sb.toString());
     }
 }

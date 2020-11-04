@@ -12,10 +12,10 @@ import org.kin.kinrpc.message.core.RpcResponseCallback;
 import org.kin.kinrpc.message.exception.ClientConnectFailException;
 import org.kin.kinrpc.message.exception.ClientStoppedException;
 import org.kin.kinrpc.message.transport.protocol.RpcMessage;
-import org.kin.kinrpc.transport.RpcEndpointRefHandler;
-import org.kin.kinrpc.transport.domain.RpcAddress;
-import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
-import org.kin.kinrpc.transport.protocol.RpcResponseProtocol;
+import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
+import org.kin.kinrpc.transport.kinrpc.KinRpcEndpointRefHandler;
+import org.kin.kinrpc.transport.kinrpc.KinRpcRequestProtocol;
+import org.kin.kinrpc.transport.kinrpc.KinRpcResponseProtocol;
 import org.kin.kinrpc.transport.serializer.Serializer;
 import org.kin.kinrpc.transport.serializer.Serializers;
 import org.kin.kinrpc.transport.serializer.UnknownSerializerException;
@@ -43,7 +43,7 @@ public final class TransportClient {
     /** 客户端配置 */
     private final SocketClientTransportOption clientTransportOption;
     /** 服务器地址 */
-    private final RpcAddress rpcAddress;
+    private final KinRpcAddress rpcAddress;
     /** client handler */
     private final RpcEndpointRefHandlerImpl rpcEndpointRefHandler;
     private volatile boolean isStopped;
@@ -52,7 +52,7 @@ public final class TransportClient {
     /** 相当于OutBox发送消息逻辑, 用于重连时, 触发发送OutBox中仍然没有发送的消息 */
     private Runnable connectionInitCallback;
 
-    public TransportClient(RpcEnv rpcEnv, RpcAddress rpcAddress, CompressionType compressionType) {
+    public TransportClient(RpcEnv rpcEnv, KinRpcAddress rpcAddress, CompressionType compressionType) {
         this.rpcEnv = rpcEnv;
         this.rpcEndpointRefHandler = new RpcEndpointRefHandlerImpl();
         this.rpcAddress = rpcAddress;
@@ -112,7 +112,7 @@ public final class TransportClient {
             }
 
             long requestId = message.getRequestId();
-            RpcRequestProtocol protocol = RpcRequestProtocol.create(requestId, (byte) rpcEnv.serializer().type(), data);
+            KinRpcRequestProtocol protocol = KinRpcRequestProtocol.create(requestId, (byte) rpcEnv.serializer().type(), data);
             respCallbacks.put(requestId, outBoxMessage);
             rpcEndpointRefHandler.client().request(protocol, new ReferenceRequestListener(requestId));
         }
@@ -133,9 +133,9 @@ public final class TransportClient {
     }
 
     //------------------------------------------------------------------------------------------------------------------
-    private class RpcEndpointRefHandlerImpl extends RpcEndpointRefHandler {
+    private class RpcEndpointRefHandlerImpl extends KinRpcEndpointRefHandler {
         @Override
-        protected void handleRpcResponseProtocol(RpcResponseProtocol responseProtocol) {
+        protected void handleRpcResponseProtocol(KinRpcResponseProtocol responseProtocol) {
             byte serializerType = responseProtocol.getSerializer();
             Serializer serializer = Serializers.getSerializer(serializerType);
             if (Objects.isNull(serializer)) {

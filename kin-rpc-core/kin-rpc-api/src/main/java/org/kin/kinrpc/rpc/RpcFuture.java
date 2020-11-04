@@ -1,11 +1,7 @@
-package org.kin.kinrpc.rpc.future;
+package org.kin.kinrpc.rpc;
 
 
 import org.kin.framework.concurrent.lock.OneLock;
-import org.kin.kinrpc.rpc.RpcReference;
-import org.kin.kinrpc.rpc.RpcThreadPool;
-import org.kin.kinrpc.rpc.transport.RpcRequest;
-import org.kin.kinrpc.rpc.transport.RpcResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,20 +26,19 @@ public class RpcFuture implements Future<RpcResponse> {
     private RpcRequest request;
     private RpcResponse response;
     private List<AsyncRpcCallback> callbacks = new ArrayList<>();
-    private RpcReference rpcReference;
     private AtomicBoolean cancelled = new AtomicBoolean();
 
-    public RpcFuture(RpcRequest request, RpcReference rpcReference) {
+    public RpcFuture(RpcRequest request) {
         this.sync = new OneLock();
         this.request = request;
         this.startTime = System.currentTimeMillis();
-        this.rpcReference = rpcReference;
     }
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
         if (!isDone() && cancelled.compareAndSet(false, true)) {
-            rpcReference.onFail(request.getRequestId(), "canncelled");
+            //todo callback实现
+//            rpcReference.onFail(request.getRequestId(), "canncelled");
             return true;
         }
 
@@ -70,16 +65,23 @@ public class RpcFuture implements Future<RpcResponse> {
     }
 
     @Override
-    public RpcResponse get(long timeout, TimeUnit unit) throws InterruptedException, TimeoutException {
-        boolean success = sync.tryAcquireNanos(-1, unit.toNanos(timeout));
-        if (success) {
-            if (isDone()) {
-                return this.response;
+    public RpcResponse get(long timeout, TimeUnit unit) throws TimeoutException {
+        try {
+            boolean success = sync.tryAcquireNanos(-1, unit.toNanos(timeout));
+            if (success) {
+                if (isDone()) {
+                    return this.response;
+                } else {
+                    return null;
+                }
             } else {
-                return null;
+                throw new TimeoutException(getTimeoutMessage());
             }
-        } else {
-            throw new TimeoutException(getTimeoutMessage());
+        } catch (TimeoutException e) {
+            doneTimeout();
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -99,7 +101,8 @@ public class RpcFuture implements Future<RpcResponse> {
             return;
         }
         this.response = response;
-        rpcReference.removeInvalid(request);
+        //todo callback实现
+//        rpcReference.removeInvalid(request);
         sync.release(1);
         RpcThreadPool.EXECUTORS.submit(() -> {
             for (AsyncRpcCallback callback : this.callbacks) {

@@ -1,11 +1,12 @@
 package org.kin.kinrpc.rpc.invoker;
 
 import com.google.common.util.concurrent.RateLimiter;
+import org.kin.kinrpc.rpc.KinRpcUtils;
+import org.kin.kinrpc.rpc.common.Constants;
+import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RateLimitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.StringJoiner;
 
 /**
  * @author huangjianqin
@@ -17,27 +18,19 @@ public abstract class ProviderInvoker<T> extends AbstractInvoker<T> {
     /** 流控 */
     private RateLimiter rateLimiter;
 
-    protected ProviderInvoker(String serviceName, Class<T> interfaceC, int rate) {
-        super(serviceName);
+    protected ProviderInvoker(Url url, Class<T> interfaceC) {
+        super(url);
         this.interfaceC = interfaceC;
+        int rate = Integer.parseInt(url.getParam(Constants.RATE_KEY));
         rateLimiter = RateLimiter.create(rate);
     }
 
     @Override
-    public Object invoke(String methodName, boolean isVoid, Object... params) throws Throwable {
+    public final Object invoke(String methodName, boolean isVoid, Object... params) throws Throwable {
         log.debug("service '{}' method '{}' invoking...", getServiceName(), methodName);
         //流控
         if (!rateLimiter.tryAcquire()) {
-            //抛异常, 外部捕获异常并立即返回给reference, 让其重试
-            StringBuffer sb = new StringBuffer();
-            StringJoiner sj = new StringJoiner(", ");
-            sb.append("(");
-            for (Object param : params) {
-                sj.add(param.getClass().getName());
-            }
-            sb.append(sj.toString());
-            sb.append(")");
-            throw new RateLimitException(getServiceName().concat("$").concat(methodName).concat(sb.toString()));
+            throw new RateLimitException(KinRpcUtils.generateInvokeMsg(getServiceName(), methodName, params));
         }
         return doInvoke(methodName, isVoid, params);
     }
@@ -51,26 +44,41 @@ public abstract class ProviderInvoker<T> extends AbstractInvoker<T> {
      * @return 返回方法结果(rpc调用)
      * @throws Throwable 异常
      */
-    public abstract Object doInvoke(String methodName, boolean isVoid, Object... params) throws Throwable;
+    protected abstract Object doInvoke(String methodName, boolean isVoid, Object... params) throws Throwable;
 
     /**
      * 设置流控
      */
-    public void setRate(double rate) {
+    public final void setRate(double rate) {
         if (rate > 0) {
             rateLimiter.setRate(rate);
         }
     }
 
     /**
-     * 获取流控
+     * @return 流控量
      */
-    public double getRate() {
+    public final double getRate() {
         return rateLimiter.getRate();
     }
 
     @Override
-    public Class<T> getInterface() {
+    public final Class<T> getInterface() {
         return interfaceC;
+    }
+
+    @Override
+    public final Url url() {
+        return null;
+    }
+
+    @Override
+    public final boolean isAvailable() {
+        return true;
+    }
+
+    @Override
+    public final void destroy() {
+
     }
 }

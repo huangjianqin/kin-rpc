@@ -1,7 +1,5 @@
 package org.kin.kinrpc.rpc;
 
-import org.kin.kinrpc.rpc.invoker.Invoker;
-
 /**
  * services exporter
  *

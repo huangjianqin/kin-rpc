@@ -2,7 +2,7 @@ package org.kin.kinrpc.cluster;
 
 
 import com.google.common.net.HostAndPort;
-import org.kin.kinrpc.rpc.invoker.impl.ReferenceInvoker;
+import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
 
 import java.util.Collection;
 

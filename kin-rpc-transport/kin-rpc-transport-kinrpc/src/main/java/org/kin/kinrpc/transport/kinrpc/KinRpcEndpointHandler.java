@@ -1,8 +1,7 @@
-package org.kin.kinrpc.transport;
+package org.kin.kinrpc.transport.kinrpc;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
-import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
 import org.kin.transport.netty.Server;
 import org.kin.transport.netty.socket.SocketProtocolHandler;
 import org.kin.transport.netty.socket.protocol.SocketProtocol;
@@ -16,8 +15,8 @@ import java.net.InetSocketAddress;
  * @author huangjianqin
  * @date 2020-06-08
  */
-public abstract class RpcEndpointHandler extends SocketProtocolHandler {
-    private static final Logger log = LoggerFactory.getLogger(RpcEndpointHandler.class);
+public abstract class KinRpcEndpointHandler extends SocketProtocolHandler {
+    private static final Logger log = LoggerFactory.getLogger(KinRpcEndpointHandler.class);
     /** 服务器引用 */
     protected Server server;
 
@@ -56,8 +55,8 @@ public abstract class RpcEndpointHandler extends SocketProtocolHandler {
         if (protocol == null) {
             return;
         }
-        if (protocol instanceof RpcRequestProtocol) {
-            RpcRequestProtocol requestProtocol = (RpcRequestProtocol) protocol;
+        if (protocol instanceof KinRpcRequestProtocol) {
+            KinRpcRequestProtocol requestProtocol = (KinRpcRequestProtocol) protocol;
             handleRpcRequestProtocol(channel, requestProtocol);
         } else {
             //未知协议, 异常直接关闭channel
@@ -69,5 +68,5 @@ public abstract class RpcEndpointHandler extends SocketProtocolHandler {
     /**
      * 处理Rpc请求协议
      */
-    protected abstract void handleRpcRequestProtocol(Channel channel, RpcRequestProtocol requestProtocol);
+    protected abstract void handleRpcRequestProtocol(Channel channel, KinRpcRequestProtocol requestProtocol);
 }

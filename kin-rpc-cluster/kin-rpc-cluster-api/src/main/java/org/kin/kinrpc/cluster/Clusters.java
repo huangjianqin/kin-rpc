@@ -3,7 +3,6 @@ package org.kin.kinrpc.cluster;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.concurrent.actor.PinnedThreadSafeFuturesManager;
 import org.kin.framework.utils.NetUtils;
@@ -13,7 +12,6 @@ import org.kin.kinrpc.cluster.router.Router;
 import org.kin.kinrpc.cluster.router.Routers;
 import org.kin.kinrpc.registry.Registries;
 import org.kin.kinrpc.registry.Registry;
-import org.kin.kinrpc.rpc.RpcProvider;
 import org.kin.kinrpc.rpc.RpcThreadPool;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
@@ -22,7 +20,6 @@ import org.kin.kinrpc.transport.serializer.Serializer;
 import org.kin.kinrpc.transport.serializer.Serializers;
 import org.kin.transport.netty.CompressionType;
 import org.kin.transport.netty.socket.protocol.ProtocolFactory;
-import org.kin.transport.netty.socket.protocol.ProtocolStatisicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +31,7 @@ import java.util.Objects;
  */
 public class Clusters {
     private static final Logger log = LoggerFactory.getLogger(Clusters.class);
-    private static final Cache<Integer, RpcProvider> PROVIDER_CACHE = CacheBuilder.newBuilder().build();
+
     private static final Cache<String, ClusterInvoker> REFERENCE_CACHE = CacheBuilder.newBuilder().build();
 
     static {
@@ -58,35 +55,9 @@ public class Clusters {
         CompressionType compressionType = CompressionType.getById(compression);
         Preconditions.checkNotNull(serializer, "unvalid compression type: id=[" + compression + "]");
 
-        RpcProvider provider;
-        try {
-            provider = PROVIDER_CACHE.get(port, () -> {
-                RpcProvider provider0 = new RpcProvider(host, port, serializer, byteCodeInvoke, compressionType);
-                try {
-                    provider0.start();
-                } catch (Exception e) {
-                    provider0.shutdownNow();
-                    throw e;
-                }
-
-                return provider0;
-            });
-        } catch (UncheckedExecutionException uee) {
-            throw (RuntimeException) uee.getCause();
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return;
-        }
-
-        try {
-            provider.addService(url, interfaceClass, instance);
-            Registry registry = Registries.getRegistry(url);
-            if (registry != null) {
-                registry.register(url.getServiceName(), NetUtils.getIp(), port);
-            }
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            disableService(url, interfaceClass);
+        Registry registry = Registries.getRegistry(url);
+        if (registry != null) {
+            registry.register(url.getServiceName(), NetUtils.getIp(), port);
         }
     }
 
@@ -101,17 +72,7 @@ public class Clusters {
     public static synchronized void disableService(Url url, Class interfaceClass) {
         unRegisterService(url);
 
-        RpcProvider provider = PROVIDER_CACHE.getIfPresent(url.getPort());
-        if (Objects.nonNull(provider)) {
-            provider.disableService(url);
-            provider.handle((p) -> {
-                if (!p.isBusy()) {
-                    //该端口没有提供服务, 关闭网络连接
-                    p.shutdown();
-                    PROVIDER_CACHE.invalidate(url.getPort());
-                }
-            });
-        }
+
     }
 
     public static synchronized <T> T reference(Url url, Class<T> interfaceClass) {
@@ -166,12 +127,6 @@ public class Clusters {
     }
 
     public static synchronized void shutdown() {
-        for (RpcProvider provider : PROVIDER_CACHE.asMap().values()) {
-            provider.shutdown();
-            for (Url url : provider.getAvailableServices()) {
-                unRegisterService(url);
-            }
-        }
         for (ClusterInvoker clusterInvoker : REFERENCE_CACHE.asMap().values()) {
             clusterInvoker.close();
             Registries.closeRegistry(clusterInvoker.getUrl());
@@ -180,6 +135,5 @@ public class Clusters {
         RpcThreadPool.PROVIDER_WORKER.shutdown();
         RpcThreadPool.EXECUTORS.shutdown();
         PinnedThreadSafeFuturesManager.instance().close();
-        ProtocolStatisicService.instance().close();
     }
 }
