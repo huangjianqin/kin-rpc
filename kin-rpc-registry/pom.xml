@@ -48,7 +48,7 @@
     <dependencies>
         <dependency>
             <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-api</artifactId>
+            <artifactId>kin-rpc-transport-api</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

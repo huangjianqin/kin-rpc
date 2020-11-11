@@ -2,7 +2,7 @@ package org.kin.kinrpc.cluster.loadbalance.impl;
 
 import org.kin.framework.utils.CollectionUtils;
 import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
-import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
+import org.kin.kinrpc.rpc.AsyncInvoker;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -12,7 +12,7 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class RandomLoadBalance implements LoadBalance {
     @Override
-    public ReferenceInvoker loadBalance(List<ReferenceInvoker> invokers) {
+    public AsyncInvoker loadBalance(List<AsyncInvoker> invokers) {
         if (CollectionUtils.isNonEmpty(invokers)) {
             if (invokers.size() == 1) {
                 return invokers.get(0);

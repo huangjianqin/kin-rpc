@@ -1,15 +1,15 @@
 package org.kin.kinrpc.registry;
 
-import com.google.common.net.HostAndPort;
+import com.google.common.base.Preconditions;
 import org.kin.framework.utils.CollectionUtils;
-import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
-import org.kin.kinrpc.transport.RpcReference;
-import org.kin.kinrpc.transport.serializer.Serializers;
-import org.kin.transport.netty.CompressionType;
+import org.kin.kinrpc.rpc.AsyncInvoker;
+import org.kin.kinrpc.rpc.Invoker;
+import org.kin.kinrpc.rpc.common.Url;
+import org.kin.kinrpc.transport.Protocol;
+import org.kin.kinrpc.transport.Protocols;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -24,33 +24,34 @@ public class Directory {
 
     protected final String serviceName;
     protected final int connectTimeout;
-    protected final int serializerType;
-    protected final CompressionType compressionType;
 
     /** 所有directory的discover和destroy操作都是单线程操作, 利用copy-on-write思想更新可用invokers, 提高list效率 */
-    private volatile List<ReferenceInvoker> invokers = Collections.emptyList();
+    private volatile List<AsyncInvoker> invokers = Collections.emptyList();
     private volatile boolean isStopped;
 
-    public Directory(String serviceName, int connectTimeout, int serializerType, CompressionType compressionType) {
+    public Directory(String serviceName, int connectTimeout) {
         this.serviceName = serviceName;
         this.connectTimeout = connectTimeout;
-        this.serializerType = serializerType;
-        this.compressionType = compressionType;
     }
 
-
-    private List<ReferenceInvoker> getActiveReferenceInvoker() {
-        return invokers.stream().filter(ReferenceInvoker::isActive).collect(Collectors.toList());
+    /**
+     * 获取活跃的ReferenceInvoker
+     */
+    private List<AsyncInvoker> getActiveReferenceInvoker() {
+        return invokers.stream().filter(Invoker::isAvailable).collect(Collectors.toList());
     }
 
-    private void updateInvokers(List<ReferenceInvoker> newInvokers) {
+    /**
+     * 更新可用ReferenceInvoker列表
+     */
+    private void updateInvokers(List<AsyncInvoker> newInvokers) {
         invokers = Collections.unmodifiableList(newInvokers);
     }
 
     /**
      * 获取当前可用invokers
      */
-    public List<ReferenceInvoker> list() {
+    public List<AsyncInvoker> list() {
         //Directory关闭中调用该方法会返回一个size=0的列表
         if (!isStopped) {
             return getActiveReferenceInvoker();
@@ -61,36 +62,38 @@ public class Directory {
     /**
      * 发现可用服务的address, 并构建reference invoker
      */
-    public void discover(List<String> addresses) {
+    public void discover(List<Url> urls) {
         if (!isStopped) {
-            ArrayList<ReferenceInvoker> originInvokers = new ArrayList<>(invokers);
+            ArrayList<AsyncInvoker> originInvokers = new ArrayList<>(invokers);
 
             StringBuilder sb = new StringBuilder();
-            List<HostAndPort> hostAndPorts = new ArrayList<>();
-            if (addresses != null && addresses.size() > 0) {
-                for (String address : addresses) {
-                    HostAndPort hostAndPort = HostAndPort.fromString(address);
-                    hostAndPorts.add(hostAndPort);
+            List<String> addresses = new ArrayList<>(urls.size());
+            if (CollectionUtils.isNonEmpty(urls)) {
+                for (Url url : urls) {
+                    String address = url.getAddress();
 
-                    sb.append(hostAndPort.toString()).append(", ");
+                    addresses.add(address);
+                    sb.append(address).append(", ");
                 }
             }
             log.info("discover service '{}'..."
                     .concat("current service address: ")
                     .concat(sb.toString()), getServiceName());
 
-            List<ReferenceInvoker> validInvokers = new ArrayList<>(hostAndPorts.size());
-            List<ReferenceInvoker> invalidInvokers = new ArrayList<>(originInvokers.size());
-            if (CollectionUtils.isNonEmpty(hostAndPorts)) {
-                for (ReferenceInvoker originInvoker : originInvokers) {
-                    HostAndPort address = originInvoker.getAddress();
-                    if (!hostAndPorts.contains(address)) {
+            List<AsyncInvoker> validInvokers = new ArrayList<>(urls.size());
+            List<AsyncInvoker> invalidInvokers = new ArrayList<>(originInvokers.size());
+            if (CollectionUtils.isNonEmpty(urls)) {
+                for (AsyncInvoker originInvoker : originInvokers) {
+                    Url url = originInvoker.url();
+                    String address = url.getAddress();
+
+                    if (!addresses.contains(address)) {
                         //无效invoker
                         invalidInvokers.add(originInvoker);
                     } else {
                         //invoker仍然有效
                         validInvokers.add(originInvoker);
-                        hostAndPorts.remove(address);
+                        urls.removeIf(item -> item.getAddress().equals(address));
                     }
                 }
             } else {
@@ -99,19 +102,19 @@ public class Directory {
             }
 
             //new ReferenceInvokers
-            for (HostAndPort hostAndPort : hostAndPorts) {
-                //创建新的ReferenceInvoker,连接Service Server
-                RpcReference rpcReference = new RpcReference(serviceName, new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPort()),
-                        Serializers.getSerializer(serializerType), connectTimeout, compressionType);
-                ReferenceInvoker refereneceInvoker = new ReferenceInvoker(serviceName, rpcReference);
-                //真正启动连接
-                refereneceInvoker.init();
-                validInvokers.add(refereneceInvoker);
+            for (Url url : urls) {
+                String protocolName = url.getProtocol();
+                Protocol protocol = Protocols.getProtocol(protocolName);
+
+                Preconditions.checkNotNull(protocol, String.format("unknown protocol: %s", protocolName));
+
+                AsyncInvoker referenceInvoker = protocol.reference(url);
+                validInvokers.add(referenceInvoker);
             }
 
             //remove invalid ReferenceInvokers
-            for (ReferenceInvoker invoker : invalidInvokers) {
-                invoker.shutdown();
+            for (Invoker<?> invoker : invalidInvokers) {
+                invoker.destroy();
             }
 
             //update cache
@@ -124,8 +127,8 @@ public class Directory {
     public void destroy() {
         if (!isStopped) {
             isStopped = true;
-            for (ReferenceInvoker invoker : invokers) {
-                invoker.shutdown();
+            for (AsyncInvoker<?> invoker : invokers) {
+                invoker.destroy();
             }
             invokers = null;
             log.info("zookeeper directory destroyed");

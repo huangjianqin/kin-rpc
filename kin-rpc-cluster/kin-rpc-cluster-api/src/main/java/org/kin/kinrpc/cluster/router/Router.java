@@ -2,7 +2,7 @@ package org.kin.kinrpc.cluster.router;
 
 
 import org.kin.framework.utils.SPI;
-import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
+import org.kin.kinrpc.rpc.AsyncInvoker;
 
 import java.util.List;
 
@@ -17,5 +17,5 @@ public interface Router {
      * @param invokers 可用invokers
      * @return 路由过滤后的可用invokers
      */
-    List<ReferenceInvoker> router(List<ReferenceInvoker> invokers);
+    List<AsyncInvoker> router(List<AsyncInvoker> invokers);
 }

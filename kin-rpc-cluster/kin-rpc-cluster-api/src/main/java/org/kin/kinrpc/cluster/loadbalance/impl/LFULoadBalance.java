@@ -2,7 +2,7 @@ package org.kin.kinrpc.cluster.loadbalance.impl;
 
 import org.kin.framework.utils.TimeUtils;
 import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
-import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
+import org.kin.kinrpc.rpc.AsyncInvoker;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -21,7 +21,7 @@ public class LFULoadBalance implements LoadBalance {
     private int monitorTime;
 
     @Override
-    public ReferenceInvoker loadBalance(List<ReferenceInvoker> invokers) {
+    public AsyncInvoker loadBalance(List<AsyncInvoker> invokers) {
         synchronized (lfuMap) {
             int now = TimeUtils.timestamp();
             if (now >= monitorTime + EXPIRE_TIME) {
@@ -30,10 +30,10 @@ public class LFULoadBalance implements LoadBalance {
             }
 
             //put
-            Map<String, ReferenceInvoker> address2Invoker = new HashMap<>(invokers.size());
-            for (ReferenceInvoker invoker : invokers) {
-                String hostAndPortStr = invoker.getAddress().toString();
-                address2Invoker.put(hostAndPortStr, invoker);
+            Map<String, AsyncInvoker> address2Invoker = new HashMap<>(invokers.size());
+            for (AsyncInvoker AsyncInvoker : invokers) {
+                String hostAndPortStr = AsyncInvoker.url().getAddress().toString();
+                address2Invoker.put(hostAndPortStr, AsyncInvoker);
                 if (!lfuMap.containsKey(hostAndPortStr) || lfuMap.get(hostAndPortStr) > 1000000) {
                     //缓解首次的压力
                     lfuMap.put(hostAndPortStr, ThreadLocalRandom.current().nextInt(invokers.size()));

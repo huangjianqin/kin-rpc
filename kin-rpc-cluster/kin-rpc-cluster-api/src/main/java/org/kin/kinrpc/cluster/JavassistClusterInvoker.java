@@ -22,17 +22,17 @@ import java.util.function.Supplier;
  * @author huangjianqin
  * @date 2019-09-09
  */
-class JavassistClusterInvoker<T> extends ClusterInvoker {
+class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
     private Class<T> interfaceClass;
     private int rate;
 
-    public JavassistClusterInvoker(Cluster cluster, int retryTimes, long retryTimeout, Url url, Class<T> interfaceClass) {
+    public JavassistClusterInvoker(Cluster<T> cluster, int retryTimes, long retryTimeout, Url url, Class<T> interfaceClass) {
         super(cluster, retryTimes, retryTimeout, url);
         this.interfaceClass = interfaceClass;
         this.rate = Integer.parseInt(url.getParam(Constants.RATE_KEY));
     }
 
-    public static <T> T proxy(Cluster cluster, int retryTimes, int retryTimeout, Url url, Class<T> interfaceClass) {
+    public static <T> T proxy(Cluster<T> cluster, int retryTimes, int retryTimeout, Url url, Class<T> interfaceClass) {
         return new JavassistClusterInvoker<>(cluster, retryTimes, retryTimeout, url, interfaceClass).proxy();
     }
 

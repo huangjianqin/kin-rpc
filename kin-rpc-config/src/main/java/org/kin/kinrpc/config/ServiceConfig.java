@@ -124,7 +124,7 @@ public class ServiceConfig<T> extends AbstractConfig {
      */
     public void disable() {
         if (isExport) {
-            Clusters.disableService(url, interfaceClass);
+            Clusters.disableService(url);
         }
     }
 

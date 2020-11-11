@@ -7,19 +7,17 @@ import io.lettuce.core.api.sync.RedisCommands;
 import org.kin.framework.concurrent.ExecutionContext;
 import org.kin.framework.concurrent.keeper.Keeper;
 import org.kin.framework.log.LoggerOprs;
-import org.kin.framework.utils.NetUtils;
 import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.registry.AbstractRegistry;
 import org.kin.kinrpc.registry.Directory;
-import org.kin.kinrpc.registry.exception.AddressFormatErrorException;
-import org.kin.transport.netty.CompressionType;
+import org.kin.kinrpc.rpc.common.Url;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * redis 注册中心
@@ -27,17 +25,13 @@ import java.util.concurrent.TimeUnit;
  * @author huangjianqin
  * @date 2020/8/12
  */
-public class RedisRegistry extends AbstractRegistry implements LoggerOprs {
+public final class RedisRegistry extends AbstractRegistry implements LoggerOprs {
     private static final String KEY_PREFIX = "kin-rpc-";
 
     /** 主机名 */
     private final String host;
     /** 端口 */
     private final int port;
-    /** 序列化方式 */
-    private final int serializerType;
-    /** 是否压缩 */
-    private final CompressionType compressionType;
     /** 连接会话超时 */
     private final long sessionTimeout;
     /** 轮询redis services key间隔 */
@@ -52,11 +46,9 @@ public class RedisRegistry extends AbstractRegistry implements LoggerOprs {
     /** 执行RedisDirectory discover 的worker */
     private ExecutionContext watcherCtx = ExecutionContext.fix(SysUtils.CPU_NUM + 1, "redis-watcher");
 
-    public RedisRegistry(String host, int port, int serializerType, CompressionType compressionType, long sessionTimeout, long watchInterval) {
+    public RedisRegistry(String host, int port, long sessionTimeout, long watchInterval) {
         this.host = host;
         this.port = port;
-        this.serializerType = serializerType;
-        this.compressionType = compressionType;
         this.sessionTimeout = sessionTimeout;
         this.watchInterval = watchInterval;
     }
@@ -91,8 +83,8 @@ public class RedisRegistry extends AbstractRegistry implements LoggerOprs {
     }
 
     private void watch0(RedisCommands<String, String> redisCommands, String serviceName, Directory directory) {
-        Set<String> serviceAddresses = redisCommands.smembers(getServiceKey(serviceName));
-        directory.discover(new ArrayList<>(serviceAddresses));
+        Set<String> urlStrs = redisCommands.smembers(getServiceKey(serviceName));
+        directory.discover(urlStrs.stream().map(Url::of).collect(Collectors.toList()));
     }
 
     /**
@@ -103,32 +95,28 @@ public class RedisRegistry extends AbstractRegistry implements LoggerOprs {
     }
 
     @Override
-    public void register(String serviceName, String host, int port) {
+    public void register(Url url) {
+        String serviceName = url.getServiceName();
         log().info("provider register service '{}' ", serviceName);
-        String address = host + ":" + port;
-
-        if (!NetUtils.checkHostPort(address)) {
-            throw new AddressFormatErrorException(address);
-        }
 
         RedisCommands<String, String> redisCommands = connection.sync();
         //利用集合存储服务地址
-        redisCommands.sadd(getServiceKey(serviceName), address);
+        redisCommands.sadd(getServiceKey(serviceName), url.str());
     }
 
     @Override
-    public void unRegister(String serviceName, String host, int port) {
+    public void unRegister(Url url) {
+        String serviceName = url.getServiceName();
         log().info("provider unregister service '{}' ", serviceName);
-        String address = host + ":" + port;
 
         RedisCommands<String, String> redisCommands = connection.sync();
-        redisCommands.srem(getServiceKey(serviceName), address);
+        redisCommands.srem(getServiceKey(serviceName), url.str());
     }
 
     @Override
     public Directory subscribe(String serviceName, int connectTimeout) {
         log().info("reference subscribe service '{}' ", serviceName);
-        Directory directory = new Directory(serviceName, connectTimeout, serializerType, compressionType);
+        Directory directory = new Directory(serviceName, connectTimeout);
         directoryCache.put(serviceName, directory);
         return directory;
     }

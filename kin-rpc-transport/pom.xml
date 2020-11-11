@@ -15,4 +15,18 @@
         <module>kin-rpc-transport-api</module>
     </modules>
     <packaging>pom</packaging>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.kin</groupId>
+                <artifactId>kin-rpc-transport-api</artifactId>
+            </dependency>
+
+            <dependency>
+                <groupId>org.kin</groupId>
+                <artifactId>kin-rpc-transport-kinrpc</artifactId>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>

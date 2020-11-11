@@ -12,16 +12,4 @@
     <version>0.1.0.0</version>
     <packaging>jar</packaging>
 
-    <properties>
-    </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.kin</groupId>
-                <artifactId>kin-rpc-cluster-api</artifactId>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
 </project>

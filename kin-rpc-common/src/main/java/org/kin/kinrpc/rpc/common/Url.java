@@ -1,5 +1,7 @@
 package org.kin.kinrpc.rpc.common;
 
+import org.kin.framework.utils.CollectionUtils;
+import org.kin.framework.utils.NetUtils;
 import org.kin.framework.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +11,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Created by huangjianqin on 2019/6/18.
@@ -31,6 +34,8 @@ public class Url implements Serializable {
     private Map<String, String> params;
     /** 服务名 */
     private String serviceName;
+    /** 方法名 */
+    private String method;
 
     public Url(String protocol, String username, String password, String host, int port, String path, Map<String, String> params) {
         this.protocol = protocol;
@@ -46,6 +51,7 @@ public class Url implements Serializable {
         if(StringUtils.isNotBlank(version)){
             this.serviceName += ("#" + version);
         }
+        this.method = getParam(Constants.METHDO_KEY);
     }
 
     public static Url of(String url) {
@@ -126,8 +132,68 @@ public class Url implements Serializable {
         return new Url(protocol, username, password, host, port, path, parameters);
     }
 
+    /**
+     * 获取url参数
+     */
     public String getParam(String k) {
         return params.getOrDefault(k, "");
+    }
+
+    /**
+     * url object to string
+     */
+    public String str() {
+        StringBuilder buf = new StringBuilder();
+        if (StringUtils.isNotBlank(protocol)) {
+            buf.append(protocol);
+            buf.append("://");
+        }
+        if (StringUtils.isNotBlank(username)) {
+            buf.append(username);
+            if (StringUtils.isNotBlank(password)) {
+                buf.append(":");
+                buf.append(password);
+            }
+            buf.append("@");
+        }
+
+        if (StringUtils.isNotBlank(host)) {
+            buf.append(host);
+            if (port > 0) {
+                buf.append(":");
+                buf.append(port);
+            }
+        }
+
+        if (StringUtils.isNotBlank(path)) {
+            buf.append("/");
+            buf.append(path);
+        }
+
+        if (CollectionUtils.isNonEmpty(params)) {
+            boolean first = true;
+            for (Map.Entry<String, String> entry : new TreeMap<>(params).entrySet()) {
+                if (StringUtils.isNotBlank(entry.getKey())) {
+                    if (first) {
+                        buf.append("?");
+                        first = false;
+                    } else {
+                        buf.append("&");
+                    }
+                    buf.append(entry.getKey());
+                    buf.append("=");
+                    buf.append(entry.getValue() == null ? "" : entry.getValue().trim());
+                }
+            }
+        }
+        return buf.toString();
+    }
+
+    /**
+     * @return 网络地址
+     */
+    public String getAddress() {
+        return NetUtils.getIpPort(getHost(), getPort());
     }
 
     //getter
@@ -158,5 +224,9 @@ public class Url implements Serializable {
 
     public String getServiceName() {
         return serviceName;
+    }
+
+    public String getMethod() {
+        return method;
     }
 }

@@ -7,17 +7,17 @@ import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.*;
 import org.kin.framework.concurrent.SimpleThreadFactory;
-import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.registry.AbstractRegistry;
 import org.kin.kinrpc.registry.Directory;
 import org.kin.kinrpc.registry.common.RegistryConstants;
-import org.kin.kinrpc.registry.exception.AddressFormatErrorException;
-import org.kin.transport.netty.CompressionType;
+import org.kin.kinrpc.rpc.common.Url;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -27,21 +27,17 @@ import java.util.concurrent.TimeUnit;
  * @author huangjianqin
  * @date 2019/7/2
  */
-public class ZookeeperRegistry extends AbstractRegistry {
+public final class ZookeeperRegistry extends AbstractRegistry {
     private static final Logger log = LoggerFactory.getLogger(ZookeeperRegistry.class);
 
     private final String address;
 
     private CuratorFramework client;
     private final long sessionTimeOut;
-    private final int serializerType;
-    private final CompressionType compressionType;
 
-    public ZookeeperRegistry(String address, long sessionTimeOut, int serializerType, CompressionType compressionType) {
+    public ZookeeperRegistry(String address, long sessionTimeOut) {
         this.address = address;
         this.sessionTimeOut = sessionTimeOut;
-        this.serializerType = serializerType;
-        this.compressionType = compressionType;
     }
 
     @Override
@@ -117,21 +113,19 @@ public class ZookeeperRegistry extends AbstractRegistry {
     }
 
     @Override
-    public void register(String serviceName, String host, int port) {
+    public void register(Url url) {
+        String serviceName = url.getServiceName();
+        String address = url.getAddress();
         log.info("provider register service '{}' ", serviceName);
-        String address = host + ":" + port;
 
-        if (!NetUtils.checkHostPort(address)) {
-            throw new AddressFormatErrorException(address);
-        }
-
-        createZNode(RegistryConstants.getPath(serviceName, address), null);
+        createZNode(RegistryConstants.getPath(serviceName, address), url.str().getBytes());
     }
 
     @Override
-    public void unRegister(String serviceName, String host, int port) {
+    public void unRegister(Url url) {
+        String serviceName = url.getServiceName();
+        String address = url.getAddress();
         log.info("provider unregister service '{}' ", serviceName);
-        String address = host + ":" + port;
 
         deleteZNode(RegistryConstants.getPath(serviceName, address));
         deleteZNodeUnguaranteed(RegistryConstants.getPath(serviceName));
@@ -140,7 +134,7 @@ public class ZookeeperRegistry extends AbstractRegistry {
     @Override
     public Directory subscribe(String serviceName, int connectTimeout) {
         log.info("reference subscribe service '{}' ", serviceName);
-        Directory directory = new Directory(serviceName, connectTimeout, serializerType, compressionType);
+        Directory directory = new Directory(serviceName, connectTimeout);
         watch(directory);
         directoryCache.put(serviceName, directory);
         return directory;
@@ -156,6 +150,9 @@ public class ZookeeperRegistry extends AbstractRegistry {
         directoryCache.invalidate(serviceName);
     }
 
+    /**
+     * 监控某服务
+     */
     private void watch(Directory directory) {
         watchServiveNode(directory);
         watchServiveNodeChilds(directory);
@@ -202,6 +199,7 @@ public class ZookeeperRegistry extends AbstractRegistry {
      */
     private void watchServiveNodeChilds(Directory directory) {
         try {
+            //获取{root}/{serviceName}/ child nodes
             List<String> addresses = client.getChildren().usingWatcher(
                     (Watcher) (WatchedEvent watchedEvent) -> {
                         if (watchedEvent.getType() == Watcher.Event.EventType.NodeChildrenChanged) {
@@ -209,7 +207,15 @@ public class ZookeeperRegistry extends AbstractRegistry {
                             watchServiveNodeChilds(directory);
                         }
                     }).forPath(RegistryConstants.getPath(directory.getServiceName()));
-            directory.discover(addresses);
+            //获取child nodes的data
+            List<Url> urls = new ArrayList<>(addresses.size());
+            for (String address : addresses) {
+                byte[] data = client.getData().forPath(RegistryConstants.getPath(directory.getServiceName(), address));
+                if (Objects.nonNull(data) && data.length > 0) {
+                    urls.add(Url.of(new String(data)));
+                }
+            }
+            directory.discover(urls);
         } catch (KeeperException e) {
             log.error(e.getMessage(), e);
         } catch (InterruptedException e) {

@@ -2,7 +2,7 @@ package org.kin.kinrpc.cluster.loadbalance;
 
 
 import org.kin.framework.utils.SPI;
-import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
+import org.kin.kinrpc.rpc.AsyncInvoker;
 
 import java.util.List;
 
@@ -17,5 +17,5 @@ public interface LoadBalance {
      * @param invokers 可用invokers
      * @return 过滤后的invoker
      */
-    ReferenceInvoker loadBalance(List<ReferenceInvoker> invokers);
+    AsyncInvoker loadBalance(List<AsyncInvoker> invokers);
 }

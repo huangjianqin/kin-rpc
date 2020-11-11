@@ -5,21 +5,21 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.concurrent.actor.PinnedThreadSafeFuturesManager;
-import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
 import org.kin.kinrpc.cluster.loadbalance.LoadBalances;
 import org.kin.kinrpc.cluster.router.Router;
 import org.kin.kinrpc.cluster.router.Routers;
 import org.kin.kinrpc.registry.Registries;
 import org.kin.kinrpc.registry.Registry;
+import org.kin.kinrpc.rpc.Exporter;
+import org.kin.kinrpc.rpc.Invoker;
 import org.kin.kinrpc.rpc.RpcThreadPool;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
-import org.kin.kinrpc.transport.protocol.RpcRequestProtocol;
-import org.kin.kinrpc.transport.serializer.Serializer;
-import org.kin.kinrpc.transport.serializer.Serializers;
-import org.kin.transport.netty.CompressionType;
-import org.kin.transport.netty.socket.protocol.ProtocolFactory;
+import org.kin.kinrpc.rpc.invoker.JavassistProviderInvoker;
+import org.kin.kinrpc.rpc.invoker.ReflectProviderInvoker;
+import org.kin.kinrpc.transport.Protocol;
+import org.kin.kinrpc.transport.Protocols;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,48 +33,76 @@ public class Clusters {
     private static final Logger log = LoggerFactory.getLogger(Clusters.class);
 
     private static final Cache<String, ClusterInvoker> REFERENCE_CACHE = CacheBuilder.newBuilder().build();
+    private static final Cache<Url, Exporter> EXPORTER_CACHE = CacheBuilder.newBuilder().build();
 
     static {
-        ProtocolFactory.init(RpcRequestProtocol.class.getPackage().getName());
         JvmCloseCleaner.DEFAULT().add(Clusters::shutdown);
     }
 
     private Clusters() {
     }
 
+    /**
+     * 暴露服务
+     */
     public static synchronized <T> void export(Url url, Class<T> interfaceClass, T instance) {
-        String host = url.getHost();
-        int port = url.getPort();
-        int serializerType = Integer.parseInt(url.getParam(Constants.SERIALIZE_KEY));
+        String protocolName = url.getProtocol();
+        Protocol protocol = Protocols.getProtocol(protocolName);
+
+        Preconditions.checkNotNull(protocol, String.format("unknown protocol: %s", protocolName));
+
         boolean byteCodeInvoke = Boolean.parseBoolean(url.getParam(Constants.BYTE_CODE_INVOKE_KEY));
+        Invoker<T> invoker;
+        if (byteCodeInvoke) {
+            invoker = new JavassistProviderInvoker<>(url, instance, interfaceClass);
+        } else {
+            invoker = new ReflectProviderInvoker<>(url, instance, interfaceClass);
+        }
 
-        Serializer serializer = Serializers.getSerializer(serializerType);
-        Preconditions.checkNotNull(serializer, "unvalid serializer type: [" + serializerType + "]");
+        //todo 可以考虑再包装一层exporter
+        //先启动服务
+        Exporter<T> export = protocol.export(invoker);
+        EXPORTER_CACHE.put(url, export);
 
-        int compression = Integer.parseInt(url.getParam(Constants.COMPRESSION_KEY));
-        CompressionType compressionType = CompressionType.getById(compression);
-        Preconditions.checkNotNull(serializer, "unvalid compression type: id=[" + compression + "]");
-
+        //再注册
         Registry registry = Registries.getRegistry(url);
         if (registry != null) {
-            registry.register(url.getServiceName(), NetUtils.getIp(), port);
+            registry.register(url);
         }
     }
 
+    /**
+     * 取消服务注册
+     */
     private static void unRegisterService(Url url) {
         Registry registry = Registries.getRegistry(url);
         if (registry != null) {
-            registry.unRegister(url.getServiceName(), NetUtils.getIp(), url.getPort());
+            registry.unRegister(url);
             Registries.closeRegistry(url);
         }
     }
 
-    public static synchronized void disableService(Url url, Class interfaceClass) {
+    /**
+     * 停用服务
+     */
+    public static synchronized void disableService(Url url) {
+        String protocolName = url.getProtocol();
+        Protocol protocol = Protocols.getProtocol(protocolName);
+
+        Preconditions.checkNotNull(protocol, String.format("unknown protocol: %s", protocolName));
+
+        //先取消注册
         unRegisterService(url);
-
-
+        //再关闭服务
+        Exporter<?> exporter = EXPORTER_CACHE.getIfPresent(url);
+        if (Objects.nonNull(exporter)) {
+            exporter.unexport();
+        }
     }
 
+    /**
+     * 引用服务
+     */
     public static synchronized <T> T reference(Url url, Class<T> interfaceClass) {
         Registry registry = Registries.getRegistry(url);
         Preconditions.checkNotNull(registry);
@@ -91,7 +119,7 @@ public class Clusters {
         Preconditions.checkNotNull(loadBalance, "unvalid loadbalance type: [" + loadBalanceType + "]");
         Preconditions.checkNotNull(router, "unvalid router type: [" + routerType + "]");
 
-        Cluster cluster = new ClusterImpl(registry, url.getServiceName(), timeout, router, loadBalance);
+        Cluster<T> cluster = new ClusterImpl<>(registry, url.getServiceName(), timeout, router, loadBalance);
 
         T proxy;
 
@@ -102,7 +130,7 @@ public class Clusters {
 
             REFERENCE_CACHE.put(url.getServiceName(), javassistClusterInvoker);
         } else {
-            ReflectClusterInvoker reflectClusterInvoker = new ReflectClusterInvoker(cluster, retryTimes, retryTimeout, url);
+            ReflectClusterInvoker<T> reflectClusterInvoker = new ReflectClusterInvoker<>(cluster, retryTimes, retryTimeout, url);
             proxy = (T) Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class<?>[]{interfaceClass}, reflectClusterInvoker);
 
             REFERENCE_CACHE.put(url.getServiceName(), reflectClusterInvoker);
@@ -111,8 +139,11 @@ public class Clusters {
         return proxy;
     }
 
+    /**
+     * close 引用服务
+     */
     public static synchronized void disableReference(Url url) {
-        ClusterInvoker clusterInvoker = REFERENCE_CACHE.getIfPresent(url.getServiceName());
+        ClusterInvoker<?> clusterInvoker = REFERENCE_CACHE.getIfPresent(url.getServiceName());
 
         if (clusterInvoker != null) {
             clusterInvoker.close();
@@ -126,8 +157,11 @@ public class Clusters {
         REFERENCE_CACHE.invalidate(url.getServiceName());
     }
 
+    /**
+     * RPC集群shutdown
+     */
     public static synchronized void shutdown() {
-        for (ClusterInvoker clusterInvoker : REFERENCE_CACHE.asMap().values()) {
+        for (ClusterInvoker<?> clusterInvoker : REFERENCE_CACHE.asMap().values()) {
             clusterInvoker.close();
             Registries.closeRegistry(clusterInvoker.getUrl());
         }

@@ -5,7 +5,7 @@ import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
 import org.kin.kinrpc.cluster.router.Router;
 import org.kin.kinrpc.registry.Directory;
 import org.kin.kinrpc.registry.Registry;
-import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
+import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 /**
  * Created by 健勤 on 2017/2/15.
  */
-class ClusterImpl implements Cluster {
+class ClusterImpl<T> implements Cluster<T> {
     private static final Logger log = LoggerFactory.getLogger(ClusterImpl.class);
 
     /** 代表某service的所有ReferenceInvoker */
@@ -35,18 +35,18 @@ class ClusterImpl implements Cluster {
     }
 
     @Override
-    public ReferenceInvoker get(Collection<HostAndPort> excludes) {
+    public AsyncInvoker<T> get(Collection<HostAndPort> excludes) {
         log.debug("get one reference invoker from cluster");
-        List<ReferenceInvoker> availableInvokers = directory.list();
+        List<AsyncInvoker> availableInvokers = directory.list();
         //过滤掉单次请求曾经fail的service 访问地址
-        availableInvokers = availableInvokers.stream().filter(invoker -> !excludes.contains(invoker.getAddress()))
+        availableInvokers = availableInvokers.stream().filter(invoker -> !excludes.contains(HostAndPort.fromString(invoker.url().getAddress())))
                 .collect(Collectors.toList());
 
-        List<ReferenceInvoker> routeredInvokers = router.router(availableInvokers);
-        ReferenceInvoker loadbalancedInvoker = loadBalance.loadBalance(routeredInvokers);
+        List<AsyncInvoker> routeredInvokers = router.router(availableInvokers);
+        AsyncInvoker loadbalancedInvoker = loadBalance.loadBalance(routeredInvokers);
 
         if (loadbalancedInvoker != null) {
-            log.debug("real invoker(" + loadbalancedInvoker.getAddress() + ")");
+            log.debug("real invoker(" + loadbalancedInvoker.url().getAddress() + ")");
         }
         return loadbalancedInvoker;
     }

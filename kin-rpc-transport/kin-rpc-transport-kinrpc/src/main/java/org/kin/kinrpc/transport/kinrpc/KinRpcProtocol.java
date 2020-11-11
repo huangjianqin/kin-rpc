@@ -5,6 +5,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.kin.framework.log.LoggerOprs;
+import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.kin.kinrpc.rpc.Exporter;
 import org.kin.kinrpc.rpc.Invoker;
 import org.kin.kinrpc.rpc.common.Constants;
@@ -14,6 +15,7 @@ import org.kin.kinrpc.transport.Protocol;
 import org.kin.kinrpc.transport.serializer.Serializer;
 import org.kin.kinrpc.transport.serializer.Serializers;
 import org.kin.transport.netty.CompressionType;
+import org.kin.transport.netty.socket.protocol.ProtocolFactory;
 
 import java.util.Objects;
 
@@ -22,6 +24,10 @@ import java.util.Objects;
  * @date 2020/11/4
  */
 public class KinRpcProtocol implements Protocol, LoggerOprs {
+    static {
+        ProtocolFactory.init(KinRpcRequestProtocol.class.getPackage().getName());
+    }
+
     private static final Cache<Integer, KinRpcProvider> PROVIDER_CACHE = CacheBuilder.newBuilder().build();
 
     @Override
@@ -39,8 +45,6 @@ public class KinRpcProtocol implements Protocol, LoggerOprs {
         String host = url.getHost();
         int port = url.getPort();
         int serializerType = Integer.parseInt(url.getParam(Constants.SERIALIZE_KEY));
-        //todo
-//        boolean byteCodeInvoke = Boolean.parseBoolean(url.getParam(Constants.BYTE_CODE_INVOKE_KEY));
 
         Serializer serializer = Serializers.getSerializer(serializerType);
         Preconditions.checkNotNull(serializer, "unvalid serializer type: [" + serializerType + "]");
@@ -102,7 +106,7 @@ public class KinRpcProtocol implements Protocol, LoggerOprs {
     }
 
     @Override
-    public <T> Invoker<T> reference(Url url) {
+    public <T> AsyncInvoker<T> reference(Url url) {
         return new KinRpcReferenceInvoker<>(url);
     }
 

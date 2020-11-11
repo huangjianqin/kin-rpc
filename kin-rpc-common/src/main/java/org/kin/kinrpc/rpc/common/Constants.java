@@ -48,6 +48,8 @@ public class Constants {
     public static final String BYTE_CODE_INVOKE_KEY = "byteCodeInvoke";
     /** 定时轮询注册中心间隔, 目前只有redis注册中心用到 */
     public static final String WATCH_INTERVAL_KEY = "watchInterval";
+    /** rpc调用方法名 */
+    public static final String METHDO_KEY = "method";
 
 
     //-------------------------------------------------配置value--------------------------------------------------------

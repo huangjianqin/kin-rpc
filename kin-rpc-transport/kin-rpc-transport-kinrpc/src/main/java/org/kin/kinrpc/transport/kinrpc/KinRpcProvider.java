@@ -88,16 +88,6 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
                 Url url = proxy.url();
                 String serviceName = url.getServiceName();
                 Invoker<T> invoker = new RateLimitInvoker<>(proxy);
-                ;
-
-//                todo
-//                if (isByteCodeInvoke) {
-//                    //使用javassist调用服务类接口方法
-//                    invoker = new
-//                } else {
-//                    //使用反射调用服务类接口方法
-//                    invoker = new ReflectProviderInvoker<>(url, service, interfaceClass)
-//                }
 
                 if (!services.containsKey(serviceName)) {
                     services.put(serviceName, new InvokerWrapper(invoker));

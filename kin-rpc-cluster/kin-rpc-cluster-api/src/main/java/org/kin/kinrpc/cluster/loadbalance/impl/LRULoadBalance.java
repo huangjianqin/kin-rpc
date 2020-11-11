@@ -3,7 +3,7 @@ package org.kin.kinrpc.cluster.loadbalance.impl;
 import org.kin.framework.collection.LRUMap;
 import org.kin.framework.utils.TimeUtils;
 import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
-import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
+import org.kin.kinrpc.rpc.AsyncInvoker;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,7 +24,7 @@ public class LRULoadBalance implements LoadBalance {
     private int monitorTime;
 
     @Override
-    public ReferenceInvoker loadBalance(List<ReferenceInvoker> invokers) {
+    public AsyncInvoker loadBalance(List<AsyncInvoker> invokers) {
         synchronized (lruMap) {
             int now = TimeUtils.timestamp();
             if (now >= monitorTime + EXPIRE_TIME) {
@@ -33,10 +33,11 @@ public class LRULoadBalance implements LoadBalance {
             }
 
             //put
-            Map<String, ReferenceInvoker> address2Invoker = new HashMap<>(invokers.size());
-            for (ReferenceInvoker invoker : invokers) {
-                address2Invoker.put(invoker.getAddress().toString(), invoker);
-                lruMap.put(invoker.getAddress().toString(), true);
+            Map<String, AsyncInvoker> address2Invoker = new HashMap<>(invokers.size());
+            for (AsyncInvoker AsyncInvoker : invokers) {
+                String address = AsyncInvoker.url().getAddress();
+                address2Invoker.put(address, AsyncInvoker);
+                lruMap.put(address, true);
             }
 
             //remove invalid

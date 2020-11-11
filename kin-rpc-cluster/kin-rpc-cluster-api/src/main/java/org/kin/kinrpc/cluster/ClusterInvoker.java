@@ -4,6 +4,7 @@ import com.google.common.net.HostAndPort;
 import org.kin.framework.Closeable;
 import org.kin.framework.utils.ClassUtils;
 import org.kin.kinrpc.cluster.exception.CannotFindInvokerException;
+import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.kin.kinrpc.rpc.RpcResponse;
 import org.kin.kinrpc.rpc.RpcThreadPool;
 import org.kin.kinrpc.rpc.common.Url;
@@ -11,7 +12,6 @@ import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 import org.kin.kinrpc.rpc.exception.RpcRetryException;
 import org.kin.kinrpc.rpc.exception.RpcRetryOutException;
 import org.kin.kinrpc.rpc.exception.UnknownRpcResponseStateCodeException;
-import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,15 +25,15 @@ import java.util.concurrent.*;
 /**
  * Created by 健勤 on 2017/2/15.
  */
-abstract class ClusterInvoker<I> implements Closeable {
+abstract class ClusterInvoker<T> implements Closeable {
     protected static final Logger log = LoggerFactory.getLogger(ClusterInvoker.class);
 
-    private final Cluster cluster;
+    private final Cluster<T> cluster;
     private final int retryTimes;
     private final long retryTimeout;
     private final Url url;
 
-    public ClusterInvoker(Cluster cluster, int retryTimes, long retryTimeout, Url url) {
+    public ClusterInvoker(Cluster<T> cluster, int retryTimes, long retryTimeout, Url url) {
         this.cluster = cluster;
         this.retryTimes = retryTimes;
         this.retryTimeout = retryTimeout;
@@ -71,8 +71,9 @@ abstract class ClusterInvoker<I> implements Closeable {
             Set<HostAndPort> failureHostAndPorts = new HashSet<>();
 
             while (tryTimes < retryTimes) {
-                ReferenceInvoker invoker = cluster.get(failureHostAndPorts);
+                AsyncInvoker<T> invoker = cluster.get(failureHostAndPorts);
                 if (invoker != null) {
+                    HostAndPort address = HostAndPort.fromString(invoker.url().getAddress());
                     try {
                         Future<RpcResponse> future = invoker.invokeAsync(methodName, params);
                         RpcResponse rpcResponse = future.get(retryTimeout, TimeUnit.MILLISECONDS);
@@ -82,7 +83,7 @@ abstract class ClusterInvoker<I> implements Closeable {
                                     return rpcResponse.getResult();
                                 case RETRY:
                                     tryTimes++;
-                                    failureHostAndPorts.add(invoker.getAddress());
+                                    failureHostAndPorts.add(address);
                                     break;
                                 case ERROR:
                                     throw new RpcCallErrorException(rpcResponse.getInfo());
@@ -97,18 +98,17 @@ abstract class ClusterInvoker<I> implements Closeable {
                         break;
                     } catch (TimeoutException e) {
                         tryTimes++;
-                        failureHostAndPorts.add(invoker.getAddress());
+                        failureHostAndPorts.add(address);
                         log.warn("invoke time out >>> {}", e.getMessage());
                     } catch (RpcRetryException e) {
                         tryTimes++;
-                        failureHostAndPorts.add(invoker.getAddress());
+                        failureHostAndPorts.add(address);
                         log.warn(e.getMessage());
                     } catch (Throwable e) {
                         log.error(e.getMessage(), e);
                         break;
                     }
-                }
-                else{
+                } else {
                     log.warn("cannot find valid invoker >>>> {}", methodName);
                     try {
                         Thread.sleep(300);
@@ -121,7 +121,7 @@ abstract class ClusterInvoker<I> implements Closeable {
             //超过重试次数, 抛弃异常
             throw new RpcRetryOutException(retryTimes);
         } else {
-            ReferenceInvoker invoker = cluster.get(Collections.emptyList());
+            AsyncInvoker<T> invoker = cluster.get(Collections.emptyList());
             if (Objects.nonNull(invoker)) {
                 try {
                     return invoker.invoke(methodName, isVoid, params);

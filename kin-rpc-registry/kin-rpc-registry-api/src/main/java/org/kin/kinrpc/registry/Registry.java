@@ -1,6 +1,8 @@
 package org.kin.kinrpc.registry;
 
 
+import org.kin.kinrpc.rpc.common.Url;
+
 /**
  * Created by 健勤 on 2016/10/9.
  */
@@ -14,19 +16,16 @@ public interface Registry {
     /**
      * 注册服务
      *
-     * @param serviceName 服务名
-     * @param host        hostname
-     * @param port        端口
+     * @param url 服务配置
      */
-    void register(String serviceName, String host, int port);
+    void register(Url url);
 
     /**
      * 注销服务
-     * @param serviceName 服务名
-     * @param host hostname
-     * @param port 端口
+     *
+     * @param url 服务配置
      */
-    void unRegister(String serviceName, String host, int port);
+    void unRegister(Url url);
 
     /**
      * 订阅服务
