@@ -109,8 +109,6 @@ public class Clusters {
 
         //构建Cluster类
         int timeout = Integer.parseInt(url.getParam(Constants.TIMEOUT_KEY));
-        int retryTimes = Integer.parseInt(url.getParam(Constants.RETRY_TIMES_KEY));
-        long retryTimeout = Long.parseLong(url.getParam(Constants.RETRY_TIMEOUT_KEY));
         String loadBalanceType = url.getParam(Constants.LOADBALANCE_KEY);
         LoadBalance loadBalance = LoadBalances.getLoadBalance(loadBalanceType);
         String routerType = url.getParam(Constants.ROUTER_KEY);
@@ -125,12 +123,12 @@ public class Clusters {
 
         boolean byteCodeInvoke = Boolean.parseBoolean(url.getParam(Constants.BYTE_CODE_INVOKE_KEY));
         if (byteCodeInvoke) {
-            JavassistClusterInvoker<T> javassistClusterInvoker = new JavassistClusterInvoker<>(cluster, retryTimes, retryTimeout, url, interfaceClass);
+            JavassistClusterInvoker<T> javassistClusterInvoker = new JavassistClusterInvoker<>(cluster, url, interfaceClass);
             proxy = javassistClusterInvoker.proxy();
 
             REFERENCE_CACHE.put(url.getServiceName(), javassistClusterInvoker);
         } else {
-            ReflectClusterInvoker<T> reflectClusterInvoker = new ReflectClusterInvoker<>(cluster, retryTimes, retryTimeout, url);
+            ReflectClusterInvoker<T> reflectClusterInvoker = new ReflectClusterInvoker<>(cluster, url);
             proxy = (T) Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class<?>[]{interfaceClass}, reflectClusterInvoker);
 
             REFERENCE_CACHE.put(url.getServiceName(), reflectClusterInvoker);

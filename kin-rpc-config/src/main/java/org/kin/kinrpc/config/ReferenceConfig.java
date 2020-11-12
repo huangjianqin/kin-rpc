@@ -54,6 +54,8 @@ public class ReferenceConfig<T> extends AbstractConfig {
     private CompressionType compressionType = CompressionType.NONE;
     /** 服务限流, 每秒发送多少个 */
     private int rate = Constants.REFERENCE_REQUEST_THRESHOLD;
+    /** 是否支持异步rpc call */
+    private boolean async;
 
     /** 唯一url */
     private Url url;
@@ -97,6 +99,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
             params.put(Constants.VERSION_KEY, version);
             params.put(Constants.COMPRESSION_KEY, Integer.toString(compressionType.getId()));
             params.put(Constants.RATE_KEY, rate + "");
+            params.put(Constants.ASYNC_KEY, Boolean.toString(async));
 
             url = createURL(applicationConfig, NetUtils.getIp(), registryConfig, params);
             Preconditions.checkNotNull(url);
@@ -277,7 +280,12 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return this;
     }
 
-    //setter && getter
+    public ReferenceConfig<T> async() {
+        this.async = true;
+        return this;
+    }
+
+    //getter
 
     public ApplicationConfig getApplicationConfig() {
         return applicationConfig;
@@ -333,5 +341,9 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
     public int getRate() {
         return rate;
+    }
+
+    public boolean isAsync() {
+        return async;
     }
 }

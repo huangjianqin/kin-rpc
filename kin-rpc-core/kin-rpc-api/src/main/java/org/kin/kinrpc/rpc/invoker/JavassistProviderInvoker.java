@@ -45,7 +45,7 @@ public class JavassistProviderInvoker<T> extends ProviderInvoker<T> {
     }
 
     @Override
-    public Object doInvoke(String methodName, boolean isVoid, Object... params) throws Throwable {
+    public Object doInvoke(String methodName, Object... params) throws Throwable {
         ProxyInvoker methodInvoker = methodMap.get(methodName);
 
         if (methodInvoker == null) {

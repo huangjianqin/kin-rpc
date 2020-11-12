@@ -18,8 +18,8 @@ public class WrapInvoker<T> implements Invoker<T> {
     }
 
     @Override
-    public Object invoke(String methodName, boolean isVoid, Object... params) throws Throwable {
-        return wrapper.invoke(methodName, isVoid, params);
+    public Object invoke(String methodName, Object... params) throws Throwable {
+        return wrapper.invoke(methodName, params);
     }
 
     @Override

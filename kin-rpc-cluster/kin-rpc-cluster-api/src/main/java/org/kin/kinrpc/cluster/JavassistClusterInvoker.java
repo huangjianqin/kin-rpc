@@ -10,13 +10,9 @@ import org.kin.kinrpc.rpc.exception.RateLimitException;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
-import java.util.function.Supplier;
 
 /**
  * @author huangjianqin
@@ -26,39 +22,29 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
     private Class<T> interfaceClass;
     private int rate;
 
-    public JavassistClusterInvoker(Cluster<T> cluster, int retryTimes, long retryTimeout, Url url, Class<T> interfaceClass) {
-        super(cluster, retryTimes, retryTimeout, url);
+    public JavassistClusterInvoker(Cluster<T> cluster, Url url, Class<T> interfaceClass) {
+        super(cluster, Integer.parseInt(url.getParam(Constants.RETRY_TIMES_KEY)), Long.parseLong(url.getParam(Constants.RETRY_TIMEOUT_KEY)), url);
         this.interfaceClass = interfaceClass;
         this.rate = Integer.parseInt(url.getParam(Constants.RATE_KEY));
     }
 
-    public static <T> T proxy(Cluster<T> cluster, int retryTimes, int retryTimeout, Url url, Class<T> interfaceClass) {
-        return new JavassistClusterInvoker<>(cluster, retryTimes, retryTimeout, url, interfaceClass).proxy();
+    public static <T> T proxy(Cluster<T> cluster, Url url, Class<T> interfaceClass) {
+        return new JavassistClusterInvoker<>(cluster, url, interfaceClass).proxy();
     }
 
     //------------------此处需自定义, 有点特殊-------------------------------------
 
-    private String generateMethodBody(ClassPool classPool,
-                                      CtClass proxyClass,
-                                      Method method,
-                                      Class[] parameterTypes,
-                                      IntCounter internalClassNum) throws Exception {
+    private String generateMethodBody(Method method,
+                                      Class[] parameterTypes) {
         //真正逻辑
         StringBuffer methodBody = new StringBuffer();
-        Class returnType = method.getReturnType();
-        boolean isVoid = Void.class.equals(returnType) || Void.TYPE.equals(returnType);
-        if (!isVoid) {
-            methodBody.append("return ");
-        }
 
+        //rpc call代码
+        String futureVarName = "future";
         StringBuilder invokeCode = new StringBuilder();
-        if (Future.class.equals(returnType)) {
-            invokeCode.append(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME.concat(".invokeAsync"));
-        } else {
-            invokeCode.append(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME.concat(".invoke0"));
-        }
-        invokeCode.append("(\"".concat(ClassUtils.getUniqueName(method)).concat("\", ").concat(Boolean.toString(isVoid)));
-
+        invokeCode.append(CompletableFuture.class.getName()).append(" ").append(futureVarName).append(" = ");
+        invokeCode.append(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME.concat(".invokeAsync"));
+        invokeCode.append("(\"".concat(ClassUtils.getUniqueName(method)));
         if (parameterTypes.length > 0) {
             invokeCode.append(", new Object[]{");
             StringJoiner invokeBody = new StringJoiner(", ");
@@ -71,66 +57,19 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
         } else {
             invokeCode.append(", new Object[0])");
         }
+        methodBody.append(invokeCode.toString()).append(";").append(System.lineSeparator());
 
-        methodBody.append(org.kin.framework.utils.ClassUtils.primitiveUnpackage(returnType, invokeCode.toString()));
-        methodBody.append(";");
-
-        if (isVoid) {
-            methodBody.append("return null;");
-        }
-
-        if (CompletableFuture.class.equals(returnType)) {
-            //需要构造内部抽象类
-            CtClass internalClass = classPool.makeClass(proxyClass.getName().concat("$").concat(Integer.toString(internalClassNum.getCount())));
-            internalClass.addInterface(classPool.get(Supplier.class.getName()));
-
-            Collection<CtClass> constructArgClass = new ArrayList<>();
-
-            CtField internalClassField = new CtField(classPool.get(this.getClass().getName()), ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME, internalClass);
-            internalClassField.setModifiers(Modifier.PRIVATE | Modifier.FINAL);
-            internalClass.addField(internalClassField);
-            constructArgClass.add(classPool.get(this.getClass().getName()));
-
-            for (int i = 0; i < parameterTypes.length; i++) {
-                CtField internalClassField1 = new CtField(classPool.get(parameterTypes[i].getName()), "arg".concat(Integer.toString(i)), internalClass);
-                internalClassField1.setModifiers(Modifier.PRIVATE | Modifier.FINAL);
-                internalClass.addField(internalClassField1);
-                constructArgClass.add(classPool.get(parameterTypes[i].getName()));
-            }
-
-            //构造器
-            CtConstructor internalClassConstructor = new CtConstructor(
-                    constructArgClass.toArray(new CtClass[0]), internalClass);
-            StringBuffer constructBody = new StringBuffer();
-            constructBody.append("{");
-            constructBody.append("$0.".concat(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME).concat("= $1;"));
-            for (int i = 1; i <= parameterTypes.length; i++) {
-                constructBody.append("$0.arg".concat(Integer.toString((i - 1))).concat(" = $").concat(Integer.toString((i + 1))).concat(";"));
-            }
-            constructBody.append("}");
-            internalClassConstructor.setBody(constructBody.toString());
-            internalClass.addConstructor(internalClassConstructor);
-
-            String internalMethodBody = "public Object get(){" +
-                    methodBody.toString() +
-                    "}";
-            CtMethod internalMethod = CtMethod.make(internalMethodBody, internalClass);
-            internalClass.addMethod(internalMethod);
-
-            Class realInternalClass = internalClass.toClass();
-
-            StringJoiner invokeParam = new StringJoiner(", ");
-            invokeParam.add(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME);
-            for (int i = 0; i < parameterTypes.length; i++) {
-                invokeParam.add("arg".concat(Integer.toString(i)));
-            }
-
-            methodBody = new StringBuffer();
-            methodBody.append("return ".concat(CompletableFuture.class.getName())
-                    .concat(".supplyAsync(new ").concat(realInternalClass.getName()).concat("(").concat(invokeParam.toString()).concat("));"));
-
-            internalClassNum.increment();
-        }
+        //after rpc call逻辑
+        methodBody.append("if(isAsync()){").append(System.lineSeparator());
+        methodBody.append(RpcContext.class.getName()).append(".updateFuture(".concat(futureVarName).concat(");")).append(System.lineSeparator());
+        methodBody.append("return null;").append(System.lineSeparator());
+        methodBody.append("}").append(System.lineSeparator());
+        methodBody.append("else{").append(System.lineSeparator());
+        methodBody.append("try{").append("return ").append(futureVarName).append(".get();").append(System.lineSeparator());
+        methodBody.append("} catch (Exception e) {").append(System.lineSeparator());
+        methodBody.append("throw new RuntimeException(e);").append(System.lineSeparator());
+        methodBody.append("}").append(System.lineSeparator());
+        methodBody.append("}").append(System.lineSeparator());
 
         return methodBody.toString();
     }
@@ -184,7 +123,6 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
                             .concat("if($2 > 0){$0.".concat(rateLimiterFieldName).concat(" = ").concat(RateLimiter.class.getName()).concat(".create($2);}}")));
                     proxyClass.addConstructor(constructor);
 
-                    IntCounter internalClassNum = new IntCounter();
                     //生成接口方法方法体
                     for (Method method : interfaceClass.getDeclaredMethods()) {
                         StringBuffer sb = new StringBuffer();
@@ -200,7 +138,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
                         }
                         sb.append(paramBody.toString().concat("){"));
                         sb.append(generateRateLimitBody(rateLimiterFieldName, method));
-                        sb.append(generateMethodBody(classPool, proxyClass, method, parameterTypes, internalClassNum));
+                        sb.append(generateMethodBody(method, parameterTypes));
                         sb.append("}");
 
                         CtMethod ctMethod = CtMethod.make(sb.toString(), proxyClass);
@@ -224,25 +162,5 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
     public void close() {
         super.close();
         ProxyEnhanceUtils.detach(getUrl().getServiceName());
-    }
-
-    //----------------------------------------------------------------------------------------------------
-    public class IntCounter {
-        private int count = 0;
-
-        public IntCounter() {
-        }
-
-        public IntCounter(int count) {
-            this.count = count;
-        }
-
-        public void increment() {
-            count++;
-        }
-
-        public int getCount() {
-            return count;
-        }
     }
 }

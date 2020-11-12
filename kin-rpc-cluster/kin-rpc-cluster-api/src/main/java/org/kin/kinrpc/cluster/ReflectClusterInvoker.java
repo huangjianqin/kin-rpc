@@ -9,18 +9,17 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 
 /**
  * @author huangjianqin
  * @date 2019-09-09
  * reference端没有必要使用字节码生成技术, 因为本来代码的实现就是把服务接口必要的参数传给provider, 仅此而已.
  */
-class ReflectClusterInvoker<T> extends ClusterInvoker<T> implements InvocationHandler {
+final class ReflectClusterInvoker<T> extends ClusterInvoker<T> implements InvocationHandler {
     private RateLimiter rateLimiter;
 
-    public ReflectClusterInvoker(Cluster<T> cluster, int retryTimes, long retryTimeout, Url url) {
-        super(cluster, retryTimes, retryTimeout, url);
+    public ReflectClusterInvoker(Cluster<T> cluster, Url url) {
+        super(cluster, Integer.parseInt(url.getParam(Constants.RETRY_TIMES_KEY)), Long.parseLong(url.getParam(Constants.RETRY_TIMEOUT_KEY)), url);
         int rate = Integer.parseInt(url.getParam(Constants.RATE_KEY));
         if (rate > 0) {
             rateLimiter = RateLimiter.create(rate);
@@ -36,15 +35,18 @@ class ReflectClusterInvoker<T> extends ClusterInvoker<T> implements InvocationHa
             throw new RateLimitException(proxy.getClass().getName().concat("$").concat(method.toString()));
         }
 
-        //异步方式: reference端必须自定义一个与service端除了返回值为Future.class或者CompletableFuture.class外,
-        //方法签名相同的接口
-        Class returnType = method.getReturnType();
-        if (Future.class.equals(returnType)) {
-            return invokeAsync(method, args);
-        } else if (CompletableFuture.class.equals(returnType)) {
-            return CompletableFuture.supplyAsync(() -> invoke0(method, args));
+        CompletableFuture<?> future = invokeAsync(method, args);
+        if (isAsync()) {
+            //async rpc call
+            RpcContext.updateFuture(future);
+            return null;
+        } else {
+            //sync rpc call
+            try {
+                return future.get();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
-
-        return invoke0(method, args);
     }
 }

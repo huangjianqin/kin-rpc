@@ -9,7 +9,7 @@ import java.util.concurrent.Future;
  */
 public class JavassistClusterInvokerTest {
     public static void main(String[] args) {
-        JavassistClusterInvoker<Addable> jci = new JavassistClusterInvoker<>(null, 1, 1, null,
+        JavassistClusterInvoker<Addable> jci = new JavassistClusterInvoker<>(null, null,
                 Addable.class);
         Addable proxy = jci.proxy();
         System.out.println(proxy);

@@ -2,11 +2,11 @@ package org.kin.kinrpc.cluster;
 
 import com.google.common.net.HostAndPort;
 import org.kin.framework.Closeable;
-import org.kin.framework.utils.ClassUtils;
 import org.kin.kinrpc.cluster.exception.CannotFindInvokerException;
 import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.kin.kinrpc.rpc.RpcResponse;
 import org.kin.kinrpc.rpc.RpcThreadPool;
+import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 import org.kin.kinrpc.rpc.exception.RpcRetryException;
@@ -40,30 +40,17 @@ abstract class ClusterInvoker<T> implements Closeable {
         this.url = url;
     }
 
-    public Future<?> invokeAsync(Method method, Object... params) {
-        Callable<?> callable = () -> invoke0(method, params);
-        return RpcThreadPool.EXECUTORS.submit(callable);
+    /**
+     * async rpc call
+     */
+    public CompletableFuture<?> invokeAsync(Method method, Object... params) {
+        return CompletableFuture.supplyAsync(() -> invoke0(method.getName(), params), RpcThreadPool.EXECUTORS);
     }
 
     /**
-     * 专供javassist使用
+     * rpc call
      */
-    protected Future<?> invokeAsync(String methodName, boolean isVoid, Object... params) {
-        Callable<?> callable = () -> invoke0(methodName, isVoid, params);
-        return RpcThreadPool.EXECUTORS.submit(callable);
-    }
-
-    public Object invoke0(Method method, Object... params) {
-        String methodName = ClassUtils.getUniqueName(method);
-        Class returnType = method.getReturnType();
-        boolean isVoid = Void.class.equals(returnType) || Void.TYPE.equals(method.getReturnType());
-        return invoke0(methodName, isVoid, params);
-    }
-
-    /**
-     * 专供javassist使用
-     */
-    protected Object invoke0(String methodName, boolean isVoid, Object... params) {
+    protected Object invoke0(String methodName, Object... params) {
         if (retryTimes > 0) {
             int tryTimes = 0;
 
@@ -124,7 +111,7 @@ abstract class ClusterInvoker<T> implements Closeable {
             AsyncInvoker<T> invoker = cluster.get(Collections.emptyList());
             if (Objects.nonNull(invoker)) {
                 try {
-                    return invoker.invoke(methodName, isVoid, params);
+                    return invoker.invoke(methodName, params);
                 } catch (Throwable e) {
                     log.error(e.getMessage(), e);
                 }
@@ -140,8 +127,14 @@ abstract class ClusterInvoker<T> implements Closeable {
         cluster.shutdown();
     }
 
-    //getter
+    /**
+     * @return rpc call是否异步
+     */
+    protected boolean isAsync() {
+        return Boolean.parseBoolean(url.getParam(Constants.ASYNC_KEY));
+    }
 
+    //getter
     public Url getUrl() {
         return url;
     }

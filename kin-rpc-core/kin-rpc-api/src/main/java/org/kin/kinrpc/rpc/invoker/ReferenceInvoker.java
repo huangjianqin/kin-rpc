@@ -29,25 +29,24 @@ public abstract class ReferenceInvoker<T> extends AbstractInvoker<T> implements 
     }
 
     @Override
-    public final Object invoke(String methodName, boolean isVoid, Object... params) throws Exception {
+    public final Object invoke(String methodName, Object... params) throws Exception {
         try {
             Future<RpcResponse> future = invoke0(methodName, params);
-            if (!isVoid) {
-                RpcResponse rpcResponse = future.get();
-                if (rpcResponse != null) {
-                    switch (rpcResponse.getState()) {
-                        case SUCCESS:
-                            return rpcResponse.getResult();
-                        case RETRY:
-                            throw new RpcRetryException(rpcResponse.getInfo(), getServiceName(), methodName, params);
-                        case ERROR:
-                            throw new RpcCallErrorException(rpcResponse.getInfo());
-                        default:
-                            throw new UnknownRpcResponseStateCodeException(rpcResponse.getState().getCode());
-                    }
+            RpcResponse rpcResponse = future.get();
+            if (rpcResponse != null) {
+                switch (rpcResponse.getState()) {
+                    case SUCCESS:
+                        return rpcResponse.getResult();
+                    case RETRY:
+                        throw new RpcRetryException(rpcResponse.getInfo(), getServiceName(), methodName, params);
+                    case ERROR:
+                        throw new RpcCallErrorException(rpcResponse.getInfo());
+                    default:
+                        throw new UnknownRpcResponseStateCodeException(rpcResponse.getState().getCode());
                 }
+            } else {
+                throw new RpcCallErrorException("no rpc response");
             }
-            return null;
         } catch (InterruptedException e) {
             log.error("pending result interrupted >>> {}", e.getMessage());
             throw e;

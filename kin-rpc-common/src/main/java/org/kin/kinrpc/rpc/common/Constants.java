@@ -50,6 +50,8 @@ public class Constants {
     public static final String WATCH_INTERVAL_KEY = "watchInterval";
     /** rpc调用方法名 */
     public static final String METHDO_KEY = "method";
+    /** async rpc call标识 */
+    public static final String ASYNC_KEY = "async";
 
 
     //-------------------------------------------------配置value--------------------------------------------------------

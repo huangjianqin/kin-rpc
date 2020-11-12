@@ -26,17 +26,18 @@ public abstract class ProviderInvoker<T> extends AbstractInvoker<T> {
     }
 
     @Override
-    public final Object invoke(String methodName, boolean isVoid, Object... params) throws Throwable {
+    public final Object invoke(String methodName, Object... params) throws Throwable {
         log.debug("service '{}' method '{}' invoking...", getServiceName(), methodName);
         //流控
         if (!rateLimiter.tryAcquire()) {
             throw new RateLimitException(KinRpcUtils.generateInvokeMsg(getServiceName(), methodName, params));
         }
-        return doInvoke(methodName, isVoid, params);
+        return doInvoke(methodName, params);
     }
 
     /**
      * rpc调用方法真正实现
+     * todo 支持future
      *
      * @param methodName 方法名
      * @param isVoid     对于返回值为void的方法, 直接返回, 不阻塞, service端不用管这个参数
@@ -44,7 +45,7 @@ public abstract class ProviderInvoker<T> extends AbstractInvoker<T> {
      * @return 返回方法结果(rpc调用)
      * @throws Throwable 异常
      */
-    protected abstract Object doInvoke(String methodName, boolean isVoid, Object... params) throws Throwable;
+    protected abstract Object doInvoke(String methodName, Object... params) throws Throwable;
 
     /**
      * 设置流控

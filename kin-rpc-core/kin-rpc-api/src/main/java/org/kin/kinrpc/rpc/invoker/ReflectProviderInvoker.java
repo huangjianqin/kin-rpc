@@ -51,7 +51,7 @@ public class ReflectProviderInvoker<T> extends ProviderInvoker<T> {
     }
 
     @Override
-    public Object doInvoke(String methodName, boolean isVoid, Object... params) throws Throwable {
+    public Object doInvoke(String methodName, Object... params) throws Throwable {
         Method target = methodMap.get(methodName);
 
         if (target == null) {
