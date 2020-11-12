@@ -34,8 +34,8 @@ public class Url implements Serializable {
     private Map<String, String> params;
     /** 服务名 */
     private String serviceName;
-    /** 方法名 */
-    private String method;
+    /** 接口名 */
+    private String interfaceN;
 
     public Url(String protocol, String username, String password, String host, int port, String path, Map<String, String> params) {
         this.protocol = protocol;
@@ -51,7 +51,7 @@ public class Url implements Serializable {
         if(StringUtils.isNotBlank(version)){
             this.serviceName += ("#" + version);
         }
-        this.method = getParam(Constants.METHDO_KEY);
+        this.interfaceN = getParam(Constants.INTERFACE_KEY);
     }
 
     public static Url of(String url) {
@@ -226,7 +226,7 @@ public class Url implements Serializable {
         return serviceName;
     }
 
-    public String getMethod() {
-        return method;
+    public String getInterfaceN() {
+        return interfaceN;
     }
 }

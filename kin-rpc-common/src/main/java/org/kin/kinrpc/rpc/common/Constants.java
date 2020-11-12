@@ -49,7 +49,7 @@ public class Constants {
     /** 定时轮询注册中心间隔, 目前只有redis注册中心用到 */
     public static final String WATCH_INTERVAL_KEY = "watchInterval";
     /** rpc调用方法名 */
-    public static final String METHDO_KEY = "method";
+    public static final String INTERFACE_KEY = "method";
     /** async rpc call标识 */
     public static final String ASYNC_KEY = "async";
 

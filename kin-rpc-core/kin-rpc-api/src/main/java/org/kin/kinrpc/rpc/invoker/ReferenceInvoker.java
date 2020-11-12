@@ -59,7 +59,7 @@ public abstract class ReferenceInvoker<T> extends AbstractInvoker<T> implements 
     @Override
     public final Class<T> getInterface() {
         try {
-            return (Class<T>) Class.forName(url.getServiceName());
+            return (Class<T>) Class.forName(url.getInterfaceN());
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }

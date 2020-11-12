@@ -99,6 +99,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
             params.put(Constants.VERSION_KEY, version);
             params.put(Constants.COMPRESSION_KEY, Integer.toString(compressionType.getId()));
             params.put(Constants.RATE_KEY, rate + "");
+            params.put(Constants.INTERFACE_KEY, interfaceClass.getName());
             params.put(Constants.ASYNC_KEY, Boolean.toString(async));
 
             url = createURL(applicationConfig, NetUtils.getIp(), registryConfig, params);
