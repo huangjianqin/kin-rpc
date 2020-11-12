@@ -7,11 +7,13 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.utils.ExceptionUtils;
+import org.kin.kinrpc.rpc.AsyncRpcCallback;
 import org.kin.kinrpc.rpc.RpcFuture;
 import org.kin.kinrpc.rpc.RpcRequest;
 import org.kin.kinrpc.rpc.RpcResponse;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
+import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 import org.kin.kinrpc.transport.serializer.Serializer;
 import org.kin.kinrpc.transport.serializer.Serializers;
 import org.kin.kinrpc.transport.serializer.UnknownSerializerException;
@@ -72,17 +74,6 @@ public class KinRpcReference {
     }
 
     /**
-     * 异常处理
-     * channel线程
-     */
-    public void handleResponseError(long requestId, Throwable cause) {
-        RpcFuture pendRpcFuture = pendingRpcFutureMap.get(requestId);
-        if (pendRpcFuture != null) {
-            pendRpcFuture.done(RpcResponse.respWithError(requestId, cause.getMessage()));
-        }
-    }
-
-    /**
      * channel线程
      */
     public void handleResponse(RpcResponse rpcResponse) {
@@ -102,8 +93,21 @@ public class KinRpcReference {
      */
     public Future<RpcResponse> request(RpcRequest request) {
         RpcFuture future = new RpcFuture(request);
+        future.addCallback(new AsyncRpcCallback() {
+            @Override
+            public void success(RpcRequest rpcRequest, RpcResponse rpcResponse) {
+                //无论rpc call是否成功, 一次future done操作就需要移除无效RpcRequest
+                removeInvalid(rpcRequest);
+            }
+
+            @Override
+            public void fail(RpcRequest rpcRequest, Exception e) {
+                //无论rpc call是否成功, 一次future done操作就需要移除无效RpcRequest
+                removeInvalid(rpcRequest);
+            }
+        });
         if (!isActive()) {
-            future.done(RpcResponse.respWithError(request, "client channel closed"));
+            future.doneError(new RpcCallErrorException("client channel closed"));
             return future;
         }
         log.debug("send a request>>>" + System.lineSeparator() + request);
@@ -162,10 +166,13 @@ public class KinRpcReference {
         this.pendingRpcFutureMap.remove(rpcRequest.getRequestId());
     }
 
+    /**
+     * rpc call fail
+     */
     public void onFail(long requestId, String reason) {
         RpcFuture future = pendingRpcFutureMap.remove(requestId);
         if (Objects.nonNull(future)) {
-            future.done(RpcResponse.respWithError(future.getRequest(), reason));
+            future.doneError(new RpcCallErrorException(reason));
         }
     }
 
@@ -206,7 +213,7 @@ public class KinRpcReference {
                     rpcResponse = serializer.deserialize(responseProtocol.getRespContent(), RpcResponse.class);
                     rpcResponse.setEventTime(System.currentTimeMillis());
                 } catch (Exception e) {
-                    handleResponseError(requestId, e);
+                    onFail(requestId, e.getMessage());
 
                     log.error(e.getMessage(), e);
                     return;

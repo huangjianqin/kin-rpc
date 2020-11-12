@@ -14,7 +14,7 @@ public interface Exporter<T> {
 
     /**
      * unexport.
-     * todo 相当于getInvoker().destroy();
+     * 相当于getInvoker().destroy();
      */
     void unexport();
 }

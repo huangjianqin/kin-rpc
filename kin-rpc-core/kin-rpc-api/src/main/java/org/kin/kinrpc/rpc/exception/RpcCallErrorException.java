@@ -8,4 +8,8 @@ public class RpcCallErrorException extends RuntimeException {
     public RpcCallErrorException(String errorMsg) {
         super(errorMsg);
     }
+
+    public RpcCallErrorException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

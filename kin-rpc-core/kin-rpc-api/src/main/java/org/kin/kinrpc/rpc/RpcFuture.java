@@ -2,6 +2,8 @@ package org.kin.kinrpc.rpc;
 
 
 import org.kin.framework.concurrent.lock.OneLock;
+import org.kin.kinrpc.rpc.exception.RpcCallCancelledException;
+import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,8 +39,7 @@ public class RpcFuture implements Future<RpcResponse> {
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
         if (!isDone() && cancelled.compareAndSet(false, true)) {
-            //todo callback实现
-//            rpcReference.onFail(request.getRequestId(), "canncelled");
+            doneError(new RpcCallCancelledException("rpc call canncelled >>>".concat(request.toString())));
             return true;
         }
 
@@ -75,46 +76,37 @@ public class RpcFuture implements Future<RpcResponse> {
                     return null;
                 }
             } else {
-                throw new TimeoutException(getTimeoutMessage());
+                throw new TimeoutException();
             }
         } catch (TimeoutException e) {
-            doneTimeout();
+            String exMsg = "Timeout exception. Request id: " + this.request.getRequestId()
+                    + ". Request class name: " + this.request.getServiceName()
+                    + ". Request method: " + this.request.getMethod();
+            doneError(new RpcCallErrorException(exMsg, e));
             throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private String getTimeoutMessage() {
-        return "Timeout exception. Request id: " + this.request.getRequestId()
-                + ". Request class name: " + this.request.getServiceName()
-                + ". Request method: " + this.request.getMethod();
-    }
-
-    public void doneTimeout() {
-        RpcResponse rpcResponse = RpcResponse.respWithError(request, getTimeoutMessage());
-        done(rpcResponse);
-    }
-
+    /**
+     * future done
+     */
     public void done(RpcResponse response) {
         if (isDone()) {
             return;
         }
         this.response = response;
-        //todo callback实现
-//        rpcReference.removeInvalid(request);
         sync.release(1);
         RpcThreadPool.EXECUTORS.submit(() -> {
             for (AsyncRpcCallback callback : this.callbacks) {
                 switch (response.getState()) {
                     case SUCCESS:
-                        callback.success(response);
-                        break;
                     case RETRY:
-                        callback.retry(request);
+                        callback.success(request, response);
                         break;
                     case ERROR:
-                        callback.fail(new RuntimeException("Response error", new Throwable(response.getInfo())));
+                        callback.fail(request, new RpcCallErrorException("Response error", new Throwable(response.getInfo())));
                         break;
                     default:
                         break;
@@ -128,7 +120,30 @@ public class RpcFuture implements Future<RpcResponse> {
         }
     }
 
-    public RpcFuture addRpcCallback(AsyncRpcCallback callback) {
+    /**
+     * 遇到异常, future done, reference端的异常
+     */
+    public void doneError(Exception e) {
+        if (isDone()) {
+            return;
+        }
+        sync.release(1);
+        RpcThreadPool.EXECUTORS.submit(() -> {
+            for (AsyncRpcCallback callback : this.callbacks) {
+                callback.fail(request, e);
+            }
+        });
+
+        long responseTime = System.currentTimeMillis() - startTime;
+        if (responseTime > this.responseTimeThreshold) {
+            log.warn("service response time is too slow. Request id = '{}'. Response Time = {}ms", response.getRequestId(), responseTime);
+        }
+    }
+
+    /**
+     * 添加callback
+     */
+    public RpcFuture addCallback(AsyncRpcCallback callback) {
         if (!this.isDone()) {
             this.callbacks.add(callback);
         }
@@ -136,6 +151,7 @@ public class RpcFuture implements Future<RpcResponse> {
         return this;
     }
 
+    //getter
     public RpcRequest getRequest() {
         return request;
     }

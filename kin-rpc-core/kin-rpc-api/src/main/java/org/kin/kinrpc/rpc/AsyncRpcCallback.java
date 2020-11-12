@@ -8,19 +8,16 @@ public interface AsyncRpcCallback {
     /**
      * rpc请求成功回调
      *
+     * @param rpcRequest  rpc请求
      * @param rpcResponse rpc返回结果
      */
-    void success(RpcResponse rpcResponse);
-
-    /**
-     * rpc请求重试回调
-     * @param rpcRequest rpc请求
-     */
-    void retry(RpcRequest rpcRequest);
+    void success(RpcRequest rpcRequest, RpcResponse rpcResponse);
 
     /**
      * rpc请求失败回调
-     * @param e 异常
+     *
+     * @param rpcRequest rpc请求
+     * @param e          异常
      */
-    void fail(Exception e);
+    void fail(RpcRequest rpcRequest, Exception e);
 }
