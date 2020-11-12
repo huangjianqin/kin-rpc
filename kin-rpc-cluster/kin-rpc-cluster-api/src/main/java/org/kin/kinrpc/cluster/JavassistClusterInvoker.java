@@ -65,7 +65,9 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
         methodBody.append("return null;").append(System.lineSeparator());
         methodBody.append("}").append(System.lineSeparator());
         methodBody.append("else{").append(System.lineSeparator());
-        methodBody.append("try{").append("return ").append(futureVarName).append(".get();").append(System.lineSeparator());
+        methodBody.append("try{").append("return ")
+                .append(ClassUtils.primitivePackage(method.getReturnType(), futureVarName.concat(".get()")))
+                .append(";").append(System.lineSeparator());
         methodBody.append("} catch (Exception e) {").append(System.lineSeparator());
         methodBody.append("throw new RuntimeException(e);").append(System.lineSeparator());
         methodBody.append("}").append(System.lineSeparator());
