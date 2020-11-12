@@ -35,7 +35,6 @@ public class Registries {
 
             return REGISTRY_FACTORY_CACHE.get(registryType, () -> {
                 Set<Class<? extends RegistryFactory>> classes = ClassUtils.getSubClass(RegistryFactory.class.getPackage().getName(), RegistryFactory.class, true);
-                //TODO 考虑增加加载外部自定义的RegistryFactory
                 if (classes.size() > 0) {
                     for (Class<? extends RegistryFactory> claxx : classes) {
                         String className = claxx.getSimpleName().toLowerCase();
