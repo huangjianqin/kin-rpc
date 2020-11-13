@@ -216,7 +216,7 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
                                     Channel channel, RpcRequest rpcRequest, RpcResponse rpcResponse) {
         Object result = null;
         try {
-            result = invoker.invoke(methodName, false, params);
+            result = invoker.invoke(methodName, params);
             rpcResponse.setState(RpcResponse.State.SUCCESS, "success");
         } catch (RateLimitException e) {
             rpcResponse.setState(RpcResponse.State.RETRY, "service rate limited, just reject");

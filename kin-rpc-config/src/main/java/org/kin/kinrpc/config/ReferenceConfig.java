@@ -10,10 +10,6 @@ import org.kin.kinrpc.cluster.router.Router;
 import org.kin.kinrpc.cluster.router.Routers;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
-import org.kin.kinrpc.transport.serializer.Serializer;
-import org.kin.kinrpc.transport.serializer.SerializerType;
-import org.kin.kinrpc.transport.serializer.Serializers;
-import org.kin.transport.netty.CompressionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,24 +30,16 @@ public class ReferenceConfig<T> extends AbstractConfig {
     private Class<T> interfaceClass;
     /** 连接超时 */
     private int timeout = Constants.REFERENCE_DEFAULT_CONNECT_TIMEOUT;
-    /** 服务名 */
-    private String serviceName;
     /** 重试次数 */
     private int retryTimes;
     /** 重试超时 */
     private long retryTimeout = Constants.RETRY_TIMEOUT;
-    /** 序列化类型 */
-    private int serialize = SerializerType.KRYO.getCode();
     /** 负载均衡类型 */
     private String loadBalanceType = LoadBalanceType.ROUNDROBIN.getType();
     /** 路由类型 */
     private String routerType = RouterType.NONE.getType();
     /** 客户端服务invoker调用类型 */
     private InvokeType invokeType = InvokeType.JAVASSIST;
-    /** 版本号 */
-    private String version = "0.1.0.0";
-    /** 压缩类型 */
-    private CompressionType compressionType = CompressionType.NONE;
     /** 服务限流, 每秒发送多少个 */
     private int rate = Constants.REFERENCE_REQUEST_THRESHOLD;
     /** 是否支持异步rpc call */
@@ -66,7 +54,6 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
     ReferenceConfig(Class<T> interfaceClass) {
         this.interfaceClass = interfaceClass;
-        this.serviceName = interfaceClass.getName();
     }
 
     //---------------------------------------------------------------------------------------------------------
@@ -87,21 +74,13 @@ public class ReferenceConfig<T> extends AbstractConfig {
         if (!isReference) {
             check();
 
-            if (StringUtils.isBlank(serviceName)) {
-                serviceName = interfaceClass.getName();
-            }
-
             Map<String, String> params = new HashMap<>(50);
             params.put(Constants.TIMEOUT_KEY, timeout + "");
             params.put(Constants.RETRY_TIMES_KEY, retryTimes + "");
             params.put(Constants.RETRY_TIMEOUT_KEY, retryTimeout + "");
-            params.put(Constants.SERVICE_NAME_KEY, serviceName);
-            params.put(Constants.SERIALIZE_KEY, serialize + "");
             params.put(Constants.LOADBALANCE_KEY, loadBalanceType);
             params.put(Constants.ROUTER_KEY, routerType);
             params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(InvokeType.JAVASSIST.equals(invokeType)));
-            params.put(Constants.VERSION_KEY, version);
-            params.put(Constants.COMPRESSION_KEY, Integer.toString(compressionType.getId()));
             params.put(Constants.RATE_KEY, rate + "");
             params.put(Constants.INTERFACE_KEY, interfaceClass.getName());
             params.put(Constants.ASYNC_KEY, Boolean.toString(async));
@@ -180,13 +159,6 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return this;
     }
 
-    public ReferenceConfig<T> serviceName(String serviceName) {
-        if (!isReference) {
-            this.serviceName = serviceName;
-        }
-        return this;
-    }
-
     public ReferenceConfig<T> retry(int retryTimes) {
         if (!isReference) {
             this.retryTimes = retryTimes;
@@ -197,23 +169,6 @@ public class ReferenceConfig<T> extends AbstractConfig {
     public ReferenceConfig<T> retryTimeout(long retryTimeout) {
         if (!isReference) {
             this.retryTimeout = retryTimeout;
-        }
-        return this;
-    }
-
-    /**
-     * @param serializerClass 序列化标识
-     */
-    public ReferenceConfig<T> serialize(Class<? extends Serializer> serializerClass) {
-        if (!isReference) {
-            this.serialize = Serializers.getOrLoadSerializer(serializerClass);
-        }
-        return this;
-    }
-
-    public ReferenceConfig<T> serialize(SerializerType serializerType) {
-        if (!isReference) {
-            this.serialize = serializerType.getCode();
         }
         return this;
     }
@@ -270,16 +225,6 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return this;
     }
 
-    public ReferenceConfig<T> version(String version) {
-        this.version = version;
-        return this;
-    }
-
-    public ReferenceConfig<T> compress(CompressionType compressionType) {
-        this.compressionType = compressionType;
-        return this;
-    }
-
     public ReferenceConfig<T> rate(int rate) {
         this.rate = rate;
         return this;
@@ -308,20 +253,12 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return timeout;
     }
 
-    public String getServiceName() {
-        return serviceName;
-    }
-
     public int getRetryTimes() {
         return retryTimes;
     }
 
     public long getRetryTimeout() {
         return retryTimeout;
-    }
-
-    public int getSerialize() {
-        return serialize;
     }
 
     public String getLoadBalanceType() {
@@ -334,14 +271,6 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
     public InvokeType getInvokeType() {
         return invokeType;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public CompressionType isCompression() {
-        return compressionType;
     }
 
     public int getRate() {

@@ -4,7 +4,7 @@ import org.kin.kinrpc.cluster.RpcContext;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.References;
 import org.kin.kinrpc.demo.rpc.service.Addable;
-import org.kin.kinrpc.transport.serializer.SerializerType;
+import org.kin.kinrpc.rpc.common.Constants;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -16,10 +16,10 @@ import java.util.concurrent.TimeUnit;
 public class AddableReference {
     public static void main(String[] args) throws InterruptedException {
         ReferenceConfig<Addable> referenceConfig =
-                References.reference(Addable.class).urls("kinrpc://0.0.0.0:16888")
-                        .serialize(SerializerType.KRYO)
+                References.reference(Addable.class)
+                        .urls("kinrpc://0.0.0.0:16888?"
+                                .concat(Constants.SERVICE_NAME_KEY).concat("=").concat(Addable.class.getName().concat("#001")))
                         .async()
-                        .version("001")
                         .rate(10000);
 
         Addable service = referenceConfig.get();

@@ -130,109 +130,109 @@ public class ServiceConfig<T> extends AbstractConfig {
 
     //---------------------------------------builder------------------------------------------------------------
 
-    public ServiceConfig appName(String appName) {
+    public ServiceConfig<T> appName(String appName) {
         if (!isExport) {
             this.applicationConfig = new ApplicationConfig(appName);
         }
         return this;
     }
 
-    public ServiceConfig bind(int port) {
+    public ServiceConfig<T> bind(int port) {
         if (!isExport) {
             this.serverConfig = new ServerConfig(port);
         }
         return this;
     }
 
-    public ServiceConfig bind(String host, int port) {
+    public ServiceConfig<T> bind(String host, int port) {
         if (!isExport) {
             this.serverConfig = new ServerConfig(host, port);
         }
         return this;
     }
 
-    public ServiceConfig urls(String... urls) {
+    public ServiceConfig<T> urls(String... urls) {
         if (!isExport) {
             this.registryConfig = new DirectURLsRegistryConfig(StringUtils.mkString(";", urls));
         }
         return this;
     }
 
-    public ServiceConfig zookeeper(String address) {
+    public ServiceConfig<T> zookeeper(String address) {
         if (!isExport) {
             this.registryConfig = new ZookeeperRegistryConfig(address);
         }
         return this;
     }
 
-    public ServiceConfig redis(String address) {
+    public ServiceConfig<T> redis(String address) {
         if (!isExport) {
             this.registryConfig = new RedisRegistryConfig(address);
         }
         return this;
     }
 
-    public ServiceConfig registrySessionTimeout(long sessionTimeout) {
+    public ServiceConfig<T> registrySessionTimeout(long sessionTimeout) {
         if (!isExport) {
             this.registryConfig.setSessionTimeout(sessionTimeout);
         }
         return this;
     }
 
-    public ServiceConfig registryWatchInterval(long watchInterval) {
+    public ServiceConfig<T> registryWatchInterval(long watchInterval) {
         if (!isExport) {
             this.registryConfig.setWatchInterval(watchInterval);
         }
         return this;
     }
 
-    public ServiceConfig serviceName(String serviceName) {
+    public ServiceConfig<T> serviceName(String serviceName) {
         if (!isExport) {
             this.serviceName = serviceName;
         }
         return this;
     }
 
-    public ServiceConfig serialize(Class<? extends Serializer> serializerClass) {
+    public ServiceConfig<T> serialize(Class<? extends Serializer> serializerClass) {
         if (!isExport) {
             this.serialize = Serializers.getOrLoadSerializer(serializerClass);
         }
         return this;
     }
 
-    public ServiceConfig serialize(SerializerType serializerType) {
+    public ServiceConfig<T> serialize(SerializerType serializerType) {
         if (!isExport) {
             this.serialize = serializerType.getCode();
         }
         return this;
     }
 
-    public ServiceConfig javaInvoke() {
+    public ServiceConfig<T> javaInvoke() {
         this.invokeType = InvokeType.JAVA;
         return this;
     }
 
-    public ServiceConfig javassistInvoke() {
+    public ServiceConfig<T> javassistInvoke() {
         this.invokeType = InvokeType.JAVASSIST;
         return this;
     }
 
-    public ServiceConfig version(String version) {
+    public ServiceConfig<T> version(String version) {
         this.version = version;
         return this;
     }
 
-    public ServiceConfig compress(CompressionType compressionType) {
+    public ServiceConfig<T> compress(CompressionType compressionType) {
         this.compressionType = compressionType;
         return this;
     }
 
-    public ServiceConfig actorLike() {
+    public ServiceConfig<T> actorLike() {
         this.parallelism = false;
         return this;
     }
 
-    public ServiceConfig rate(int rate) {
+    public ServiceConfig<T> rate(int rate) {
         this.rate = rate;
         return this;
     }

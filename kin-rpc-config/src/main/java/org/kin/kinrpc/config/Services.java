@@ -9,7 +9,7 @@ public class Services {
 
     }
 
-    public static ServiceConfig service(Object ref, Class<?> interfaceClass) {
-        return new ServiceConfig(ref, interfaceClass);
+    public static <T> ServiceConfig<T> service(T ref, Class<T> interfaceClass) {
+        return new ServiceConfig<>(ref, interfaceClass);
     }
 }

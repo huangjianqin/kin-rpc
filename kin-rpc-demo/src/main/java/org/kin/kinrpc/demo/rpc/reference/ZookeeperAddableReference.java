@@ -21,7 +21,6 @@ public class ZookeeperAddableReference {
     public static void main(String[] args) throws InterruptedException {
         ReferenceConfig<Addable> referenceConfig =
                 References.reference(Addable.class)
-                        .serviceName("test/Add")
                         .async()
                         .zookeeper("127.0.0.1:2181")
                         .registrySessionTimeout(1000);
