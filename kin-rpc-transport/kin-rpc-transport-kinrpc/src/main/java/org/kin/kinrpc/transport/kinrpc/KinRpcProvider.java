@@ -318,7 +318,7 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
 
 
             ProtocolStatisicService.instance().statisticResp(
-                    rpcResponse.getServiceName() + "-" + rpcResponse.getMethod(), data.length
+                    rpcResponse.getServiceName() + "-" + rpcResponse.getMethod(), Objects.nonNull(data) ? data.length : 0
             );
         }
 

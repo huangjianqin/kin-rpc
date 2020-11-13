@@ -13,4 +13,6 @@ public interface Addable {
     String get(String a);
 
     void throwException();
+
+    Return1 notifyTest();
 }

@@ -13,6 +13,7 @@ import org.kin.kinrpc.registry.Registries;
 import org.kin.kinrpc.registry.Registry;
 import org.kin.kinrpc.rpc.Exporter;
 import org.kin.kinrpc.rpc.Invoker;
+import org.kin.kinrpc.rpc.Notifier;
 import org.kin.kinrpc.rpc.RpcThreadPool;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
@@ -24,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Proxy;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -103,7 +105,7 @@ public class Clusters {
     /**
      * 引用服务
      */
-    public static synchronized <T> T reference(Url url, Class<T> interfaceClass) {
+    public static synchronized <T> T reference(Url url, Class<T> interfaceClass, List<Notifier<?>> notifiers) {
         Registry registry = Registries.getRegistry(url);
         Preconditions.checkNotNull(registry);
 
@@ -123,12 +125,12 @@ public class Clusters {
 
         boolean byteCodeInvoke = Boolean.parseBoolean(url.getParam(Constants.BYTE_CODE_INVOKE_KEY));
         if (byteCodeInvoke) {
-            JavassistClusterInvoker<T> javassistClusterInvoker = new JavassistClusterInvoker<>(cluster, url, interfaceClass);
+            JavassistClusterInvoker<T> javassistClusterInvoker = new JavassistClusterInvoker<>(cluster, url, interfaceClass, notifiers);
             proxy = javassistClusterInvoker.proxy();
 
             REFERENCE_CACHE.put(url.getServiceName(), javassistClusterInvoker);
         } else {
-            ReflectClusterInvoker<T> reflectClusterInvoker = new ReflectClusterInvoker<>(cluster, url);
+            ReflectClusterInvoker<T> reflectClusterInvoker = new ReflectClusterInvoker<>(cluster, url, notifiers);
             proxy = (T) Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class<?>[]{interfaceClass}, reflectClusterInvoker);
 
             REFERENCE_CACHE.put(url.getServiceName(), reflectClusterInvoker);

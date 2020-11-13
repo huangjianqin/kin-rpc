@@ -211,6 +211,7 @@ public class KinRpcReference {
             byte serializerType = responseProtocol.getSerializer();
             try {
                 RpcResponse rpcResponse;
+                byte[] respContent = responseProtocol.getRespContent();
                 try {
                     Serializer serializer = Serializers.getSerializer(serializerType);
                     if (Objects.isNull(serializer)) {
@@ -218,7 +219,7 @@ public class KinRpcReference {
                         throw new UnknownSerializerException(serializerType);
                     }
 
-                    rpcResponse = serializer.deserialize(responseProtocol.getRespContent(), RpcResponse.class);
+                    rpcResponse = serializer.deserialize(respContent, RpcResponse.class);
                     rpcResponse.setEventTime(System.currentTimeMillis());
                 } catch (Exception e) {
                     onFail(requestId, e.getMessage());
@@ -228,7 +229,7 @@ public class KinRpcReference {
                 }
 
                 ProtocolStatisicService.instance().statisticResp(
-                        rpcResponse.getServiceName() + "-" + rpcResponse.getMethod(), responseProtocol.getRespContent().length
+                        rpcResponse.getServiceName() + "-" + rpcResponse.getMethod(), Objects.nonNull(respContent) ? respContent.length : 0
                 );
 
                 handleResponse(rpcResponse);

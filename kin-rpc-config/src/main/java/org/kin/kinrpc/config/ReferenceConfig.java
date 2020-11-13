@@ -1,6 +1,7 @@
 package org.kin.kinrpc.config;
 
 import com.google.common.base.Preconditions;
+import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.NetUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.cluster.Clusters;
@@ -8,13 +9,13 @@ import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
 import org.kin.kinrpc.cluster.loadbalance.LoadBalances;
 import org.kin.kinrpc.cluster.router.Router;
 import org.kin.kinrpc.cluster.router.Routers;
+import org.kin.kinrpc.rpc.Notifier;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by 健勤 on 2017/2/15.
@@ -44,6 +45,8 @@ public class ReferenceConfig<T> extends AbstractConfig {
     private int rate = Constants.REFERENCE_REQUEST_THRESHOLD;
     /** 是否支持异步rpc call */
     private boolean async;
+    /** async rpc call 事件通知 */
+    private List<Notifier<?>> notifiers = new ArrayList<>();
 
     /** 唯一url */
     private Url url;
@@ -88,7 +91,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
             url = createURL(applicationConfig, NetUtils.getIp(), registryConfig, params);
             Preconditions.checkNotNull(url);
 
-            reference = Clusters.reference(url, interfaceClass);
+            reference = Clusters.reference(url, interfaceClass, notifiers);
 
             isReference = true;
         }
@@ -232,6 +235,18 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
     public ReferenceConfig<T> async() {
         this.async = true;
+        return this;
+    }
+
+    public ReferenceConfig<T> notify(Class<? extends Notifier<?>>... notifierClasses) {
+        for (Class<? extends Notifier<?>> notifierClass : notifierClasses) {
+            notify(ClassUtils.instance(notifierClass));
+        }
+        return this;
+    }
+
+    public ReferenceConfig<T> notify(Notifier<?>... notifiers) {
+        this.notifiers.addAll(Arrays.asList(notifiers));
         return this;
     }
 

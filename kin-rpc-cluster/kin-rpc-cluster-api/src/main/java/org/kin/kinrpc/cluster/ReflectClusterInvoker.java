@@ -1,12 +1,14 @@
 package org.kin.kinrpc.cluster;
 
 import com.google.common.util.concurrent.RateLimiter;
+import org.kin.kinrpc.rpc.Notifier;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RateLimitException;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -18,8 +20,8 @@ import java.util.concurrent.CompletableFuture;
 final class ReflectClusterInvoker<T> extends ClusterInvoker<T> implements InvocationHandler {
     private RateLimiter rateLimiter;
 
-    public ReflectClusterInvoker(Cluster<T> cluster, Url url) {
-        super(cluster, Integer.parseInt(url.getParam(Constants.RETRY_TIMES_KEY)), Long.parseLong(url.getParam(Constants.RETRY_TIMEOUT_KEY)), url);
+    public ReflectClusterInvoker(Cluster<T> cluster, Url url, List<Notifier<?>> notifiers) {
+        super(cluster, url, notifiers);
         int rate = Integer.parseInt(url.getParam(Constants.RATE_KEY));
         if (rate > 0) {
             rateLimiter = RateLimiter.create(rate);
@@ -35,7 +37,7 @@ final class ReflectClusterInvoker<T> extends ClusterInvoker<T> implements Invoca
             throw new RateLimitException(proxy.getClass().getName().concat("$").concat(method.toString()));
         }
 
-        CompletableFuture<?> future = invokeAsync(method, args);
+        CompletableFuture<?> future = invokeAsync(method, method.getReturnType(), args);
         if (isAsync()) {
             //async rpc call
             RpcContext.updateFuture(future);

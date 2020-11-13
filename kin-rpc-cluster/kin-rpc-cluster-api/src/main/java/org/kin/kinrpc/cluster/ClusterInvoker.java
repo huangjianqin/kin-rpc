@@ -2,8 +2,10 @@ package org.kin.kinrpc.cluster;
 
 import com.google.common.net.HostAndPort;
 import org.kin.framework.Closeable;
+import org.kin.framework.utils.ClassUtils;
 import org.kin.kinrpc.cluster.exception.CannotFindInvokerException;
 import org.kin.kinrpc.rpc.AsyncInvoker;
+import org.kin.kinrpc.rpc.Notifier;
 import org.kin.kinrpc.rpc.RpcResponse;
 import org.kin.kinrpc.rpc.RpcThreadPool;
 import org.kin.kinrpc.rpc.common.Constants;
@@ -16,10 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 
 /**
@@ -32,26 +31,53 @@ abstract class ClusterInvoker<T> implements Closeable {
     private final int retryTimes;
     private final long retryTimeout;
     private final Url url;
+    /** async rpc call 事件通知 */
+    private final Map<Class<?>, Notifier<?>> returnType2Notifier;
 
-    public ClusterInvoker(Cluster<T> cluster, int retryTimes, long retryTimeout, Url url) {
+    public ClusterInvoker(Cluster<T> cluster, Url url, List<Notifier<?>> notifiers) {
         this.cluster = cluster;
-        this.retryTimes = retryTimes;
-        this.retryTimeout = retryTimeout;
         this.url = url;
+        this.retryTimes = Integer.parseInt(url.getParam(Constants.RETRY_TIMES_KEY));
+        this.retryTimeout = Long.parseLong(url.getParam(Constants.RETRY_TIMEOUT_KEY));
+
+        Map<Class<?>, Notifier<?>> returnType2Notifier = new HashMap<>();
+
+        for (Notifier<?> notifier : notifiers) {
+            List<Class<?>> returnTypes = ClassUtils.getSuperInterfacesGenericActualTypes(notifier.getClass());
+            returnType2Notifier.put(returnTypes.get(0), notifier);
+        }
+
+        this.returnType2Notifier = Collections.unmodifiableMap(returnType2Notifier);
     }
 
     /**
      * async rpc call
      */
-    public CompletableFuture<?> invokeAsync(Method method, Object... params) {
-        return invokeAsync(method.getName(), params);
+    public CompletableFuture<?> invokeAsync(Method method, Class<?> returnType, Object... params) {
+        return invokeAsync(method.getName(), returnType, params);
     }
 
     /**
      * async rpc call
      */
-    public CompletableFuture<?> invokeAsync(String methodName, Object... params) {
-        return CompletableFuture.supplyAsync(() -> invoke0(methodName, params), RpcThreadPool.EXECUTORS);
+    public CompletableFuture<?> invokeAsync(String methodName, Class<?> returnType, Object... params) {
+        CompletableFuture<Object> rpcCallFuture = CompletableFuture.supplyAsync(() -> invoke0(methodName, params), RpcThreadPool.EXECUTORS);
+        if (isAsync()) {
+            //触发notifier
+            rpcCallFuture.thenAcceptAsync(obj -> {
+                Notifier notifier = getNotifier(returnType);
+                if (Objects.nonNull(notifier)) {
+                    Class<?> rpcCallResultType = obj.getClass();
+                    if (Throwable.class.isAssignableFrom(rpcCallResultType)) {
+                        //异常
+                        notifier.handlerException((Throwable) obj);
+                    } else {
+                        notifier.onRpcCallSuc(obj);
+                    }
+                }
+            });
+        }
+        return rpcCallFuture;
     }
 
     /**
@@ -139,6 +165,13 @@ abstract class ClusterInvoker<T> implements Closeable {
      */
     protected boolean isAsync() {
         return Boolean.parseBoolean(url.getParam(Constants.ASYNC_KEY));
+    }
+
+    /**
+     * 根据返回类型获取notifier
+     */
+    protected Notifier<?> getNotifier(Class<?> returnType) {
+        return returnType2Notifier.get(returnType);
     }
 
     //getter

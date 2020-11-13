@@ -4,12 +4,14 @@ import com.google.common.util.concurrent.RateLimiter;
 import javassist.*;
 import org.kin.framework.proxy.ProxyEnhanceUtils;
 import org.kin.framework.utils.ClassUtils;
+import org.kin.kinrpc.rpc.Notifier;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RateLimitException;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.List;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
@@ -22,14 +24,14 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
     private Class<T> interfaceClass;
     private int rate;
 
-    public JavassistClusterInvoker(Cluster<T> cluster, Url url, Class<T> interfaceClass) {
-        super(cluster, Integer.parseInt(url.getParam(Constants.RETRY_TIMES_KEY)), Long.parseLong(url.getParam(Constants.RETRY_TIMEOUT_KEY)), url);
+    public JavassistClusterInvoker(Cluster<T> cluster, Url url, Class<T> interfaceClass, List<Notifier<?>> notifiers) {
+        super(cluster, url, notifiers);
         this.interfaceClass = interfaceClass;
         this.rate = Integer.parseInt(url.getParam(Constants.RATE_KEY));
     }
 
-    public static <T> T proxy(Cluster<T> cluster, Url url, Class<T> interfaceClass) {
-        return new JavassistClusterInvoker<>(cluster, url, interfaceClass).proxy();
+    public static <T> T proxy(Cluster<T> cluster, Url url, Class<T> interfaceClass, List<Notifier<?>> notifiers) {
+        return new JavassistClusterInvoker<>(cluster, url, interfaceClass, notifiers).proxy();
     }
 
     //------------------此处需自定义, 有点特殊-------------------------------------
@@ -45,6 +47,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
         invokeCode.append(CompletableFuture.class.getName()).append(" ").append(futureVarName).append(" = ");
         invokeCode.append(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME.concat(".invokeAsync"));
         invokeCode.append("(\"").append(ClassUtils.getUniqueName(method)).append("\"");
+        invokeCode.append(", ").append(method.getReturnType().getName()).append(".class");
         if (parameterTypes.length > 0) {
             invokeCode.append(", new Object[]{");
             StringJoiner invokeBody = new StringJoiner(", ");

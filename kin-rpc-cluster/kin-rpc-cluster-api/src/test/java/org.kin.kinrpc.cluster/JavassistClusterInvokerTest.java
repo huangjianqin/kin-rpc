@@ -1,5 +1,6 @@
 package org.kin.kinrpc.cluster;
 
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
@@ -10,7 +11,7 @@ import java.util.concurrent.Future;
 public class JavassistClusterInvokerTest {
     public static void main(String[] args) {
         JavassistClusterInvoker<Addable> jci = new JavassistClusterInvoker<>(null, null,
-                Addable.class);
+                Addable.class, Collections.emptyList());
         Addable proxy = jci.proxy();
         System.out.println(proxy);
     }

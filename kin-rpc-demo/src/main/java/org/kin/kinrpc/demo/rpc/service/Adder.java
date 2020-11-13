@@ -28,4 +28,9 @@ public class Adder implements Addable {
     public void throwException() {
         throw new RuntimeException("test throw Exception");
     }
+
+    @Override
+    public Return1 notifyTest() {
+        return new Return1();
+    }
 }
