@@ -1,7 +1,8 @@
 package org.kin.kinrpc.config;
 
+import com.google.common.base.Preconditions;
+import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.rpc.common.Constants;
-import org.kin.kinrpc.rpc.common.Url;
 
 /**
  * Created by huangjianqin on 2019/6/20.
@@ -15,12 +16,8 @@ class DirectURLsRegistryConfig extends AbstractRegistryConfig {
     void check() {
         //包含多个直连url
         for (String split : address.split(Constants.DIRECT_URLS_REGISTRY_SPLITOR)) {
-            try {
-                //检查url格式
-                Url.of(split);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+            Preconditions.checkArgument(NetUtils.checkHostPort(split),
+                    "service's address '" + split + "' format error");
         }
     }
 }

@@ -58,7 +58,7 @@ public class KinRpcProtocol implements Protocol, LoggerOprs {
             provider = PROVIDER_CACHE.get(port, () -> {
                 KinRpcProvider provider0 = new KinRpcProvider(host, port, serializer, compressionType);
                 try {
-                    provider0.start();
+                    provider0.bind();
                 } catch (Exception e) {
                     provider0.shutdownNow();
                     throw e;

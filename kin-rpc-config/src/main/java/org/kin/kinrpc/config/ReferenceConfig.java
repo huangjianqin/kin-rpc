@@ -87,6 +87,10 @@ public class ReferenceConfig<T> extends AbstractConfig {
         if (!isReference) {
             check();
 
+            if (StringUtils.isBlank(serviceName)) {
+                serviceName = interfaceClass.getName();
+            }
+
             Map<String, String> params = new HashMap<>(50);
             params.put(Constants.TIMEOUT_KEY, timeout + "");
             params.put(Constants.RETRY_TIMES_KEY, retryTimes + "");

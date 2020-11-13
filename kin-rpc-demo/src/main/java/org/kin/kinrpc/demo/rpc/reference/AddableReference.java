@@ -1,12 +1,12 @@
 package org.kin.kinrpc.demo.rpc.reference;
 
-import org.kin.framework.utils.NetUtils;
+import org.kin.kinrpc.cluster.RpcContext;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.References;
+import org.kin.kinrpc.demo.rpc.service.Addable;
 import org.kin.kinrpc.transport.serializer.SerializerType;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -16,9 +16,9 @@ import java.util.concurrent.TimeUnit;
 public class AddableReference {
     public static void main(String[] args) throws InterruptedException {
         ReferenceConfig<Addable> referenceConfig =
-                References.reference(Addable.class)
-                        .serviceName("org.kin.kinrpc.demo.rpc.service.Addable").urls(NetUtils.getIpPort(16888))
+                References.reference(Addable.class).urls("kinrpc://0.0.0.0:16888")
                         .serialize(SerializerType.KRYO)
+                        .async()
                         .version("001")
                         .rate(10000);
 
@@ -26,15 +26,14 @@ public class AddableReference {
         int count = 0;
         while (count < 10000) {
             try {
-                int result = service.add(1, 1);
-                System.out.println("结果" + result);
+                service.add(1, 1);
+                CompletableFuture<Object> future = RpcContext.future();
+                System.out.println("结果" + future.get());
 
                 service.print(++count + "");
-                Future future = service.get(1);
+                service.get(1);
+                future = RpcContext.future();
                 System.out.println(future.get());
-//                CompletableFuture<String> completableFuture = service.get("A");
-//                System.out.println(completableFuture.handleAsync((s, t) -> s + s).get());
-//                service.throwException();
             } catch (Exception e) {
                 System.err.println(e);
             }
@@ -45,17 +44,5 @@ public class AddableReference {
         System.out.println("结束");
         referenceConfig.disable();
         System.exit(0);
-    }
-
-    public interface Addable {
-        int add(int a, int b);
-
-        void print(String content);
-
-        <T> Future<T> get(int a);
-
-        <T> CompletableFuture<T> get(String a);
-
-        void throwException();
     }
 }

@@ -70,7 +70,7 @@ public abstract class ProviderInvoker<T> extends AbstractInvoker<T> {
 
     @Override
     public final Url url() {
-        return null;
+        return url;
     }
 
     @Override
@@ -79,7 +79,7 @@ public abstract class ProviderInvoker<T> extends AbstractInvoker<T> {
     }
 
     @Override
-    public final void destroy() {
+    public void destroy() {
 
     }
 }

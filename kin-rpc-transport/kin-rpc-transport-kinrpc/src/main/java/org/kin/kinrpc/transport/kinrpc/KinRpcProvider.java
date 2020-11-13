@@ -112,7 +112,7 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
     /**
      * 启动Server
      */
-    public void start() {
+    public void bind() {
         if (isStopped) {
             throw new RuntimeException("try start stopped provider");
         }

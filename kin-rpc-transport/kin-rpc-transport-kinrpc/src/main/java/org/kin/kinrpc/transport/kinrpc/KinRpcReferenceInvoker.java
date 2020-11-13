@@ -20,6 +20,7 @@ public class KinRpcReferenceInvoker<T> extends ReferenceInvoker<T> {
     public KinRpcReferenceInvoker(Url url) {
         super(url);
         this.rpcReference = new KinRpcReference(url);
+        this.rpcReference.connect();
     }
 
     @Override

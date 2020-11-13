@@ -37,14 +37,14 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
     private String generateMethodBody(Method method,
                                       Class[] parameterTypes) {
         //真正逻辑
-        StringBuffer methodBody = new StringBuffer();
+        StringBuilder methodBody = new StringBuilder();
 
         //rpc call代码
         String futureVarName = "future";
         StringBuilder invokeCode = new StringBuilder();
         invokeCode.append(CompletableFuture.class.getName()).append(" ").append(futureVarName).append(" = ");
         invokeCode.append(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME.concat(".invokeAsync"));
-        invokeCode.append("(\"".concat(ClassUtils.getUniqueName(method)));
+        invokeCode.append("(\"").append(ClassUtils.getUniqueName(method)).append("\"");
         if (parameterTypes.length > 0) {
             invokeCode.append(", new Object[]{");
             StringJoiner invokeBody = new StringJoiner(", ");
@@ -60,18 +60,45 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
         methodBody.append(invokeCode.toString()).append(";").append(System.lineSeparator());
 
         //after rpc call逻辑
-        methodBody.append("if(isAsync()){").append(System.lineSeparator());
+        Class<?> returnType = method.getReturnType();
+        boolean isVoid = Void.class.equals(returnType) || Void.TYPE.equals(returnType);
+
+        methodBody.append("if(").append(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME).append(".isAsync()){").append(System.lineSeparator());
         methodBody.append(RpcContext.class.getName()).append(".updateFuture(".concat(futureVarName).concat(");")).append(System.lineSeparator());
-        methodBody.append("return null;").append(System.lineSeparator());
+        //方法返回
+        if (!isVoid) {
+            if (returnType.isPrimitive()) {
+                //基础类型
+                methodBody.append("return ").append(ClassUtils.getDefaultValue(returnType)).append(";").append(System.lineSeparator());
+            } else {
+                methodBody.append("return null;").append(System.lineSeparator());
+            }
+        }
         methodBody.append("}").append(System.lineSeparator());
         methodBody.append("else{").append(System.lineSeparator());
-        methodBody.append("try{").append("return ")
-                .append(ClassUtils.primitivePackage(method.getReturnType(), futureVarName.concat(".get()")))
-                .append(";").append(System.lineSeparator());
+        methodBody.append("try{").append(System.lineSeparator());
+        //方法返回
+        if (isVoid) {
+            methodBody.append(futureVarName.concat(".get()"))
+                    .append(";").append(System.lineSeparator());
+        } else {
+            if (returnType.isPrimitive()) {
+                //基础类型
+                methodBody.append("return ")
+                        .append(ClassUtils.primitiveUnpackage(returnType, futureVarName.concat(".get()")))
+                        .append(";").append(System.lineSeparator());
+            } else {
+                methodBody.append("return ")
+                        .append("(").append(returnType.getName()).append(")").append(futureVarName.concat(".get()"))
+                        .append(";").append(System.lineSeparator());
+            }
+
+        }
+
         methodBody.append("} catch (Exception e) {").append(System.lineSeparator());
         methodBody.append("throw new RuntimeException(e);").append(System.lineSeparator());
         methodBody.append("}").append(System.lineSeparator());
-        methodBody.append("}").append(System.lineSeparator());
+        methodBody.append("}");
 
         return methodBody.toString();
     }
@@ -80,16 +107,19 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
      * 生成限流代码
      */
     private String generateRateLimitBody(String rateLimiterFieldName, Method method) throws Exception {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
 
         sb.append("if(").append(Objects.class.getName()).append(".nonNull(").append(rateLimiterFieldName).append(") ")
-                .append("&& !").append(rateLimiterFieldName).append(".tryAcquire()){")
+                .append("&& !").append(rateLimiterFieldName).append(".tryAcquire()){").append(System.lineSeparator())
                 .append("throw new ").append(RateLimitException.class.getName()).append("(\"")
-                .append(interfaceClass.getName()).append("$").append(method.toString()).append("\");")
+                .append(interfaceClass.getName()).append("$").append(method.toString()).append("\");").append(System.lineSeparator())
                 .append("}");
         return sb.toString();
     }
 
+    /**
+     * 构建javassist字节码增强代理类
+     */
     public T proxy() {
         String ctClassName = "org.kin.kinrpc.cluster.".concat(interfaceClass.getSimpleName()).concat("$JavassistProxy");
         Class<T> realProxyClass = null;
@@ -138,9 +168,9 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
                         for (int i = 0; i < parameterTypes.length; i++) {
                             paramBody.add(parameterTypes[i].getName().concat(" ").concat("arg").concat(Integer.toString(i)));
                         }
-                        sb.append(paramBody.toString().concat("){"));
-                        sb.append(generateRateLimitBody(rateLimiterFieldName, method));
-                        sb.append(generateMethodBody(method, parameterTypes));
+                        sb.append(paramBody.toString().concat("){")).append(System.lineSeparator());
+                        sb.append(generateRateLimitBody(rateLimiterFieldName, method)).append(System.lineSeparator());
+                        sb.append(generateMethodBody(method, parameterTypes)).append(System.lineSeparator());
                         sb.append("}");
 
                         CtMethod ctMethod = CtMethod.make(sb.toString(), proxyClass);

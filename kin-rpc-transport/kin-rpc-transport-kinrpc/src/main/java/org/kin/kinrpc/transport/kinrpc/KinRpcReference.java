@@ -15,6 +15,7 @@ import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 import org.kin.kinrpc.transport.serializer.Serializer;
+import org.kin.kinrpc.transport.serializer.SerializerType;
 import org.kin.kinrpc.transport.serializer.Serializers;
 import org.kin.kinrpc.transport.serializer.UnknownSerializerException;
 import org.kin.transport.netty.CompressionType;
@@ -47,10 +48,14 @@ public class KinRpcReference {
 
     public KinRpcReference(Url url) {
         this.url = url;
-        int connectTimeout = Integer.parseInt(url.getParam(Constants.SESSION_TIMEOUT_KEY));
-        int compression = Integer.parseInt(url.getParam(Constants.COMPRESSION_KEY));
+        int connectTimeout = Integer.parseInt(url.getNumberParam(Constants.SESSION_TIMEOUT_KEY));
+        int compression = Integer.parseInt(url.getNumberParam(Constants.COMPRESSION_KEY));
 
-        int serializerType = Integer.parseInt(url.getParam(Constants.SERIALIZE_KEY));
+        int serializerType = Integer.parseInt(url.getNumberParam(Constants.SERIALIZE_KEY));
+        if (serializerType == 0) {
+            //未指定序列化类型, 默认kyro
+            serializerType = SerializerType.KRYO.getCode();
+        }
         //先校验, 顺便初始化
         Preconditions.checkNotNull(Serializers.getSerializer(serializerType), "unvalid serializer type: [" + serializerType + "]");
 
@@ -132,7 +137,7 @@ public class KinRpcReference {
     }
 
     public HostAndPort getAddress() {
-        return HostAndPort.fromString(url.getParam(Constants.REGISTRY_URL_KEY));
+        return HostAndPort.fromString(url.getAddress());
     }
 
     public boolean isActive() {
@@ -142,7 +147,10 @@ public class KinRpcReference {
         return referenceHandler.isActive();
     }
 
-    public void start() {
+    /**
+     * 连接remote server
+     */
+    public void connect() {
         if (isStopped) {
             return;
         }

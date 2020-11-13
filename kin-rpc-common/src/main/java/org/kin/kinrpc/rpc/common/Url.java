@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -16,7 +17,7 @@ import java.util.TreeMap;
 /**
  * Created by huangjianqin on 2019/6/18.
  */
-public class Url implements Serializable {
+public class Url implements Serializable, Cloneable {
     private static final Logger log = LoggerFactory.getLogger(Url.class);
     /** 协议号 */
     private String protocol;
@@ -64,7 +65,7 @@ public class Url implements Serializable {
         String host = null;
         int port = 0;
         String path = null;
-        Map<String, String> parameters = null;
+        Map<String, String> parameters = Collections.emptyMap();
         // seperator between body and parameters
         int i = url.indexOf("?");
         if (i >= 0) {
@@ -140,6 +141,22 @@ public class Url implements Serializable {
     }
 
     /**
+     * 获取url参数(数字类型, 默认返回0)
+     */
+    public String getNumberParam(String k) {
+        String param = getParam(k);
+        return StringUtils.isNotBlank(param) ? param : "0";
+    }
+
+    /**
+     * 获取url参数(boolean类型)
+     */
+    public String getBooleanParam(String k) {
+        String param = getParam(k);
+        return StringUtils.isNotBlank(param) ? param : Boolean.FALSE.toString();
+    }
+
+    /**
      * url object to string
      */
     public String str() {
@@ -196,8 +213,12 @@ public class Url implements Serializable {
         return NetUtils.getIpPort(getHost(), getPort());
     }
 
-    //getter
+    @Override
+    public Url clone() {
+        return new Url(protocol, username, password, host, port, path, params);
+    }
 
+    //getter
     public String getProtocol() {
         return protocol;
     }
