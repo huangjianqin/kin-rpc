@@ -18,7 +18,8 @@ public class AddableReference {
         ReferenceConfig<Addable> referenceConfig =
                 References.reference(Addable.class)
                         .urls("kinrpc://0.0.0.0:16888?"
-                                .concat(Constants.SERVICE_NAME_KEY).concat("=").concat(Addable.class.getName().concat("#001")))
+                                .concat(Constants.SERVICE_NAME_KEY).concat("=").concat(Addable.class.getName())
+                                .concat(Constants.VERSION_KEY).concat("=").concat("001"))
                         .async()
                         .rate(10000);
 
