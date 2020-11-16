@@ -13,6 +13,7 @@
     <modules>
         <module>kin-rpc-transport-kinrpc</module>
         <module>kin-rpc-transport-api</module>
+        <module>kin-rpc-transport-http</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -26,6 +27,11 @@
             <dependency>
                 <groupId>org.kin</groupId>
                 <artifactId>kin-rpc-transport-kinrpc</artifactId>
+            </dependency>
+
+            <dependency>
+                <groupId>org.kin</groupId>
+                <artifactId>kin-rpc-transport-http</artifactId>
             </dependency>
         </dependencies>
     </dependencyManagement>
