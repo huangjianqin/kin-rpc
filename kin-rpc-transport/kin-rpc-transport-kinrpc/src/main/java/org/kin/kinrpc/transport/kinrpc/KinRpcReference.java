@@ -192,7 +192,7 @@ public class KinRpcReference {
                     request.setCreateTime(System.currentTimeMillis());
                     byte[] data = serializer.serialize(request);
 
-                    KinRpcRequestProtocol protocol = KinRpcRequestProtocol.create(request.getRequestId(), (byte) serializer.type(), data);
+                    KinRpcRequest protocol = KinRpcRequest.create(request.getRequestId(), (byte) serializer.type(), data);
                     client.request(protocol, new ReferenceRequestListener(request.getRequestId()));
 
                     ProtocolStatisicService.instance().statisticReq(
@@ -206,7 +206,7 @@ public class KinRpcReference {
         }
 
         @Override
-        protected void handleRpcResponseProtocol(KinRpcResponseProtocol responseProtocol) {
+        protected void handleRpcResponseProtocol(KinRpcResponse responseProtocol) {
             long requestId = responseProtocol.getRequestId();
             byte serializerType = responseProtocol.getSerializer();
             try {

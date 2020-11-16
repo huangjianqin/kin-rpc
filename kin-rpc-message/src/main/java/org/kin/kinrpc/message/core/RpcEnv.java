@@ -17,7 +17,7 @@ import org.kin.kinrpc.message.transport.domain.RpcEndpointAddress;
 import org.kin.kinrpc.message.transport.protocol.RpcMessage;
 import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
 import org.kin.kinrpc.transport.kinrpc.KinRpcEndpointHandler;
-import org.kin.kinrpc.transport.kinrpc.KinRpcRequestProtocol;
+import org.kin.kinrpc.transport.kinrpc.KinRpcRequest;
 import org.kin.kinrpc.transport.serializer.Serializer;
 import org.kin.kinrpc.transport.serializer.SerializerType;
 import org.kin.kinrpc.transport.serializer.Serializers;
@@ -49,7 +49,7 @@ public final class RpcEnv {
 
     static {
         //加载底层通信协议
-        ProtocolFactory.init(KinRpcRequestProtocol.class.getPackage().getName());
+        ProtocolFactory.init(KinRpcRequest.class.getPackage().getName());
     }
 
     /** 线程本地RpcEnv */
@@ -454,7 +454,7 @@ public final class RpcEnv {
         private Map<KinRpcAddress, KinRpcAddress> clientAddr2RemoteBindAddr = new ConcurrentHashMap<>();
 
         @Override
-        protected final void handleRpcRequestProtocol(Channel channel, KinRpcRequestProtocol requestProtocol) {
+        protected final void handleRpcRequestProtocol(Channel channel, KinRpcRequest requestProtocol) {
             byte serializerType = requestProtocol.getSerializer();
             //反序列化内容
             byte[] data = requestProtocol.getReqContent();

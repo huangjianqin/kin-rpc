@@ -313,7 +313,7 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
                 }
             }
 
-            KinRpcResponseProtocol rpcResponseProtocol = KinRpcResponseProtocol.create(rpcResponse.getRequestId(), (byte) serializer.type(), data);
+            KinRpcResponse rpcResponseProtocol = KinRpcResponse.create(rpcResponse.getRequestId(), (byte) serializer.type(), data);
             channel.writeAndFlush(rpcResponseProtocol);
 
 
@@ -323,7 +323,7 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
         }
 
         @Override
-        protected void handleRpcRequestProtocol(Channel channel, KinRpcRequestProtocol requestProtocol) {
+        protected void handleRpcRequestProtocol(Channel channel, KinRpcRequest requestProtocol) {
             long requestId = requestProtocol.getRequestId();
             byte serializerType = requestProtocol.getSerializer();
             byte[] data = requestProtocol.getReqContent();
