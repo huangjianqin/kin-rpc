@@ -1,7 +1,9 @@
 package org.kin.kinrpc.transport.http;
 
+import com.google.common.base.Preconditions;
 import com.googlecode.jsonrpc4j.JsonRpcServer;
 import com.googlecode.jsonrpc4j.spring.JsonProxyFactoryBean;
+import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.JSON;
 import org.kin.kinrpc.rpc.*;
 import org.kin.kinrpc.rpc.common.Constants;
@@ -9,6 +11,7 @@ import org.kin.kinrpc.rpc.common.RpcServiceLoader;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
 import org.kin.kinrpc.transport.Protocol;
+import org.kin.kinrpc.transport.http.tomcat.TomcatHttpBinder;
 import org.springframework.remoting.support.RemoteInvocation;
 
 import javax.servlet.ServletException;
@@ -16,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
@@ -32,8 +36,14 @@ public class HttpProtocol implements Protocol {
     /** http server 缓存 */
     private final Map<String, HttpServer> serverMap = new ConcurrentHashMap<>();
     /** 通过spi加载对应http server binder */
-    private HttpBinder httpBinder = RpcServiceLoader.LOADER.getAdaptiveExtension(HttpBinder.class);
+    private HttpBinder httpBinder;
 
+    public HttpProtocol() {
+        httpBinder = RpcServiceLoader.LOADER.getAdaptiveExtension(HttpBinder.class);
+        if (Objects.isNull(httpBinder)) {
+            httpBinder = new TomcatHttpBinder();
+        }
+    }
 
     @Override
     public int getDefaultPort() {
@@ -45,7 +55,7 @@ public class HttpProtocol implements Protocol {
         Url url = invoker.url();
         String addr = url.getAddress();
         HttpServer httpServer = serverMap.get(addr);
-        if (httpServer == null) {
+        if (Objects.isNull(httpServer)) {
             httpServer = httpBinder.bind(url, new InternalHandler(false));
             serverMap.put(addr, httpServer);
         }
@@ -101,13 +111,24 @@ public class HttpProtocol implements Protocol {
             @Override
             public Object invoke(String methodName, Object... params) throws Throwable {
                 //todo 临时先用反射
-                Class<?> interfaceC = proxy.getClass();
+                Class<?> interfaceC = Class.forName(url.getInterfaceN());
                 Class<?>[] classes = new Class<?>[params.length];
                 for (int i = 0; i < params.length; i++) {
                     classes[i] = params[i].getClass();
                 }
-                Method method = interfaceC.getMethod(methodName, classes);
-                return method.invoke(proxy, params);
+
+                Method targetMethod = null;
+                for (Method method : interfaceC.getMethods()) {
+                    //todo 临时遍历所有方法, 用方法名判断
+                    if (methodName.equals(ClassUtils.getUniqueName(method))) {
+                        targetMethod = method;
+                        break;
+                    }
+                }
+
+                Preconditions.checkNotNull(targetMethod, String.format("can't not find method '%s'", methodName));
+
+                return targetMethod.invoke(proxy, params);
             }
 
             @Override

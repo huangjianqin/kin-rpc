@@ -12,6 +12,7 @@ import org.kin.kinrpc.cluster.router.Routers;
 import org.kin.kinrpc.rpc.Notifier;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
+import org.kin.kinrpc.transport.ProtocolType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +48,8 @@ public class ReferenceConfig<T> extends AbstractConfig {
     private boolean async;
     /** async rpc call 事件通知 */
     private List<Notifier<?>> notifiers = new ArrayList<>();
+    /** 协议类型 */
+    private ProtocolType protocolType = ProtocolType.KinRpc;
 
     /** 唯一url */
     private Url url;
@@ -85,10 +88,14 @@ public class ReferenceConfig<T> extends AbstractConfig {
             params.put(Constants.ROUTER_KEY, routerType);
             params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(InvokeType.JAVASSIST.equals(invokeType)));
             params.put(Constants.RATE_KEY, rate + "");
-            params.put(Constants.INTERFACE_KEY, interfaceClass.getName());
             params.put(Constants.ASYNC_KEY, Boolean.toString(async));
 
-            url = createURL(applicationConfig, NetUtils.getIp(), registryConfig, params);
+            url = createURL(
+                    applicationConfig,
+                    NetUtils.getIp(),
+                    registryConfig,
+                    params,
+                    protocolType);
             Preconditions.checkNotNull(url);
 
             reference = Clusters.reference(url, interfaceClass, notifiers);
@@ -250,8 +257,12 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return this;
     }
 
-    //getter
+    public ReferenceConfig<T> protocol(ProtocolType protocolType) {
+        this.protocolType = protocolType;
+        return this;
+    }
 
+    //getter
     public ApplicationConfig getApplicationConfig() {
         return applicationConfig;
     }
@@ -294,5 +305,9 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
     public boolean isAsync() {
         return async;
+    }
+
+    public ProtocolType getProtocolType() {
+        return protocolType;
     }
 }

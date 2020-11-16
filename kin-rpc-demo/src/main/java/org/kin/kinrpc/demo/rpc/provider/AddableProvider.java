@@ -7,11 +7,14 @@ import org.kin.kinrpc.demo.rpc.service.Adder;
 import org.kin.kinrpc.serializer.SerializerType;
 
 /**
- * Created by 健勤 on 2017/2/16.
+ * @author huangjianqin
+ * @date 2020/11/16
  */
 public class AddableProvider {
-    public static void main(String[] args) throws Exception {
-        ServiceConfig<Addable> serviceConfig = Services.service(new Adder(), Addable.class).serialize(SerializerType.JSON).version("001").actorLike();
-        serviceConfig.exportSync();
+    protected static ServiceConfig<Addable> config() {
+        return Services.service(new Adder(), Addable.class)
+                .serialize(SerializerType.JSON)
+                .version("001")
+                .actorLike();
     }
 }

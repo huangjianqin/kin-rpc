@@ -10,6 +10,7 @@ import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.serializer.Serializer;
 import org.kin.kinrpc.serializer.SerializerType;
 import org.kin.kinrpc.serializer.Serializers;
+import org.kin.kinrpc.transport.ProtocolType;
 import org.kin.transport.netty.CompressionType;
 
 import java.util.HashMap;
@@ -39,11 +40,12 @@ public class ServiceConfig<T> extends AbstractConfig {
     private String version = "0.1.0.0";
     /** 压缩类型, 在kinrpc协议下生效 todo 考虑降低耦合性 */
     private CompressionType compressionType = CompressionType.NONE;
-    ;
     /** 默认支持并发执行 */
     private boolean parallelism = true;
     /** 流控, 每秒最多处理多少个request */
     private int rate = Constants.PROVIDER_REQUEST_THRESHOLD;
+    /** 协议类型 */
+    private ProtocolType protocolType = ProtocolType.KinRpc;
 
     /** 唯一url */
     private Url url;
@@ -97,8 +99,14 @@ public class ServiceConfig<T> extends AbstractConfig {
             params.put(Constants.COMPRESSION_KEY, Integer.toString(compressionType.getId()));
             params.put(Constants.PARALLELISM_KEY, parallelism + "");
             params.put(Constants.RATE_KEY, rate + "");
+            params.put(Constants.INTERFACE_KEY, interfaceClass.getName());
 
-            url = createURL(applicationConfig, NetUtils.getIpPort(serverConfig.getHost(), serverConfig.getPort()), registryConfig, params);
+            url = createURL(
+                    applicationConfig,
+                    NetUtils.getIpPort(serverConfig.getHost(), serverConfig.getPort()),
+                    registryConfig,
+                    params,
+                    protocolType);
             Preconditions.checkNotNull(url);
 
             Clusters.export(url, interfaceClass, ref);
@@ -237,6 +245,11 @@ public class ServiceConfig<T> extends AbstractConfig {
         return this;
     }
 
+    public ServiceConfig<T> protocol(ProtocolType protocolType) {
+        this.protocolType = protocolType;
+        return this;
+    }
+
     //setter && getter
 
     public ApplicationConfig getApplicationConfig() {
@@ -285,5 +298,9 @@ public class ServiceConfig<T> extends AbstractConfig {
 
     public int getRate() {
         return rate;
+    }
+
+    public ProtocolType getProtocolType() {
+        return protocolType;
     }
 }

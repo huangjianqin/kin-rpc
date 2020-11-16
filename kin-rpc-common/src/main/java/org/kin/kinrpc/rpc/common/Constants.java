@@ -49,13 +49,12 @@ public class Constants {
     /** 定时轮询注册中心间隔, 目前只有redis注册中心用到 */
     public static final String WATCH_INTERVAL_KEY = "watchInterval";
     /** rpc调用方法名 */
-    public static final String INTERFACE_KEY = "method";
+    public static final String INTERFACE_KEY = "interface";
     /** async rpc call标识 */
     public static final String ASYNC_KEY = "async";
 
 
     //-------------------------------------------------配置value--------------------------------------------------------
-    public static final String KINRPC_PROTOCOL = "kinrpc";
     /** 注册中心会话超时(ms) */
     public static final long SESSION_TIMEOUT = 5000;
     /** provider Server默认配置 */

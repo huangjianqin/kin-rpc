@@ -14,7 +14,7 @@ public class ServerConfig extends AbstractConfig {
     private int port;
 
     ServerConfig(int port) {
-        this("", port);
+        this("0.0.0.0", port);
     }
 
     ServerConfig(String host, int port) {
@@ -30,7 +30,6 @@ public class ServerConfig extends AbstractConfig {
 
 
     //getter
-
     public String getHost() {
         return host;
     }

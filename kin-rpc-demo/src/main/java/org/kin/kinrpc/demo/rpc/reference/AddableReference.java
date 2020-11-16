@@ -4,30 +4,24 @@ import org.kin.kinrpc.cluster.RpcContext;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.References;
 import org.kin.kinrpc.demo.rpc.service.Addable;
-import org.kin.kinrpc.demo.rpc.service.Return1;
-import org.kin.kinrpc.rpc.Notifier;
-import org.kin.kinrpc.rpc.common.Constants;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
  * @author huangjianqin
- * @date 2019/7/1
+ * @date 2020/11/16
  */
 public class AddableReference {
-    public static void main(String[] args) throws InterruptedException {
-        ReferenceConfig<Addable> referenceConfig =
-                References.reference(Addable.class)
-                        .urls("kinrpc://0.0.0.0:16888?"
-                                .concat(Constants.SERVICE_NAME_KEY).concat("=").concat(Addable.class.getName())
-                                .concat("&")
-                                .concat(Constants.VERSION_KEY).concat("=").concat("001"))
-                        .async()
-                        .notify(Notifier1.N)
-                        .rate(10000);
+    protected static ReferenceConfig<Addable> config() {
+        return References.reference(Addable.class)
+                .async()
+                .notify(Return1Notifier.N)
+                .rate(10000);
+    }
 
-        Addable service = referenceConfig.get();
+    protected static void roundTest(ReferenceConfig<Addable> config) throws Exception {
+        Addable service = config.get();
         int count = 0;
         while (count < 10000) {
             try {
@@ -48,21 +42,7 @@ public class AddableReference {
         }
         service.print(++count + "");
         System.out.println("结束");
-        referenceConfig.disable();
+        config.disable();
         System.exit(0);
-    }
-
-    private static class Notifier1 implements Notifier<Return1> {
-        public static final Notifier1 N = new Notifier1();
-
-        @Override
-        public void onRpcCallSuc(Return1 obj) {
-            System.out.println(obj.toString());
-        }
-
-        @Override
-        public void handlerException(Throwable throwable) {
-            throwable.printStackTrace();
-        }
     }
 }

@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
  * @author huangjianqin
  * @date 2019/7/3
  */
-public class ZookeeperAddableReference {
+public class KinRpcZookeeperAddableReference {
     public static void main(String[] args) throws InterruptedException {
         ReferenceConfig<Addable> referenceConfig =
                 References.reference(Addable.class)

@@ -2,6 +2,7 @@ package org.kin.kinrpc.config;
 
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
+import org.kin.kinrpc.transport.ProtocolType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,9 +30,14 @@ abstract class AbstractConfig {
     protected Url createURL(ApplicationConfig applicationConfig,
                             String hostPort,
                             AbstractRegistryConfig registryConfig,
-                            Map<String, String> otherParams) {
+                            Map<String, String> otherParams,
+                            ProtocolType protocolType) {
         StringBuilder sb = new StringBuilder();
-        sb.append(Constants.KINRPC_PROTOCOL + "://").append(hostPort).append("?");
+        sb.append(protocolType.name().toLowerCase() + "://").append(hostPort);
+        //todo url path修改
+        sb.append("/").append(applicationConfig.getAppName());
+        sb.append("/").append(otherParams.get(Constants.SERVICE_NAME_KEY));
+        sb.append("?");
 
         Map<String, String> params = new HashMap<>(Constants.URL_PARAM_NUM);
         params.put(Constants.APP_NAME_KEY, applicationConfig.getAppName());

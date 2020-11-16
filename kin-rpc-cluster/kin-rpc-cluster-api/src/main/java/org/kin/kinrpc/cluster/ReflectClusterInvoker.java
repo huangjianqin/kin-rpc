@@ -1,6 +1,7 @@
 package org.kin.kinrpc.cluster;
 
 import com.google.common.util.concurrent.RateLimiter;
+import org.kin.framework.utils.ClassUtils;
 import org.kin.kinrpc.rpc.Notifier;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
@@ -30,7 +31,7 @@ final class ReflectClusterInvoker<T> extends ClusterInvoker<T> implements Invoca
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) {
-        log.debug("invoke method '" + method.getName() + "'");
+        log.debug("invoke method '".concat(ClassUtils.getUniqueName(method)).concat("'"));
 
         //限流
         if (Objects.nonNull(rateLimiter) && !rateLimiter.tryAcquire()) {
