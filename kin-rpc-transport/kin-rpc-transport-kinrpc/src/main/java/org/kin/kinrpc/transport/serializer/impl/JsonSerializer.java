@@ -7,9 +7,12 @@ import org.kin.kinrpc.transport.serializer.SerializerType;
 import java.io.IOException;
 
 /**
+ * todo rpc请求和rpc响应中包含了object 会存在序列化和反序列化结果不一致问题
+ *
  * @author huangjianqin
  * @date 2019/7/29
  */
+@Deprecated
 public class JsonSerializer implements Serializer {
     @Override
     public byte[] serialize(Object target) throws IOException {

@@ -19,6 +19,7 @@ public enum SerializerType {
     /**
      * json序列化
      */
+    @Deprecated
     JSON(4),
     ;
     /** 唯一标识 */
