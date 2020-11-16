@@ -160,6 +160,22 @@ public class Url implements Serializable, Cloneable {
      * url object to string
      */
     public String str() {
+        return str(true);
+    }
+
+    /**
+     * url object to string, 不包括参数
+     */
+    public String identityStr() {
+        return str(false);
+    }
+
+    /**
+     * url object to string
+     *
+     * @param appendParameter 是否添加参数
+     */
+    public String str(boolean appendParameter) {
         StringBuilder buf = new StringBuilder();
         if (StringUtils.isNotBlank(protocol)) {
             buf.append(protocol);
@@ -187,7 +203,7 @@ public class Url implements Serializable, Cloneable {
             buf.append(path);
         }
 
-        if (CollectionUtils.isNonEmpty(params)) {
+        if (appendParameter && CollectionUtils.isNonEmpty(params)) {
             boolean first = true;
             for (Map.Entry<String, String> entry : new TreeMap<>(params).entrySet()) {
                 if (StringUtils.isNotBlank(entry.getKey())) {

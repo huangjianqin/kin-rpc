@@ -84,4 +84,7 @@ public class Constants {
 
     /** Reference默认配置 */
     public static final int REFERENCE_DEFAULT_CONNECT_TIMEOUT = 5000;
+
+    //-------------------------------------------------传输协议相关--------------------------------------------------------
+    public static final String GENERIC_KEY = "generic";
 }
