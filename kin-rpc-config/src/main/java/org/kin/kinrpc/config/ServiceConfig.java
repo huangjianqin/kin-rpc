@@ -31,13 +31,13 @@ public class ServiceConfig<T> extends AbstractConfig {
     private Class<T> interfaceClass;
     /** 服务名 */
     private String serviceName;
-    /** 序列化类型 */
+    /** 序列化类型, 在kinrpc协议下生效 */
     private int serialize = SerializerType.KRYO.getCode();
     /** 服务调用类型(invoker收到请求后, 用哪种方式调用服务) */
     private InvokeType invokeType = InvokeType.JAVASSIST;
     /** 版本号 */
     private String version = "0.1.0.0";
-    /** 压缩类型 */
+    /** 压缩类型, 在kinrpc协议下生效 */
     private CompressionType compressionType = CompressionType.NONE;
     ;
     /** 默认支持并发执行 */
