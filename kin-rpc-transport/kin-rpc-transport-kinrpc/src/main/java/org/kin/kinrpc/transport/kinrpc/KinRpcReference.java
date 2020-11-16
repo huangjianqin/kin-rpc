@@ -48,7 +48,7 @@ public class KinRpcReference {
 
     public KinRpcReference(Url url) {
         this.url = url;
-        int connectTimeout = Integer.parseInt(url.getNumberParam(Constants.SESSION_TIMEOUT_KEY));
+        int connectTimeout = Integer.parseInt(url.getNumberParam(Constants.CONNECT_TIMEOUT_KEY));
         int compression = Integer.parseInt(url.getNumberParam(Constants.COMPRESSION_KEY));
 
         int serializerType = Integer.parseInt(url.getNumberParam(Constants.SERIALIZE_KEY));

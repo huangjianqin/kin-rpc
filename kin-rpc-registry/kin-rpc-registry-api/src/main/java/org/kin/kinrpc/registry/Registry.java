@@ -29,11 +29,11 @@ public interface Registry {
 
     /**
      * 订阅服务
+     *
      * @param serviceName 服务名
-     * @param connectTimeout 连接超时
      * @return 服务订阅目录, 包含所有可用invokers
      */
-    Directory subscribe(String serviceName, int connectTimeout);
+    Directory subscribe(String serviceName);
 
     /**
      * 取消订阅服务

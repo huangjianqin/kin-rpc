@@ -37,9 +37,9 @@ public final class DirectURLsRegistry extends AbstractRegistry {
     }
 
     @Override
-    public Directory subscribe(String serviceName, int connectTimeout) {
+    public Directory subscribe(String serviceName) {
         log.info("reference subscribe service '{}' ", serviceName);
-        Directory directory = new Directory(serviceName, connectTimeout);
+        Directory directory = new Directory(serviceName);
         directory.discover(urls);
         directoryCache.put(serviceName, directory);
         return directory;

@@ -23,15 +23,13 @@ public class Directory {
     private static final Logger log = LoggerFactory.getLogger(Directory.class);
 
     protected final String serviceName;
-    protected final int connectTimeout;
 
     /** 所有directory的discover和destroy操作都是单线程操作, 利用copy-on-write思想更新可用invokers, 提高list效率 */
     private volatile List<AsyncInvoker> invokers = Collections.emptyList();
     private volatile boolean isStopped;
 
-    public Directory(String serviceName, int connectTimeout) {
+    public Directory(String serviceName) {
         this.serviceName = serviceName;
-        this.connectTimeout = connectTimeout;
     }
 
     /**

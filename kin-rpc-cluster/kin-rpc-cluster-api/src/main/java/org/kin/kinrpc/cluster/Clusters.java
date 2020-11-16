@@ -110,7 +110,6 @@ public class Clusters {
         Preconditions.checkNotNull(registry);
 
         //构建Cluster类
-        int timeout = Integer.parseInt(url.getParam(Constants.TIMEOUT_KEY));
         String loadBalanceType = url.getParam(Constants.LOADBALANCE_KEY);
         LoadBalance loadBalance = LoadBalances.getLoadBalance(loadBalanceType);
         String routerType = url.getParam(Constants.ROUTER_KEY);
@@ -119,7 +118,7 @@ public class Clusters {
         Preconditions.checkNotNull(loadBalance, "unvalid loadbalance type: [" + loadBalanceType + "]");
         Preconditions.checkNotNull(router, "unvalid router type: [" + routerType + "]");
 
-        Cluster<T> cluster = new ClusterImpl<>(registry, url.getServiceName(), timeout, router, loadBalance);
+        Cluster<T> cluster = new ClusterImpl<>(registry, url.getServiceName(), router, loadBalance);
 
         T proxy;
 

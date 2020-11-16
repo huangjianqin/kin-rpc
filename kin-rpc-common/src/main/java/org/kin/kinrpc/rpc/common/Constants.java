@@ -27,7 +27,7 @@ public class Constants {
     /** 服务provider流控 or 限流 */
     public static final String RATE_KEY = "rate";
     /** 连接超时 */
-    public static final String TIMEOUT_KEY = "timeout";
+    public static final String CONNECT_TIMEOUT_KEY = "connectTimeout";
     /** 注册中心类型 */
     public static final String REGISTRY_KEY = "registry";
     /** 注册中心地址 */

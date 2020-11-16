@@ -78,7 +78,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
             check();
 
             Map<String, String> params = new HashMap<>(50);
-            params.put(Constants.TIMEOUT_KEY, timeout + "");
+            params.put(Constants.CONNECT_TIMEOUT_KEY, timeout + "");
             params.put(Constants.RETRY_TIMES_KEY, retryTimes + "");
             params.put(Constants.RETRY_TIMEOUT_KEY, retryTimeout + "");
             params.put(Constants.LOADBALANCE_KEY, loadBalanceType);
