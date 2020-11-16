@@ -1,6 +1,6 @@
-package org.kin.kinrpc.transport.kinrpc.serializer;
+package org.kin.kinrpc.serializer;
 
-import org.project.serializer.MySerializer;
+import org.custom.serializer.MySerializer;
 
 /**
  * @author huangjianqin

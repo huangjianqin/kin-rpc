@@ -1,6 +1,6 @@
-package org.project.serializer;
+package org.custom.serializer;
 
-import org.kin.kinrpc.transport.kinrpc.serializer.Serializer;
+import org.kin.kinrpc.serializer.Serializer;
 
 import java.io.IOException;
 

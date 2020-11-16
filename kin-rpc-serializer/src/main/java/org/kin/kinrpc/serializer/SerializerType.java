@@ -1,4 +1,4 @@
-package org.kin.kinrpc.transport.kinrpc.serializer;
+package org.kin.kinrpc.serializer;
 
 /**
  * Created by huangjianqin on 2019/6/4.

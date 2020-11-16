@@ -1,6 +1,6 @@
-package org.kin.kinrpc.transport.kinrpc.serializer;
+package org.kin.kinrpc.serializer;
 
-import org.kin.kinrpc.transport.kinrpc.serializer.impl.JsonSerializer;
+import org.kin.kinrpc.serializer.impl.JsonSerializer;
 
 import java.io.IOException;
 

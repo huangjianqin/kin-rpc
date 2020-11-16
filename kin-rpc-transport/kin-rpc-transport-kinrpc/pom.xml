@@ -25,37 +25,10 @@
             <version>${kin-transport-netty.version}</version>
         </dependency>
 
-        <!-- 序列化包-->
-        <!-- hessian-->
-        <dependency>
-            <groupId>com.caucho</groupId>
-            <artifactId>hessian</artifactId>
-            <version>${hessian.version}</version>
-        </dependency>
-
-        <!-- kryo-->
-        <dependency>
-            <groupId>com.esotericsoftware</groupId>
-            <artifactId>kryo</artifactId>
-            <version>${kryo.version}</version>
-        </dependency>
-
-        <!-- jackson-->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-
+        <!-- 序列化-->
         <dependency>
             <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-common</artifactId>
+            <artifactId>kin-rpc-serializer</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

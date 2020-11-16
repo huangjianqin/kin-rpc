@@ -1,7 +1,7 @@
-package org.kin.kinrpc.transport.kinrpc.serializer.impl;
+package org.kin.kinrpc.serializer.impl;
 
-import org.kin.kinrpc.transport.kinrpc.serializer.Serializer;
-import org.kin.kinrpc.transport.kinrpc.serializer.SerializerType;
+import org.kin.kinrpc.serializer.Serializer;
+import org.kin.kinrpc.serializer.SerializerType;
 
 import java.io.*;
 

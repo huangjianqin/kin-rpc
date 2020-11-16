@@ -28,6 +28,13 @@
             <artifactId>kin-rpc-transport-kinrpc</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <!-- 序列化-->
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-rpc-serializer</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 </project>
