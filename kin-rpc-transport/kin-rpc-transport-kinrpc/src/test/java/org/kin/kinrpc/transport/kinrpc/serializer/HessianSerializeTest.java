@@ -1,4 +1,4 @@
-package org.kin.kinrpc.transport.serializer;
+package org.kin.kinrpc.transport.kinrpc.serializer;
 
 import com.caucho.hessian.io.Hessian2Input;
 import com.caucho.hessian.io.Hessian2Output;

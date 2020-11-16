@@ -1,4 +1,4 @@
-package org.kin.kinrpc.transport.serializer;
+package org.kin.kinrpc.transport.kinrpc.serializer;
 
 /**
  * 未知serializer异常
