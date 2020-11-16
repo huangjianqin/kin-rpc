@@ -37,7 +37,7 @@ public class ServiceConfig<T> extends AbstractConfig {
     private InvokeType invokeType = InvokeType.JAVASSIST;
     /** 版本号 */
     private String version = "0.1.0.0";
-    /** 压缩类型, 在kinrpc协议下生效 */
+    /** 压缩类型, 在kinrpc协议下生效 todo 考虑降低耦合性 */
     private CompressionType compressionType = CompressionType.NONE;
     ;
     /** 默认支持并发执行 */
