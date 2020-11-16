@@ -11,7 +11,7 @@ import org.kin.kinrpc.transport.serializer.SerializerType;
  */
 public class AddableProvider {
     public static void main(String[] args) throws Exception {
-        ServiceConfig<Addable> serviceConfig = Services.service(new Adder(), Addable.class).serialize(SerializerType.JAVA).version("001").actorLike();
+        ServiceConfig<Addable> serviceConfig = Services.service(new Adder(), Addable.class).serialize(SerializerType.HESSION2).version("001").actorLike();
         serviceConfig.exportSync();
     }
 }

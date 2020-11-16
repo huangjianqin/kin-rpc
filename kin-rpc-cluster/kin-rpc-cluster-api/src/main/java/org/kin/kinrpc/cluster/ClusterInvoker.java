@@ -75,7 +75,7 @@ abstract class ClusterInvoker<T> implements Closeable {
                         notifier.onRpcCallSuc(obj);
                     }
                 }
-            });
+            }, RpcThreadPool.EXECUTORS);
         }
         return rpcCallFuture;
     }
