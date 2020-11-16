@@ -79,7 +79,11 @@ public class KinRpcReferenceInvoker<T> extends ReferenceInvoker<T> {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 long retryTimeout = Long.parseLong(url.getParam(Constants.RETRY_TIMEOUT_KEY));
-                return invoke0(methodName, params).get(retryTimeout, TimeUnit.MILLISECONDS);
+                if (retryTimeout > 0) {
+                    return invoke0(methodName, params).get(retryTimeout, TimeUnit.MILLISECONDS);
+                } else {
+                    return invoke0(methodName, params).get();
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
