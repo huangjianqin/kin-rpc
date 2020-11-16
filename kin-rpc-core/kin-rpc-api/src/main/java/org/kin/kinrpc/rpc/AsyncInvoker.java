@@ -14,5 +14,5 @@ public interface AsyncInvoker<T> extends Invoker<T> {
      * @param params     参数
      * @return future
      */
-    Future<RpcResponse> invokeAsync(String methodName, Object... params);
+    Future<Object> invokeAsync(String methodName, Object... params);
 }
