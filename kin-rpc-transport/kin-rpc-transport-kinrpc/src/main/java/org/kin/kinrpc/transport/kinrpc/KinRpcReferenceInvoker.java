@@ -3,6 +3,7 @@ package org.kin.kinrpc.transport.kinrpc;
 import org.kin.kinrpc.rpc.RpcRequest;
 import org.kin.kinrpc.rpc.RpcResponse;
 import org.kin.kinrpc.rpc.RpcThreadPool;
+import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 import org.kin.kinrpc.rpc.exception.RpcRetryException;
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author huangjianqin
@@ -76,7 +78,8 @@ public class KinRpcReferenceInvoker<T> extends ReferenceInvoker<T> {
     public final Future<Object> invokeAsync(String methodName, Object... params) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return invoke0(methodName, params).get();
+                long retryTimeout = Long.parseLong(url.getParam(Constants.RETRY_TIMEOUT_KEY));
+                return invoke0(methodName, params).get(retryTimeout, TimeUnit.MILLISECONDS);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

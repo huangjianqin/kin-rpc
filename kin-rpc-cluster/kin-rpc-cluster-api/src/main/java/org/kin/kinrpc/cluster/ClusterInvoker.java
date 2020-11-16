@@ -6,20 +6,20 @@ import org.kin.framework.utils.ClassUtils;
 import org.kin.kinrpc.cluster.exception.CannotFindInvokerException;
 import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.kin.kinrpc.rpc.Notifier;
-import org.kin.kinrpc.rpc.RpcResponse;
 import org.kin.kinrpc.rpc.RpcThreadPool;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
-import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 import org.kin.kinrpc.rpc.exception.RpcRetryException;
 import org.kin.kinrpc.rpc.exception.RpcRetryOutException;
-import org.kin.kinrpc.rpc.exception.UnknownRpcResponseStateCodeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Created by 健勤 on 2017/2/15.
@@ -29,7 +29,6 @@ abstract class ClusterInvoker<T> implements Closeable {
 
     private final Cluster<T> cluster;
     private final int retryTimes;
-    private final long retryTimeout;
     private final Url url;
     /** async rpc call 事件通知 */
     private final Map<Class<?>, Notifier<?>> returnType2Notifier;
@@ -38,7 +37,6 @@ abstract class ClusterInvoker<T> implements Closeable {
         this.cluster = cluster;
         this.url = url;
         this.retryTimes = Integer.parseInt(url.getParam(Constants.RETRY_TIMES_KEY));
-        this.retryTimeout = Long.parseLong(url.getParam(Constants.RETRY_TIMEOUT_KEY));
 
         Map<Class<?>, Notifier<?>> returnType2Notifier = new HashMap<>();
 
@@ -95,24 +93,12 @@ abstract class ClusterInvoker<T> implements Closeable {
                 if (invoker != null) {
                     HostAndPort address = HostAndPort.fromString(invoker.url().getAddress());
                     try {
-                        Future<RpcResponse> future = invoker.invokeAsync(methodName, params);
-                        RpcResponse rpcResponse = future.get(retryTimeout, TimeUnit.MILLISECONDS);
-                        if (rpcResponse != null) {
-                            switch (rpcResponse.getState()) {
-                                case SUCCESS:
-                                    return rpcResponse.getResult();
-                                case RETRY:
-                                    tryTimes++;
-                                    failureHostAndPorts.add(address);
-                                    break;
-                                case ERROR:
-                                    throw new RpcCallErrorException(rpcResponse.getInfo());
-                                default:
-                                    throw new UnknownRpcResponseStateCodeException(rpcResponse.getState().getCode());
-                            }
-                        } else {
-                            throw new RpcCallErrorException("rpc response call success, but get null");
+                        Future<Object> future = invoker.invokeAsync(methodName, params);
+                        Object resultObj = future.get();
+                        if (resultObj instanceof Throwable) {
+                            throw (Throwable) resultObj;
                         }
+                        return resultObj;
                     } catch (ExecutionException e) {
                         log.error("pending result execute error >>> {}", e.getMessage());
                         break;
