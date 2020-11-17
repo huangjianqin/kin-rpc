@@ -9,10 +9,10 @@ import java.lang.reflect.InvocationTargetException;
  * @author huangjianqin
  * @date 2020/11/16
  */
-public class JsonRemoteInvocation extends RemoteInvocation {
+public class HttpRemoteInvocation extends RemoteInvocation {
     private static final long serialVersionUID = -8035743620933401906L;
 
-    public JsonRemoteInvocation(MethodInvocation methodInvocation) {
+    public HttpRemoteInvocation(MethodInvocation methodInvocation) {
         super(methodInvocation);
     }
 

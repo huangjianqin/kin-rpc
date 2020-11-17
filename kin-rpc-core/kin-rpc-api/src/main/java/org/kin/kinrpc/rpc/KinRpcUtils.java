@@ -11,7 +11,7 @@ public class KinRpcUtils {
      * @return 服务名+方法名+(参数1,参数2..)
      */
     public static String generateInvokeMsg(String serviceName, String methodName, Object[] params) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         StringJoiner sj = new StringJoiner(", ");
         sb.append("(");
         for (Object param : params) {

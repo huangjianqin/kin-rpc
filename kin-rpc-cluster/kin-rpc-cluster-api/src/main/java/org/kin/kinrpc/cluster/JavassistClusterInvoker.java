@@ -36,8 +36,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
 
     //------------------此处需自定义, 有点特殊-------------------------------------
 
-    private String generateMethodBody(Method method,
-                                      Class[] parameterTypes) {
+    private String generateMethodBody(Method method) {
         //真正逻辑
         StringBuilder methodBody = new StringBuilder();
 
@@ -48,6 +47,8 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
         invokeCode.append(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME.concat(".invokeAsync"));
         invokeCode.append("(\"").append(ClassUtils.getUniqueName(method)).append("\"");
         invokeCode.append(", ").append(method.getReturnType().getName()).append(".class");
+
+        Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length > 0) {
             invokeCode.append(", new Object[]{");
             StringJoiner invokeBody = new StringJoiner(", ");
@@ -124,7 +125,12 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
      * 构建javassist字节码增强代理类
      */
     public T proxy() {
-        String ctClassName = "org.kin.kinrpc.cluster.".concat(interfaceClass.getSimpleName()).concat("$JavassistProxy");
+        Class<? extends JavassistClusterInvoker> myClass = this.getClass();
+        String ctClassName =
+                myClass.getPackage().getName()
+                        .concat(myClass.getSimpleName())
+                        .concat("$")
+                        .concat(interfaceClass.getSimpleName());
         Class<T> realProxyClass = null;
         try {
             realProxyClass = (Class<T>) Class.forName(ctClassName);
@@ -142,7 +148,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
                     //接口
                     proxyClass.addInterface(classPool.get(interfaceClass.getName()));
 
-                    CtField invokerField = new CtField(classPool.get(this.getClass().getName()), ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME, proxyClass);
+                    CtField invokerField = new CtField(classPool.get(myClass.getName()), ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME, proxyClass);
                     invokerField.setModifiers(Modifier.PRIVATE | Modifier.FINAL);
                     proxyClass.addField(invokerField);
 
@@ -153,38 +159,26 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
 
                     //构造器
                     CtConstructor constructor = new CtConstructor(
-                            new CtClass[]{classPool.get(this.getClass().getName()), classPool.get(Double.TYPE.getName())}, proxyClass);
+                            new CtClass[]{classPool.get(myClass.getName()), classPool.get(Double.TYPE.getName())}, proxyClass);
                     constructor.setBody("{$0.".concat(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME).concat(" = $1;")
                             .concat("if($2 > 0){$0.".concat(rateLimiterFieldName).concat(" = ").concat(RateLimiter.class.getName()).concat(".create($2);}}")));
                     proxyClass.addConstructor(constructor);
 
                     //生成接口方法方法体
                     for (Method method : interfaceClass.getDeclaredMethods()) {
-                        StringBuffer sb = new StringBuffer();
-                        sb.append("public ");
-                        sb.append(method.getReturnType().getName().concat(" "));
-                        sb.append(method.getName().concat("("));
+                        StringBuilder methodBody = new StringBuilder();
+                        methodBody.append(generateRateLimitBody(rateLimiterFieldName, method)).append(System.lineSeparator());
+                        methodBody.append(generateMethodBody(method)).append(System.lineSeparator());
 
-                        StringJoiner paramBody = new StringJoiner(", ");
-
-                        Class[] parameterTypes = method.getParameterTypes();
-                        for (int i = 0; i < parameterTypes.length; i++) {
-                            paramBody.add(parameterTypes[i].getName().concat(" ").concat("arg").concat(Integer.toString(i)));
-                        }
-                        sb.append(paramBody.toString().concat("){")).append(System.lineSeparator());
-                        sb.append(generateRateLimitBody(rateLimiterFieldName, method)).append(System.lineSeparator());
-                        sb.append(generateMethodBody(method, parameterTypes)).append(System.lineSeparator());
-                        sb.append("}");
-
-                        CtMethod ctMethod = CtMethod.make(sb.toString(), proxyClass);
+                        CtMethod ctMethod = CtMethod.make(ClassUtils.generateMethodContent(method, methodBody.toString()), proxyClass);
                         proxyClass.addMethod(ctMethod);
                     }
-                    ProxyEnhanceUtils.cacheCTClass(getUrl().getServiceName(), proxyClass);
+                    ProxyEnhanceUtils.cacheCTClass(ctClassName, proxyClass);
                 }
 
                 realProxyClass = (Class<T>) proxyClass.toClass();
             }
-            return realProxyClass.getConstructor(this.getClass(), Double.TYPE).newInstance(this, (double) rate);
+            return realProxyClass.getConstructor(myClass, Double.TYPE).newInstance(this, (double) rate);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }

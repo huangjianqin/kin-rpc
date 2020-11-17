@@ -13,14 +13,14 @@ import org.springframework.remoting.support.RemoteInvocationBasedAccessor;
  * @author huangjianqin
  * @date 2020/11/16
  */
-public class JsonRpcProxyFactoryBean extends RemoteInvocationBasedAccessor
+public class HttpRpcProxyFactoryBean extends RemoteInvocationBasedAccessor
         implements MethodInterceptor,
         InitializingBean,
         FactoryBean<Object>,
         ApplicationContextAware {
     private final JsonProxyFactoryBean jsonProxyFactoryBean;
 
-    public JsonRpcProxyFactoryBean(JsonProxyFactoryBean factoryBean) {
+    public HttpRpcProxyFactoryBean(JsonProxyFactoryBean factoryBean) {
         this.jsonProxyFactoryBean = factoryBean;
     }
 

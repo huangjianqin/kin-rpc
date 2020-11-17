@@ -34,7 +34,7 @@ abstract class AbstractConfig {
                             ProtocolType protocolType) {
         StringBuilder sb = new StringBuilder();
         sb.append(protocolType.name().toLowerCase() + "://").append(hostPort);
-        //todo url path修改
+        //目前是appName/serviceName
         sb.append("/").append(applicationConfig.getAppName());
         sb.append("/").append(otherParams.get(Constants.SERVICE_NAME_KEY));
         sb.append("?");

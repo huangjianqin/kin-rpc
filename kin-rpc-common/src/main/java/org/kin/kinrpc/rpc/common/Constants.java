@@ -52,7 +52,8 @@ public class Constants {
     public static final String INTERFACE_KEY = "interface";
     /** async rpc call标识 */
     public static final String ASYNC_KEY = "async";
-
+    /** 兼容协议(非kinrpc)是否使用Generic通用接口服务 */
+    public static final String GENERIC_KEY = "useGeneric";
 
     //-------------------------------------------------配置value--------------------------------------------------------
     /** 注册中心会话超时(ms) */
@@ -85,5 +86,5 @@ public class Constants {
     public static final int REFERENCE_DEFAULT_CONNECT_TIMEOUT = 5000;
 
     //-------------------------------------------------传输协议相关--------------------------------------------------------
-    public static final String GENERIC_KEY = "generic";
+    public static final String GENERIC = "generic";
 }

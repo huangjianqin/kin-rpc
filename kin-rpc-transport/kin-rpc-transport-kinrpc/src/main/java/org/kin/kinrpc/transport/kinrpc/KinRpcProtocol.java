@@ -31,11 +31,6 @@ public class KinRpcProtocol implements Protocol, LoggerOprs {
     private static final Cache<Integer, KinRpcProvider> PROVIDER_CACHE = CacheBuilder.newBuilder().build();
 
     @Override
-    public int getDefaultPort() {
-        return Constants.SERVER_DEFAULT_PORT;
-    }
-
-    @Override
     public <T> Exporter<T> export(Invoker<T> invoker) {
         if (!(invoker instanceof ProviderInvoker)) {
             throw new IllegalStateException("invoker is not a provider invoker >>> ".concat(invoker.toString()));

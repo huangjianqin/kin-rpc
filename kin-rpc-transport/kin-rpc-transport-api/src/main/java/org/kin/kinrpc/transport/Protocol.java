@@ -14,10 +14,6 @@ import org.kin.kinrpc.rpc.common.Url;
  */
 @SPI(value = "kinrpc", key = "protocol")
 public interface Protocol {
-    /**
-     * @return 获取该协议默认端口
-     */
-    int getDefaultPort();
 
     /**
      * export service

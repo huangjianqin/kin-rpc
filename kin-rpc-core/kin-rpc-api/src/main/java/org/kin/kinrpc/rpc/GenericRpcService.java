@@ -11,5 +11,5 @@ public interface GenericRpcService {
     /**
      * 调用抽象
      */
-    Object invoke(String method, Object[] args) throws Exception;
+    Object invoke(String method, Object[] args) throws Throwable;
 }

@@ -50,6 +50,8 @@ public class ReferenceConfig<T> extends AbstractConfig {
     private List<Notifier<?>> notifiers = new ArrayList<>();
     /** 协议类型 */
     private ProtocolType protocolType = ProtocolType.KinRpc;
+    /** 兼容协议(非kinrpc)是否使用Generic通用接口服务 */
+    private boolean useGeneric;
 
     /** 唯一url */
     private Url url;
@@ -89,6 +91,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
             params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(InvokeType.JAVASSIST.equals(invokeType)));
             params.put(Constants.RATE_KEY, rate + "");
             params.put(Constants.ASYNC_KEY, Boolean.toString(async));
+            params.put(Constants.GENERIC_KEY, Boolean.toString(useGeneric));
 
             url = createURL(
                     applicationConfig,
@@ -262,6 +265,11 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return this;
     }
 
+    public ReferenceConfig<T> useGeneric() {
+        this.useGeneric = true;
+        return this;
+    }
+
     //getter
     public ApplicationConfig getApplicationConfig() {
         return applicationConfig;
@@ -309,5 +317,9 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
     public ProtocolType getProtocolType() {
         return protocolType;
+    }
+
+    public boolean isUseGeneric() {
+        return useGeneric;
     }
 }

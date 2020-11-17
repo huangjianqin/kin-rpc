@@ -3,47 +3,38 @@ package org.kin.kinrpc.transport.http;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.google.common.base.Preconditions;
 import com.googlecode.jsonrpc4j.JsonRpcServer;
 import com.googlecode.jsonrpc4j.spring.JsonProxyFactoryBean;
-import org.kin.framework.log.LoggerOprs;
-import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.JSON;
-import org.kin.kinrpc.rpc.*;
+import org.kin.kinrpc.AbstractProxyProtocol;
+import org.kin.kinrpc.rpc.GenericRpcService;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.RpcServiceLoader;
 import org.kin.kinrpc.rpc.common.Url;
-import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
-import org.kin.kinrpc.transport.Protocol;
 import org.kin.kinrpc.transport.http.tomcat.TomcatHttpBinder;
 import org.springframework.remoting.support.RemoteInvocation;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
 
 /**
  * @author huangjianqin
  * @date 2020/11/16
  */
-public class HttpProtocol implements Protocol, LoggerOprs {
+public class HttpProtocol extends AbstractProxyProtocol {
     static {
         ObjectMapper objectMapper = JSON.PARSER;
+        //允许未知属性
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        //允许空bean
         objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
     }
 
-    /**
-     *
-     */
+    /** JsonRpcServer缓存 */
     private final Map<String, JsonRpcServer> skeletonMap = new ConcurrentHashMap<>();
     /** http server 缓存 */
     private final Map<String, HttpServer> serverMap = new ConcurrentHashMap<>();
@@ -58,125 +49,59 @@ public class HttpProtocol implements Protocol, LoggerOprs {
     }
 
     @Override
-    public int getDefaultPort() {
-        return 80;
-    }
-
-    @Override
-    public <T> Exporter<T> export(Invoker<T> invoker) {
-        Url url = invoker.url();
+    protected <T> Runnable doExport(T impl, Class<T> interfaceC, Url url) {
         String addr = url.getAddress();
         HttpServer httpServer = serverMap.get(addr);
         if (Objects.isNull(httpServer)) {
+            //启动http server
             httpServer = httpBinder.bind(url, new InternalHandler(false));
             serverMap.put(addr, httpServer);
         }
 
-        Class<T> interfaceC = invoker.getInterface();
-        T proxy = (T) Proxy.newProxyInstance(interfaceC.getClassLoader(), new Class<?>[]{interfaceC}, new InvocationHandler() {
-            @Override
-            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                return invoker.invoke(ClassUtils.getUniqueName(method), args);
-            }
-        });
-
+        //普通url path
         String path = url.getPath();
-        String genericPath = path + "/" + Constants.GENERIC_KEY;
-        JsonRpcServer skeleton = new JsonRpcServer(JSON.PARSER, proxy, interfaceC);
-        JsonRpcServer genericServer = new JsonRpcServer(JSON.PARSER, proxy, GenericRpcService.class);
+        //使用generic url path
+        String genericPath = path + "/" + Constants.GENERIC;
+        JsonRpcServer skeleton = new JsonRpcServer(JSON.PARSER, impl, interfaceC);
+        JsonRpcServer genericServer = new JsonRpcServer(JSON.PARSER, impl, GenericRpcService.class);
         skeletonMap.put(path, skeleton);
         skeletonMap.put(genericPath, genericServer);
 
         info("service '{}' export path '{}'", url.str(), path);
         info("service '{}' export path '{}'", url.str(), genericPath);
 
-        return new Exporter<T>() {
-            @Override
-            public Invoker<T> getInvoker() {
-                return invoker;
-            }
-
-            @Override
-            public void unexport() {
-                skeletonMap.remove(path);
-                skeletonMap.remove(genericPath);
-            }
+        return () -> {
+            skeletonMap.remove(path);
+            skeletonMap.remove(genericPath);
         };
     }
 
     @Override
-    public <T> AsyncInvoker<T> reference(Url url) {
-//        final String generic = url.getParameter(Constants.GENERIC_KEY);
-//        final boolean isGeneric = ProtocolUtils.isGeneric(generic) || serviceType.equals(GenericService.class);
+    protected <T> T doReference(Class<T> interfaceC, Url url) {
+        boolean useGeneric = Boolean.parseBoolean(url.getParam(Constants.GENERIC_KEY));
+
+        //构建json rpc proxy
         JsonProxyFactoryBean jsonProxyFactoryBean = new JsonProxyFactoryBean();
-        JsonRpcProxyFactoryBean jsonRpcProxyFactoryBean = new JsonRpcProxyFactoryBean(jsonProxyFactoryBean);
-        jsonRpcProxyFactoryBean.setRemoteInvocationFactory((methodInvocation) -> {
-            RemoteInvocation invocation = new JsonRemoteInvocation(methodInvocation);
-//            if (isGeneric) {
-//                invocation.addAttribute(Constants.GENERIC_KEY, generic);
-//            }
+        HttpRpcProxyFactoryBean httpRpcProxyFactoryBean = new HttpRpcProxyFactoryBean(jsonProxyFactoryBean);
+        httpRpcProxyFactoryBean.setRemoteInvocationFactory((methodInvocation) -> {
+            RemoteInvocation invocation = new HttpRemoteInvocation(methodInvocation);
+            if (useGeneric) {
+                invocation.addAttribute(Constants.GENERIC_KEY, useGeneric);
+            }
             return invocation;
         });
+
+        //json rpc请求的url path
         String key = url.identityStr();
-//        if (isGeneric) {
-//            key = key + "/" + Constants.GENERIC_KEY;
-//        }
-
-        jsonRpcProxyFactoryBean.setServiceUrl(key);
-        try {
-            jsonRpcProxyFactoryBean.setServiceInterface(Class.forName(url.getInterfaceN()));
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException(e);
+        if (useGeneric) {
+            key = key + "/" + Constants.GENERIC;
         }
-
+        httpRpcProxyFactoryBean.setServiceUrl(key);
+        //设置服务接口
+        httpRpcProxyFactoryBean.setServiceInterface(interfaceC);
         jsonProxyFactoryBean.afterPropertiesSet();
-        T proxy = (T) jsonProxyFactoryBean.getObject();
-        return new ReferenceInvoker<T>(url) {
-
-            @Override
-            public Object invoke(String methodName, Object... params) throws Throwable {
-                //todo 临时先用反射
-                Class<?> interfaceC = Class.forName(url.getInterfaceN());
-                Class<?>[] classes = new Class<?>[params.length];
-                for (int i = 0; i < params.length; i++) {
-                    classes[i] = params[i].getClass();
-                }
-
-                Method targetMethod = null;
-                for (Method method : interfaceC.getMethods()) {
-                    //todo 临时遍历所有方法, 用方法名判断
-                    if (methodName.equals(ClassUtils.getUniqueName(method))) {
-                        targetMethod = method;
-                        break;
-                    }
-                }
-
-                Preconditions.checkNotNull(targetMethod, String.format("can't not find method '%s'", methodName));
-
-                return targetMethod.invoke(proxy, params);
-            }
-
-            @Override
-            public Future<Object> invokeAsync(String methodName, Object... params) {
-                return CompletableFuture.supplyAsync(() -> {
-                    try {
-                        return invoke(methodName, params);
-                    } catch (Throwable throwable) {
-                        throw new RuntimeException(throwable);
-                    }
-                }, RpcThreadPool.EXECUTORS);
-            }
-
-            @Override
-            public boolean isAvailable() {
-                return true;
-            }
-
-            @Override
-            public void destroy() {
-
-            }
-        };
+        //获取代理类
+        return (T) jsonProxyFactoryBean.getObject();
     }
 
     @Override

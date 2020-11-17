@@ -18,6 +18,7 @@ public class DispatcherServlet extends HttpServlet {
     private static final long serialVersionUID = -5379914862946805751L;
     /** 单例 */
     private static DispatcherServlet INSTANCE;
+    /** key -> port, value -> http handler */
     private static final Map<Integer, HttpHandler> HANDLERS = new ConcurrentHashMap<Integer, HttpHandler>();
 
     public static DispatcherServlet getInstance() {
@@ -29,14 +30,14 @@ public class DispatcherServlet extends HttpServlet {
     }
 
     /**
-     *
+     * 添加 http handler
      */
     public static void addHttpHandler(int port, HttpHandler processor) {
         HANDLERS.put(port, processor);
     }
 
     /**
-     *
+     * 移除 http handler
      */
     public static void removeHttpHandler(int port) {
         HANDLERS.remove(port);

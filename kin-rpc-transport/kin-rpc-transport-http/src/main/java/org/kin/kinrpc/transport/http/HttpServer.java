@@ -5,6 +5,8 @@ import org.kin.kinrpc.rpc.common.Url;
 import java.net.InetSocketAddress;
 
 /**
+ * http server 通用接口
+ *
  * @author huangjianqin
  * @date 2020/11/16
  */

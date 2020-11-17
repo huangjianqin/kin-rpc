@@ -9,6 +9,7 @@ import java.net.InetSocketAddress;
  * @date 2020/11/16
  */
 public abstract class AbstractHttpServer implements HttpServer {
+    /** rpc url */
     protected final Url url;
     protected final HttpHandler handler;
     /** 标识server是否stopped */
