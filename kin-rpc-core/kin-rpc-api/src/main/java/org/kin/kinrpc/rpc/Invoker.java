@@ -12,7 +12,7 @@ public interface Invoker<T> extends Node {
      * @return 返回方法结果(rpc调用)
      * @throws Throwable 异常
      */
-    Object invoke(String methodName, Object... params) throws Throwable;
+    Object invoke(String methodName, Object[] params) throws Throwable;
 
     /**
      * 获取代理的接口类

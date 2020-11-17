@@ -18,7 +18,7 @@ public class WrapInvoker<T> implements Invoker<T> {
     }
 
     @Override
-    public Object invoke(String methodName, Object... params) throws Throwable {
+    public Object invoke(String methodName, Object[] params) throws Throwable {
         return wrapper.invoke(methodName, params);
     }
 

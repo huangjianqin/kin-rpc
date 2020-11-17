@@ -47,7 +47,7 @@ public class KinRpcReferenceInvoker<T> extends ReferenceInvoker<T> {
     }
 
     @Override
-    public final Object invoke(String methodName, Object... params) throws Exception {
+    public final Object invoke(String methodName, Object[] params) throws Exception {
         try {
             Future<RpcResponse> future = invoke0(methodName, params);
             RpcResponse rpcResponse = future.get();

@@ -234,6 +234,11 @@ public class Url implements Serializable, Cloneable {
         return new Url(protocol, username, password, host, port, path, params);
     }
 
+    @Override
+    public String toString() {
+        return str();
+    }
+
     //getter
     public String getProtocol() {
         return protocol;

@@ -1,8 +1,12 @@
 package org.kin.kinrpc.transport.http;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.base.Preconditions;
 import com.googlecode.jsonrpc4j.JsonRpcServer;
 import com.googlecode.jsonrpc4j.spring.JsonProxyFactoryBean;
+import org.kin.framework.log.LoggerOprs;
 import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.JSON;
 import org.kin.kinrpc.rpc.*;
@@ -17,7 +21,9 @@ import org.springframework.remoting.support.RemoteInvocation;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -28,7 +34,13 @@ import java.util.concurrent.Future;
  * @author huangjianqin
  * @date 2020/11/16
  */
-public class HttpProtocol implements Protocol {
+public class HttpProtocol implements Protocol, LoggerOprs {
+    static {
+        ObjectMapper objectMapper = JSON.PARSER;
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+    }
+
     /**
      *
      */
@@ -59,12 +71,25 @@ public class HttpProtocol implements Protocol {
             httpServer = httpBinder.bind(url, new InternalHandler(false));
             serverMap.put(addr, httpServer);
         }
+
+        Class<T> interfaceC = invoker.getInterface();
+        T proxy = (T) Proxy.newProxyInstance(interfaceC.getClassLoader(), new Class<?>[]{interfaceC}, new InvocationHandler() {
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                return invoker.invoke(ClassUtils.getUniqueName(method), args);
+            }
+        });
+
         String path = url.getPath();
         String genericPath = path + "/" + Constants.GENERIC_KEY;
-        JsonRpcServer skeleton = new JsonRpcServer(JSON.PARSER, invoker, invoker.getInterface());
-        JsonRpcServer genericServer = new JsonRpcServer(JSON.PARSER, invoker, GenericRpcService.class);
+        JsonRpcServer skeleton = new JsonRpcServer(JSON.PARSER, proxy, interfaceC);
+        JsonRpcServer genericServer = new JsonRpcServer(JSON.PARSER, proxy, GenericRpcService.class);
         skeletonMap.put(path, skeleton);
         skeletonMap.put(genericPath, genericServer);
+
+        info("service '{}' export path '{}'", url.str(), path);
+        info("service '{}' export path '{}'", url.str(), genericPath);
+
         return new Exporter<T>() {
             @Override
             public Invoker<T> getInvoker() {
@@ -181,6 +206,8 @@ public class HttpProtocol implements Protocol {
         public void handle(HttpServletRequest request, HttpServletResponse response)
                 throws ServletException {
             String uri = request.getRequestURI();
+            //去掉开头的/
+            uri = uri.substring(1);
             JsonRpcServer skeleton = skeletonMap.get(uri);
             if (cors) {
                 response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN_HEADER, "*");

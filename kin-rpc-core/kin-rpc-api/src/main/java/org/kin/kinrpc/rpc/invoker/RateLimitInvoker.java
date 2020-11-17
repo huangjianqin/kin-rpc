@@ -27,7 +27,7 @@ public final class RateLimitInvoker<T> extends WrapInvoker<T> {
     }
 
     @Override
-    public Object invoke(String methodName, Object... params) throws Throwable {
+    public Object invoke(String methodName, Object[] params) throws Throwable {
         //简单地添加到任务队列交由上层的线程池去完成服务调用
         //流控
         if (!rateLimiter.tryAcquire()) {

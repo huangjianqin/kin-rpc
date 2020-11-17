@@ -13,7 +13,10 @@ public class ApplicationConfig extends AbstractConfig {
     ApplicationConfig() {
         //获取最外层调用的class name
         StackTraceElement[] elements = Thread.currentThread().getStackTrace();
-        appName = elements[elements.length - 1].getClassName();
+        String className = elements[elements.length - 1].getClassName();
+        int last = className.lastIndexOf(".");
+        //默认是main方法的simple class name
+        appName = className.substring(last + 1);
     }
 
     ApplicationConfig(String appName) {
