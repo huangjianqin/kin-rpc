@@ -146,7 +146,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
     private <T> T javassistProxyedInvoker(Invoker<T> invoker, Class<T> interfaceC) {
         Class<? extends AbstractProxyProtocol> myClass = getClass();
         String ctClassName =
-                myClass.getPackage().getName()
+                myClass.getPackage().getName().concat(".")
                         .concat(myClass.getSimpleName())
                         .concat("$")
                         .concat(interfaceC.getSimpleName());
@@ -225,7 +225,6 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
         } else {
             invokeCode.append(", new Object[0])");
         }
-        invokeCode.append(";");
         String invokeCodeStr = invokeCode.toString();
 
         //after rpc call逻辑
@@ -235,7 +234,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
         methodBody.append("try{").append(System.lineSeparator());
         //方法返回
         if (isVoid) {
-            methodBody.append(invokeCodeStr);
+            methodBody.append(invokeCodeStr).append(";").append(System.lineSeparator());
         } else {
             if (returnType.isPrimitive()) {
                 //基础类型

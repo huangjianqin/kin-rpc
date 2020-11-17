@@ -127,7 +127,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
     public T proxy() {
         Class<? extends JavassistClusterInvoker> myClass = this.getClass();
         String ctClassName =
-                myClass.getPackage().getName()
+                myClass.getPackage().getName().concat(".")
                         .concat(myClass.getSimpleName())
                         .concat("$")
                         .concat(interfaceClass.getSimpleName());

@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DispatcherServlet extends HttpServlet {
     private static final long serialVersionUID = -5379914862946805751L;
     /** 单例 */
-    private static DispatcherServlet INSTANCE;
+    private static DispatcherServlet INSTANCE = new DispatcherServlet();
     /** key -> port, value -> http handler */
     private static final Map<Integer, HttpHandler> HANDLERS = new ConcurrentHashMap<Integer, HttpHandler>();
 
@@ -25,8 +25,7 @@ public class DispatcherServlet extends HttpServlet {
         return INSTANCE;
     }
 
-    public DispatcherServlet() {
-        DispatcherServlet.INSTANCE = this;
+    private DispatcherServlet() {
     }
 
     /**
