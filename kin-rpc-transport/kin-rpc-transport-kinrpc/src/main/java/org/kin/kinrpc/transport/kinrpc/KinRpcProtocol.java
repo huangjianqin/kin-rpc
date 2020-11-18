@@ -25,7 +25,7 @@ import java.util.Objects;
  */
 public class KinRpcProtocol implements Protocol, LoggerOprs {
     static {
-        ProtocolFactory.init(KinRpcRequest.class.getPackage().getName());
+        ProtocolFactory.init(KinRpcRequestProtocol.class.getPackage().getName());
     }
 
     private static final Cache<Integer, KinRpcProvider> PROVIDER_CACHE = CacheBuilder.newBuilder().build();

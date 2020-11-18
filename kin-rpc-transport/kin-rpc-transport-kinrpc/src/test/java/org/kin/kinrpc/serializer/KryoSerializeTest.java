@@ -3,8 +3,8 @@ package org.kin.kinrpc.serializer;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import org.kin.kinrpc.rpc.RpcRequest;
 import org.kin.kinrpc.transport.kinrpc.KinRpcRequestIdGenerator;
+import org.kin.kinrpc.transport.kinrpc.RpcRequest;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

@@ -1,7 +1,7 @@
 package org.kin.kinrpc.rpc.invoker;
 
 import com.google.common.util.concurrent.RateLimiter;
-import org.kin.kinrpc.rpc.KinRpcUtils;
+import org.kin.kinrpc.rpc.RpcUtils;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RateLimitException;
@@ -30,7 +30,7 @@ public abstract class ProviderInvoker<T> extends AbstractInvoker<T> {
         log.debug("service '{}' method '{}' invoking...", getServiceName(), methodName);
         //流控
         if (!rateLimiter.tryAcquire()) {
-            throw new RateLimitException(KinRpcUtils.generateInvokeMsg(getServiceName(), methodName, params));
+            throw new RateLimitException(RpcUtils.generateInvokeMsg(getServiceName(), methodName, params));
         }
         return doInvoke(methodName, params);
     }

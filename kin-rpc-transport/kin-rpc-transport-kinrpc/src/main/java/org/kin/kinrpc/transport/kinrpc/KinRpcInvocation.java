@@ -1,6 +1,7 @@
-package org.kin.kinrpc.rpc;
+package org.kin.kinrpc.transport.kinrpc;
 
 
+import org.kin.kinrpc.rpc.RpcThreadPool;
 import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 import org.kin.kinrpc.rpc.exception.RpcCallRetryException;
 import org.slf4j.Logger;
@@ -10,6 +11,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 /**
+ * kinrpc传输层记录每次rpc call request信息
  * Created by 健勤 on 2017/2/15.
  */
 public class KinRpcInvocation {

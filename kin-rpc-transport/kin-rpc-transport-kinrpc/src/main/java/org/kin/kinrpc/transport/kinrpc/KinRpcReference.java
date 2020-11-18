@@ -7,9 +7,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.utils.ExceptionUtils;
-import org.kin.kinrpc.rpc.KinRpcInvocation;
-import org.kin.kinrpc.rpc.RpcRequest;
-import org.kin.kinrpc.rpc.RpcResponse;
 import org.kin.kinrpc.rpc.RpcThreadPool;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
@@ -188,7 +185,7 @@ public class KinRpcReference {
                     request.setCreateTime(System.currentTimeMillis());
                     byte[] data = serializer.serialize(request);
 
-                    KinRpcRequest protocol = KinRpcRequest.create(request.getRequestId(), (byte) serializer.type(), data);
+                    KinRpcRequestProtocol protocol = KinRpcRequestProtocol.create(request.getRequestId(), (byte) serializer.type(), data);
                     client.request(protocol, new ReferenceRequestListener(request.getRequestId()));
 
                     ProtocolStatisicService.instance().statisticReq(
@@ -202,7 +199,7 @@ public class KinRpcReference {
         }
 
         @Override
-        protected void handleRpcResponseProtocol(KinRpcResponse responseProtocol) {
+        protected void handleRpcResponseProtocol(KinRpcResponseProtocol responseProtocol) {
             long requestId = responseProtocol.getRequestId();
             byte serializerType = responseProtocol.getSerializer();
             try {

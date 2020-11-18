@@ -1,6 +1,5 @@
 package org.kin.kinrpc.transport.kinrpc;
 
-import org.kin.kinrpc.rpc.RpcRequest;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
 import org.slf4j.Logger;

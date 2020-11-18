@@ -6,8 +6,6 @@ import io.netty.channel.ChannelOption;
 import org.kin.framework.concurrent.actor.PinnedThreadSafeHandler;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.rpc.Invoker;
-import org.kin.kinrpc.rpc.RpcRequest;
-import org.kin.kinrpc.rpc.RpcResponse;
 import org.kin.kinrpc.rpc.RpcThreadPool;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
@@ -313,7 +311,7 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
                 }
             }
 
-            KinRpcResponse rpcResponseProtocol = KinRpcResponse.create(rpcResponse.getRequestId(), (byte) serializer.type(), data);
+            KinRpcResponseProtocol rpcResponseProtocol = KinRpcResponseProtocol.create(rpcResponse.getRequestId(), (byte) serializer.type(), data);
             channel.writeAndFlush(rpcResponseProtocol);
 
 
@@ -323,7 +321,7 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
         }
 
         @Override
-        protected void handleRpcRequestProtocol(Channel channel, KinRpcRequest requestProtocol) {
+        protected void handleRpcRequestProtocol(Channel channel, KinRpcRequestProtocol requestProtocol) {
             long requestId = requestProtocol.getRequestId();
             byte serializerType = requestProtocol.getSerializer();
             byte[] data = requestProtocol.getReqContent();

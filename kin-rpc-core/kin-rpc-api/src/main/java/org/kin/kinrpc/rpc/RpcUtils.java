@@ -6,7 +6,7 @@ import java.util.StringJoiner;
  * @author huangjianqin
  * @date 2020/11/4
  */
-public class KinRpcUtils {
+public class RpcUtils {
     /**
      * @return 服务名+方法名+(参数1,参数2..)
      */

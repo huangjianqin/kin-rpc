@@ -17,8 +17,8 @@ import org.kin.kinrpc.serializer.Serializers;
 import org.kin.kinrpc.serializer.UnknownSerializerException;
 import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
 import org.kin.kinrpc.transport.kinrpc.KinRpcEndpointRefHandler;
-import org.kin.kinrpc.transport.kinrpc.KinRpcRequest;
-import org.kin.kinrpc.transport.kinrpc.KinRpcResponse;
+import org.kin.kinrpc.transport.kinrpc.KinRpcRequestProtocol;
+import org.kin.kinrpc.transport.kinrpc.KinRpcResponseProtocol;
 import org.kin.transport.netty.Client;
 import org.kin.transport.netty.CompressionType;
 import org.kin.transport.netty.Transports;
@@ -112,7 +112,7 @@ public final class TransportClient {
             }
 
             long requestId = message.getRequestId();
-            KinRpcRequest protocol = KinRpcRequest.create(requestId, (byte) rpcEnv.serializer().type(), data);
+            KinRpcRequestProtocol protocol = KinRpcRequestProtocol.create(requestId, (byte) rpcEnv.serializer().type(), data);
             respCallbacks.put(requestId, outBoxMessage);
             rpcEndpointRefHandler.client().request(protocol, new ReferenceRequestListener(requestId));
         }
@@ -135,7 +135,7 @@ public final class TransportClient {
     //------------------------------------------------------------------------------------------------------------------
     private class RpcEndpointRefHandlerImpl extends KinRpcEndpointRefHandler {
         @Override
-        protected void handleRpcResponseProtocol(KinRpcResponse responseProtocol) {
+        protected void handleRpcResponseProtocol(KinRpcResponseProtocol responseProtocol) {
             byte serializerType = responseProtocol.getSerializer();
             Serializer serializer = Serializers.getSerializer(serializerType);
             if (Objects.isNull(serializer)) {

@@ -5,23 +5,23 @@ import org.kin.transport.netty.socket.protocol.ProtocolFactory;
 import org.kin.transport.netty.socket.protocol.SocketProtocol;
 
 /**
+ * 相对server而言, 响应协议
  * Created by huangjianqin on 2019/6/14.
- * 相对server而言
  */
-@Protocol(id = KinRpcProtocolId.RPC_REQUEST_PROTOCOL_ID)
-public class KinRpcRequest extends SocketProtocol {
+@Protocol(id = KinRpcProtocolId.RPC_RESPONSE_PROTOCOL_ID)
+public class KinRpcResponseProtocol extends SocketProtocol {
     /** request唯一id */
     private long requestId;
     /** 序列化类型 */
     private byte serializer;
     /** content */
-    private byte[] reqContent;
+    private byte[] respContent;
 
-    public static KinRpcRequest create(long requestId, byte serializer, byte[] reqContent) {
-        KinRpcRequest protocol = ProtocolFactory.createProtocol(KinRpcProtocolId.RPC_REQUEST_PROTOCOL_ID);
+    public static KinRpcResponseProtocol create(long requestId, byte serializer, byte[] respContent) {
+        KinRpcResponseProtocol protocol = ProtocolFactory.createProtocol(KinRpcProtocolId.RPC_RESPONSE_PROTOCOL_ID);
         protocol.requestId = requestId;
         protocol.serializer = serializer;
-        protocol.reqContent = reqContent;
+        protocol.respContent = respContent;
         return protocol;
     }
 
@@ -42,11 +42,11 @@ public class KinRpcRequest extends SocketProtocol {
         this.serializer = serializer;
     }
 
-    public byte[] getReqContent() {
-        return reqContent;
+    public byte[] getRespContent() {
+        return respContent;
     }
 
-    public void setReqContent(byte[] reqContent) {
-        this.reqContent = reqContent;
+    public void setRespContent(byte[] respContent) {
+        this.respContent = respContent;
     }
 }

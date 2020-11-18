@@ -55,8 +55,8 @@ public abstract class KinRpcEndpointHandler extends SocketProtocolHandler {
         if (protocol == null) {
             return;
         }
-        if (protocol instanceof KinRpcRequest) {
-            KinRpcRequest requestProtocol = (KinRpcRequest) protocol;
+        if (protocol instanceof KinRpcRequestProtocol) {
+            KinRpcRequestProtocol requestProtocol = (KinRpcRequestProtocol) protocol;
             handleRpcRequestProtocol(channel, requestProtocol);
         } else {
             //未知协议, 异常直接关闭channel
@@ -68,5 +68,5 @@ public abstract class KinRpcEndpointHandler extends SocketProtocolHandler {
     /**
      * 处理Rpc请求协议
      */
-    protected abstract void handleRpcRequestProtocol(Channel channel, KinRpcRequest requestProtocol);
+    protected abstract void handleRpcRequestProtocol(Channel channel, KinRpcRequestProtocol requestProtocol);
 }

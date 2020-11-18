@@ -1,4 +1,4 @@
-package org.kin.kinrpc.rpc;
+package org.kin.kinrpc.transport.kinrpc;
 
 import java.io.Serializable;
 import java.util.Arrays;

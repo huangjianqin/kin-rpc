@@ -76,8 +76,8 @@ public abstract class KinRpcEndpointRefHandler extends SocketProtocolHandler {
         if (Objects.isNull(protocol)) {
             return;
         }
-        if (protocol instanceof KinRpcResponse) {
-            KinRpcResponse responseProtocol = (KinRpcResponse) protocol;
+        if (protocol instanceof KinRpcResponseProtocol) {
+            KinRpcResponseProtocol responseProtocol = (KinRpcResponseProtocol) protocol;
             handleRpcResponseProtocol(responseProtocol);
         } else {
             //未知协议, 异常直接关闭channel
@@ -97,7 +97,7 @@ public abstract class KinRpcEndpointRefHandler extends SocketProtocolHandler {
     /**
      * 处理返回协议
      */
-    protected abstract void handleRpcResponseProtocol(KinRpcResponse responseProtocol);
+    protected abstract void handleRpcResponseProtocol(KinRpcResponseProtocol responseProtocol);
 
     /**
      * 连接断开逻辑处理

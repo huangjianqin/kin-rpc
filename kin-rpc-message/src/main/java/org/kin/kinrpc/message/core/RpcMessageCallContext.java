@@ -4,7 +4,7 @@ import io.netty.channel.Channel;
 import org.kin.kinrpc.message.transport.domain.RpcEndpointAddress;
 import org.kin.kinrpc.message.transport.protocol.RpcMessage;
 import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
-import org.kin.kinrpc.transport.kinrpc.KinRpcResponse;
+import org.kin.kinrpc.transport.kinrpc.KinRpcResponseProtocol;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -62,7 +62,7 @@ public final class RpcMessageCallContext {
             }
 
             //直接推回去, 不走outbox
-            KinRpcResponse protocol = KinRpcResponse.create(requestId, (byte) rpcEnv.serializer().type(), data);
+            KinRpcResponseProtocol protocol = KinRpcResponseProtocol.create(requestId, (byte) rpcEnv.serializer().type(), data);
             channel.writeAndFlush(protocol);
         }
     }
