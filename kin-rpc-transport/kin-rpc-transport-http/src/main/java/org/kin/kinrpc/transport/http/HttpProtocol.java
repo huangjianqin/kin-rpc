@@ -85,12 +85,14 @@ public class HttpProtocol extends AbstractProxyProtocol {
 
     @Override
     protected <T> T doReference(Class<T> interfaceC, Url url) {
-        //todo 带上类型信息
         boolean useGeneric = Boolean.parseBoolean(url.getParam(Constants.GENERIC_KEY));
+        //todo 不能拿
         boolean byteCodeInvoke = Boolean.parseBoolean(url.getParam(Constants.BYTE_CODE_INVOKE_KEY));
 
         //构建json rpc proxy
         JsonProxyFactoryBean jsonProxyFactoryBean = new JsonProxyFactoryBean();
+        //设置jackson
+        jsonProxyFactoryBean.setObjectMapper(JSON.PARSER);
         HttpRpcProxyFactoryBean httpRpcProxyFactoryBean = new HttpRpcProxyFactoryBean(jsonProxyFactoryBean);
         httpRpcProxyFactoryBean.setRemoteInvocationFactory((methodInvocation) -> {
             RemoteInvocation invocation = new HttpRemoteInvocation(methodInvocation);
@@ -122,11 +124,7 @@ public class HttpProtocol extends AbstractProxyProtocol {
                 return reflectProxyedGenericRpcService((GenericRpcService) proxy, interfaceC);
             }
         } else {
-            if (byteCodeInvoke) {
-                return (T) javassistProxyedReferenceInvoker((T) proxy, interfaceC);
-            } else {
-                return (T) reflectProxyedReferenceInvoker((T) proxy, interfaceC);
-            }
+            return (T) proxy;
         }
     }
 
@@ -140,7 +138,7 @@ public class HttpProtocol extends AbstractProxyProtocol {
     //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * http handler
+     * http server handler
      */
     private class InternalHandler implements HttpHandler {
         private static final String ACCESS_CONTROL_ALLOW_ORIGIN_HEADER = "Access-Control-Allow-Origin";

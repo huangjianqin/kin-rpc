@@ -19,13 +19,14 @@ import java.util.stream.Collectors;
  * @author huangjianqin
  * @date 2019/6/11
  */
-public class Directory {
+public final class Directory {
     private static final Logger log = LoggerFactory.getLogger(Directory.class);
 
-    protected final String serviceName;
-
+    /** 订阅的服务名 */
+    private final String serviceName;
     /** 所有directory的discover和destroy操作都是单线程操作, 利用copy-on-write思想更新可用invokers, 提高list效率 */
     private volatile List<AsyncInvoker> invokers = Collections.emptyList();
+
     private volatile boolean isStopped;
 
     public Directory(String serviceName) {
@@ -106,7 +107,7 @@ public class Directory {
 
                 Preconditions.checkNotNull(protocol, String.format("unknown protocol: %s", protocolName));
 
-                AsyncInvoker referenceInvoker = null;
+                AsyncInvoker referenceInvoker;
                 try {
                     referenceInvoker = protocol.reference(url);
                 } catch (Throwable throwable) {
