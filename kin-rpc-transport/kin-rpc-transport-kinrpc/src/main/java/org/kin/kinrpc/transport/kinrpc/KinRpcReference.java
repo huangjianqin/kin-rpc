@@ -7,10 +7,10 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.utils.ExceptionUtils;
-import org.kin.kinrpc.rpc.AsyncRpcCallback;
-import org.kin.kinrpc.rpc.RpcFuture;
+import org.kin.kinrpc.rpc.KinRpcInvocation;
 import org.kin.kinrpc.rpc.RpcRequest;
 import org.kin.kinrpc.rpc.RpcResponse;
+import org.kin.kinrpc.rpc.RpcThreadPool;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
@@ -29,8 +29,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
 
 /**
  * Created by huangjianqin on 2019/6/14.
@@ -39,7 +39,7 @@ public class KinRpcReference {
     private static final Logger log = LoggerFactory.getLogger(KinRpcReference.class);
     private volatile boolean isStopped;
     /** 异步rpc call future */
-    private Map<Long, RpcFuture> pendingRpcFutureMap = new ConcurrentHashMap<>();
+    private Map<Long, KinRpcInvocation> invocations = new ConcurrentHashMap<>();
 
     private final Url url;
     private final SocketClientTransportOption clientTransportOption;
@@ -87,38 +87,34 @@ public class KinRpcReference {
         log.debug("receive a response >>> " + System.lineSeparator() + rpcResponse);
 
         long requestId = rpcResponse.getRequestId();
-        RpcFuture pendRpcFuture = pendingRpcFutureMap.get(requestId);
-        if (pendRpcFuture != null) {
-            pendRpcFuture.done(rpcResponse);
+        KinRpcInvocation invocation = invocations.get(requestId);
+        if (invocation != null) {
+            invocation.done(rpcResponse);
         }
     }
 
     /**
      * 其他线程
      */
-    public Future<RpcResponse> request(RpcRequest request) {
-        RpcFuture future = new RpcFuture(request);
-        future.addCallback(new AsyncRpcCallback() {
-            @Override
-            public void success(RpcRequest rpcRequest, RpcResponse rpcResponse) {
-                //无论rpc call是否成功, 一次future done操作就需要移除无效RpcRequest
-                removeInvalid(rpcRequest);
+    public CompletableFuture<Object> request(RpcRequest request) {
+        KinRpcInvocation invocation = new KinRpcInvocation(request);
+        CompletableFuture<Object> future = invocation.getFuture().thenApplyAsync(obj -> {
+            removeInvalid(request);
+            //此处才抛出异常, 因为KinRpcInvocation内部需要记录一下信息
+            if (obj instanceof Throwable) {
+                throw new RpcCallErrorException("", (Throwable) obj);
             }
-
-            @Override
-            public void fail(RpcRequest rpcRequest, Exception e) {
-                //无论rpc call是否成功, 一次future done操作就需要移除无效RpcRequest
-                removeInvalid(rpcRequest);
-            }
-        });
+            //返回服务接口结果
+            return obj;
+        }, RpcThreadPool.EXECUTORS);
         if (!isActive()) {
-            future.doneError(new RpcCallErrorException("client channel closed"));
+            invocation.done(new RpcCallErrorException("client channel closed"));
             return future;
         }
         log.debug("send a request>>>" + System.lineSeparator() + request);
 
         try {
-            pendingRpcFutureMap.put(request.getRequestId(), future);
+            invocations.put(request.getRequestId(), invocation);
             referenceHandler.request(request);
         } catch (Exception e) {
             onFail(request.getRequestId(), "client channel write error >>> ".concat(System.lineSeparator()).concat(ExceptionUtils.getExceptionDesc(e)));
@@ -128,12 +124,12 @@ public class KinRpcReference {
     }
 
     public void clean() {
-        for (RpcFuture rpcFuture : pendingRpcFutureMap.values()) {
+        for (KinRpcInvocation rpcFuture : invocations.values()) {
             RpcRequest rpcRequest = rpcFuture.getRequest();
             RpcResponse rpcResponse = RpcResponse.respWithRetry(rpcRequest, "channel inactive");
             rpcFuture.done(rpcResponse);
         }
-        this.pendingRpcFutureMap.clear();
+        this.invocations.clear();
     }
 
     public HostAndPort getAddress() {
@@ -171,16 +167,16 @@ public class KinRpcReference {
      * 已在pendingRpcFutureMap锁内执行
      */
     public void removeInvalid(RpcRequest rpcRequest) {
-        this.pendingRpcFutureMap.remove(rpcRequest.getRequestId());
+        this.invocations.remove(rpcRequest.getRequestId());
     }
 
     /**
      * rpc call fail
      */
     public void onFail(long requestId, String reason) {
-        RpcFuture future = pendingRpcFutureMap.remove(requestId);
-        if (Objects.nonNull(future)) {
-            future.doneError(new RpcCallErrorException(reason));
+        KinRpcInvocation invocation = invocations.remove(requestId);
+        if (Objects.nonNull(invocation)) {
+            invocation.done(new RpcCallErrorException(reason));
         }
     }
 

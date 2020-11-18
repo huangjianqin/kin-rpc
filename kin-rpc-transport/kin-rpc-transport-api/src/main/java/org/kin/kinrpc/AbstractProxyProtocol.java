@@ -18,7 +18,6 @@ import java.lang.reflect.Proxy;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 
 /**
  * 需代理的传输协议
@@ -83,7 +82,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
             }
 
             @Override
-            public Future<Object> invokeAsync(String methodName, Object... params) {
+            public CompletableFuture<Object> invokeAsync(String methodName, Object... params) {
                 return CompletableFuture.supplyAsync(() -> {
                     try {
                         return invoke(methodName, params);

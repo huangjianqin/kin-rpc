@@ -1,7 +1,7 @@
 package org.kin.kinrpc.rpc;
 
 
-import java.util.concurrent.Future;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Created by 健勤 on 2017/2/15.
@@ -14,5 +14,5 @@ public interface AsyncInvoker<T> extends Invoker<T> {
      * @param params     参数
      * @return future
      */
-    Future<Object> invokeAsync(String methodName, Object... params);
+    CompletableFuture<Object> invokeAsync(String methodName, Object... params);
 }

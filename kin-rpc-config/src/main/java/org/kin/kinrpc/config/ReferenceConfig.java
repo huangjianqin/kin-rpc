@@ -34,8 +34,8 @@ public class ReferenceConfig<T> extends AbstractConfig {
     private int timeout = Constants.REFERENCE_DEFAULT_CONNECT_TIMEOUT;
     /** 重试次数 */
     private int retryTimes;
-    /** 重试超时 */
-    private long retryTimeout = Constants.RETRY_TIMEOUT;
+    /** 重试等待时间(即两次重试间隔时间) */
+    private long retryInterval = Constants.RETRY_INTERVAL;
     /** 负载均衡类型 */
     private String loadBalanceType = LoadBalanceType.ROUNDROBIN.getType();
     /** 路由类型 */
@@ -52,6 +52,8 @@ public class ReferenceConfig<T> extends AbstractConfig {
     private ProtocolType protocolType = ProtocolType.KinRpc;
     /** 兼容协议(非kinrpc)是否使用Generic通用接口服务 */
     private boolean useGeneric;
+    /** rpc call超时 */
+    private long callTimeout = Constants.RPC_CALL_TIMEOUT;
 
     /** 唯一url */
     private Url url;
@@ -74,8 +76,9 @@ public class ReferenceConfig<T> extends AbstractConfig {
         this.registryConfig.check();
         Preconditions.checkNotNull(this.interfaceClass, "reference subscribed interface must be not null");
         Preconditions.checkArgument(this.timeout > 0, "connection's timeout must greater than 0");
-        Preconditions.checkArgument(this.retryTimeout > 0, "retrytimeout must greater than 0");
+        Preconditions.checkArgument(this.retryInterval > 0, "retryTimeout must greater than 0");
         Preconditions.checkArgument(this.rate > 0, "rate must be greater than 0");
+        Preconditions.checkArgument(this.callTimeout > 0, "callTimeout must greater than 0");
     }
 
     public synchronized T get() {
@@ -85,13 +88,14 @@ public class ReferenceConfig<T> extends AbstractConfig {
             Map<String, String> params = new HashMap<>(50);
             params.put(Constants.CONNECT_TIMEOUT_KEY, timeout + "");
             params.put(Constants.RETRY_TIMES_KEY, retryTimes + "");
-            params.put(Constants.RETRY_TIMEOUT_KEY, retryTimeout + "");
+            params.put(Constants.RETRY_INTERVAL_KEY, retryInterval + "");
             params.put(Constants.LOADBALANCE_KEY, loadBalanceType);
             params.put(Constants.ROUTER_KEY, routerType);
             params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(InvokeType.JAVASSIST.equals(invokeType)));
             params.put(Constants.RATE_KEY, rate + "");
             params.put(Constants.ASYNC_KEY, Boolean.toString(async));
             params.put(Constants.GENERIC_KEY, Boolean.toString(useGeneric));
+            params.put(Constants.CALL_TIMEOUT_KEY, callTimeout + "");
 
             url = createURL(
                     applicationConfig,
@@ -181,7 +185,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
     public ReferenceConfig<T> retryTimeout(long retryTimeout) {
         if (!isReference) {
-            this.retryTimeout = retryTimeout;
+            this.retryInterval = retryTimeout;
         }
         return this;
     }
@@ -270,6 +274,13 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return this;
     }
 
+    public ReferenceConfig<T> callTimeout(long callTimeout) {
+        if (!isReference) {
+            this.callTimeout = callTimeout;
+        }
+        return this;
+    }
+
     //getter
     public ApplicationConfig getApplicationConfig() {
         return applicationConfig;
@@ -291,8 +302,8 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return retryTimes;
     }
 
-    public long getRetryTimeout() {
-        return retryTimeout;
+    public long getRetryInterval() {
+        return retryInterval;
     }
 
     public String getLoadBalanceType() {

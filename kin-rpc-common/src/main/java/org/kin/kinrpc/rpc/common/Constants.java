@@ -36,8 +36,8 @@ public class Constants {
     public static final String SESSION_TIMEOUT_KEY = "sessionTimeout";
     /** 重试次数 */
     public static final String RETRY_TIMES_KEY = "retryTimes";
-    /** 重试超时时间 */
-    public static final String RETRY_TIMEOUT_KEY = "retryTimeout";
+    /** 重试等待时间(即两次重试间隔时间) */
+    public static final String RETRY_INTERVAL_KEY = "retryTimeout";
     /** 序列化方式 */
     public static final String SERIALIZE_KEY = "serialize";
     /** 路由策略 */
@@ -54,6 +54,8 @@ public class Constants {
     public static final String ASYNC_KEY = "async";
     /** 兼容协议(非kinrpc)是否使用Generic通用接口服务 */
     public static final String GENERIC_KEY = "useGeneric";
+    /** rpc call等待时间(ms) */
+    public static final String CALL_TIMEOUT_KEY = "callTimeout";
 
     //-------------------------------------------------配置value--------------------------------------------------------
     /** 注册中心会话超时(ms) */
@@ -62,8 +64,8 @@ public class Constants {
     public static final int SERVER_DEFAULT_PORT = 16888;
     /** directURLs register url splitor */
     public static final String DIRECT_URLS_REGISTRY_SPLITOR = ";";
-    /** 等待重试时间(ms) */
-    public static final long RETRY_TIMEOUT = 50;
+    /** 重试等待时间(即两次重试间隔时间)(ms) */
+    public static final int RETRY_INTERVAL = 50;
     /**
      * provide默认流控
      * 每秒n次
@@ -84,6 +86,9 @@ public class Constants {
 
     /** Reference默认配置 */
     public static final int REFERENCE_DEFAULT_CONNECT_TIMEOUT = 5000;
+
+    /** rpc call等待时间(ms) */
+    public static final int RPC_CALL_TIMEOUT = 500;
 
     //-------------------------------------------------传输协议相关--------------------------------------------------------
     public static final String GENERIC = "generic";

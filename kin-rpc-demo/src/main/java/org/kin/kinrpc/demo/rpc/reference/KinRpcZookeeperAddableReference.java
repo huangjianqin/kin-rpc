@@ -6,7 +6,7 @@ import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.References;
 import org.kin.kinrpc.demo.rpc.service.Addable;
 import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
-import org.kin.kinrpc.rpc.exception.RpcRetryException;
+import org.kin.kinrpc.rpc.exception.RpcCallRetryException;
 import org.kin.kinrpc.rpc.exception.UnknownRpcResponseStateCodeException;
 
 import java.util.concurrent.CompletableFuture;
@@ -38,7 +38,7 @@ public class KinRpcZookeeperAddableReference {
 //                CompletableFuture<String> completableFuture = service.get("A");
 //                System.out.println(completableFuture.handleAsync((s, t) -> s + s).get());
 //                service.throwException();
-            } catch (RpcRetryException | CannotFindInvokerException | RpcCallErrorException | UnknownRpcResponseStateCodeException | ExecutionException e) {
+            } catch (RpcCallRetryException | CannotFindInvokerException | RpcCallErrorException | UnknownRpcResponseStateCodeException | ExecutionException e) {
 
             }
 
