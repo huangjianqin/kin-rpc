@@ -1,7 +1,6 @@
 package org.kin.kinrpc.registry.redis;
 
 import org.kin.framework.log.LoggerOprs;
-import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.registry.AbstractRegistryFactory;
 import org.kin.kinrpc.registry.Registry;
 import org.kin.kinrpc.rpc.common.Constants;
@@ -19,16 +18,9 @@ public class RedisRegistryFactory extends AbstractRegistryFactory implements Log
     @Override
     public Registry getRegistry(Url url) {
         String address = url.getParam(Constants.REGISTRY_URL_KEY);
-        //解析地址
-        Object[] addressParseResult = NetUtils.parseIpPort(address);
-        String host = addressParseResult[0].toString();
-        int port = Integer.parseInt(addressParseResult[1].toString());
-
-        long sessionTimeout = Long.parseLong(url.getParam(Constants.SESSION_TIMEOUT_KEY));
-        long watchInterval = Long.parseLong(url.getParam(Constants.WATCH_INTERVAL_KEY));
 
         try {
-            Registry registry = REGISTRY_CACHE.get(address, () -> new RedisRegistry(host, port, sessionTimeout, watchInterval));
+            Registry registry = REGISTRY_CACHE.get(address, () -> new RedisRegistry(url));
             registry.connect();
             registry.retain();
             return registry;

@@ -7,9 +7,11 @@ import io.lettuce.core.api.sync.RedisCommands;
 import org.kin.framework.concurrent.ExecutionContext;
 import org.kin.framework.concurrent.keeper.Keeper;
 import org.kin.framework.log.LoggerOprs;
+import org.kin.framework.utils.NetUtils;
 import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.registry.AbstractRegistry;
 import org.kin.kinrpc.registry.Directory;
+import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 
 import java.time.Duration;
@@ -46,11 +48,16 @@ public final class RedisRegistry extends AbstractRegistry implements LoggerOprs 
     /** 执行RedisDirectory discover 的worker */
     private ExecutionContext watcherCtx = ExecutionContext.fix(SysUtils.CPU_NUM + 1, "redis-watcher");
 
-    public RedisRegistry(String host, int port, long sessionTimeout, long watchInterval) {
-        this.host = host;
-        this.port = port;
-        this.sessionTimeout = sessionTimeout;
-        this.watchInterval = watchInterval;
+    public RedisRegistry(Url url) {
+        super(url);
+        String address = url.getParam(Constants.REGISTRY_URL_KEY);
+        //解析地址
+        Object[] addressParseResult = NetUtils.parseIpPort(address);
+        this.host = addressParseResult[0].toString();
+        this.port = Integer.parseInt(addressParseResult[1].toString());
+
+        this.sessionTimeout = Long.parseLong(url.getParam(Constants.SESSION_TIMEOUT_KEY));
+        this.watchInterval = Long.parseLong(url.getParam(Constants.WATCH_INTERVAL_KEY));
     }
 
     @Override
@@ -84,7 +91,7 @@ public final class RedisRegistry extends AbstractRegistry implements LoggerOprs 
 
     private void watch0(RedisCommands<String, String> redisCommands, String serviceName, Directory directory) {
         Set<String> urlStrs = redisCommands.smembers(getServiceKey(serviceName));
-        directory.discover(urlStrs.stream().map(Url::of).collect(Collectors.toList()));
+        directory.discover(url, urlStrs.stream().map(Url::of).collect(Collectors.toList()));
     }
 
     /**

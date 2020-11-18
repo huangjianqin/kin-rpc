@@ -10,6 +10,7 @@ import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.kinrpc.registry.AbstractRegistry;
 import org.kin.kinrpc.registry.Directory;
 import org.kin.kinrpc.registry.common.RegistryConstants;
+import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,11 +34,12 @@ public final class ZookeeperRegistry extends AbstractRegistry {
     private final String address;
 
     private CuratorFramework client;
-    private final long sessionTimeOut;
+    private final long sessionTimeout;
 
-    public ZookeeperRegistry(String address, long sessionTimeOut) {
-        this.address = address;
-        this.sessionTimeOut = sessionTimeOut;
+    public ZookeeperRegistry(Url url) {
+        super(url);
+        this.address = url.getParam(Constants.REGISTRY_URL_KEY);
+        this.sessionTimeout = Long.parseLong(url.getParam(Constants.SESSION_TIMEOUT_KEY));
     }
 
     @Override
@@ -48,7 +50,7 @@ public final class ZookeeperRegistry extends AbstractRegistry {
         client = CuratorFrameworkFactory
                 .builder()
                 .connectString(address)
-                .sessionTimeoutMs((int) sessionTimeOut)
+                .sessionTimeoutMs((int) sessionTimeout)
                 .retryPolicy(retryPolicy)
                 .threadFactory(new SimpleThreadFactory("curator"))
                 //根节点会多出一个以命名空间名称所命名的节点
@@ -67,7 +69,7 @@ public final class ZookeeperRegistry extends AbstractRegistry {
                 log.info("disconnect to zookeeper server");
                 handleConnectError();
             } else if (ConnectionState.SUSPENDED.equals(connectionState)) {
-                log.error("connect to zookeeper server timeout '{}'", sessionTimeOut);
+                log.error("connect to zookeeper server timeout '{}'", sessionTimeout);
                 handleConnectError();
             }
         });
@@ -171,7 +173,7 @@ public final class ZookeeperRegistry extends AbstractRegistry {
 
                 if (watchedEvent.getType() == Watcher.Event.EventType.NodeDeleted) {
                     log.info("service '" + directory.getServiceName() + "' node deleted");
-                    directory.discover(Collections.emptyList());
+                    directory.discover(url, Collections.emptyList());
                     //监控服务节点即可, 等待服务重新注册
                     watchServiveNode(directory);
                 }
@@ -215,7 +217,7 @@ public final class ZookeeperRegistry extends AbstractRegistry {
                     urls.add(Url.of(new String(data)));
                 }
             }
-            directory.discover(urls);
+            directory.discover(url, urls);
         } catch (KeeperException e) {
             log.error(e.getMessage(), e);
         } catch (InterruptedException e) {
@@ -228,7 +230,7 @@ public final class ZookeeperRegistry extends AbstractRegistry {
     private void handleConnectError() {
         //断连时, 让所有directory持有的invoker失效
         for (Directory directory : directoryCache.asMap().values()) {
-            directory.discover(Collections.emptyList());
+            directory.discover(url, Collections.emptyList());
         }
     }
 
@@ -246,8 +248,8 @@ public final class ZookeeperRegistry extends AbstractRegistry {
     }
 
     //setter && getter
-    public long getSessionTimeOut() {
-        return sessionTimeOut;
+    public long getSessionTimeout() {
+        return sessionTimeout;
     }
 
     public String getAddress() {

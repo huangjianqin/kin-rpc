@@ -96,6 +96,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
             params.put(Constants.ASYNC_KEY, Boolean.toString(async));
             params.put(Constants.GENERIC_KEY, Boolean.toString(useGeneric));
             params.put(Constants.CALL_TIMEOUT_KEY, callTimeout + "");
+            params.put(Constants.INTERFACE_KEY, interfaceClass.getName());
 
             url = createURL(
                     applicationConfig,

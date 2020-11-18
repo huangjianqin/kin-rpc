@@ -18,7 +18,7 @@ public class ZookeeperRegistryFactory extends AbstractRegistryFactory {
         long sessionTimeout = Long.parseLong(url.getParam(Constants.SESSION_TIMEOUT_KEY));
 
         try {
-            Registry registry = REGISTRY_CACHE.get(address, () -> new ZookeeperRegistry(address, sessionTimeout));
+            Registry registry = REGISTRY_CACHE.get(address, () -> new ZookeeperRegistry(url));
             registry.connect();
             registry.retain();
             return registry;

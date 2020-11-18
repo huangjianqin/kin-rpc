@@ -134,6 +134,19 @@ public class Url implements Serializable, Cloneable {
     }
 
     /**
+     * 合并url, consumer > provider
+     */
+    public static Url mergeUrl(Url sinkUrl, Url sourceUrl) {
+        Map<String, String> params = sourceUrl.params;
+        params.putAll(sinkUrl.params);
+        return new Url(
+                sourceUrl.protocol, sourceUrl.username, sourceUrl.password,
+                sourceUrl.host, sourceUrl.port, sourceUrl.path, params);
+    }
+
+    //----------------------------------------------------------------------------------------------------------------
+
+    /**
      * 获取url参数
      */
     public String getParam(String k) {

@@ -61,8 +61,11 @@ public final class Directory {
     /**
      * 发现可用服务的address, 并构建reference invoker
      */
-    public void discover(List<Url> urls) {
+    public void discover(Url referenceUrl, List<Url> urls) {
         if (!isStopped) {
+            //利用consumer url覆盖provider url
+            urls = urls.stream().map(url -> Url.mergeUrl(referenceUrl, url)).collect(Collectors.toList());
+
             ArrayList<AsyncInvoker> originInvokers = new ArrayList<>(invokers);
 
             StringBuilder sb = new StringBuilder();

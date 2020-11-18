@@ -2,6 +2,7 @@ package org.kin.kinrpc.registry;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import org.kin.kinrpc.rpc.common.Url;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -12,6 +13,13 @@ public abstract class AbstractRegistry implements Registry {
     protected final Cache<String, Directory> directoryCache = CacheBuilder.newBuilder().build();
 
     private AtomicInteger ref = new AtomicInteger(0);
+    /** provider or reference的url */
+    protected final Url url;
+
+    public AbstractRegistry(Url url) {
+        this.url = url;
+    }
+
 
     @Override
     public void retain() {

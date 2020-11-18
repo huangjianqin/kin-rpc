@@ -86,7 +86,6 @@ public class HttpProtocol extends AbstractProxyProtocol {
     @Override
     protected <T> T doReference(Class<T> interfaceC, Url url) {
         boolean useGeneric = Boolean.parseBoolean(url.getParam(Constants.GENERIC_KEY));
-        //todo 不能拿
         boolean byteCodeInvoke = Boolean.parseBoolean(url.getParam(Constants.BYTE_CODE_INVOKE_KEY));
 
         //构建json rpc proxy
