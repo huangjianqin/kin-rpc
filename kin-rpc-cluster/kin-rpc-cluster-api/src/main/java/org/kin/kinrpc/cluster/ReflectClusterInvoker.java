@@ -42,7 +42,7 @@ final class ReflectClusterInvoker<T> extends ClusterInvoker<T> implements Invoca
         if (isAsync()) {
             //async rpc call
             RpcContext.updateFuture(future);
-            return null;
+            return ClassUtils.getDefaultValue(method.getReturnType());
         } else {
             //sync rpc call
             try {

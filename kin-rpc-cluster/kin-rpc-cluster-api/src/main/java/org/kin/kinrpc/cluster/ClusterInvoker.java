@@ -140,7 +140,7 @@ abstract class ClusterInvoker<T> implements Closeable {
                         callTimeout, TimeUnit.MILLISECONDS));
             }
         } else {
-            throw new CannotFindInvokerException(methodName);
+            throw new CannotFindInvokerException(url.getServiceName(), methodName);
         }
     }
 

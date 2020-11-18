@@ -35,7 +35,7 @@ public class AddableReference {
                 System.out.println(future.get());
                 service.notifyTest();
             } catch (Exception e) {
-                System.err.println(e);
+                e.printStackTrace();
             }
 
             TimeUnit.MILLISECONDS.sleep(300);

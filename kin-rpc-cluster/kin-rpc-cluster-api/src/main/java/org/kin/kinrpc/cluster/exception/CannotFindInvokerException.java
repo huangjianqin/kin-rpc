@@ -6,10 +6,10 @@ package org.kin.kinrpc.cluster.exception;
  */
 public class CannotFindInvokerException extends RuntimeException {
     public CannotFindInvokerException() {
-        this("");
+        this("", "");
     }
 
-    public CannotFindInvokerException(String methedName) {
-        super("cannot find valid invoker '".concat(methedName).concat("'"));
+    public CannotFindInvokerException(String serviceName, String methedName) {
+        super(String.format("cannot find valid invoker(serviceName='%s', methedName='%s')", serviceName, methedName));
     }
 }
