@@ -49,12 +49,15 @@ public class Url implements Serializable, Cloneable {
 
         this.serviceName = getParam(Constants.SERVICE_NAME_KEY);
         String version = getParam(Constants.VERSION_KEY);
-        if(StringUtils.isNotBlank(version)){
-            this.serviceName += ("#" + version);
+        if (StringUtils.isNotBlank(version)) {
+            this.serviceName += ("-" + version);
         }
         this.interfaceN = getParam(Constants.INTERFACE_KEY);
     }
 
+    /**
+     * parse url string
+     */
     public static Url of(String url) {
         if (StringUtils.isBlank(url)) {
             throw new IllegalArgumentException("url == null");
@@ -138,10 +141,15 @@ public class Url implements Serializable, Cloneable {
      */
     public static Url mergeUrl(Url sinkUrl, Url sourceUrl) {
         Map<String, String> params = sourceUrl.params;
+        if (CollectionUtils.isEmpty(params)) {
+            params = new HashMap<>();
+        }
         params.putAll(sinkUrl.params);
         return new Url(
                 sourceUrl.protocol, sourceUrl.username, sourceUrl.password,
-                sourceUrl.host, sourceUrl.port, sourceUrl.path, params);
+                sourceUrl.host, sourceUrl.port,
+                StringUtils.isNotBlank(sourceUrl.path) ? sourceUrl.path : sinkUrl.path,
+                params);
     }
 
     //----------------------------------------------------------------------------------------------------------------

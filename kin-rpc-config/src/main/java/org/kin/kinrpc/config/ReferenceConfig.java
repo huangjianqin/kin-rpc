@@ -12,7 +12,6 @@ import org.kin.kinrpc.cluster.router.Routers;
 import org.kin.kinrpc.rpc.Notifier;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
-import org.kin.kinrpc.transport.ProtocolType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +29,10 @@ public class ReferenceConfig<T> extends AbstractConfig {
     private AbstractRegistryConfig registryConfig;
     /** 服务接口 */
     private Class<T> interfaceClass;
+    /** 服务名 */
+    private String serviceName;
+    /** 版本号 */
+    private String version = "0.1.0.0";
     /** 连接超时 */
     private int timeout = Constants.REFERENCE_DEFAULT_CONNECT_TIMEOUT;
     /** 重试次数 */
@@ -48,8 +51,6 @@ public class ReferenceConfig<T> extends AbstractConfig {
     private boolean async;
     /** async rpc call 事件通知 */
     private List<Notifier<?>> notifiers = new ArrayList<>();
-    /** 协议类型 */
-    private ProtocolType protocolType = ProtocolType.KinRpc;
     /** 兼容协议(非kinrpc)是否使用Generic通用接口服务 */
     private boolean useGeneric;
     /** rpc call超时 */
@@ -64,6 +65,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
     ReferenceConfig(Class<T> interfaceClass) {
         this.interfaceClass = interfaceClass;
+        this.serviceName = interfaceClass.getName();
     }
 
     //---------------------------------------------------------------------------------------------------------
@@ -86,6 +88,8 @@ public class ReferenceConfig<T> extends AbstractConfig {
             check();
 
             Map<String, String> params = new HashMap<>(50);
+            params.put(Constants.SERVICE_NAME_KEY, serviceName);
+            params.put(Constants.VERSION_KEY, version);
             params.put(Constants.CONNECT_TIMEOUT_KEY, timeout + "");
             params.put(Constants.RETRY_TIMES_KEY, retryTimes + "");
             params.put(Constants.RETRY_INTERVAL_KEY, retryInterval + "");
@@ -103,7 +107,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
                     NetUtils.getIp(),
                     registryConfig,
                     params,
-                    protocolType);
+                    null);
             Preconditions.checkNotNull(url);
 
             reference = Clusters.reference(url, interfaceClass, notifiers);
@@ -131,6 +135,20 @@ public class ReferenceConfig<T> extends AbstractConfig {
     public ReferenceConfig<T> appName(String appName) {
         if (!isReference) {
             this.applicationConfig = new ApplicationConfig(appName);
+        }
+        return this;
+    }
+
+    public ReferenceConfig<T> serviceName(String serviceName) {
+        if (!isReference) {
+            this.serviceName = serviceName;
+        }
+        return this;
+    }
+
+    public ReferenceConfig<T> version(String version) {
+        if (!isReference) {
+            this.version = version;
         }
         return this;
     }
@@ -234,44 +252,53 @@ public class ReferenceConfig<T> extends AbstractConfig {
     }
 
     public ReferenceConfig<T> javaInvoke() {
-        this.invokeType = InvokeType.JAVA;
+        if (!isReference) {
+            this.invokeType = InvokeType.JAVA;
+        }
         return this;
     }
 
     public ReferenceConfig<T> javassistInvoke() {
-        this.invokeType = InvokeType.JAVASSIST;
+        if (!isReference) {
+            this.invokeType = InvokeType.JAVASSIST;
+        }
         return this;
     }
 
     public ReferenceConfig<T> rate(int rate) {
-        this.rate = rate;
+        if (!isReference) {
+            this.rate = rate;
+        }
         return this;
     }
 
     public ReferenceConfig<T> async() {
-        this.async = true;
+        if (!isReference) {
+            this.async = true;
+        }
         return this;
     }
 
     public ReferenceConfig<T> notify(Class<? extends Notifier<?>>... notifierClasses) {
-        for (Class<? extends Notifier<?>> notifierClass : notifierClasses) {
-            notify(ClassUtils.instance(notifierClass));
+        if (!isReference) {
+            for (Class<? extends Notifier<?>> notifierClass : notifierClasses) {
+                notify(ClassUtils.instance(notifierClass));
+            }
         }
         return this;
     }
 
     public ReferenceConfig<T> notify(Notifier<?>... notifiers) {
-        this.notifiers.addAll(Arrays.asList(notifiers));
-        return this;
-    }
-
-    public ReferenceConfig<T> protocol(ProtocolType protocolType) {
-        this.protocolType = protocolType;
+        if (!isReference) {
+            this.notifiers.addAll(Arrays.asList(notifiers));
+        }
         return this;
     }
 
     public ReferenceConfig<T> useGeneric() {
-        this.useGeneric = true;
+        if (!isReference) {
+            this.useGeneric = true;
+        }
         return this;
     }
 
@@ -325,10 +352,6 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
     public boolean isAsync() {
         return async;
-    }
-
-    public ProtocolType getProtocolType() {
-        return protocolType;
     }
 
     public boolean isUseGeneric() {

@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 public class AddableReference {
     protected static ReferenceConfig<Addable> config() {
         return References.reference(Addable.class)
+                .version("001")
                 .async()
                 .notify(Return1Notifier.N)
                 .rate(10000);

@@ -32,12 +32,13 @@ public class ServiceConfig<T> extends AbstractConfig {
     private Class<T> interfaceClass;
     /** 服务名 */
     private String serviceName;
+    /** 版本号 */
+    private String version = "0.1.0.0";
     /** 序列化类型, 在kinrpc协议下生效 */
     private int serialize = SerializerType.KRYO.getCode();
     /** 服务调用类型(invoker收到请求后, 用哪种方式调用服务) */
     private InvokeType invokeType = InvokeType.JAVASSIST;
-    /** 版本号 */
-    private String version = "0.1.0.0";
+
     /** 压缩类型, 在kinrpc协议下生效 todo 考虑降低耦合性 */
     private CompressionType compressionType = CompressionType.NONE;
     /** 默认支持并发执行 */
@@ -93,9 +94,9 @@ public class ServiceConfig<T> extends AbstractConfig {
 
             Map<String, String> params = new HashMap<>(50);
             params.put(Constants.SERVICE_NAME_KEY, serviceName);
+            params.put(Constants.VERSION_KEY, version);
             params.put(Constants.SERIALIZE_KEY, serialize + "");
             params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(InvokeType.JAVASSIST.equals(invokeType)));
-            params.put(Constants.VERSION_KEY, version);
             params.put(Constants.COMPRESSION_KEY, Integer.toString(compressionType.getId()));
             params.put(Constants.PARALLELISM_KEY, parallelism + "");
             params.put(Constants.RATE_KEY, rate + "");
@@ -142,6 +143,18 @@ public class ServiceConfig<T> extends AbstractConfig {
         if (!isExport) {
             this.applicationConfig = new ApplicationConfig(appName);
         }
+        return this;
+    }
+
+    public ServiceConfig<T> serviceName(String serviceName) {
+        if (!isExport) {
+            this.serviceName = serviceName;
+        }
+        return this;
+    }
+
+    public ServiceConfig<T> version(String version) {
+        this.version = version;
         return this;
     }
 
@@ -194,13 +207,6 @@ public class ServiceConfig<T> extends AbstractConfig {
         return this;
     }
 
-    public ServiceConfig<T> serviceName(String serviceName) {
-        if (!isExport) {
-            this.serviceName = serviceName;
-        }
-        return this;
-    }
-
     public ServiceConfig<T> serialize(Class<? extends Serializer> serializerClass) {
         if (!isExport) {
             this.serialize = Serializers.getOrLoadSerializer(serializerClass);
@@ -216,37 +222,44 @@ public class ServiceConfig<T> extends AbstractConfig {
     }
 
     public ServiceConfig<T> javaInvoke() {
-        this.invokeType = InvokeType.JAVA;
+        if (!isExport) {
+            this.invokeType = InvokeType.JAVA;
+        }
         return this;
     }
 
     public ServiceConfig<T> javassistInvoke() {
-        this.invokeType = InvokeType.JAVASSIST;
-        return this;
-    }
-
-    public ServiceConfig<T> version(String version) {
-        this.version = version;
+        if (!isExport) {
+            this.invokeType = InvokeType.JAVASSIST;
+        }
         return this;
     }
 
     public ServiceConfig<T> compress(CompressionType compressionType) {
-        this.compressionType = compressionType;
+        if (!isExport) {
+            this.compressionType = compressionType;
+        }
         return this;
     }
 
     public ServiceConfig<T> actorLike() {
-        this.parallelism = false;
+        if (!isExport) {
+            this.parallelism = false;
+        }
         return this;
     }
 
     public ServiceConfig<T> rate(int rate) {
-        this.rate = rate;
+        if (!isExport) {
+            this.rate = rate;
+        }
         return this;
     }
 
     public ServiceConfig<T> protocol(ProtocolType protocolType) {
-        this.protocolType = protocolType;
+        if (!isExport) {
+            this.protocolType = protocolType;
+        }
         return this;
     }
 

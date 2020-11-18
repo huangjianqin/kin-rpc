@@ -10,6 +10,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Created by huangjianqin on 2019/6/25.
@@ -33,10 +34,13 @@ abstract class AbstractConfig {
                             Map<String, String> otherParams,
                             ProtocolType protocolType) {
         StringBuilder sb = new StringBuilder();
-        sb.append(protocolType.name().toLowerCase() + "://").append(hostPort);
-        //目前是appName/serviceName
-        sb.append("/").append(applicationConfig.getAppName());
-        sb.append("/").append(otherParams.get(Constants.SERVICE_NAME_KEY));
+        if (Objects.nonNull(protocolType)) {
+            sb.append(protocolType.name().toLowerCase() + "://");
+        }
+        sb.append(hostPort);
+        //目前是/serviceName#version
+        sb.append("/").append(otherParams.get(Constants.SERVICE_NAME_KEY))
+                .append("-").append(otherParams.get(Constants.VERSION_KEY));
         sb.append("?");
 
         Map<String, String> params = new HashMap<>(Constants.URL_PARAM_NUM);
