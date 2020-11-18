@@ -34,9 +34,9 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
         boolean useByteCode = Boolean.parseBoolean(url.getParam(Constants.BYTE_CODE_INVOKE_KEY));
         T proxy;
         if (useByteCode) {
-            proxy = javassistProxyedInvoker(invoker, interfaceC);
+            proxy = javassistProxyedProviderInvoker(invoker, interfaceC);
         } else {
-            proxy = reflectProxyedInvoker(invoker, interfaceC);
+            proxy = reflectProxyedProviderInvoker(invoker, interfaceC);
         }
 
         Runnable destroyRunnable = doExport(proxy, interfaceC, url);
@@ -126,7 +126,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
      * 代理invoker的invoker, 相当于reference了, 但其实是provider, provider端的reference
      * 基于反射代理的invoker
      */
-    private <T> T reflectProxyedInvoker(Invoker<T> invoker, Class<T> interfaceC) {
+    private <T> T reflectProxyedProviderInvoker(Invoker<T> invoker, Class<T> interfaceC) {
         return (T) Proxy.newProxyInstance(interfaceC.getClassLoader(), new Class<?>[]{interfaceC, GenericRpcService.class}, new InvocationHandler() {
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -142,11 +142,13 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
      * 代理invoker的invoker, 相当于reference了, 但其实是provider, provider端的reference
      * 基于javassist代理的invoker
      */
-    private <T> T javassistProxyedInvoker(Invoker<T> invoker, Class<T> interfaceC) {
+    private <T> T javassistProxyedProviderInvoker(Invoker<T> invoker, Class<T> interfaceC) {
         Class<? extends AbstractProxyProtocol> myClass = getClass();
         String ctClassName =
                 myClass.getPackage().getName().concat(".")
                         .concat(myClass.getSimpleName())
+                        .concat("$")
+                        .concat("Provider")
                         .concat("$")
                         .concat(interfaceC.getSimpleName());
         Class<T> realProxyClass = null;
@@ -180,13 +182,13 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
 
                     //生成服务接口方法方法体
                     for (Method method : interfaceC.getDeclaredMethods()) {
-                        CtMethod ctMethod = CtMethod.make(ClassUtils.generateMethodContent(method, generateServiceMethodBody(method)), proxyClass);
+                        CtMethod ctMethod = CtMethod.make(ClassUtils.generateMethodContent(method, generateProviderServiceMethodBody(method)), proxyClass);
                         proxyClass.addMethod(ctMethod);
                     }
 
-                    //生成服务接口方法方法体
+                    //生成通用服务接口方法方法体
                     for (Method method : GenericRpcService.class.getDeclaredMethods()) {
-                        CtMethod ctMethod = CtMethod.make(ClassUtils.generateMethodContent(method, generateGenericRpcServiceMethodBody()), proxyClass);
+                        CtMethod ctMethod = CtMethod.make(ClassUtils.generateMethodContent(method, generateProviderGenericRpcServiceMethodBody()), proxyClass);
                         proxyClass.addMethod(ctMethod);
                     }
 
@@ -202,7 +204,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
         return null;
     }
 
-    private String generateServiceMethodBody(Method method) {
+    private String generateProviderServiceMethodBody(Method method) {
         //真正逻辑
         StringBuilder methodBody = new StringBuilder();
 
@@ -258,7 +260,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
     /**
      * 生成限流代码
      */
-    private String generateGenericRpcServiceMethodBody() {
+    private String generateProviderGenericRpcServiceMethodBody() {
         //真正逻辑
         StringBuilder methodBody = new StringBuilder();
 
@@ -270,6 +272,189 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
 
         //return
         methodBody.append("return ").append(invokeCodeStr).append(System.lineSeparator());
+
+        return methodBody.toString();
+    }
+
+    /**
+     * 代理类为{@link GenericRpcService}的服务接口实现类
+     * 基于反射
+     */
+    protected <T> T reflectProxyedGenericRpcService(GenericRpcService genericRpcService, Class<T> interfaceC) {
+        return (T) Proxy.newProxyInstance(interfaceC.getClassLoader(), new Class<?>[]{interfaceC}, new InvocationHandler() {
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                return genericRpcService.invoke(ClassUtils.getUniqueName(method), args);
+            }
+        });
+    }
+
+    /**
+     * 代理类为{@link GenericRpcService}的服务接口实现类
+     * 基于javassist
+     */
+    protected <T> T javassistProxyedGenericRpcService(GenericRpcService genericRpcService, Class<T> interfaceC) {
+        Class<? extends AbstractProxyProtocol> myClass = getClass();
+        String ctClassName =
+                myClass.getPackage().getName().concat(".")
+                        .concat(myClass.getSimpleName())
+                        .concat("$")
+                        .concat(GenericRpcService.class.getSimpleName())
+                        .concat("$")
+                        .concat(interfaceC.getSimpleName());
+        Class<T> realProxyClass = null;
+        try {
+            realProxyClass = (Class<T>) Class.forName(ctClassName);
+        } catch (ClassNotFoundException e) {
+
+        }
+
+        try {
+            if (Objects.isNull(realProxyClass)) {
+                ClassPool classPool = ProxyEnhanceUtils.getPool();
+                CtClass proxyClass = classPool.getOrNull(ctClassName);
+
+                if (Objects.isNull(proxyClass)) {
+                    proxyClass = classPool.makeClass(ctClassName);
+                    //服务接口
+                    proxyClass.addInterface(classPool.get(interfaceC.getName()));
+                    //通用接口
+                    proxyClass.addInterface(classPool.get(GenericRpcService.class.getName()));
+
+                    CtField invokerField = new CtField(classPool.get(GenericRpcService.class.getName()), ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME, proxyClass);
+                    invokerField.setModifiers(Modifier.PRIVATE | Modifier.FINAL);
+                    proxyClass.addField(invokerField);
+
+                    //构造器
+                    CtConstructor constructor = new CtConstructor(
+                            new CtClass[]{classPool.get(GenericRpcService.class.getName())}, proxyClass);
+                    constructor.setBody("{$0.".concat(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME).concat(" = $1;").concat("}"));
+                    proxyClass.addConstructor(constructor);
+
+                    //生成服务接口方法方法体
+                    for (Method method : interfaceC.getDeclaredMethods()) {
+                        CtMethod ctMethod = CtMethod.make(ClassUtils.generateMethodContent(method, generateProviderServiceMethodBody(method)), proxyClass);
+                        proxyClass.addMethod(ctMethod);
+                    }
+
+                    //生成通用服务接口方法方法体
+                    for (Method method : GenericRpcService.class.getDeclaredMethods()) {
+                        CtMethod ctMethod = CtMethod.make(ClassUtils.generateMethodContent(method, generateProviderGenericRpcServiceMethodBody()), proxyClass);
+                        proxyClass.addMethod(ctMethod);
+                    }
+
+                    ProxyEnhanceUtils.cacheCTClass(ctClassName, proxyClass);
+                }
+
+                realProxyClass = (Class<T>) proxyClass.toClass();
+            }
+            return realProxyClass.getConstructor(GenericRpcService.class).newInstance(genericRpcService);
+        } catch (Exception e) {
+            error(e.getMessage(), e);
+        }
+        return null;
+    }
+
+    /**
+     * 以特定协议代理类为代理的服务接口实现类
+     * 基于反射
+     */
+    protected <T> T reflectProxyedReferenceInvoker(T implProxy, Class<T> interfaceC) {
+        return (T) Proxy.newProxyInstance(interfaceC.getClassLoader(), new Class<?>[]{interfaceC, GenericRpcService.class}, new InvocationHandler() {
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                return method.invoke(implProxy, args);
+            }
+        });
+    }
+
+    /**
+     * 以特定协议代理类为代理的服务接口实现类
+     * 基于javassist
+     */
+    protected <T> T javassistProxyedReferenceInvoker(T proxy, Class<T> interfaceC) {
+        Class<? extends AbstractProxyProtocol> myClass = getClass();
+        String ctClassName =
+                myClass.getPackage().getName().concat(".")
+                        .concat(myClass.getSimpleName())
+                        .concat("$")
+                        .concat("Reference")
+                        .concat("$")
+                        .concat(interfaceC.getSimpleName());
+        Class<T> realProxyClass = null;
+        try {
+            realProxyClass = (Class<T>) Class.forName(ctClassName);
+        } catch (ClassNotFoundException e) {
+
+        }
+
+        try {
+            if (Objects.isNull(realProxyClass)) {
+                ClassPool classPool = ProxyEnhanceUtils.getPool();
+                CtClass proxyClass = classPool.getOrNull(ctClassName);
+
+                if (Objects.isNull(proxyClass)) {
+                    proxyClass = classPool.makeClass(ctClassName);
+                    //服务接口
+                    proxyClass.addInterface(classPool.get(interfaceC.getName()));
+
+                    CtField invokerField = new CtField(classPool.get(interfaceC.getName()), ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME, proxyClass);
+                    invokerField.setModifiers(Modifier.PRIVATE | Modifier.FINAL);
+                    proxyClass.addField(invokerField);
+
+                    //构造器
+                    CtConstructor constructor = new CtConstructor(
+                            new CtClass[]{classPool.get(interfaceC.getName())}, proxyClass);
+                    constructor.setBody("{$0.".concat(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME).concat(" = $1;").concat("}"));
+                    proxyClass.addConstructor(constructor);
+
+                    //生成服务接口方法方法体
+                    for (Method method : interfaceC.getDeclaredMethods()) {
+                        CtMethod ctMethod = CtMethod.make(ClassUtils.generateMethodContent(method, generateReferenceServiceMethodBody(method)), proxyClass);
+                        proxyClass.addMethod(ctMethod);
+                    }
+
+                    ProxyEnhanceUtils.cacheCTClass(ctClassName, proxyClass);
+                }
+
+                realProxyClass = (Class<T>) proxyClass.toClass();
+            }
+            return realProxyClass.getConstructor(interfaceC).newInstance(proxy);
+        } catch (Exception e) {
+            error(e.getMessage(), e);
+        }
+        return null;
+    }
+
+    private String generateReferenceServiceMethodBody(Method method) {
+        //真正逻辑
+        StringBuilder methodBody = new StringBuilder();
+
+        //rpc call代码
+        StringBuilder invokeCode = new StringBuilder();
+        invokeCode.append(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME.concat(".").concat(method.getName()));
+        invokeCode.append("(");
+
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        StringJoiner argsCode = new StringJoiner(",");
+        for (int i = 0; i < parameterTypes.length; i++) {
+            argsCode.add("arg".concat(Integer.toString(i)));
+        }
+        invokeCode.append(argsCode.toString());
+        invokeCode.append(")");
+        String invokeCodeStr = invokeCode.toString();
+
+        //after rpc call逻辑
+        Class<?> returnType = method.getReturnType();
+        boolean isVoid = Void.class.equals(returnType) || Void.TYPE.equals(returnType);
+
+        methodBody.append("try{").append(System.lineSeparator());
+        //方法返回
+        if (!isVoid) {
+            methodBody.append("return ");
+        }
+        methodBody.append(invokeCodeStr)
+                .append(";").append(System.lineSeparator());
 
         return methodBody.toString();
     }

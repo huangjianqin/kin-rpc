@@ -1,8 +1,10 @@
 package org.kin.kinrpc.transport.http;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.googlecode.jsonrpc4j.JsonRpcServer;
 import com.googlecode.jsonrpc4j.spring.JsonProxyFactoryBean;
 import org.kin.framework.utils.JSON;
@@ -28,6 +30,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class HttpProtocol extends AbstractProxyProtocol {
     static {
         ObjectMapper objectMapper = JSON.PARSER;
+        //带上类型信息
+        objectMapper.activateDefaultTyping(
+                LaissezFaireSubTypeValidator.instance,
+                ObjectMapper.DefaultTyping.NON_FINAL,
+                JsonTypeInfo.As.PROPERTY);
         //允许未知属性
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         //允许空bean
@@ -78,7 +85,9 @@ public class HttpProtocol extends AbstractProxyProtocol {
 
     @Override
     protected <T> T doReference(Class<T> interfaceC, Url url) {
+        //todo 带上类型信息
         boolean useGeneric = Boolean.parseBoolean(url.getParam(Constants.GENERIC_KEY));
+        boolean byteCodeInvoke = Boolean.parseBoolean(url.getParam(Constants.BYTE_CODE_INVOKE_KEY));
 
         //构建json rpc proxy
         JsonProxyFactoryBean jsonProxyFactoryBean = new JsonProxyFactoryBean();
@@ -98,10 +107,27 @@ public class HttpProtocol extends AbstractProxyProtocol {
         }
         httpRpcProxyFactoryBean.setServiceUrl(key);
         //设置服务接口
-        httpRpcProxyFactoryBean.setServiceInterface(interfaceC);
+        if (useGeneric) {
+            httpRpcProxyFactoryBean.setServiceInterface(GenericRpcService.class);
+        } else {
+            httpRpcProxyFactoryBean.setServiceInterface(interfaceC);
+        }
         jsonProxyFactoryBean.afterPropertiesSet();
         //获取代理类
-        return (T) jsonProxyFactoryBean.getObject();
+        Object proxy = jsonProxyFactoryBean.getObject();
+        if (useGeneric) {
+            if (byteCodeInvoke) {
+                return javassistProxyedGenericRpcService((GenericRpcService) proxy, interfaceC);
+            } else {
+                return reflectProxyedGenericRpcService((GenericRpcService) proxy, interfaceC);
+            }
+        } else {
+            if (byteCodeInvoke) {
+                return (T) javassistProxyedReferenceInvoker((T) proxy, interfaceC);
+            } else {
+                return (T) reflectProxyedReferenceInvoker((T) proxy, interfaceC);
+            }
+        }
     }
 
     @Override
