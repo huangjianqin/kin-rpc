@@ -27,7 +27,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
     @Override
-    public final <T> Exporter<T> export(Invoker<T> invoker) {
+    public final <T> Exporter<T> export(Invoker<T> invoker) throws Throwable {
         Url url = invoker.url();
         Class<T> interfaceC = invoker.getInterface();
 
@@ -55,12 +55,12 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
     }
 
     @Override
-    public final <T> AsyncInvoker<T> reference(Url url) {
+    public final <T> AsyncInvoker<T> reference(Url url) throws Throwable {
         Class<T> interfaceC;
         try {
             interfaceC = (Class<T>) Class.forName(url.getInterfaceN());
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            throw e;
         }
         T proxy = doReference(interfaceC, url);
         return new ReferenceInvoker<T>(url) {

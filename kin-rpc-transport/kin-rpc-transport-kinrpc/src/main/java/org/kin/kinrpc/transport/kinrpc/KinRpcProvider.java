@@ -112,7 +112,7 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
      */
     public void bind() {
         if (isStopped) {
-            throw new RuntimeException("try start stopped provider");
+            throw new IllegalStateException("try start stopped provider");
         }
         handle(rpcProvider -> {
             log.info("provider(port={}) starting...", getPort());

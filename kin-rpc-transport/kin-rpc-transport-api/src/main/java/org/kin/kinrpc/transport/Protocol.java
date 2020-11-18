@@ -22,7 +22,7 @@ public interface Protocol {
      * @param <T>     service类型
      * @return protocol wrappered invoker
      */
-    <T> Exporter<T> export(Invoker<T> invoker);
+    <T> Exporter<T> export(Invoker<T> invoker) throws Throwable;
 
     /**
      * reference service
@@ -31,7 +31,7 @@ public interface Protocol {
      * @param <T>  service类型
      * @return protocol wrappered invoker
      */
-    <T> AsyncInvoker<T> reference(Url url);
+    <T> AsyncInvoker<T> reference(Url url) throws Throwable;
 
     /**
      * 释放占用资源

@@ -106,7 +106,12 @@ public class Directory {
 
                 Preconditions.checkNotNull(protocol, String.format("unknown protocol: %s", protocolName));
 
-                AsyncInvoker referenceInvoker = protocol.reference(url);
+                AsyncInvoker referenceInvoker = null;
+                try {
+                    referenceInvoker = protocol.reference(url);
+                } catch (Throwable throwable) {
+                    throw new RuntimeException(throwable);
+                }
                 validInvokers.add(referenceInvoker);
             }
 

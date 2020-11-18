@@ -30,7 +30,7 @@ final class ReflectClusterInvoker<T> extends ClusterInvoker<T> implements Invoca
     }
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) {
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         log.debug("invoke method '".concat(ClassUtils.getUniqueName(method)).concat("'"));
 
         //限流
@@ -48,7 +48,7 @@ final class ReflectClusterInvoker<T> extends ClusterInvoker<T> implements Invoca
             try {
                 return future.get();
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw e;
             }
         }
     }

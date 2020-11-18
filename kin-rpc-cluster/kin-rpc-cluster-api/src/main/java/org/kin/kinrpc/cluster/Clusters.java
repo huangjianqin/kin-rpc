@@ -63,7 +63,12 @@ public class Clusters {
 
         //todo 可以考虑再包装一层exporter
         //先启动服务
-        Exporter<T> export = protocol.export(invoker);
+        Exporter<T> export = null;
+        try {
+            export = protocol.export(invoker);
+        } catch (Throwable throwable) {
+            throw new RuntimeException(throwable);
+        }
         EXPORTER_CACHE.put(url, export);
 
         //再注册
