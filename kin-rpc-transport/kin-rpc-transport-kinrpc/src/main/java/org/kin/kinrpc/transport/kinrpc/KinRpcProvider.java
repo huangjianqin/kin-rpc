@@ -6,10 +6,12 @@ import io.netty.channel.ChannelOption;
 import org.kin.framework.concurrent.actor.PinnedThreadSafeHandler;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.rpc.Invoker;
+import org.kin.kinrpc.rpc.ProviderFutureContext;
 import org.kin.kinrpc.rpc.RpcThreadPool;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RateLimitException;
+import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 import org.kin.kinrpc.rpc.invoker.RateLimitInvoker;
 import org.kin.kinrpc.serializer.Serializer;
 import org.kin.kinrpc.serializer.Serializers;
@@ -27,7 +29,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 /**
@@ -215,6 +219,11 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
         Object result = null;
         try {
             result = invoker.invoke(methodName, params);
+            if (ProviderFutureContext.asyncReturn()) {
+                //provider service异步返回结果
+                handlerServiceAsyncReturn(channel, rpcRequest, rpcResponse);
+                return;
+            }
             rpcResponse.setState(RpcResponse.State.SUCCESS, "success");
         } catch (RateLimitException e) {
             rpcResponse.setState(RpcResponse.State.RETRY, "service rate limited, just reject");
@@ -224,6 +233,44 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
             log.error(throwable.getMessage(), throwable);
         }
 
+        responseRpcCall(result, channel, rpcRequest, rpcResponse);
+    }
+
+    /**
+     * 处理provider service异步返回结果
+     */
+    private void handlerServiceAsyncReturn(Channel channel, RpcRequest rpcRequest, RpcResponse rpcResponse) {
+        //获取并移除future
+        Future<Object> future = ProviderFutureContext.future();
+        ProviderFutureContext.reset();
+
+        CompletableFuture.supplyAsync(() -> {
+            try {
+                return future.get();
+            } catch (Exception e) {
+                throw new RpcCallErrorException(e.getMessage());
+            }
+        }, RpcThreadPool.providerWorkers()).thenAcceptAsync(obj -> {
+            rpcResponse.setState(RpcResponse.State.SUCCESS, "success");
+
+            responseRpcCall(obj, channel, rpcRequest, rpcResponse);
+        }, RpcThreadPool.providerWorkers()).exceptionally(th -> {
+            if (th instanceof RateLimitException) {
+                rpcResponse.setState(RpcResponse.State.RETRY, "service rate limited, just reject");
+            } else {
+                //服务调用报错, 将异常信息返回
+                rpcResponse.setState(RpcResponse.State.ERROR, th.getMessage());
+                log.error(th.getMessage(), th);
+            }
+            responseRpcCall(null, channel, rpcRequest, rpcResponse);
+            return null;
+        });
+    }
+
+    /**
+     * 响应rpc call
+     */
+    private void responseRpcCall(Object result, Channel channel, RpcRequest rpcRequest, RpcResponse rpcResponse) {
         rpcResponse.setResult(result);
         rpcResponse.setCreateTime(System.currentTimeMillis());
         //write back to reference

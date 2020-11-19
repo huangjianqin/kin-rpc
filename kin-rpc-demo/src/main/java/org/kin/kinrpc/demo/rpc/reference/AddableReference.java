@@ -17,7 +17,8 @@ public class AddableReference {
         return References.reference(Addable.class)
                 .version("001")
                 .async()
-                .notify(Return1Notifier.N)
+                .notify(Return1Notifier.N, Return2Notifier.N)
+                .callTimeout(2000)
                 .rate(10000);
     }
 
@@ -35,6 +36,8 @@ public class AddableReference {
                 future = RpcContext.future();
                 System.out.println(future.get());
                 service.notifyTest();
+
+                service.asyncReturn();
             } catch (Exception e) {
                 e.printStackTrace();
             }

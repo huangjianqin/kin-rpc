@@ -64,7 +64,7 @@ public class RpcThreadPool {
         if (Objects.isNull(PROVIDER_WORKER)) {
             synchronized (RpcThreadPool.class) {
                 if (Objects.isNull(PROVIDER_WORKER)) {
-                    //todo 因为存在可能服务有阻塞操作, 所以用cache, 待后续解决服务可以异步执行, 则可以优化线程池数量
+                    //provider服务存在future阻塞等待操作, 所以用cache
                     PROVIDER_WORKER =
                             ExecutionContext.cache("rpc-provider");
                 }

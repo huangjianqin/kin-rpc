@@ -36,8 +36,7 @@ public abstract class ProviderInvoker<T> extends AbstractInvoker<T> {
     }
 
     /**
-     * rpc调用方法真正实现
-     * todo 支持future
+     * rpc call 接口方法调用
      *
      * @param methodName 方法名
      * @param params     方法参数

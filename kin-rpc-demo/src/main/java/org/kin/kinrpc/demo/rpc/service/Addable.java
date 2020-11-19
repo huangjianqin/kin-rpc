@@ -15,4 +15,6 @@ public interface Addable {
     void throwException();
 
     Return1 notifyTest();
+
+    Return2 asyncReturn();
 }
