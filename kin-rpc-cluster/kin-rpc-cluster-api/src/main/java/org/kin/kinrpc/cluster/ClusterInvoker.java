@@ -134,7 +134,7 @@ abstract class ClusterInvoker<T> implements Closeable {
                         }
                         return null;
                     });
-            if (callTimeout > 0) {
+            if (callTimeout > 0 && !provider.isDone()) {
                 clusterInvocation.updateFuture(RpcThreadPool.executors().schedule(
                         () -> provider.completeExceptionally(new RpcCallTimeOutException("rpc call time out")),
                         callTimeout, TimeUnit.MILLISECONDS));
