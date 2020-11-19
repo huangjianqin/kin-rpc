@@ -89,7 +89,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
                     } catch (Throwable throwable) {
                         throw new RuntimeException(throwable);
                     }
-                }, RpcThreadPool.EXECUTORS);
+                }, RpcThreadPool.executors());
             }
 
             @Override

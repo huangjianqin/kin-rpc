@@ -103,7 +103,7 @@ public class KinRpcReference {
             }
             //返回服务接口结果
             return obj;
-        }, RpcThreadPool.EXECUTORS);
+        }, RpcThreadPool.executors());
         if (!isActive()) {
             invocation.done(new RpcCallErrorException("client channel closed"));
             return future;

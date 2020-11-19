@@ -83,7 +83,7 @@ abstract class ClusterInvoker<T> implements Closeable {
                         notifier.onRpcCallSuc(obj);
                     }
                 }
-            }, RpcThreadPool.EXECUTORS);
+            }, RpcThreadPool.executors());
         }
         return clusterInvocation.consumer;
     }
@@ -96,7 +96,7 @@ abstract class ClusterInvoker<T> implements Closeable {
             invoke1(clusterInvocation, methodName, params);
         } catch (CannotFindInvokerException e) {
             if (clusterInvocation.failure()) {
-                RpcThreadPool.EXECUTORS.schedule(
+                RpcThreadPool.executors().schedule(
                         () -> invoke0(clusterInvocation, methodName, params),
                         retryInterval, TimeUnit.MILLISECONDS);
             } else {
@@ -118,10 +118,10 @@ abstract class ClusterInvoker<T> implements Closeable {
             //rpc call 返回结果 provier future
             CompletableFuture<Object> provider = invoker.invokeAsync(methodName, params);
             clusterInvocation.rpcCall(invoker);
-            provider.thenAcceptAsync(clusterInvocation::done, RpcThreadPool.EXECUTORS)
+            provider.thenAcceptAsync(clusterInvocation::done, RpcThreadPool.executors())
                     .exceptionally(throwable -> {
                         if (clusterInvocation.failure()) {
-                            RpcThreadPool.EXECUTORS.schedule(
+                            RpcThreadPool.executors().schedule(
                                     () -> invoke1(clusterInvocation, methodName, params),
                                     retryInterval, TimeUnit.MILLISECONDS);
                         } else {
@@ -135,7 +135,7 @@ abstract class ClusterInvoker<T> implements Closeable {
                         return null;
                     });
             if (callTimeout > 0) {
-                clusterInvocation.updateFuture(RpcThreadPool.EXECUTORS.schedule(
+                clusterInvocation.updateFuture(RpcThreadPool.executors().schedule(
                         () -> provider.completeExceptionally(new RpcCallTimeOutException("rpc call time out")),
                         callTimeout, TimeUnit.MILLISECONDS));
             }

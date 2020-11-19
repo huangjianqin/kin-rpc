@@ -32,7 +32,7 @@ public class KinRpcInvocation {
     public KinRpcInvocation(RpcRequest request) {
         this.request = request;
         this.startTime = System.currentTimeMillis();
-        future = rootFuture.thenApplyAsync(this::handleResult, RpcThreadPool.EXECUTORS);
+        future = rootFuture.thenApplyAsync(this::handleResult, RpcThreadPool.executors());
     }
 
     /**

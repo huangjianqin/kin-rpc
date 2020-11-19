@@ -52,7 +52,7 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
     private volatile boolean isStopped = false;
 
     public KinRpcProvider(String host, int port, Serializer serializer, CompressionType compressionType) {
-        super(RpcThreadPool.PROVIDER_WORKER);
+        super(RpcThreadPool.providerWorkers());
         this.serializer = serializer;
 
         if (StringUtils.isNotBlank(host)) {
@@ -179,7 +179,7 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
                 InvokerWrapper invokerWrapper = services.get(serviceName);
                 if (invokerWrapper.parallelism) {
                     //并发处理
-                    RpcThreadPool.PROVIDER_WORKER.execute(() -> handlerRpcRequest0(invokerWrapper.getInvoker(), methodName, params, channel, rpcRequest, rpcResponse));
+                    RpcThreadPool.providerWorkers().execute(() -> handlerRpcRequest0(invokerWrapper.getInvoker(), methodName, params, channel, rpcRequest, rpcResponse));
                 } else {
                     //同一invoker同一线程处理
                     invokerWrapper.handle(iw -> handlerRpcRequest0(invokerWrapper.getInvoker(), methodName, params, channel, rpcRequest, rpcResponse));
@@ -272,7 +272,7 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
         private final boolean parallelism;
 
         public InvokerWrapper(Invoker invoker) {
-            super(RpcThreadPool.PROVIDER_WORKER);
+            super(RpcThreadPool.providerWorkers());
             this.invoker = invoker;
             this.parallelism = Boolean.parseBoolean(invoker.url().getParam(Constants.PARALLELISM_KEY));
         }

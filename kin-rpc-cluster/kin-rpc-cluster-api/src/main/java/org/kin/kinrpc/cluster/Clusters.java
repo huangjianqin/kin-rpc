@@ -3,8 +3,6 @@ package org.kin.kinrpc.cluster;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import org.kin.framework.JvmCloseCleaner;
-import org.kin.framework.concurrent.actor.PinnedThreadSafeFuturesManager;
 import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
 import org.kin.kinrpc.cluster.loadbalance.LoadBalances;
 import org.kin.kinrpc.cluster.router.Router;
@@ -14,7 +12,6 @@ import org.kin.kinrpc.registry.Registry;
 import org.kin.kinrpc.rpc.Exporter;
 import org.kin.kinrpc.rpc.Invoker;
 import org.kin.kinrpc.rpc.Notifier;
-import org.kin.kinrpc.rpc.RpcThreadPool;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.invoker.JavassistProviderInvoker;
@@ -36,10 +33,6 @@ public class Clusters {
 
     private static final Cache<String, ClusterInvoker> REFERENCE_CACHE = CacheBuilder.newBuilder().build();
     private static final Cache<Url, Exporter> EXPORTER_CACHE = CacheBuilder.newBuilder().build();
-
-    static {
-        JvmCloseCleaner.DEFAULT().add(Clusters::shutdown);
-    }
 
     private Clusters() {
     }
@@ -159,19 +152,5 @@ public class Clusters {
         }
 
         REFERENCE_CACHE.invalidate(url.getServiceName());
-    }
-
-    /**
-     * RPC集群shutdown
-     */
-    public static synchronized void shutdown() {
-        for (ClusterInvoker<?> clusterInvoker : REFERENCE_CACHE.asMap().values()) {
-            clusterInvoker.close();
-            Registries.closeRegistry(clusterInvoker.getUrl());
-        }
-        //没有任何RPC 实例运行中
-        RpcThreadPool.PROVIDER_WORKER.shutdown();
-        RpcThreadPool.EXECUTORS.shutdown();
-        PinnedThreadSafeFuturesManager.instance().close();
     }
 }
