@@ -14,7 +14,6 @@ import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.RpcServiceLoader;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.transport.http.tomcat.TomcatHttpBinder;
-import org.springframework.remoting.support.RemoteInvocation;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -93,13 +92,13 @@ public class HttpProtocol extends AbstractProxyProtocol {
         //设置jackson
         jsonProxyFactoryBean.setObjectMapper(JSON.PARSER);
         HttpRpcProxyFactoryBean httpRpcProxyFactoryBean = new HttpRpcProxyFactoryBean(jsonProxyFactoryBean);
-        httpRpcProxyFactoryBean.setRemoteInvocationFactory((methodInvocation) -> {
-            RemoteInvocation invocation = new HttpRemoteInvocation(methodInvocation);
-            if (useGeneric) {
-                invocation.addAttribute(Constants.GENERIC_KEY, useGeneric);
-            }
-            return invocation;
-        });
+//        httpRpcProxyFactoryBean.setRemoteInvocationFactory((methodInvocation) -> {
+//            RemoteInvocation invocation = new HttpRemoteInvocation(methodInvocation);
+//            if (useGeneric) {
+//                invocation.addAttribute(Constants.GENERIC_KEY, useGeneric);
+//            }
+//            return invocation;
+//        });
 
         //json rpc请求的url path
         String key = url.identityStr();
