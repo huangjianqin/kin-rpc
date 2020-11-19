@@ -239,6 +239,9 @@ public class KinRpcReference {
         }
     }
 
+    /**
+     * 用于reference发送失败时, 及时作出响应
+     */
     private class ReferenceRequestListener implements ChannelFutureListener {
         private long requestId;
 
