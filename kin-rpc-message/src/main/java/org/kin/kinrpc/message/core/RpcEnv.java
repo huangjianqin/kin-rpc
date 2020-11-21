@@ -5,6 +5,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.concurrent.ExecutionContext;
+import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.actor.Dispatcher;
 import org.kin.framework.concurrent.actor.EventBasedDispatcher;
 import org.kin.framework.utils.CollectionUtils;
@@ -36,6 +37,9 @@ import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * RPC环境
@@ -67,7 +71,15 @@ public final class RpcEnv {
      * rpc环境公用线程池, 除了dispatcher以外, 都用这个线程池
      */
     public ExecutionContext commonExecutors =
-            ExecutionContext.fix(SysUtils.getSuitableThreadNum(), "rpc-env", 5, "rpc-env-schedule");
+            new ExecutionContext(
+                    //executor, 有界扩容的线程池, 允许线程数扩容到一定程度(10倍CPU核心数), 如果超过这个能力, 则buffer
+                    new ThreadPoolExecutor(
+                            SysUtils.getSuitableThreadNum(), SysUtils.CPU_NUM * 10,
+                            60L, TimeUnit.SECONDS,
+                            new LinkedBlockingQueue<>(),
+                            new SimpleThreadFactory("rpc-env")),
+                    //scheduler
+                    2, "rpc-env-scheduler");
     /** 事件调度 */
     private Dispatcher<String, RpcMessageCallContext> dispatcher;
     private final KinRpcAddress address;
