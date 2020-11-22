@@ -2,13 +2,9 @@ package org.kin.kinrpc.rpc;
 
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.concurrent.ExecutionContext;
-import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.utils.SysUtils;
 
 import java.util.Objects;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author huangjianqin
@@ -46,15 +42,8 @@ public class RpcThreadPool {
         if (Objects.isNull(EXECUTORS)) {
             synchronized (RpcThreadPool.class) {
                 if (Objects.isNull(EXECUTORS)) {
-                    EXECUTORS = new ExecutionContext(
-                            //executor, 有界扩容的线程池, 允许线程数扩容到一定程度(10倍CPU核心数), 如果超过这个能力, 则buffer
-                            new ThreadPoolExecutor(
-                                    SysUtils.getSuitableThreadNum(), SysUtils.CPU_NUM * 10,
-                                    60L, TimeUnit.SECONDS,
-                                    new LinkedBlockingQueue<>(),
-                                    new SimpleThreadFactory("rpc-common")),
-                            //scheduler
-                            2, "rpc-common-scheduler");
+                    EXECUTORS = ExecutionContext.elastic(SysUtils.getSuitableThreadNum(), SysUtils.CPU_NUM * 10,
+                            "rpc-common", 2, "rpc-common-scheduler");
                 }
             }
         }
@@ -68,13 +57,8 @@ public class RpcThreadPool {
         if (Objects.isNull(PROVIDER_WORKER)) {
             synchronized (RpcThreadPool.class) {
                 if (Objects.isNull(PROVIDER_WORKER)) {
-                    PROVIDER_WORKER = new ExecutionContext(
-                            //executor, 有界扩容的线程池, 允许线程数扩容到一定程度(10倍CPU核心数), 如果超过这个能力, 则buffer
-                            new ThreadPoolExecutor(
-                                    SysUtils.getSuitableThreadNum(), SysUtils.CPU_NUM * 10,
-                                    60L, TimeUnit.SECONDS,
-                                    new LinkedBlockingQueue<>(),
-                                    new SimpleThreadFactory("rpc-provider")));
+                    PROVIDER_WORKER = ExecutionContext.elastic(SysUtils.getSuitableThreadNum(), SysUtils.CPU_NUM * 10,
+                            "rpc-provider");
                 }
             }
         }
