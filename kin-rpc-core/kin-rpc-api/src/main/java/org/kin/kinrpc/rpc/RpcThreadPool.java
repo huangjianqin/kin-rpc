@@ -42,15 +42,8 @@ public class RpcThreadPool {
         if (Objects.isNull(EXECUTORS)) {
             synchronized (RpcThreadPool.class) {
                 if (Objects.isNull(EXECUTORS)) {
-                    /**
-                     * kinrpc协议全调用链支持异步操作故可以适当减少线程数量, 但在同步rpc call时, 仍然存在阻塞, 所以用cache保证有足够线程处理请求
-                     *
-                     * 其他协议:
-                     * 1. http rpc call是会阻塞等待, 所以还是需要cache
-                     */
-                    EXECUTORS = ExecutionContext.cache(
-                            SysUtils.getSuitableThreadNum(), Integer.MAX_VALUE, "rpc-common",
-                            5, "rpc-common-schedule");
+                    EXECUTORS = ExecutionContext.elastic(SysUtils.getSuitableThreadNum(), SysUtils.CPU_NUM * 10,
+                            "rpc-common", 2, "rpc-common-scheduler");
                 }
             }
         }
@@ -64,9 +57,8 @@ public class RpcThreadPool {
         if (Objects.isNull(PROVIDER_WORKER)) {
             synchronized (RpcThreadPool.class) {
                 if (Objects.isNull(PROVIDER_WORKER)) {
-                    //provider服务存在future阻塞等待操作, 所以用cache
-                    PROVIDER_WORKER =
-                            ExecutionContext.cache("rpc-provider");
+                    PROVIDER_WORKER = ExecutionContext.elastic(SysUtils.getSuitableThreadNum(), SysUtils.CPU_NUM * 10,
+                            "rpc-provider");
                 }
             }
         }
