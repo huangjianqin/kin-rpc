@@ -54,7 +54,6 @@ public class Clusters {
             invoker = new ReflectProviderInvoker<>(url, instance, interfaceClass);
         }
 
-        //todo 可以考虑再包装一层exporter
         //先启动服务
         Exporter<T> export = null;
         try {

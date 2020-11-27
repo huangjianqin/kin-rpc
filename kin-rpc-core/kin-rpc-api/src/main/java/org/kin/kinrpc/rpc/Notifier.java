@@ -2,8 +2,9 @@ package org.kin.kinrpc.rpc;
 
 /**
  * async rpc call 事件通知
+ * 前提是rpc回调结果对应的类不会重复
  *
- * @param <T> rpc接口返回结果 todo 目前假设rpc回调结果对应的类不会重复
+ * @param <T> rpc接口返回结果
  * @author huangjianqin
  * @date 2020/11/13
  */
