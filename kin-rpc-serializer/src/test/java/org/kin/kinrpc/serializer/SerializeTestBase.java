@@ -14,7 +14,7 @@ public class SerializeTestBase {
      * 测试逻辑
      */
     private static void test(Serializer serializer, Consumer<byte[]> afterSerialize, BiFunction<Type, Type, Void> afterDeserialize) throws IOException, ClassNotFoundException {
-        Type origin = new Type(1, "aa", new Type(0, "empty", null));
+        Type origin = new Type(1, "aa", new Type(2, "empty", null));
         byte[] bytes = serializer.serialize(origin);
         if (Objects.nonNull(afterSerialize)) {
             afterSerialize.accept(bytes);
