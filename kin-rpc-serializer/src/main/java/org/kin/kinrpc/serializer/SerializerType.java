@@ -28,6 +28,10 @@ public enum SerializerType {
      * gson, google优化过的json, 更加适合java开发
      */
     GSON(6),
+    /**
+     * avro
+     */
+    AVRO(7),
     ;
     /** 唯一标识 */
     private int code;
