@@ -20,6 +20,10 @@ public enum SerializerType {
      * json序列化
      */
     JSON(4),
+    /**
+     * protostuff, 与protobuf性能接近, 但不需要编写的.proto的protobuf工具
+     */
+    PROTOSTUFF(5),
     ;
     /** 唯一标识 */
     private int code;

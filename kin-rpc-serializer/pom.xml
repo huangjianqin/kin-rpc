@@ -13,6 +13,12 @@
     <packaging>jar</packaging>
 
     <dependencies>
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-rpc-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- 序列化包-->
         <!-- hessian-->
         <dependency>
@@ -41,10 +47,17 @@
             <version>${jackson.version}</version>
         </dependency>
 
+        <!-- protostuff -->
         <dependency>
-            <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-common</artifactId>
-            <version>${project.version}</version>
+            <groupId>io.protostuff</groupId>
+            <artifactId>protostuff-core</artifactId>
+            <version>${protostuff.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.protostuff</groupId>
+            <artifactId>protostuff-runtime</artifactId>
+            <version>${protostuff.version}</version>
+        </dependency>
+
     </dependencies>
 </project>

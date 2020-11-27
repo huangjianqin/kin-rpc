@@ -42,6 +42,7 @@
         <tomcat.version>8.5.31</tomcat.version>
         <spring.version>5.2.7.RELEASE</spring.version>
         <portlet_version>2.0</portlet_version>
+        <protostuff.version>1.5.9</protostuff.version>
     </properties>
 
     <dependencies>
