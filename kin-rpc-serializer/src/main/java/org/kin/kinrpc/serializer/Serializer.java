@@ -6,6 +6,7 @@ import org.kin.framework.utils.SPI;
 import java.io.IOException;
 
 /**
+ * todo 某些序列化框架支持注册class优化性能, 后续可以考虑使用通用接口优化序列化性能
  * Created by 健勤 on 2017/2/10.
  */
 @SPI(value = "kryo", key = "serializer")
