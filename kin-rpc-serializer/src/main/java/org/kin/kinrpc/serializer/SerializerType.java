@@ -24,6 +24,10 @@ public enum SerializerType {
      * protostuff, 与protobuf性能接近, 但不需要编写的.proto的protobuf工具
      */
     PROTOSTUFF(5),
+    /**
+     * gson, google优化过的json, 更加适合java开发
+     */
+    GSON(6),
     ;
     /** 唯一标识 */
     private int code;
