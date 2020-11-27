@@ -1,12 +1,16 @@
 package org.kin.kinrpc.serializer;
 
+import java.io.Serializable;
+
 /**
  * 序列化测试的类
  *
  * @author huangjianqin
  * @date 2020/11/27
  */
-public class Type {
+public class Type implements Serializable {
+    private static final long serialVersionUID = -3399588049581257541L;
+
     private int a;
     private String b;
     private Object copy;
