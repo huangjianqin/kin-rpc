@@ -37,7 +37,7 @@ public class AvroSerializer implements Serializer {
     }
 
     @Override
-    public <T> T deserialize(byte[] bytes, Class<T> targetClass) throws IOException, ClassNotFoundException {
+    public <T> T deserialize(byte[] bytes, Class<T> targetClass) throws IOException {
         //不支持不确定类型的反序列化
         BinaryDecoder decoder = DECODER_FACTORY.binaryDecoder(bytes, null);
 

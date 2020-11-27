@@ -9,20 +9,18 @@ import org.kin.framework.utils.JSON;
 import org.kin.kinrpc.serializer.Serializer;
 import org.kin.kinrpc.serializer.SerializerType;
 
-import java.io.IOException;
-
 /**
  * @author huangjianqin
  * @date 2019/7/29
  */
 public class JsonSerializer implements Serializer {
     @Override
-    public byte[] serialize(Object target) throws IOException {
+    public byte[] serialize(Object target) {
         return JSON.writeBytes(target);
     }
 
     @Override
-    public <T> T deserialize(byte[] bytes, Class<T> targetClass) throws IOException {
+    public <T> T deserialize(byte[] bytes, Class<T> targetClass) {
         return JSON.read(bytes, targetClass);
     }
 
