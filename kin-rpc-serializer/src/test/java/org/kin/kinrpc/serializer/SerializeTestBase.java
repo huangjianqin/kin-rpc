@@ -13,13 +13,13 @@ public class SerializeTestBase {
     /**
      * 测试逻辑
      */
-    private static void test(Serializer serializer, Consumer<byte[]> afterSerialize, BiFunction<Type, Type, Void> afterDeserialize) throws IOException, ClassNotFoundException {
-        Type origin = new Type(1, "aa", new Type(2, "empty", null));
+    private static void test(Serializer serializer, Consumer<byte[]> afterSerialize, BiFunction<Message, Message, Void> afterDeserialize) throws IOException, ClassNotFoundException {
+        Message origin = new Message(1, "aa", new Message(2, "empty", null));
         byte[] bytes = serializer.serialize(origin);
         if (Objects.nonNull(afterSerialize)) {
             afterSerialize.accept(bytes);
         }
-        Type deserialize = serializer.deserialize(bytes, Type.class);
+        Message deserialize = serializer.deserialize(bytes, Message.class);
         if (Objects.nonNull(afterDeserialize)) {
             afterDeserialize.apply(origin, deserialize);
         }
@@ -38,7 +38,7 @@ public class SerializeTestBase {
     public static class Builder {
         private final Serializer serializer;
         private Consumer<byte[]> afterSerialize;
-        private BiFunction<Type, Type, Void> afterDeserialize;
+        private BiFunction<Message, Message, Void> afterDeserialize;
 
         public Builder(SerializerType type) {
             this(Serializers.getSerializer(type.getCode()));
@@ -53,7 +53,7 @@ public class SerializeTestBase {
             return this;
         }
 
-        public Builder afterDeserialize(BiFunction<Type, Type, Void> afterDeserialize) {
+        public Builder afterDeserialize(BiFunction<Message, Message, Void> afterDeserialize) {
             this.afterDeserialize = afterDeserialize;
             return this;
         }

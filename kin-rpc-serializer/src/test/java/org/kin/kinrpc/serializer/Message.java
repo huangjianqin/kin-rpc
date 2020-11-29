@@ -8,17 +8,17 @@ import java.io.Serializable;
  * @author huangjianqin
  * @date 2020/11/27
  */
-public class Type implements Serializable {
+public class Message implements Serializable {
     private static final long serialVersionUID = -3399588049581257541L;
 
     private int a;
     private String b;
     private Object copy;
 
-    public Type() {
+    public Message() {
     }
 
-    public Type(int a, String b, Object copy) {
+    public Message(int a, String b, Object copy) {
         this.a = a;
         this.b = b;
         this.copy = copy;
