@@ -3,38 +3,17 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>kin-rpc-parent</artifactId>
+        <artifactId>kin-rpc-serializer</artifactId>
         <groupId>org.kin</groupId>
         <version>0.1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>kin-rpc-demo</artifactId>
+
+    <artifactId>kin-rpc-serializer-test</artifactId>
     <version>0.1.0.0</version>
     <packaging>jar</packaging>
 
-    <properties>
-    </properties>
-
     <dependencies>
-        <dependency>
-            <groupId>org.kin</groupId>
-            <artifactId>kin-rpc</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-registry-zookeeper</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-message</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <!-- 序列化 -->
         <dependency>
             <groupId>org.kin</groupId>
             <artifactId>kin-rpc-serializer-avro</artifactId>
@@ -67,6 +46,12 @@
 
         <dependency>
             <groupId>org.kin</groupId>
+            <artifactId>kin-rpc-serializer-kryo</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.kin</groupId>
             <artifactId>kin-rpc-serializer-protobuf</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -78,4 +63,40 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <extensions>
+            <extension>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>1.6.2</version>
+            </extension>
+        </extensions>
+
+        <plugins>
+            <plugin>
+                <groupId>org.xolstice.maven.plugins</groupId>
+                <artifactId>protobuf-maven-plugin</artifactId>
+                <version>0.5.0</version>
+                <configuration>
+                    <protoSourceRoot>${basedir}/src/main/java/org/kin/kinrpc/serializer/protobuf/message
+                    </protoSourceRoot>
+                    <protocArtifact>
+                        com.google.protobuf:protoc:3.1.0:exe:${os.detected.classifier}
+                    </protocArtifact>
+                    <pluginId>grpc-java</pluginId>
+                    <!--                    <pluginArtifact>-->
+                    <!--                        io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}-->
+                    <!--                    </pluginArtifact>-->
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>compile-custom</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

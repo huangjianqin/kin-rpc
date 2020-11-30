@@ -3,39 +3,33 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>kin-rpc-transport</artifactId>
+        <artifactId>kin-rpc-serializer</artifactId>
         <groupId>org.kin</groupId>
         <version>0.1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>kin-rpc-transport-kinrpc</artifactId>
+    <artifactId>kin-rpc-serializer-protostuff</artifactId>
     <version>0.1.0.0</version>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-transport-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.kin</groupId>
-            <artifactId>kin-transport-netty</artifactId>
-            <version>${kin-transport-netty.version}</version>
-        </dependency>
-
-        <!-- 序列化-->
-        <dependency>
-            <groupId>org.kin</groupId>
             <artifactId>kin-rpc-serializer-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 
+        <!-- protostuff -->
         <dependency>
-            <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-serializer-kryo</artifactId>
-            <version>${project.version}</version>
+            <groupId>io.protostuff</groupId>
+            <artifactId>protostuff-core</artifactId>
+            <version>${protostuff.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.protostuff</groupId>
+            <artifactId>protostuff-runtime</artifactId>
+            <version>${protostuff.version}</version>
         </dependency>
     </dependencies>
+
 </project>
