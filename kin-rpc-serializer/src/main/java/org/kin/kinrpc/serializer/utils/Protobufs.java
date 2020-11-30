@@ -16,16 +16,20 @@ import java.util.concurrent.ConcurrentMap;
  * @author huangjianqin
  * @date 2020/11/29
  */
-public class ProtobufUtils {
-    private ProtobufUtils() {
+public class Protobufs {
+    private Protobufs() {
     }
 
+    /** 缓存parser */
     private static final ConcurrentMap<Class<? extends MessageLite>, MessageMarshaller> marshallers =
             new ConcurrentHashMap<>();
 
     private static final ExtensionRegistryLite globalRegistry =
             ExtensionRegistryLite.getEmptyRegistry();
 
+    /**
+     * 注册class parser
+     */
     public static <T extends MessageLite> void register(T defaultInstance) {
         marshallers.put(defaultInstance.getClass(), new MessageMarshaller<>(defaultInstance));
     }

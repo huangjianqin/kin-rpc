@@ -2,7 +2,7 @@ package org.kin.kinrpc.serializer.impl;
 
 import org.kin.kinrpc.serializer.Serializer;
 import org.kin.kinrpc.serializer.SerializerType;
-import org.kin.kinrpc.serializer.utils.ProtobufUtils;
+import org.kin.kinrpc.serializer.utils.Protobufs;
 
 import java.io.IOException;
 
@@ -13,12 +13,12 @@ import java.io.IOException;
 public class ProtobufSerializer implements Serializer {
     @Override
     public byte[] serialize(Object target) throws IOException {
-        return ProtobufUtils.serialize(target);
+        return Protobufs.serialize(target);
     }
 
     @Override
     public <T> T deserialize(byte[] bytes, Class<T> targetClass) throws IOException {
-        return ProtobufUtils.deserialize(bytes, targetClass);
+        return Protobufs.deserialize(bytes, targetClass);
     }
 
     @Override

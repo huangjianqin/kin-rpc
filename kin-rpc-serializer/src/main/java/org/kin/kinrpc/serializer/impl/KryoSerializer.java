@@ -6,6 +6,7 @@ import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.pool.KryoPool;
 import org.kin.kinrpc.serializer.Serializer;
 import org.kin.kinrpc.serializer.SerializerType;
+import org.kin.kinrpc.serializer.utils.Kryos;
 import org.objenesis.strategy.StdInstantiatorStrategy;
 
 import java.io.ByteArrayInputStream;
@@ -24,6 +25,9 @@ public class KryoSerializer implements Serializer {
         final Kryo kryo = new Kryo();
         kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(
                 new StdInstantiatorStrategy()));
+        for (Class<?> registeredClass : Kryos.getRegisteredClass()) {
+            kryo.register(registeredClass);
+        }
         return kryo;
     }).softReferences().build();
 

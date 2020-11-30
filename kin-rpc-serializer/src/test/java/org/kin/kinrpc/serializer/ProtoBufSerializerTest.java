@@ -2,7 +2,7 @@ package org.kin.kinrpc.serializer;
 
 import com.google.protobuf.Any;
 import org.kin.kinrpc.serializer.impl.ProtobufSerializer;
-import org.kin.kinrpc.serializer.utils.ProtobufUtils;
+import org.kin.kinrpc.serializer.utils.Protobufs;
 
 import java.io.IOException;
 
@@ -12,7 +12,7 @@ import java.io.IOException;
  */
 public class ProtoBufSerializerTest {
     public static void main(String[] args) throws IOException {
-        ProtobufUtils.register(ProtoBufMessageOuterClass.ProtoBufMessage.getDefaultInstance());
+        Protobufs.register(ProtoBufMessageOuterClass.ProtoBufMessage.getDefaultInstance());
 
         ProtobufSerializer serializer = new ProtobufSerializer();
         ProtoBufMessageOuterClass.ProtoBufMessage copy = ProtoBufMessageOuterClass.ProtoBufMessage.newBuilder().setA(2).setB("empty").build();
