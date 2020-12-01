@@ -14,4 +14,8 @@ public class RpcCallErrorException extends RuntimeException {
     public RpcCallErrorException(String message, Throwable cause) {
         super(message, cause);
     }
+
+    public RpcCallErrorException(Throwable cause) {
+        super("", cause);
+    }
 }
