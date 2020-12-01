@@ -88,14 +88,14 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
         handle((rpcProvider) -> {
             if (isAlive()) {
                 Url url = proxy.url();
-                String serviceName = url.getServiceName();
+                String serviceKey = url.getServiceKey();
                 Invoker<T> invoker = new RateLimitInvoker<>(proxy);
 
-                if (!services.containsKey(serviceName)) {
-                    services.put(serviceName, new InvokerWrapper(invoker));
-                    log.info("provider(serviceName={}, port={}) registered", serviceName, getPort());
+                if (!services.containsKey(serviceKey)) {
+                    services.put(serviceKey, new InvokerWrapper(invoker));
+                    log.info("provider(serviceKey={}, port={}) registered", serviceKey, getPort());
                 } else {
-                    throw new IllegalStateException("service'" + serviceName + "' has registered. can not register again");
+                    throw new IllegalStateException("service'" + serviceKey + "' has registered. can not register again");
                 }
             }
         });
@@ -106,8 +106,8 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
      */
     public void disableService(Url url) {
         handle(rpcProvider -> {
-            String serviceName = url.getServiceName();
-            services.remove(serviceName);
+            String serviceKey = url.getServiceKey();
+            services.remove(serviceKey);
         });
     }
 
@@ -173,14 +173,14 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
         rpcRequest.setHandleTime(System.currentTimeMillis());
 
         if (isAlive()) {
-            String serviceName = rpcRequest.getServiceName();
+            String serviceKey = rpcRequest.getServiceKey();
             String methodName = rpcRequest.getMethod();
             Object[] params = rpcRequest.getParams();
 
             RpcResponse rpcResponse = new RpcResponse(rpcRequest.getRequestId(),
-                    rpcRequest.getServiceName(), rpcRequest.getMethod());
-            if (services.containsKey(serviceName)) {
-                InvokerWrapper invokerWrapper = services.get(serviceName);
+                    rpcRequest.getServiceKey(), rpcRequest.getMethod());
+            if (services.containsKey(serviceKey)) {
+                InvokerWrapper invokerWrapper = services.get(serviceKey);
                 if (invokerWrapper.parallelism) {
                     //并发处理
                     RpcThreadPool.providerWorkers().execute(() -> handlerRpcRequest0(invokerWrapper.getInvoker(), methodName, params, channel, rpcRequest, rpcResponse));
@@ -201,7 +201,7 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
             //停止对外提供服务, 直接拒绝请求
 
             //创建RpcResponse,设置服务不可用请求重试标识,直接回发
-            RpcResponse rpcResponse = new RpcResponse(rpcRequest.getRequestId(), rpcRequest.getServiceName(), rpcRequest.getMethod());
+            RpcResponse rpcResponse = new RpcResponse(rpcRequest.getRequestId(), rpcRequest.getServiceKey(), rpcRequest.getMethod());
             rpcResponse.setState(RpcResponse.State.RETRY, "service unavailable");
 
             channel.write(rpcResponse);
@@ -363,7 +363,7 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
 
 
             ProtocolStatisicService.instance().statisticResp(
-                    rpcResponse.getServiceName() + "-" + rpcResponse.getMethod(), Objects.nonNull(data) ? data.length : 0
+                    rpcResponse.getServiceKey() + "-" + rpcResponse.getMethod(), Objects.nonNull(data) ? data.length : 0
             );
         }
 
@@ -385,7 +385,7 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
                 rpcRequest = serializer.deserialize(data, RpcRequest.class);
 
                 ProtocolStatisicService.instance().statisticReq(
-                        rpcRequest.getServiceName() + "-" + rpcRequest.getMethod(), data.length
+                        rpcRequest.getServiceKey() + "-" + rpcRequest.getMethod(), data.length
                 );
 
                 rpcRequest.setEventTime(System.currentTimeMillis());

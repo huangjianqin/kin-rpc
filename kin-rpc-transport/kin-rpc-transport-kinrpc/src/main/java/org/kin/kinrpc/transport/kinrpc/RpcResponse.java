@@ -11,7 +11,7 @@ public class RpcResponse extends AbstractRpcMessage implements Serializable {
     private static final long serialVersionUID = -7580386808779240788L;
 
     /** 统计日志打印用 */
-    private String serviceName;
+    private String serviceKey;
     private String method;
 
     private Object result;
@@ -47,14 +47,14 @@ public class RpcResponse extends AbstractRpcMessage implements Serializable {
     public RpcResponse() {
     }
 
-    public RpcResponse(long requestId, String serviceName, String method) {
+    public RpcResponse(long requestId, String serviceKey, String method) {
         this.requestId = requestId;
-        this.serviceName = serviceName;
+        this.serviceKey = serviceKey;
         this.method = method;
     }
 
-    private static RpcResponse respWith(long requestId, String serviceName, String method) {
-        return new RpcResponse(requestId, serviceName, method);
+    private static RpcResponse respWith(long requestId, String serviceKey, String method) {
+        return new RpcResponse(requestId, serviceKey, method);
     }
 
     public static RpcResponse respWithError(long requestId, String errorMsg) {
@@ -63,26 +63,26 @@ public class RpcResponse extends AbstractRpcMessage implements Serializable {
         return rpcResponse;
     }
 
-    public static RpcResponse respWithError(long requestId, String serviceName, String method, String errorMsg) {
-        RpcResponse rpcResponse = respWith(requestId, serviceName, method);
+    public static RpcResponse respWithError(long requestId, String serviceKey, String method, String errorMsg) {
+        RpcResponse rpcResponse = respWith(requestId, serviceKey, method);
         rpcResponse.setState(RpcResponse.State.ERROR, errorMsg);
         return rpcResponse;
     }
 
     public static RpcResponse respWithError(RpcRequest request, String errorMsg) {
-        RpcResponse rpcResponse = respWithError(request.getRequestId(), request.getServiceName(), request.getMethod(), errorMsg);
+        RpcResponse rpcResponse = respWithError(request.getRequestId(), request.getServiceKey(), request.getMethod(), errorMsg);
         rpcResponse.setCreateTime(System.currentTimeMillis());
         return rpcResponse;
     }
 
-    public static RpcResponse respWithRetry(long requestId, String serviceName, String method, String retryMsg) {
-        RpcResponse rpcResponse = respWith(requestId, serviceName, method);
+    public static RpcResponse respWithRetry(long requestId, String serviceKey, String method, String retryMsg) {
+        RpcResponse rpcResponse = respWith(requestId, serviceKey, method);
         rpcResponse.setState(State.RETRY, retryMsg);
         return rpcResponse;
     }
 
     public static RpcResponse respWithRetry(RpcRequest request, String errorMsg) {
-        RpcResponse rpcResponse = respWithRetry(request.getRequestId(), request.getServiceName(), request.getMethod(), errorMsg);
+        RpcResponse rpcResponse = respWithRetry(request.getRequestId(), request.getServiceKey(), request.getMethod(), errorMsg);
         rpcResponse.setCreateTime(System.currentTimeMillis());
         return rpcResponse;
     }
@@ -94,12 +94,12 @@ public class RpcResponse extends AbstractRpcMessage implements Serializable {
 
     //setter && getter
 
-    public String getServiceName() {
-        return serviceName;
+    public String getServiceKey() {
+        return serviceKey;
     }
 
-    public void setServiceName(String serviceName) {
-        this.serviceName = serviceName;
+    public void setServiceKey(String serviceKey) {
+        this.serviceKey = serviceKey;
     }
 
     public String getMethod() {
@@ -155,7 +155,7 @@ public class RpcResponse extends AbstractRpcMessage implements Serializable {
     public String toString() {
         return "RpcResponse{" +
                 "requestId='" + requestId + '\'' +
-                ", serviceName='" + serviceName + '\'' +
+                ", serviceKey='" + serviceKey + '\'' +
                 ", method='" + method + '\'' +
                 ", result=" + result +
                 ", info='" + info + '\'' +

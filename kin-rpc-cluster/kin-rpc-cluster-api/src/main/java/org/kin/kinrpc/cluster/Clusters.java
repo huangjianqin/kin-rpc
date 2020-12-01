@@ -115,7 +115,7 @@ public class Clusters {
         Preconditions.checkNotNull(loadBalance, "unvalid loadbalance type: [" + loadBalanceType + "]");
         Preconditions.checkNotNull(router, "unvalid router type: [" + routerType + "]");
 
-        Cluster<T> cluster = new ClusterImpl<>(registry, url.getServiceName(), router, loadBalance);
+        Cluster<T> cluster = new ClusterImpl<>(registry, url.getServiceKey(), router, loadBalance);
 
         T proxy;
 
@@ -124,12 +124,12 @@ public class Clusters {
             JavassistClusterInvoker<T> javassistClusterInvoker = new JavassistClusterInvoker<>(cluster, url, interfaceClass, notifiers);
             proxy = javassistClusterInvoker.proxy();
 
-            REFERENCE_CACHE.put(url.getServiceName(), javassistClusterInvoker);
+            REFERENCE_CACHE.put(url.getServiceKey(), javassistClusterInvoker);
         } else {
             ReflectClusterInvoker<T> reflectClusterInvoker = new ReflectClusterInvoker<>(cluster, url, notifiers);
             proxy = (T) Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class<?>[]{interfaceClass}, reflectClusterInvoker);
 
-            REFERENCE_CACHE.put(url.getServiceName(), reflectClusterInvoker);
+            REFERENCE_CACHE.put(url.getServiceKey(), reflectClusterInvoker);
         }
 
         return proxy;
@@ -139,17 +139,17 @@ public class Clusters {
      * close 引用服务
      */
     public static synchronized void disableReference(Url url) {
-        ClusterInvoker<?> clusterInvoker = REFERENCE_CACHE.getIfPresent(url.getServiceName());
+        ClusterInvoker<?> clusterInvoker = REFERENCE_CACHE.getIfPresent(url.getServiceKey());
 
         if (clusterInvoker != null) {
             clusterInvoker.close();
         }
         Registry registry = Registries.getRegistry(url);
         if (Objects.nonNull(registry)) {
-            registry.unSubscribe(url.getServiceName());
+            registry.unSubscribe(url.getServiceKey());
             Registries.closeRegistry(url);
         }
 
-        REFERENCE_CACHE.invalidate(url.getServiceName());
+        REFERENCE_CACHE.invalidate(url.getServiceKey());
     }
 }

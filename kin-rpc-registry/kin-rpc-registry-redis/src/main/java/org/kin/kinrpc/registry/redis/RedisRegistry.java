@@ -103,39 +103,39 @@ public final class RedisRegistry extends AbstractRegistry implements LoggerOprs 
 
     @Override
     public void register(Url url) {
-        String serviceName = url.getServiceName();
-        log().info("provider register service '{}' ", serviceName);
+        String serviceKey = url.getServiceKey();
+        log().info("provider register service '{}' ", serviceKey);
 
         RedisCommands<String, String> redisCommands = connection.sync();
         //利用集合存储服务地址
-        redisCommands.sadd(getServiceKey(serviceName), url.str());
+        redisCommands.sadd(getServiceKey(serviceKey), url.str());
     }
 
     @Override
     public void unRegister(Url url) {
-        String serviceName = url.getServiceName();
-        log().info("provider unregister service '{}' ", serviceName);
+        String serviceKey = url.getServiceKey();
+        log().info("provider unregister service '{}' ", serviceKey);
 
         RedisCommands<String, String> redisCommands = connection.sync();
-        redisCommands.srem(getServiceKey(serviceName), url.str());
+        redisCommands.srem(getServiceKey(serviceKey), url.str());
     }
 
     @Override
-    public Directory subscribe(String serviceName) {
-        log().info("reference subscribe service '{}' ", serviceName);
-        Directory directory = new Directory(serviceName);
-        directoryCache.put(serviceName, directory);
+    public Directory subscribe(String serviceKey) {
+        log().info("reference subscribe service '{}' ", serviceKey);
+        Directory directory = new Directory(serviceKey);
+        directoryCache.put(serviceKey, directory);
         return directory;
     }
 
     @Override
-    public void unSubscribe(String serviceName) {
-        log().info("reference unsubscribe service '{}' ", serviceName);
-        Directory directory = directoryCache.getIfPresent(serviceName);
+    public void unSubscribe(String serviceKey) {
+        log().info("reference unsubscribe service '{}' ", serviceKey);
+        Directory directory = directoryCache.getIfPresent(serviceKey);
         if (directory != null) {
             directory.destroy();
         }
-        directoryCache.invalidate(serviceName);
+        directoryCache.invalidate(serviceKey);
     }
 
     @Override

@@ -86,7 +86,7 @@ public class KinRpcInvocation {
             case SUCCESS:
                 return response.getResult();
             case RETRY:
-                throw new RpcCallRetryException(response.getInfo(), request.getServiceName(), request.getMethod(), request.getParams());
+                throw new RpcCallRetryException(response.getInfo(), request.getServiceKey(), request.getMethod(), request.getParams());
             case ERROR:
                 throw new RpcCallErrorException("Response error", new Throwable(response.getInfo()));
             default:

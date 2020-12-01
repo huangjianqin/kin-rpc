@@ -44,13 +44,13 @@ public class GrpcProtocol extends AbstractProxyProtocol {
             throw new RpcCallErrorException(e);
         }
 
-        grpcServer.registry.addService((BindableService) impl, url.getServiceName());
+        grpcServer.registry.addService((BindableService) impl, url.getServiceKey());
 
         if (!grpcServer.started) {
             grpcServer.start();
         }
 
-        return () -> grpcServer.registry.removeService(url.getServiceName());
+        return () -> grpcServer.registry.removeService(url.getServiceKey());
     }
 
     @Override

@@ -32,7 +32,7 @@ public final class RateLimitInvoker<T> extends WrapInvoker<T> {
         //流控
         if (!rateLimiter.tryAcquire()) {
             Url url = wrapper.url();
-            throw new RateLimitException(RpcUtils.generateInvokeMsg(url.getServiceName(), methodName, params));
+            throw new RateLimitException(RpcUtils.generateInvokeMsg(url.getServiceKey(), methodName, params));
         }
         return super.invoke(methodName, params);
     }

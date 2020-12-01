@@ -30,16 +30,17 @@ public interface Registry {
     /**
      * 订阅服务
      *
-     * @param serviceName 服务名
+     * @param serviceKey serviceName-version
      * @return 服务订阅目录, 包含所有可用invokers
      */
-    Directory subscribe(String serviceName);
+    Directory subscribe(String serviceKey);
 
     /**
      * 取消订阅服务
-     * @param serviceName 服务名
+     *
+     * @param serviceKey serviceName-version
      */
-    void unSubscribe(String serviceName);
+    void unSubscribe(String serviceKey);
 
     /**
      * retain

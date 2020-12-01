@@ -27,10 +27,10 @@ public abstract class ProviderInvoker<T> extends AbstractInvoker<T> {
 
     @Override
     public final Object invoke(String methodName, Object[] params) throws Throwable {
-        log.debug("service '{}' method '{}' invoking...", getServiceName(), methodName);
+        log.debug("service '{}' method '{}' invoking...", getServiceKey(), methodName);
         //流控
         if (!rateLimiter.tryAcquire()) {
-            throw new RateLimitException(RpcUtils.generateInvokeMsg(getServiceName(), methodName, params));
+            throw new RateLimitException(RpcUtils.generateInvokeMsg(getServiceKey(), methodName, params));
         }
         return doInvoke(methodName, params);
     }

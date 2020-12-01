@@ -46,7 +46,7 @@ public class ReflectProviderInvoker<T> extends ProviderInvoker<T> {
 
             method.setAccessible(true);
             this.methodMap.put(uniqueName, method);
-            log.info("service '{}'s method '{}'/'{}' is ready to provide service", getServiceName(), uniqueName, method.toString());
+            log.info("service '{}'s method '{}'/'{}' is ready to provide service", getServiceKey(), uniqueName, method.toString());
         }
     }
 
@@ -70,11 +70,11 @@ public class ReflectProviderInvoker<T> extends ProviderInvoker<T> {
         try {
             return target.invoke(serivce, params);
         } catch (IllegalAccessException e) {
-            log.error("service '{}' method '{}' access illegally", getServiceName(), methodName);
+            log.error("service '{}' method '{}' access illegally", getServiceKey(), methodName);
             log.error(e.getMessage(), e);
             throw e;
         } catch (InvocationTargetException e) {
-            log.error("service '{}' method '{}' invoke error", getServiceName(), methodName);
+            log.error("service '{}' method '{}' invoke error", getServiceKey(), methodName);
             throw e.getCause();
         }
     }

@@ -24,8 +24,8 @@ class ClusterImpl<T> implements Cluster<T> {
     private final Router router;
     private final LoadBalance loadBalance;
 
-    public ClusterImpl(Registry registry, String serviceName, Router router, LoadBalance loadBalance) {
-        this(registry.subscribe(serviceName), router, loadBalance);
+    public ClusterImpl(Registry registry, String serviceKey, Router router, LoadBalance loadBalance) {
+        this(registry.subscribe(serviceKey), router, loadBalance);
     }
 
     public ClusterImpl(Directory directory, Router router, LoadBalance loadBalance) {

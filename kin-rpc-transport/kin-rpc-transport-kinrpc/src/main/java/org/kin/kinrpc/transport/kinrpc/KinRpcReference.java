@@ -189,7 +189,7 @@ public class KinRpcReference {
                     client.request(protocol, new ReferenceRequestListener(request.getRequestId()));
 
                     ProtocolStatisicService.instance().statisticReq(
-                            request.getServiceName() + "-" + request.getMethod(), data.length
+                            request.getServiceKey() + "-" + request.getMethod(), data.length
                     );
                 } catch (IOException e) {
                     log.error(e.getMessage(), e);
@@ -222,7 +222,7 @@ public class KinRpcReference {
                 }
 
                 ProtocolStatisicService.instance().statisticResp(
-                        rpcResponse.getServiceName() + "-" + rpcResponse.getMethod(), Objects.nonNull(respContent) ? respContent.length : 0
+                        rpcResponse.getServiceKey() + "-" + rpcResponse.getMethod(), Objects.nonNull(respContent) ? respContent.length : 0
                 );
 
                 handleResponse(rpcResponse);

@@ -14,7 +14,7 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
     }
 
     //getter
-    protected String getServiceName() {
-        return url.getServiceName();
+    protected String getServiceKey() {
+        return url.getServiceKey();
     }
 }

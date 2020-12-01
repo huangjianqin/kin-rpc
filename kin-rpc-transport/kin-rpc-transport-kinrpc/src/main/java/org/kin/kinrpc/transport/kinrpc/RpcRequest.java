@@ -10,7 +10,7 @@ public class RpcRequest extends AbstractRpcMessage implements Serializable {
     private static final long serialVersionUID = 5417022481782277610L;
 
     /** 请求参数 */
-    private String serviceName;
+    private String serviceKey;
     private String method;
     private Object[] params;
 
@@ -18,20 +18,20 @@ public class RpcRequest extends AbstractRpcMessage implements Serializable {
 
     }
 
-    public RpcRequest(long requestId, String serviceName, String method, Object[] params) {
+    public RpcRequest(long requestId, String serviceKey, String method, Object[] params) {
         this.requestId = requestId;
-        this.serviceName = serviceName;
+        this.serviceKey = serviceKey;
         this.method = method;
         this.params = params;
     }
 
     //setter && getter
-    public String getServiceName() {
-        return serviceName;
+    public String getServiceKey() {
+        return serviceKey;
     }
 
-    public void setServiceName(String serviceName) {
-        this.serviceName = serviceName;
+    public void setServiceKey(String serviceKey) {
+        this.serviceKey = serviceKey;
     }
 
     public String getMethod() {
@@ -53,7 +53,7 @@ public class RpcRequest extends AbstractRpcMessage implements Serializable {
     @Override
     public String toString() {
         return "RpcRequest{" +
-                "serviceName='" + serviceName + '\'' +
+                "serviceKey='" + serviceKey + '\'' +
                 ", method='" + method + '\'' +
                 ", params=" + Arrays.toString(params) +
                 ", requestId=" + requestId +

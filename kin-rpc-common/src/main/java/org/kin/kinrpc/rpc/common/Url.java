@@ -33,8 +33,8 @@ public class Url implements Serializable, Cloneable {
     private String path;
     /** 参数 */
     private Map<String, String> params;
-    /** 服务名 */
-    private String serviceName;
+    /** serviceName-version */
+    private String serviceKey;
     /** 接口名 */
     private String interfaceN;
 
@@ -47,10 +47,10 @@ public class Url implements Serializable, Cloneable {
         this.path = path;
         this.params = params;
 
-        this.serviceName = getParam(Constants.SERVICE_NAME_KEY);
+        this.serviceKey = getParam(Constants.SERVICE_NAME_KEY);
         String version = getParam(Constants.VERSION_KEY);
         if (StringUtils.isNotBlank(version)) {
-            this.serviceName += ("-" + version);
+            this.serviceKey += ("-" + version);
         }
         this.interfaceN = getParam(Constants.INTERFACE_KEY);
     }
@@ -285,8 +285,12 @@ public class Url implements Serializable, Cloneable {
         return path;
     }
 
+    public String getServiceKey() {
+        return serviceKey;
+    }
+
     public String getServiceName() {
-        return serviceName;
+        return params.get(Constants.SERVICE_NAME_KEY);
     }
 
     public String getInterfaceN() {

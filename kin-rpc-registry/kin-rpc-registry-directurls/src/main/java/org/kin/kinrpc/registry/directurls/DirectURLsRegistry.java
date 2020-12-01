@@ -42,22 +42,22 @@ public final class DirectURLsRegistry extends AbstractRegistry {
     }
 
     @Override
-    public Directory subscribe(String serviceName) {
-        log.info("reference subscribe service '{}' ", serviceName);
-        Directory directory = new Directory(serviceName);
+    public Directory subscribe(String serviceKey) {
+        log.info("reference subscribe service '{}' ", serviceKey);
+        Directory directory = new Directory(serviceKey);
         directory.discover(url, urls);
-        directoryCache.put(serviceName, directory);
+        directoryCache.put(serviceKey, directory);
         return directory;
     }
 
     @Override
-    public void unSubscribe(String serviceName) {
-        log.info("reference unsubscribe service '{}' ", serviceName);
-        Directory directory = directoryCache.getIfPresent(serviceName);
+    public void unSubscribe(String serviceKey) {
+        log.info("reference unsubscribe service '{}' ", serviceKey);
+        Directory directory = directoryCache.getIfPresent(serviceKey);
         if (directory != null) {
             directory.destroy();
         }
-        directoryCache.invalidate(serviceName);
+        directoryCache.invalidate(serviceKey);
     }
 
     @Override

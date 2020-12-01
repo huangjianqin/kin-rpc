@@ -116,40 +116,40 @@ public final class ZookeeperRegistry extends AbstractRegistry {
 
     @Override
     public void register(Url url) {
-        String serviceName = url.getServiceName();
+        String serviceKey = url.getServiceKey();
         String address = url.getAddress();
-        log.info("provider register service '{}' ", serviceName);
+        log.info("provider register service '{}' ", serviceKey);
 
-        createZNode(RegistryConstants.getPath(serviceName, address), url.str().getBytes());
+        createZNode(RegistryConstants.getPath(serviceKey, address), url.str().getBytes());
     }
 
     @Override
     public void unRegister(Url url) {
-        String serviceName = url.getServiceName();
+        String serviceKey = url.getServiceKey();
         String address = url.getAddress();
-        log.info("provider unregister service '{}' ", serviceName);
+        log.info("provider unregister service '{}' ", serviceKey);
 
-        deleteZNode(RegistryConstants.getPath(serviceName, address));
-        deleteZNodeUnguaranteed(RegistryConstants.getPath(serviceName));
+        deleteZNode(RegistryConstants.getPath(serviceKey, address));
+        deleteZNodeUnguaranteed(RegistryConstants.getPath(serviceKey));
     }
 
     @Override
-    public Directory subscribe(String serviceName) {
-        log.info("reference subscribe service '{}' ", serviceName);
-        Directory directory = new Directory(serviceName);
+    public Directory subscribe(String serviceKey) {
+        log.info("reference subscribe service '{}' ", serviceKey);
+        Directory directory = new Directory(serviceKey);
         watch(directory);
-        directoryCache.put(serviceName, directory);
+        directoryCache.put(serviceKey, directory);
         return directory;
     }
 
     @Override
-    public void unSubscribe(String serviceName) {
-        log.info("reference unsubscribe service '{}' ", serviceName);
-        Directory directory = directoryCache.getIfPresent(serviceName);
+    public void unSubscribe(String serviceKey) {
+        log.info("reference unsubscribe service '{}' ", serviceKey);
+        Directory directory = directoryCache.getIfPresent(serviceKey);
         if (directory != null) {
             directory.destroy();
         }
-        directoryCache.invalidate(serviceName);
+        directoryCache.invalidate(serviceKey);
     }
 
     /**

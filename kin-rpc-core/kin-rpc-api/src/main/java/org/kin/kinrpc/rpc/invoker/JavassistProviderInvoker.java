@@ -64,10 +64,10 @@ public class JavassistProviderInvoker<T> extends ProviderInvoker<T> {
         try {
             return methodInvoker.invoke(params);
         } catch (IllegalAccessException e) {
-            log.error("service '{}' method '{}' access illegally", getServiceName(), methodName);
+            log.error("service '{}' method '{}' access illegally", getServiceKey(), methodName);
             throw e;
         } catch (InvocationTargetException e) {
-            log.error("service '{}' method '{}' invoke error", getServiceName(), methodName);
+            log.error("service '{}' method '{}' invoke error", getServiceKey(), methodName);
             throw e.getCause();
         }
     }

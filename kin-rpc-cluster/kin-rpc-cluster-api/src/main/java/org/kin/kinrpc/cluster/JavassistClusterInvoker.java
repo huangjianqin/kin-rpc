@@ -185,11 +185,21 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
         return null;
     }
 
+    /**
+     * 获取代理类名
+     */
+    private String proxyClassName() {
+        return this.getClass().getPackage().getName().concat(".")
+                .concat(this.getClass().getSimpleName())
+                .concat("$")
+                .concat(interfaceClass.getSimpleName());
+    }
+
     //----------------------------------------------------------------------------------------------------
 
     @Override
     public void close() {
         super.close();
-        ProxyEnhanceUtils.detach(getUrl().getServiceName());
+        ProxyEnhanceUtils.detach(proxyClassName());
     }
 }
