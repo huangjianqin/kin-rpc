@@ -14,18 +14,13 @@ import java.util.Map;
  */
 public class ReflectProviderInvoker<T> extends ProviderInvoker<T> {
     /**
-     * 服务类
-     */
-    private T serivce;
-    /**
      * 方法调用入口
      */
     private Map<String, Method> methodMap = new HashMap<>();
 
 
     public ReflectProviderInvoker(Url url, T service, Class<T> interfaceClass) {
-        super(url, interfaceClass);
-        this.serivce = service;
+        super(url, interfaceClass, service);
         init(interfaceClass);
     }
 

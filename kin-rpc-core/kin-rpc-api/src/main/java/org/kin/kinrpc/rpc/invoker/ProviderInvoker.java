@@ -14,13 +14,17 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class ProviderInvoker<T> extends AbstractInvoker<T> {
     protected static final Logger log = LoggerFactory.getLogger(ProviderInvoker.class);
-    private final Class<T> interfaceC;
+    /** 服务接口 */
+    protected final Class<T> interfaceC;
+    /** 服务实现类实例 */
+    protected T serivce;
     /** 流控 */
     private RateLimiter rateLimiter;
 
-    protected ProviderInvoker(Url url, Class<T> interfaceC) {
+    protected ProviderInvoker(Url url, Class<T> interfaceC, T serivce) {
         super(url);
         this.interfaceC = interfaceC;
+        this.serivce = serivce;
         int rate = Integer.parseInt(url.getParam(Constants.RATE_KEY));
         rateLimiter = RateLimiter.create(rate);
     }
