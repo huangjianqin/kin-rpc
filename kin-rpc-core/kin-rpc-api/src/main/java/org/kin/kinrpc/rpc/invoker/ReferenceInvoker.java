@@ -3,6 +3,7 @@ package org.kin.kinrpc.rpc.invoker;
 
 import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.kin.kinrpc.rpc.common.Url;
+import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,13 +22,13 @@ public abstract class ReferenceInvoker<T> extends AbstractInvoker<T> implements 
         return url;
     }
 
-
+    @SuppressWarnings("unchecked")
     @Override
     public final Class<T> getInterface() {
         try {
             return (Class<T>) Class.forName(url.getInterfaceN());
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            throw new RpcCallErrorException(e);
         }
     }
 }

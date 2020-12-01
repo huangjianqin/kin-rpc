@@ -2,6 +2,7 @@ package org.kin.kinrpc.cluster.router;
 
 import org.kin.framework.utils.ClassUtils;
 import org.kin.kinrpc.rpc.common.RpcServiceLoader;
+import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 
 import java.util.*;
 
@@ -46,7 +47,7 @@ public class Routers {
                     Router router = claxx.newInstance();
                     routerCache.put(key, router);
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    throw new RpcCallErrorException(e);
                 }
             }
         }
@@ -90,7 +91,7 @@ public class Routers {
             Router router = routerClass.newInstance();
             routerCache.put(key, router);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RpcCallErrorException(e);
         }
 
         ROUTER_CACHE = Collections.unmodifiableMap(routerCache);

@@ -114,7 +114,7 @@ public final class Directory {
                 try {
                     referenceInvoker = protocol.reference(url);
                 } catch (Throwable throwable) {
-                    throw new RuntimeException(throwable);
+                    throw new IllegalStateException(throwable);
                 }
                 validInvokers.add(referenceInvoker);
             }

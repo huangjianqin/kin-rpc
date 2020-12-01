@@ -55,11 +55,11 @@ public class Clusters {
         }
 
         //先启动服务
-        Exporter<T> export = null;
+        Exporter<T> export;
         try {
             export = protocol.export(invoker);
         } catch (Throwable throwable) {
-            throw new RuntimeException(throwable);
+            throw new IllegalStateException(throwable);
         }
         EXPORTER_CACHE.put(url, export);
 

@@ -7,6 +7,8 @@ package org.kin.kinrpc.serializer;
  * @date 2020/9/27
  */
 public class SerializerTypeConflictException extends RuntimeException {
+    private static final long serialVersionUID = 4102974906292170702L;
+
     public SerializerTypeConflictException(int type,
                                            Class<? extends Serializer> class1,
                                            Class<? extends Serializer> class2) {

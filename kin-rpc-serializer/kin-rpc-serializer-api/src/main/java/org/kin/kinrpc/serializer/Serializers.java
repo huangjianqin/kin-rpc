@@ -69,7 +69,7 @@ public class Serializers {
             Serializer serializer = serializerClass.newInstance();
             return load1(serializerCache, serializer);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -120,7 +120,7 @@ public class Serializers {
 
             return serializer.type();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 }

@@ -2,6 +2,7 @@ package org.kin.kinrpc.cluster.loadbalance;
 
 import org.kin.framework.utils.ClassUtils;
 import org.kin.kinrpc.rpc.common.RpcServiceLoader;
+import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 
 import java.util.*;
 
@@ -46,7 +47,7 @@ public class LoadBalances {
                     LoadBalance loadBalance = claxx.newInstance();
                     loadBalanceCache.put(key, loadBalance);
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    throw new RpcCallErrorException(e);
                 }
             }
         }
@@ -90,7 +91,7 @@ public class LoadBalances {
             LoadBalance loadBalance = loadBalanceClass.newInstance();
             loadBalanceCache.put(key, loadBalance);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RpcCallErrorException(e);
         }
 
         LOADBALANCE_CACHE = Collections.unmodifiableMap(loadBalanceCache);

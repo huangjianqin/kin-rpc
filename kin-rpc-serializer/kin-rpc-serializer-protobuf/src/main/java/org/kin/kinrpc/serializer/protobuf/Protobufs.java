@@ -95,7 +95,7 @@ public class Protobufs {
      */
     private static GeneratedMessageV3.Builder getMessageBuilder(Class<?> requestType) throws Exception {
         Method method = requestType.getMethod("newBuilder");
-        return (GeneratedMessageV3.Builder) method.invoke(null, null);
+        return (GeneratedMessageV3.Builder) method.invoke(null);
     }
 
     //------------------------------------------------------------------------------------------------------------

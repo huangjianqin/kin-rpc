@@ -2,6 +2,7 @@ package org.kin.kinrpc.transport;
 
 import org.kin.framework.utils.ClassUtils;
 import org.kin.kinrpc.rpc.common.RpcServiceLoader;
+import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 
 import java.util.*;
 
@@ -46,7 +47,7 @@ public class Protocols {
                     Protocol protocol = claxx.newInstance();
                     protocolCache.put(key, protocol);
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    throw new RpcCallErrorException(e);
                 }
             }
         }
@@ -90,7 +91,7 @@ public class Protocols {
             Protocol protocol = protocolClass.newInstance();
             protocolCache.put(key, protocol);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RpcCallErrorException(e);
         }
 
         PROTOCOL_CACHE = Collections.unmodifiableMap(protocolCache);

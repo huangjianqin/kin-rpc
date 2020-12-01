@@ -19,7 +19,7 @@ class DirectURLsRegistryConfig extends AbstractRegistryConfig {
                 //检查url格式
                 Url.of(split);
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw new IllegalArgumentException(e);
             }
         }
     }

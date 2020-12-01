@@ -87,7 +87,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
                     try {
                         return invoke(methodName, params);
                     } catch (Throwable throwable) {
-                        throw new RuntimeException(throwable);
+                        throw new IllegalStateException(throwable);
                     }
                 }, RpcThreadPool.executors());
             }
@@ -251,7 +251,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
         }
 
         methodBody.append("} catch (Exception e) {").append(System.lineSeparator());
-        methodBody.append("throw new RuntimeException(e);").append(System.lineSeparator());
+        methodBody.append("throw new RpcCallErrorException(e);").append(System.lineSeparator());
         methodBody.append("}").append(System.lineSeparator());
 
         return methodBody.toString();

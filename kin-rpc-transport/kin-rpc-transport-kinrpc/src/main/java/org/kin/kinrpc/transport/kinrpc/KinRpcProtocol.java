@@ -3,13 +3,13 @@ package org.kin.kinrpc.transport.kinrpc;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.kin.framework.log.LoggerOprs;
 import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.kin.kinrpc.rpc.Exporter;
 import org.kin.kinrpc.rpc.Invoker;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
+import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
 import org.kin.kinrpc.serializer.Serializer;
 import org.kin.kinrpc.serializer.Serializers;
@@ -64,11 +64,9 @@ public class KinRpcProtocol implements Protocol, LoggerOprs {
             if (!provider.getSerializer().equals(serializer)) {
                 throw new IllegalStateException(String.format("origin server(port=%s) serializer type is not equals %s", port, serializerType));
             }
-        } catch (UncheckedExecutionException uee) {
-            throw (RuntimeException) uee.getCause();
         } catch (Exception e) {
             log().error(e.getMessage(), e);
-            return null;
+            throw new RpcCallErrorException(e);
         }
 
         Exporter<T> exporter = null;

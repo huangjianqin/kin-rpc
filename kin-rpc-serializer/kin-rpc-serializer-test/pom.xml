@@ -78,8 +78,6 @@
                 <artifactId>protobuf-maven-plugin</artifactId>
                 <version>0.6.1</version>
                 <configuration>
-                    <protoSourceRoot>${basedir}/src/main/java/org/kin/kinrpc/serializer/protobuf/message
-                    </protoSourceRoot>
                     <protocArtifact>
                         com.google.protobuf:protoc:3.1.0:exe:${os.detected.classifier}
                     </protocArtifact>

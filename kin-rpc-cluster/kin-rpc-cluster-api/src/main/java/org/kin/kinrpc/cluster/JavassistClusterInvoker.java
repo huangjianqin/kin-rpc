@@ -100,7 +100,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
         }
 
         methodBody.append("} catch (Exception e) {").append(System.lineSeparator());
-        methodBody.append("throw new RuntimeException(e);").append(System.lineSeparator());
+        methodBody.append("throw new RpcCallErrorException(e);").append(System.lineSeparator());
         methodBody.append("}").append(System.lineSeparator());
         methodBody.append("}");
 
