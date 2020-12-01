@@ -55,7 +55,7 @@ public class HttpProtocol extends AbstractProxyProtocol {
     }
 
     @Override
-    protected <T> Runnable doExport(T impl, Class<T> interfaceC, Url url) {
+    protected <T> Runnable doExport(T proxyedInvoker, Class<T> interfaceC, Url url) {
         String addr = url.getAddress();
         HttpServer httpServer = serverMap.get(addr);
         if (Objects.isNull(httpServer)) {
@@ -68,8 +68,8 @@ public class HttpProtocol extends AbstractProxyProtocol {
         String path = url.getPath();
         //使用generic url path
         String genericPath = path + "/" + Constants.GENERIC;
-        JsonRpcServer skeleton = new JsonRpcServer(JSON.PARSER, impl, interfaceC);
-        JsonRpcServer genericServer = new JsonRpcServer(JSON.PARSER, impl, GenericRpcService.class);
+        JsonRpcServer skeleton = new JsonRpcServer(JSON.PARSER, proxyedInvoker, interfaceC);
+        JsonRpcServer genericServer = new JsonRpcServer(JSON.PARSER, proxyedInvoker, GenericRpcService.class);
         skeletonMap.put(path, skeleton);
         skeletonMap.put(genericPath, genericServer);
 

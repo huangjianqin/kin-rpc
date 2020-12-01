@@ -109,13 +109,13 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
     }
 
     /**
-     * @param impl       实现了服务接口的代理invoker
-     * @param interfaceC 服务接口
-     * @param url        服务url
-     * @param <T>        服务接口
+     * @param proxyedInvoker 实现了服务接口的代理invoker
+     * @param interfaceC     服务接口
+     * @param url            服务url
+     * @param <T>            服务接口
      * @return destory逻辑方法
      */
-    protected abstract <T> Runnable doExport(T impl, Class<T> interfaceC, Url url);
+    protected abstract <T> Runnable doExport(T proxyedInvoker, Class<T> interfaceC, Url url);
 
     /**
      * @param interfaceC 服务接口

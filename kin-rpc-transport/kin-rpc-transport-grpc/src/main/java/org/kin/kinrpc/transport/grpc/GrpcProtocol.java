@@ -22,10 +22,10 @@ public class GrpcProtocol extends AbstractProxyProtocol {
     private static final Cache<String, GrpcServer> servers = CacheBuilder.newBuilder().build();
 
     /**
-     * @param impl grpc1.33, 开发者通过实现XXXGrpc.XXXImplBase, 本质上该类已实现了{@link BindableService}
+     * @param proxyedInvoker grpc1.33, 开发者通过实现XXXGrpc.XXXImplBase, 本质上该类已实现了{@link BindableService}
      */
     @Override
-    protected <T> Runnable doExport(T impl, Class<T> interfaceC, Url url) {
+    protected <T> Runnable doExport(T proxyedInvoker, Class<T> interfaceC, Url url) {
         String address = url.getAddress();
         //grpc server
         GrpcServer grpcServer;
@@ -44,7 +44,7 @@ public class GrpcProtocol extends AbstractProxyProtocol {
             throw new RpcCallErrorException(e);
         }
 
-        grpcServer.registry.addService((BindableService) impl, url.getServiceKey());
+        grpcServer.registry.addService((BindableService) proxyedInvoker, url.getServiceKey());
 
         if (!grpcServer.started) {
             grpcServer.start();
