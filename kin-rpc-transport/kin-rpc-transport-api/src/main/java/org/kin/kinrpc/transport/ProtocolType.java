@@ -12,5 +12,9 @@ public enum ProtocolType {
     /**
      * 基于json rpc
      */
-    Http;
+    Http,
+    /**
+     * 基于grpc
+     */
+    Grpc;
 }
