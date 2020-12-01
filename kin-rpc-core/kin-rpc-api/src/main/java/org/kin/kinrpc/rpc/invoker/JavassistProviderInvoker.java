@@ -22,7 +22,7 @@ public class JavassistProviderInvoker<T> extends ProviderInvoker<T> {
     /**
      * 方法调用入口
      */
-    private Map<String, ProxyInvoker> methodMap = new HashMap<>();
+    private Map<String, ProxyInvoker<?>> methodMap = new HashMap<>();
 
     public JavassistProviderInvoker(Url url, T service, Class<T> interfaceClass) {
         super(url, interfaceClass);
@@ -33,10 +33,10 @@ public class JavassistProviderInvoker<T> extends ProviderInvoker<T> {
     private void init(Object service, Class<T> interfaceClass) {
         Method[] declaredMethods = interfaceClass.getDeclaredMethods();
 
-        Map<String, ProxyInvoker> methodMap = new HashMap<>(declaredMethods.length);
+        Map<String, ProxyInvoker<?>> methodMap = new HashMap<>(declaredMethods.length);
         for (Method method : declaredMethods) {
             String uniqueName = ClassUtils.getUniqueName(method);
-            ProxyInvoker proxyInvoker = ProxyEnhanceUtils.enhanceMethod(
+            ProxyInvoker<?> proxyInvoker = ProxyEnhanceUtils.enhanceMethod(
                     new ProxyMethodDefinition(service, method,
                             "org.kin.kinrpc.rpc.invoker.proxy", interfaceClass.getSimpleName() + "$" + ClassUtils.getUniqueName(method)));
             methodMap.put(uniqueName, proxyInvoker);
@@ -46,7 +46,7 @@ public class JavassistProviderInvoker<T> extends ProviderInvoker<T> {
 
     @Override
     public Object doInvoke(String methodName, Object... params) throws Throwable {
-        ProxyInvoker methodInvoker = methodMap.get(methodName);
+        ProxyInvoker<?> methodInvoker = methodMap.get(methodName);
 
         if (methodInvoker == null) {
             throw new IllegalStateException("service don't has method whoes name is " + methodName);
@@ -69,6 +69,15 @@ public class JavassistProviderInvoker<T> extends ProviderInvoker<T> {
         } catch (InvocationTargetException e) {
             log.error("service '{}' method '{}' invoke error", getServiceKey(), methodName);
             throw e.getCause();
+        }
+    }
+
+    @Override
+    public void destroy() {
+        super.destroy();
+        for (ProxyInvoker<?> proxyInvoker : methodMap.values()) {
+            //释放无用代理类
+            ProxyEnhanceUtils.detach(proxyInvoker.getClass().getName());
         }
     }
 }

@@ -50,10 +50,13 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
             public void unexport() {
                 invoker.destroy();
                 destroyRunnable.run();
+                //释放无用代理类
+                ProxyEnhanceUtils.detach(proxy.getClass().getName());
             }
         };
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public final <T> AsyncInvoker<T> reference(Url url) throws Throwable {
         Class<T> interfaceC;
@@ -99,7 +102,8 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
 
             @Override
             public void destroy() {
-
+                //释放无用代理类
+                ProxyEnhanceUtils.detach(proxy.getClass().getName());
             }
         };
     }
