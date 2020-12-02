@@ -7,6 +7,7 @@ import io.grpc.netty.NettyChannelBuilder;
 import io.grpc.netty.NettyServerBuilder;
 import org.kin.framework.proxy.ProxyEnhanceUtils;
 import org.kin.kinrpc.AbstractProxyProtocol;
+import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.kin.kinrpc.rpc.Exporter;
 import org.kin.kinrpc.rpc.Invoker;
 import org.kin.kinrpc.rpc.common.Constants;
@@ -20,6 +21,7 @@ import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 开发流程与grpc类似, 只是底层通信和编程模型使用的是kinrpc
@@ -31,9 +33,11 @@ import java.util.concurrent.ExecutionException;
  */
 public class GrpcProtocol extends AbstractProxyProtocol {
     /* key -> address, value -> gRPC server */
-    private static final Cache<String, GrpcServer> SERVERS = CacheBuilder.newBuilder().build();
+    private static final Cache<String, GrpcServer> SERVERS =
+            CacheBuilder.newBuilder()
+                    .removalListener(n -> ((GrpcServer) n.getValue()).close()).build();
     /* key -> address, value -> gRPC channels */
-    private final ConcurrentMap<String, ReferenceCountManagedChannel> channelMap = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<String, ReferenceCountManagedChannel> CHANNEL_MAP = new ConcurrentHashMap<>();
 
     @Override
     public <T> Exporter<T> export(ProviderInvoker<T> invoker) {
@@ -51,7 +55,7 @@ public class GrpcProtocol extends AbstractProxyProtocol {
                                 .forPort(url.getPort())
                                 .fallbackHandlerRegistry(registry);
                 Server server = builder.build();
-                return new GrpcServer(server, registry);
+                return new GrpcServer(address, server, registry);
             });
         } catch (ExecutionException e) {
             throw new RpcCallErrorException(e);
@@ -95,24 +99,31 @@ public class GrpcProtocol extends AbstractProxyProtocol {
                 ProxyEnhanceUtils.detach(proxy.getClass().getName());
 
                 grpcServer.registry.removeService(url.getServiceKey());
-                //todo 尝试关闭无服务server
+                grpcServer.close();
+
             }
         };
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    protected <T> T doReference(Class<T> interfaceC, Url url) {
+    public <T> AsyncInvoker<T> reference(Url url) throws Throwable {
+        Class<T> interfaceC;
+        try {
+            interfaceC = (Class<T>) Class.forName(url.getInterfaceN());
+        } catch (ClassNotFoundException e) {
+            throw e;
+        }
+
         Class<?> enclosingClass = interfaceC.getEnclosingClass();
 
         if (enclosingClass == null) {
             throw new IllegalArgumentException(interfaceC.getName() + " must be declared inside protobuf generated classes, " +
-                    "should be something like KinRpcServiceNameGrpc.ServiceName.");
+                    "should be something like KinRpc{ServiceName}Grpc.{ServiceName}.");
         }
 
         Method kinRpcStubMethod;
         try {
-            //todo 参数可能有变
             kinRpcStubMethod = enclosingClass.getDeclaredMethod("getKinRpcStub", Channel.class, CallOptions.class, Url.class);
         } catch (NoSuchMethodException e) {
             throw new IllegalArgumentException(
@@ -126,12 +137,11 @@ public class GrpcProtocol extends AbstractProxyProtocol {
 
         //获取stub
         try {
-            //todo 参数可能有变
-            return (T) kinRpcStubMethod.invoke(null,
+            return generateAsyncInvoker(url, interfaceC, (T) kinRpcStubMethod.invoke(null,
                     channel,
                     CallOptions.DEFAULT,
                     url
-            );
+            ), channel::shutdown);
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new IllegalStateException("Could not create stub through reflection.", e);
         }
@@ -142,7 +152,7 @@ public class GrpcProtocol extends AbstractProxyProtocol {
      */
     private ReferenceCountManagedChannel getSharedChannel(Url url) {
         String key = url.getAddress();
-        ReferenceCountManagedChannel channel = channelMap.get(key);
+        ReferenceCountManagedChannel channel = CHANNEL_MAP.get(key);
 
         if (channel != null && !channel.isTerminated()) {
             channel.incrementAndGetCount();
@@ -150,13 +160,13 @@ public class GrpcProtocol extends AbstractProxyProtocol {
         }
 
         synchronized (this) {
-            channel = channelMap.get(key);
+            channel = CHANNEL_MAP.get(key);
             // dubbo check
             if (channel != null && !channel.isTerminated()) {
                 channel.incrementAndGetCount();
             } else {
                 channel = new ReferenceCountManagedChannel(initChannel(url));
-                channelMap.put(key, channel);
+                CHANNEL_MAP.put(key, channel);
             }
         }
 
@@ -168,6 +178,8 @@ public class GrpcProtocol extends AbstractProxyProtocol {
      */
     private ManagedChannel initChannel(Url url) {
         NettyChannelBuilder builder = NettyChannelBuilder.forAddress(url.getHost(), url.getPort());
+        //todo use ssl
+        builder.usePlaintext();
         builder.disableRetry();
         return builder.build();
     }
@@ -178,8 +190,16 @@ public class GrpcProtocol extends AbstractProxyProtocol {
     }
 
     @Override
-    public void destroy() {
+    protected <T> T doReference(Class<T> interfaceC, Url url) {
+        throw new UnsupportedOperationException();
+    }
 
+    @Override
+    public void destroy() {
+        SERVERS.invalidateAll();
+        for (ReferenceCountManagedChannel channel : CHANNEL_MAP.values()) {
+            channel.shutdown();
+        }
     }
 
     //------------------------------------------------------------------------------------------------------------------------
@@ -188,14 +208,19 @@ public class GrpcProtocol extends AbstractProxyProtocol {
      * grpc server数据封装
      */
     private class GrpcServer {
+        /** server池的key */
+        private final String cacheKey;
         /** grpc server */
         private final Server server;
         /** grpc 服务方法注册 */
         private final GrpcHandlerRegistry registry;
         /** server started标识 */
         private volatile boolean started;
+        /** 引用数 */
+        private final AtomicInteger referenceCount = new AtomicInteger(0);
 
-        public GrpcServer(Server server, GrpcHandlerRegistry registry) {
+        public GrpcServer(String cacheKey, Server server, GrpcHandlerRegistry registry) {
+            this.cacheKey = cacheKey;
             this.server = server;
             this.registry = registry;
         }
@@ -216,8 +241,21 @@ public class GrpcProtocol extends AbstractProxyProtocol {
          * shutdown
          */
         public void close() {
-            //todo
+            if (referenceCount.decrementAndGet() > 0) {
+                return;
+            }
+            if (server.isShutdown() || server.isTerminated()) {
+                return;
+            }
             server.shutdown();
+            SERVERS.invalidate(cacheKey);
+        }
+
+        /**
+         * 引用数+1, 标识server可复用
+         */
+        public void incrementAndGetCount() {
+            referenceCount.incrementAndGet();
         }
     }
 }

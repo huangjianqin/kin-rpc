@@ -219,15 +219,13 @@ public final class {{className}} {
 
     {{#methods}}
         {{#isManyInput}}
-        public io.grpc.stub.StreamObserver<{{inputType}}> {{methodName}}(
-        io.grpc.stub.StreamObserver<{{outputType}}> responseObserver) {
+        public io.grpc.stub.StreamObserver<{{inputType}}> {{methodName}}(io.grpc.stub.StreamObserver<{{outputType}}> responseObserver) {
             return asyncUnimplementedStreamingCall({{packageName}}.{{serviceName}}Grpc.get{{methodNamePascalCase}}Method(), responseObserver);
         }
         {{/isManyInput}}
 
         {{^isManyInput}}
-        public void {{methodName}}({{inputType}} request,
-        io.grpc.stub.StreamObserver<{{outputType}}> responseObserver) {
+        public void {{methodName}}({{inputType}} request, io.grpc.stub.StreamObserver<{{outputType}}> responseObserver) {
             asyncUnimplementedUnaryCall({{packageName}}.{{serviceName}}Grpc.get{{methodNamePascalCase}}Method(), responseObserver);
         }
         {{/isManyInput}}
@@ -274,9 +272,9 @@ public final class {{className}} {
             {{#methods}}
                 {{^isManyInput}}
                     case METHODID_{{methodNameUpperUnderscore}}:
-                    serviceImpl.{{methodName}}(({{inputType}}) request,
-                    (io.grpc.stub.StreamObserver<{{outputType}}>) responseObserver);
-                    break;
+                        serviceImpl.{{methodName}}(({{inputType}}) request,
+                        (io.grpc.stub.StreamObserver<{{outputType}}>) responseObserver);
+                        break;
                 {{/isManyInput}}
             {{/methods}}
                 default:
@@ -291,9 +289,9 @@ public final class {{className}} {
             {{#methods}}
                 {{#isManyInput}}
                     case METHODID_{{methodNameUpperUnderscore}}:
-                    return (io.grpc.stub.StreamObserver
-                <Req>) serviceImpl.{{methodName}}(
-                    (io.grpc.stub.StreamObserver<{{outputType}}>) responseObserver);
+                        return (io.grpc.stub.StreamObserver
+                    <Req>) serviceImpl.{{methodName}}(
+                        (io.grpc.stub.StreamObserver<{{outputType}}>) responseObserver);
                 {{/isManyInput}}
             {{/methods}}
                 default:

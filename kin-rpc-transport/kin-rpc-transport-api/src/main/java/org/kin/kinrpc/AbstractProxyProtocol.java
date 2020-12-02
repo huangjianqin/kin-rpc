@@ -8,6 +8,7 @@ import org.kin.framework.utils.ClassUtils;
 import org.kin.kinrpc.rpc.*;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
+import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
 import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
 import org.kin.kinrpc.transport.Protocol;
@@ -66,7 +67,13 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
         } catch (ClassNotFoundException e) {
             throw e;
         }
-        T proxy = doReference(interfaceC, url);
+        return generateAsyncInvoker(url, interfaceC, doReference(interfaceC, url), null);
+    }
+
+    /**
+     * 为代理协议生成Invoker
+     */
+    protected <T> AsyncInvoker<T> generateAsyncInvoker(Url url, Class<T> interfaceC, T proxy, Runnable destroyMethod) {
         return new ReferenceInvoker<T>(url) {
 
             @Override
@@ -105,6 +112,11 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
             public void destroy() {
                 //释放无用代理类
                 ProxyEnhanceUtils.detach(proxy.getClass().getName());
+
+                //自定义销毁操作
+                if (Objects.nonNull(destroyMethod)) {
+                    destroyMethod.run();
+                }
             }
         };
     }
@@ -258,7 +270,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
         }
 
         methodBody.append("} catch (Exception e) {").append(System.lineSeparator());
-        methodBody.append("throw new RpcCallErrorException(e);").append(System.lineSeparator());
+        methodBody.append("throw new ").append(RpcCallErrorException.class.getName()).append("(e);").append(System.lineSeparator());
         methodBody.append("}").append(System.lineSeparator());
 
         return methodBody.toString();

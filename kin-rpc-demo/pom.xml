@@ -40,6 +40,12 @@
             <version>${project.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-rpc-transport-http</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- 序列化 -->
         <dependency>
             <groupId>org.kin</groupId>
@@ -94,6 +100,7 @@
         </extensions>
 
         <plugins>
+            <!-- 添加kin-rpc-transport-grpc依赖, 添加下面插件, kinrpc-grpc代码生成demo -->
             <plugin>
                 <groupId>org.xolstice.maven.plugins</groupId>
                 <artifactId>protobuf-maven-plugin</artifactId>

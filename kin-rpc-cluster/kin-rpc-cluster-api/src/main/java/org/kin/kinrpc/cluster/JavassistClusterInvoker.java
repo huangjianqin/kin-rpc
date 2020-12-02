@@ -8,6 +8,7 @@ import org.kin.kinrpc.rpc.Notifier;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RateLimitException;
+import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -100,7 +101,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
         }
 
         methodBody.append("} catch (Exception e) {").append(System.lineSeparator());
-        methodBody.append("throw new RpcCallErrorException(e);").append(System.lineSeparator());
+        methodBody.append("throw new ").append(RpcCallErrorException.class.getName()).append("(e);").append(System.lineSeparator());
         methodBody.append("}").append(System.lineSeparator());
         methodBody.append("}");
 
