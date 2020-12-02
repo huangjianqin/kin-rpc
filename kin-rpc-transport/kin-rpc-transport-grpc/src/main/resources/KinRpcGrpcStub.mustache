@@ -1,212 +1,304 @@
+// !!! DON NOT EDIT IT !!!
+
 {{#packageName}}
     package {{packageName}};
 {{/packageName}}
 
-import org.apache.dubbo.common.URL;
-import org.apache.dubbo.config.ReferenceConfigBase;
+import org.kin.kinrpc.rpc.common.Url;
+import org.kin.kinrpc.rpc.common.Constants;
 
 import java.util.concurrent.TimeUnit;
-
-import static org.apache.dubbo.common.constants.CommonConstants.DEFAULT_TIMEOUT;
-import static org.apache.dubbo.common.constants.CommonConstants.TIMEOUT_KEY;
-
 import static {{packageName}}.{{serviceName}}Grpc.getServiceDescriptor;
 import static io.grpc.stub.ServerCalls.asyncUnaryCall;
 import static io.grpc.stub.ServerCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncClientStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncBidiStreamingCall;
-
+import static io.grpc.stub.ServerCalls.asyncUnimplementedStreamingCall;
+import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 
 {{#deprecated}}
-    @java.lang.Deprecated
+@java.lang.Deprecated
 {{/deprecated}}
 @javax.annotation.Generated(
-value = "by ReactorDubboGrpc generator",
+value = "by KinRpcGrpc generator",
 comments = "Source: {{protoName}}")
 public final class {{className}} {
-private {{className}}() {}
+    private {{className}}() {}
 
-public static ReactorDubbo{{serviceName}}Stub getDubboStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions, URL url, ReferenceConfigBase<?> referenceConfig) {
-return new ReactorDubbo{{serviceName}}Stub(channel, callOptions, url, referenceConfig);
-}
+    public static class KinRpc{{serviceName}}Stub implements {{serviceName}} {
 
-{{#javaDoc}}
-    {{{javaDoc}}}
-{{/javaDoc}}
-public static final class ReactorDubbo{{serviceName}}Stub implements IReactor{{serviceName}} {
+        protected Url url;
 
-protected URL url;
-protected ReferenceConfigBase<?> referenceConfig;
+        protected {{serviceName}}Grpc.{{serviceName}}BlockingStub blockingStub;
+        protected {{serviceName}}Grpc.{{serviceName}}FutureStub futureStub;
+        protected {{serviceName}}Grpc.{{serviceName}}Stub stub;
 
-protected {{serviceName}}Grpc.{{serviceName}}Stub stub;
+        public KinRpc{{serviceName}}Stub(io.grpc.Channel channel, io.grpc.CallOptions callOptions, Url url) {
+            this.url = url;
 
-public ReactorDubbo{{serviceName}}Stub(io.grpc.Channel channel, io.grpc.CallOptions callOptions, URL url, ReferenceConfigBase<?> referenceConfig) {
-this.url = url;
-this.referenceConfig = referenceConfig;
-stub = {{serviceName}}Grpc.newStub(channel).build(channel, callOptions);
-}
+            blockingStub = {{serviceName}}Grpc.newBlockingStub(channel).build(channel, callOptions);
+            futureStub = {{serviceName}}Grpc.newFutureStub(channel).build(channel, callOptions);
+            stub = {{serviceName}}Grpc.newStub(channel).build(channel, callOptions);
+        }
 
-{{#methods}}
-    {{#javaDoc}}
-        {{{javaDoc}}}
-    {{/javaDoc}}
-    {{#deprecated}}
+    {{#unaryMethods}}
+        {{#javaDoc}}
+            {{{javaDoc}}}
+        {{/javaDoc}}
+        {{#deprecated}}
         @java.lang.Deprecated
-    {{/deprecated}}
-    public {{#isManyOutput}}reactor.core.publisher.Flux{{/isManyOutput}}{{^isManyOutput}}reactor.core.publisher.Mono{{/isManyOutput}}<{{outputType}}> {{methodName}}({{#isManyInput}}reactor.core.publisher.Flux{{/isManyInput}}{{^isManyInput}}reactor.core.publisher.Mono{{/isManyInput}}<{{inputType}}> reactorRequest) {
-    {{serviceName}}Grpc.{{serviceName}}Stub localStub = stub.withDeadlineAfter(url.getParameter(TIMEOUT_KEY, DEFAULT_TIMEOUT), TimeUnit.MILLISECONDS);
-    return com.salesforce.reactorgrpc.stub.ClientCalls.{{reactiveCallsMethodName}}(reactorRequest, localStub::{{methodName}});
+        {{/deprecated}}
+        public {{outputType}} {{methodName}}({{inputType}} request) {
+            return blockingStub.withDeadlineAfter(Long.parseLong(url.getParam(Constants.CALL_TIMEOUT_KEY)), TimeUnit.MILLISECONDS)
+            .{{methodName}}(request);
+        }
+
+        public com.google.common.util.concurrent.ListenableFuture<{{outputType}}> {{methodName}}Async({{inputType}} request) {
+            return futureStub.withDeadlineAfter(Long.parseLong(url.getParam(Constants.CALL_TIMEOUT_KEY)), TimeUnit.MILLISECONDS)
+            .{{methodName}}(request);
+        }
+
+        public void {{methodName}}({{inputType}} request, io.grpc.stub.StreamObserver<{{outputType}}> responseObserver){
+            stub.withDeadlineAfter(Long.parseLong(url.getParam(Constants.CALL_TIMEOUT_KEY)), TimeUnit.MILLISECONDS)
+            .{{methodName}}(request, responseObserver);
+        }
+
+
+    {{/unaryMethods}}
+
+    {{#serverStreamingMethods}}
+        {{#javaDoc}}
+            {{{javaDoc}}}
+        {{/javaDoc}}
+        {{#deprecated}}
+        @java.lang.Deprecated
+        {{/deprecated}}
+        public java.util.Iterator<{{outputType}}> {{methodName}}({{inputType}} request) {
+            return blockingStub.withDeadlineAfter(url.getParameter(TIMEOUT_KEY, DEFAULT_TIMEOUT), TimeUnit.MILLISECONDS)
+            .{{methodName}}(request);
+        }
+
+        public void {{methodName}}({{inputType}} request, io.grpc.stub.StreamObserver<{{outputType}}> responseObserver) {
+            stub.withDeadlineAfter(url.getParameter(TIMEOUT_KEY, DEFAULT_TIMEOUT), TimeUnit.MILLISECONDS)
+            .{{methodName}}(request, responseObserver);
+        }
+
+
+    {{/serverStreamingMethods}}
+
+    {{#biStreamingMethods}}
+        {{#javaDoc}}
+            {{{javaDoc}}}
+        {{/javaDoc}}
+        {{#deprecated}}
+        @java.lang.Deprecated
+        {{/deprecated}}
+        public io.grpc.stub.StreamObserver<{{inputType}}> {{methodName}}(io.grpc.stub.StreamObserver<{{outputType}}> responseObserver) {
+            return stub.withDeadlineAfter(url.getParameter(TIMEOUT_KEY, DEFAULT_TIMEOUT), TimeUnit.MILLISECONDS)
+            .{{methodName}}(responseObserver);
+        }
+    {{/biStreamingMethods}}
     }
 
-{{/methods}}
-{{#unaryRequestMethods}}
-    {{#javaDoc}}
-        {{{javaDoc}}}
-    {{/javaDoc}}
-    {{#deprecated}}
-        @java.lang.Deprecated
-    {{/deprecated}}
-    public {{#isManyOutput}}reactor.core.publisher.Flux{{/isManyOutput}}{{^isManyOutput}}reactor.core.publisher.Mono{{/isManyOutput}}<{{outputType}}> {{methodName}}({{inputType}} reactorRequest) {
-    {{serviceName}}Grpc.{{serviceName}}Stub localStub = stub.withDeadlineAfter(url.getParameter(TIMEOUT_KEY, DEFAULT_TIMEOUT), TimeUnit.MILLISECONDS);
-    return com.salesforce.reactorgrpc.stub.ClientCalls.{{reactiveCallsMethodName}}(reactor.core.publisher.Mono.just(reactorRequest), localStub::{{methodName}});
+    public static KinRpc{{serviceName}}Stub getKinRpcStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions, Url url) {
+        return new KinRpc{{serviceName}}Stub(channel, callOptions, url);
     }
 
-{{/unaryRequestMethods}}
-}
-
-public interface IReactor{{serviceName}} {
-{{#methods}}
-    {{#javaDoc}}
-        {{{javaDoc}}}
-    {{/javaDoc}}
-    {{#deprecated}}
+    /**
+     * 服务接口
+     */
+    public interface {{serviceName}} {
+    {{#unaryMethods}}
+        {{#javaDoc}}
+            {{{javaDoc}}}
+        {{/javaDoc}}
+        {{#deprecated}}
         @java.lang.Deprecated
-    {{/deprecated}}
-    public {{#isManyOutput}}reactor.core.publisher.Flux{{/isManyOutput}}{{^isManyOutput}}reactor.core.publisher.Mono{{/isManyOutput}}<{{outputType}}> {{methodName}}({{#isManyInput}}reactor.core.publisher.Flux{{/isManyInput}}{{^isManyInput}}reactor.core.publisher.Mono{{/isManyInput}}<{{inputType}}> reactorRequest);
+        {{/deprecated}}
+        default public {{outputType}} {{methodName}}({{inputType}} request) {
+            throw new UnsupportedOperationException("No need to override this method, extend XxxImplBase and override all methods it allows.");
+        }
 
-{{/methods}}
-{{#unaryRequestMethods}}
-    {{#javaDoc}}
-        {{{javaDoc}}}
-    {{/javaDoc}}
-    {{#deprecated}}
+        {{#javaDoc}}
+            {{{javaDoc}}}
+        {{/javaDoc}}
+        {{#deprecated}}
         @java.lang.Deprecated
-    {{/deprecated}}
-    public {{#isManyOutput}}reactor.core.publisher.Flux{{/isManyOutput}}{{^isManyOutput}}reactor.core.publisher.Mono{{/isManyOutput}}<{{outputType}}> {{methodName}}({{inputType}} reactorRequest);
+        {{/deprecated}}
+        default public com.google.common.util.concurrent.ListenableFuture<{{outputType}}> {{methodName}}Async({{inputType}} request) {
+            throw new UnsupportedOperationException("No need to override this method, extend XxxImplBase and override all methods it allows.");
+        }
 
-{{/unaryRequestMethods}}
-}
-
-{{#javaDoc}}
-    {{{javaDoc}}}
-{{/javaDoc}}
-public static abstract class {{serviceName}}ImplBase implements IReactor{{serviceName}}, io.grpc.BindableService {
-
-private IReactor{{serviceName}} proxiedImpl;
-
-public final void setProxiedImpl(IReactor{{serviceName}} proxiedImpl) {
-this.proxiedImpl = proxiedImpl;
-}
-
-{{#unaryRequestMethods}}
-    {{#javaDoc}}
-        {{{javaDoc}}}
-    {{/javaDoc}}
-    {{#deprecated}}
+        {{#javaDoc}}
+            {{{javaDoc}}}
+        {{/javaDoc}}
+        {{#deprecated}}
         @java.lang.Deprecated
-    {{/deprecated}}
-    public final {{#isManyOutput}}reactor.core.publisher.Flux{{/isManyOutput}}{{^isManyOutput}}reactor.core.publisher.Mono{{/isManyOutput}}<{{outputType}}> {{methodName}}({{inputType}} reactorRequest) {
-    throw new UnsupportedOperationException("No need to override this method, extend XxxImplBase and override all methods it allows.");
+        {{/deprecated}}
+        public void {{methodName}}({{inputType}} request, io.grpc.stub.StreamObserver<{{outputType}}> responseObserver);
+    {{/unaryMethods}}
+
+    {{#serverStreamingMethods}}
+        {{#javaDoc}}
+            {{{javaDoc}}}
+        {{/javaDoc}}
+        {{#deprecated}}
+        @java.lang.Deprecated
+        {{/deprecated}}
+        default public java.util.Iterator<{{outputType}}> {{methodName}}({{inputType}} request) {
+            throw new UnsupportedOperationException("No need to override this method, extend XxxImplBase and override all methods it allows.");
+        }
+
+        {{#javaDoc}}
+            {{{javaDoc}}}
+        {{/javaDoc}}
+        {{#deprecated}}
+        @java.lang.Deprecated
+        {{/deprecated}}
+        public void {{methodName}}({{inputType}} request, io.grpc.stub.StreamObserver<{{outputType}}> responseObserver);
+    {{/serverStreamingMethods}}
+
+    {{#biStreamingMethods}}
+        {{#javaDoc}}
+            {{{javaDoc}}}
+        {{/javaDoc}}
+        {{#deprecated}}
+        @java.lang.Deprecated
+        {{/deprecated}}
+        public io.grpc.stub.StreamObserver<{{inputType}}> {{methodName}}(io.grpc.stub.StreamObserver<{{outputType}}> responseObserver);
+    {{/biStreamingMethods}}
     }
 
-{{/unaryRequestMethods}}
-{{#methods}}
     {{#javaDoc}}
         {{{javaDoc}}}
     {{/javaDoc}}
-    {{#deprecated}}
-        @java.lang.Deprecated
-    {{/deprecated}}
-    public {{#isManyOutput}}reactor.core.publisher.Flux{{/isManyOutput}}{{^isManyOutput}}reactor.core.publisher.Mono{{/isManyOutput}}<{{outputType}}> {{methodName}}({{#isManyInput}}reactor.core.publisher.Flux{{/isManyInput}}{{^isManyInput}}reactor.core.publisher.Mono{{/isManyInput}}<{{inputType}}> request) {
-    throw new io.grpc.StatusRuntimeException(io.grpc.Status.UNIMPLEMENTED);
-    }
+    public static abstract class {{serviceName}}ImplBase implements io.grpc.BindableService, {{serviceName}} {
+        /** service origin instnce, 通过反射注入 */
+        private {{serviceName}} proxiedImpl;
 
-{{/methods}}
-@java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
-return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
-{{#methods}}
-    .addMethod(
-    {{packageName}}.{{serviceName}}Grpc.get{{methodNamePascalCase}}Method(),
-    {{grpcCallsMethodName}}(
-    new MethodHandlers<
-    {{inputType}},
-    {{outputType}}>(
-    proxiedImpl, METHODID_{{methodNameUpperUnderscore}})))
-{{/methods}}
-.build();
-}
-}
+        public final void setProxiedImpl({{serviceName}} proxiedImpl) {
+            this.proxiedImpl = proxiedImpl;
+        }
+
+    {{#unaryMethods}}
+        {{#javaDoc}}
+            {{{javaDoc}}}
+        {{/javaDoc}}
+        {{#deprecated}}
+        @java.lang.Deprecated
+        {{/deprecated}}
+        @java.lang.Override
+        public final {{outputType}} {{methodName}}({{inputType}} request) {
+            throw new UnsupportedOperationException("No need to override this method, extend XxxImplBase and override all methods it allows.");
+        }
+
+        {{#javaDoc}}
+            {{{javaDoc}}}
+        {{/javaDoc}}
+        {{#deprecated}}
+        @java.lang.Deprecated
+        {{/deprecated}}
+        @java.lang.Override
+        public final com.google.common.util.concurrent.ListenableFuture<{{outputType}}> {{methodName}}Async({{inputType}} request) {
+            throw new UnsupportedOperationException("No need to override this method, extend XxxImplBase and override all methods it allows.");
+        }
+    {{/unaryMethods}}
+
+    {{#serverStreamingMethods}}
+        {{#javaDoc}}
+            {{{javaDoc}}}
+        {{/javaDoc}}
+        {{#deprecated}}
+         @java.lang.Deprecated
+        {{/deprecated}}
+        @java.lang.Override
+        public final java.util.Iterator<{{outputType}}> {{methodName}}({{inputType}} request) {
+            throw new UnsupportedOperationException("No need to override this method, extend XxxImplBase and override all methods it allows.");
+        }
+    {{/serverStreamingMethods}}
+
+    {{#methods}}
+        {{#isManyInput}}
+        public io.grpc.stub.StreamObserver<{{inputType}}> {{methodName}}(
+        io.grpc.stub.StreamObserver<{{outputType}}> responseObserver) {
+            return asyncUnimplementedStreamingCall({{packageName}}.{{serviceName}}Grpc.get{{methodNamePascalCase}}Method(), responseObserver);
+        }
+        {{/isManyInput}}
+
+        {{^isManyInput}}
+        public void {{methodName}}({{inputType}} request,
+        io.grpc.stub.StreamObserver<{{outputType}}> responseObserver) {
+            asyncUnimplementedUnaryCall({{packageName}}.{{serviceName}}Grpc.get{{methodNamePascalCase}}Method(), responseObserver);
+        }
+        {{/isManyInput}}
+    {{/methods}}
+
+        @java.lang.Override
+        public final io.grpc.ServerServiceDefinition bindService() {
+            return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
+            {{#methods}}
+                .addMethod({{packageName}}.{{serviceName}}Grpc.get{{methodNamePascalCase}}Method(),
+                    {{grpcCallsMethodName}}(
+                    new MethodHandlers<
+                    {{inputType}},
+                    {{outputType}}>(
+                    proxiedImpl, METHODID_{{methodNameUpperUnderscore}})))
+            {{/methods}}
+            .build();
+        }
+    }
 
 {{#methods}}
     private static final int METHODID_{{methodNameUpperUnderscore}} = {{methodNumber}};
 {{/methods}}
 
-private static final class MethodHandlers
-<Req, Resp> implements
-io.grpc.stub.ServerCalls.UnaryMethod
-<Req, Resp>,
-io.grpc.stub.ServerCalls.ServerStreamingMethod
-<Req, Resp>,
-io.grpc.stub.ServerCalls.ClientStreamingMethod
-<Req, Resp>,
-io.grpc.stub.ServerCalls.BidiStreamingMethod
-<Req, Resp> {
-private final IReactor{{serviceName}} serviceImpl;
-private final int methodId;
+    private static final class MethodHandlers<Req, Resp> implements
+            io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
+            io.grpc.stub.ServerCalls.ServerStreamingMethod<Req, Resp>,
+            io.grpc.stub.ServerCalls.ClientStreamingMethod<Req, Resp>,
+            io.grpc.stub.ServerCalls.BidiStreamingMethod<Req, Resp> {
 
-MethodHandlers(IReactor{{serviceName}} serviceImpl, int methodId) {
-this.serviceImpl = serviceImpl;
-this.methodId = methodId;
-}
+        private final {{serviceName}} serviceImpl;
+        private final int methodId;
 
-@java.lang.Override
-@java.lang.SuppressWarnings("unchecked")
-public void invoke(Req request, io.grpc.stub.StreamObserver
-<Resp> responseObserver) {
-    switch (methodId) {
-    {{#methods}}
-        {{^isManyInput}}
-            case METHODID_{{methodNameUpperUnderscore}}:
-            com.salesforce.reactorgrpc.stub.ServerCalls.{{reactiveCallsMethodName}}(({{inputType}}) request,
-            (io.grpc.stub.StreamObserver<{{outputType}}>) responseObserver,
-            serviceImpl::{{methodName}});
-            break;
-        {{/isManyInput}}
-    {{/methods}}
-    default:
-    throw new java.lang.AssertionError();
-    }
-    }
+        MethodHandlers({{serviceName}} serviceImpl, int methodId) {
+            this.serviceImpl = serviceImpl;
+            this.methodId = methodId;
+        }
 
-    @java.lang.Override
-    @java.lang.SuppressWarnings("unchecked")
-    public io.grpc.stub.StreamObserver
-    <Req> invoke(io.grpc.stub.StreamObserver
+        @java.lang.Override
+        @java.lang.SuppressWarnings("unchecked")
+        public void invoke(Req request, io.grpc.stub.StreamObserver
         <Resp> responseObserver) {
+            switch (methodId) {
+            {{#methods}}
+                {{^isManyInput}}
+                    case METHODID_{{methodNameUpperUnderscore}}:
+                    serviceImpl.{{methodName}}(({{inputType}}) request,
+                    (io.grpc.stub.StreamObserver<{{outputType}}>) responseObserver);
+                    break;
+                {{/isManyInput}}
+            {{/methods}}
+                default:
+                throw new java.lang.AssertionError();
+            }
+        }
+
+        @java.lang.Override
+        @java.lang.SuppressWarnings("unchecked")
+        public io.grpc.stub.StreamObserver <Req> invoke(io.grpc.stub.StreamObserver<Resp> responseObserver) {
             switch (methodId) {
             {{#methods}}
                 {{#isManyInput}}
                     case METHODID_{{methodNameUpperUnderscore}}:
                     return (io.grpc.stub.StreamObserver
-                <Req>) com.salesforce.reactorgrpc.stub.ServerCalls.{{reactiveCallsMethodName}}(
-                    (io.grpc.stub.StreamObserver<{{outputType}}>) responseObserver,
-                    serviceImpl::{{methodName}});
+                <Req>) serviceImpl.{{methodName}}(
+                    (io.grpc.stub.StreamObserver<{{outputType}}>) responseObserver);
                 {{/isManyInput}}
             {{/methods}}
-            default:
-            throw new java.lang.AssertionError();
+                default:
+                throw new java.lang.AssertionError();
             }
-            }
-            }
-
-            }
+        }
+    }
+}

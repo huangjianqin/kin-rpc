@@ -31,7 +31,7 @@ public class KinRpcProtocol implements Protocol, LoggerOprs {
     private static final Cache<Integer, KinRpcProvider> PROVIDER_CACHE = CacheBuilder.newBuilder().build();
 
     @Override
-    public <T> Exporter<T> export(Invoker<T> invoker) {
+    public <T> Exporter<T> export(ProviderInvoker<T> invoker) {
         if (!(invoker instanceof ProviderInvoker)) {
             throw new IllegalStateException("invoker is not a provider invoker >>> ".concat(invoker.toString()));
         }

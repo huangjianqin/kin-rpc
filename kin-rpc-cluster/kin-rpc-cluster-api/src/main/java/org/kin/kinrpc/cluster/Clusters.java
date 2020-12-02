@@ -10,11 +10,11 @@ import org.kin.kinrpc.cluster.router.Routers;
 import org.kin.kinrpc.registry.Registries;
 import org.kin.kinrpc.registry.Registry;
 import org.kin.kinrpc.rpc.Exporter;
-import org.kin.kinrpc.rpc.Invoker;
 import org.kin.kinrpc.rpc.Notifier;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.invoker.JavassistProviderInvoker;
+import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
 import org.kin.kinrpc.rpc.invoker.ReflectProviderInvoker;
 import org.kin.kinrpc.transport.Protocol;
 import org.kin.kinrpc.transport.Protocols;
@@ -47,7 +47,7 @@ public class Clusters {
         Preconditions.checkNotNull(protocol, String.format("unknown protocol: %s", protocolName));
 
         boolean byteCodeInvoke = Boolean.parseBoolean(url.getParam(Constants.BYTE_CODE_INVOKE_KEY));
-        Invoker<T> invoker;
+        ProviderInvoker<T> invoker;
         if (byteCodeInvoke) {
             invoker = new JavassistProviderInvoker<>(url, instance, interfaceClass);
         } else {

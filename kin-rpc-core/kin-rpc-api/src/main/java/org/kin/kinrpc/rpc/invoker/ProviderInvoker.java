@@ -65,6 +65,10 @@ public abstract class ProviderInvoker<T> extends AbstractInvoker<T> {
         return rateLimiter.getRate();
     }
 
+    public final T getSerivce() {
+        return serivce;
+    }
+
     @Override
     public final Class<T> getInterface() {
         return interfaceC;

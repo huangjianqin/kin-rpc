@@ -19,6 +19,19 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- protobuf -->
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>${protobuf.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java-util</artifactId>
+            <version>${protobuf.version}</version>
+        </dependency>
+
         <!-- grpc -->
         <dependency>
             <groupId>io.grpc</groupId>
@@ -80,12 +93,52 @@
                     <pluginArtifact>
                         io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}
                     </pluginArtifact>
+                    <protocPlugins>
+                        <protocPlugin>
+                            <id>kinrpc-grpc</id>
+                            <groupId>org.kin</groupId>
+                            <artifactId>kin-rpc-transport-grpc</artifactId>
+                            <version>${project.version}</version>
+                            <mainClass>org.kin.kinrpc.transport.grpc.GrpcGenerator</mainClass>
+                        </protocPlugin>
+                    </protocPlugins>
                 </configuration>
                 <executions>
                     <execution>
                         <goals>
                             <goal>compile</goal>
                             <goal>compile-custom</goal>
+                            <goal>test-compile</goal>
+                            <goal>test-compile-custom</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.0.2</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>org.kin.kinrpc.transport.grpc.GrpcGenerator</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <!-- Optional, used to build directly executable packages (without using 'java -jar'),
+            for example 'artifactId-1.0.0-osx-x86_64.exe', 'artifactId-1.0.0-osx-x86_64.exe' -->
+            <plugin>
+                <groupId>com.salesforce.servicelibs</groupId>
+                <artifactId>canteen-maven-plugin</artifactId>
+                <version>1.0.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>bootstrap</goal>
                         </goals>
                     </execution>
                 </executions>

@@ -3,8 +3,8 @@ package org.kin.kinrpc.transport;
 import org.kin.framework.utils.SPI;
 import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.kin.kinrpc.rpc.Exporter;
-import org.kin.kinrpc.rpc.Invoker;
 import org.kin.kinrpc.rpc.common.Url;
+import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
 
 /**
  * 传输层协议, 目前仅仅支持kinrpc(自己实现, 基于netty), grpc, http, protobuf, thrift
@@ -22,7 +22,7 @@ public interface Protocol {
      * @param <T>     service类型
      * @return protocol wrappered invoker
      */
-    <T> Exporter<T> export(Invoker<T> invoker) throws Throwable;
+    <T> Exporter<T> export(ProviderInvoker<T> invoker) throws Throwable;
 
     /**
      * reference service

@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 option java_multiple_files = true;
-package org.kin.kinrpc.transport.grpc;
+package org.kin.kinrpc.demo.grpc;
 
 //定义服务
 service HelloService{
