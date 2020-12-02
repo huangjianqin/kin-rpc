@@ -23,7 +23,7 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2020/11/4
  */
-public class KinRpcProtocol implements Protocol, LoggerOprs {
+public final class KinRpcProtocol implements Protocol, LoggerOprs {
     static {
         ProtocolFactory.init(KinRpcRequestProtocol.class.getPackage().getName());
     }
@@ -32,9 +32,6 @@ public class KinRpcProtocol implements Protocol, LoggerOprs {
 
     @Override
     public <T> Exporter<T> export(ProviderInvoker<T> invoker) {
-        if (!(invoker instanceof ProviderInvoker)) {
-            throw new IllegalStateException("invoker is not a provider invoker >>> ".concat(invoker.toString()));
-        }
         Url url = invoker.url();
 
         String host = url.getHost();
@@ -113,7 +110,7 @@ public class KinRpcProtocol implements Protocol, LoggerOprs {
     //-------------------------------------------------------------------------------------------------------------------------
     private class KinRpcExporter<T> implements Exporter<T> {
         /** 包装的provider invoker */
-        private ProviderInvoker<T> providerInvoker;
+        private final ProviderInvoker<T> providerInvoker;
 
         public KinRpcExporter(ProviderInvoker<T> providerInvoker) {
             this.providerInvoker = providerInvoker;

@@ -18,7 +18,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * 生成XXXGrpc代码
+ * 生成KinRpc{ServiceName}Grpc代码
  *
  * @author huangjianqin
  * @date 2020/12/2
@@ -267,13 +267,11 @@ public class GrpcGenerator extends Generator {
     private String getJavaDoc(String comments, String prefix) {
         if (!comments.isEmpty()) {
             StringBuilder builder = new StringBuilder("/**\n")
-                    .append(prefix).append(" * <pre>\n");
+                    .append(prefix);
             Arrays.stream(HtmlEscapers.htmlEscaper().escape(comments).split("\n"))
                     .map(line -> line.replace("*/", "&#42;&#47;").replace("*", "&#42;"))
-                    .forEach(line -> builder.append(prefix).append(" * ").append(line).append("\n"));
-            builder
-                    .append(prefix).append(" * </pre>\n")
-                    .append(prefix).append(" */");
+                    .forEach(line -> builder.append(" * ").append(line).append("\n"));
+            builder.append(prefix).append(" */");
             return builder.toString();
         }
         return null;
@@ -349,9 +347,7 @@ public class GrpcGenerator extends Generator {
         public boolean isManyInput;
         /** server streaming */
         public boolean isManyOutput;
-        /**
-         *
-         */
+        /** reactive调用的方法名 */
         public String reactiveCallsMethodName;
         /** grpc调用的方法名 */
         public String grpcCallsMethodName;

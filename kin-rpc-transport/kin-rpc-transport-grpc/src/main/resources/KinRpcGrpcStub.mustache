@@ -1,7 +1,7 @@
 // !!! DON NOT EDIT IT !!!
 
 {{#packageName}}
-    package {{packageName}};
+package {{packageName}};
 {{/packageName}}
 
 import org.kin.kinrpc.rpc.common.Url;
@@ -26,7 +26,7 @@ public final class {{className}} {
     private {{className}}() {}
 
     public static class KinRpc{{serviceName}}Stub implements {{serviceName}} {
-
+        /** 服务描述 */
         protected Url url;
 
         protected {{serviceName}}Grpc.{{serviceName}}BlockingStub blockingStub;
@@ -42,9 +42,9 @@ public final class {{className}} {
         }
 
     {{#unaryMethods}}
-        {{#javaDoc}}
-            {{{javaDoc}}}
-        {{/javaDoc}}
+    {{#javaDoc}}
+        {{{javaDoc}}}
+    {{/javaDoc}}
         {{#deprecated}}
         @java.lang.Deprecated
         {{/deprecated}}
@@ -67,9 +67,9 @@ public final class {{className}} {
     {{/unaryMethods}}
 
     {{#serverStreamingMethods}}
-        {{#javaDoc}}
-            {{{javaDoc}}}
-        {{/javaDoc}}
+    {{#javaDoc}}
+        {{{javaDoc}}}
+    {{/javaDoc}}
         {{#deprecated}}
         @java.lang.Deprecated
         {{/deprecated}}
@@ -87,9 +87,9 @@ public final class {{className}} {
     {{/serverStreamingMethods}}
 
     {{#biStreamingMethods}}
-        {{#javaDoc}}
-            {{{javaDoc}}}
-        {{/javaDoc}}
+    {{#javaDoc}}
+        {{{javaDoc}}}
+    {{/javaDoc}}
         {{#deprecated}}
         @java.lang.Deprecated
         {{/deprecated}}
@@ -109,9 +109,9 @@ public final class {{className}} {
      */
     public interface {{serviceName}} {
     {{#unaryMethods}}
-        {{#javaDoc}}
-            {{{javaDoc}}}
-        {{/javaDoc}}
+    {{#javaDoc}}
+        {{{javaDoc}}}
+    {{/javaDoc}}
         {{#deprecated}}
         @java.lang.Deprecated
         {{/deprecated}}
@@ -119,9 +119,9 @@ public final class {{className}} {
             throw new UnsupportedOperationException("No need to override this method, extend XxxImplBase and override all methods it allows.");
         }
 
-        {{#javaDoc}}
-            {{{javaDoc}}}
-        {{/javaDoc}}
+    {{#javaDoc}}
+        {{{javaDoc}}}
+    {{/javaDoc}}
         {{#deprecated}}
         @java.lang.Deprecated
         {{/deprecated}}
@@ -129,9 +129,9 @@ public final class {{className}} {
             throw new UnsupportedOperationException("No need to override this method, extend XxxImplBase and override all methods it allows.");
         }
 
-        {{#javaDoc}}
-            {{{javaDoc}}}
-        {{/javaDoc}}
+    {{#javaDoc}}
+        {{{javaDoc}}}
+    {{/javaDoc}}
         {{#deprecated}}
         @java.lang.Deprecated
         {{/deprecated}}
@@ -139,9 +139,9 @@ public final class {{className}} {
     {{/unaryMethods}}
 
     {{#serverStreamingMethods}}
-        {{#javaDoc}}
-            {{{javaDoc}}}
-        {{/javaDoc}}
+    {{#javaDoc}}
+        {{{javaDoc}}}
+    {{/javaDoc}}
         {{#deprecated}}
         @java.lang.Deprecated
         {{/deprecated}}
@@ -149,9 +149,9 @@ public final class {{className}} {
             throw new UnsupportedOperationException("No need to override this method, extend XxxImplBase and override all methods it allows.");
         }
 
-        {{#javaDoc}}
-            {{{javaDoc}}}
-        {{/javaDoc}}
+    {{#javaDoc}}
+        {{{javaDoc}}}
+    {{/javaDoc}}
         {{#deprecated}}
         @java.lang.Deprecated
         {{/deprecated}}
@@ -159,9 +159,9 @@ public final class {{className}} {
     {{/serverStreamingMethods}}
 
     {{#biStreamingMethods}}
-        {{#javaDoc}}
-            {{{javaDoc}}}
-        {{/javaDoc}}
+    {{#javaDoc}}
+        {{{javaDoc}}}
+    {{/javaDoc}}
         {{#deprecated}}
         @java.lang.Deprecated
         {{/deprecated}}
@@ -169,9 +169,9 @@ public final class {{className}} {
     {{/biStreamingMethods}}
     }
 
-    {{#javaDoc}}
-        {{{javaDoc}}}
-    {{/javaDoc}}
+{{#javaDoc}}
+    {{{javaDoc}}}
+{{/javaDoc}}
     public static abstract class {{serviceName}}ImplBase implements io.grpc.BindableService, {{serviceName}} {
         /** service origin instnce, 通过反射注入 */
         private {{serviceName}} proxiedImpl;
@@ -181,9 +181,9 @@ public final class {{className}} {
         }
 
     {{#unaryMethods}}
-        {{#javaDoc}}
-            {{{javaDoc}}}
-        {{/javaDoc}}
+    {{#javaDoc}}
+        {{{javaDoc}}}
+    {{/javaDoc}}
         {{#deprecated}}
         @java.lang.Deprecated
         {{/deprecated}}
@@ -192,9 +192,9 @@ public final class {{className}} {
             throw new UnsupportedOperationException("No need to override this method, extend XxxImplBase and override all methods it allows.");
         }
 
-        {{#javaDoc}}
-            {{{javaDoc}}}
-        {{/javaDoc}}
+    {{#javaDoc}}
+        {{{javaDoc}}}
+    {{/javaDoc}}
         {{#deprecated}}
         @java.lang.Deprecated
         {{/deprecated}}
@@ -205,11 +205,11 @@ public final class {{className}} {
     {{/unaryMethods}}
 
     {{#serverStreamingMethods}}
-        {{#javaDoc}}
-            {{{javaDoc}}}
-        {{/javaDoc}}
+    {{#javaDoc}}
+        {{{javaDoc}}}
+    {{/javaDoc}}
         {{#deprecated}}
-         @java.lang.Deprecated
+        @java.lang.Deprecated
         {{/deprecated}}
         @java.lang.Override
         public final java.util.Iterator<{{outputType}}> {{methodName}}({{inputType}} request) {

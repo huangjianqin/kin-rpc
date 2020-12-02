@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author huangjianqin
  * @date 2020/11/16
  */
-public class HttpProtocol extends AbstractProxyProtocol {
+public final class HttpProtocol extends AbstractProxyProtocol {
     static {
         ObjectMapper objectMapper = JSON.PARSER;
         //带上类型信息
@@ -82,6 +82,7 @@ public class HttpProtocol extends AbstractProxyProtocol {
         };
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected <T> T doReference(Class<T> interfaceC, Url url) {
         boolean useGeneric = Boolean.parseBoolean(url.getParam(Constants.GENERIC_KEY));
@@ -143,7 +144,7 @@ public class HttpProtocol extends AbstractProxyProtocol {
         private static final String ACCESS_CONTROL_ALLOW_METHODS_HEADER = "Access-Control-Allow-Methods";
         private static final String ACCESS_CONTROL_ALLOW_HEADERS_HEADER = "Access-Control-Allow-Headers";
 
-        private boolean cors;
+        private final boolean cors;
 
         public InternalHandler(boolean cors) {
             this.cors = cors;

@@ -9,6 +9,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
+ * 可复用的grpc channel
+ *
  * @author huangjianqin
  * @date 2020/12/2
  */

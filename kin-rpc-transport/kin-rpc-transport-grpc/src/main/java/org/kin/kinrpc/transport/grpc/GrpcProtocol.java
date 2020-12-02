@@ -26,12 +26,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * 开发流程与grpc类似, 只是底层通信和编程模型使用的是kinrpc
  * 详情: 导入kinrpc自定义.proto代码生成器, 编译, 并获取KinRpc{ServiceName}Grpc
- * 实现KinRpc{ServiceName}Grpc.XxxImplBase, 编写服务逻辑
+ * 实现KinRpc{ServiceName}Grpc.{ServiceName}ImplBase, 编写服务逻辑
  *
  * @author huangjianqin
  * @date 2020/12/1
  */
-public class GrpcProtocol extends AbstractProxyProtocol {
+public final class GrpcProtocol extends AbstractProxyProtocol {
     /* key -> address, value -> gRPC server */
     private static final Cache<String, GrpcServer> SERVERS =
             CacheBuilder.newBuilder()
@@ -205,7 +205,7 @@ public class GrpcProtocol extends AbstractProxyProtocol {
     //------------------------------------------------------------------------------------------------------------------------
 
     /**
-     * grpc server数据封装
+     * grpc server信息
      */
     private class GrpcServer {
         /** server池的key */
