@@ -1,5 +1,9 @@
 package org.kin.kinrpc.serializer;
 
+import com.google.protobuf.Any;
+import org.kin.kinrpc.serializer.protobuf.ProtobufSerializer;
+import org.kin.kinrpc.serializer.protobuf.Protobufs;
+
 import java.io.IOException;
 
 /**
@@ -8,15 +12,14 @@ import java.io.IOException;
  */
 public class ProtoBufSerializerTest {
     public static void main(String[] args) throws IOException {
-        //需要测试时才恢复, 不然老是缺少protobuf自动生成代码而导致报错
-//        Protobufs.register(ProtoBufMessageOuterClass.ProtoBufMessage.getDefaultInstance());
-//
-//        ProtobufSerializer serializer = new ProtobufSerializer();
-//        ProtoBufMessageOuterClass.ProtoBufMessage copy = ProtoBufMessageOuterClass.ProtoBufMessage.newBuilder().setA(2).setB("empty").build();
-//        ProtoBufMessageOuterClass.ProtoBufMessage origin = ProtoBufMessageOuterClass.ProtoBufMessage.newBuilder().setA(1).setB("aa").setData(Any.pack(copy)).build();
-//        byte[] bytes = serializer.serialize(origin);
-//        System.out.println(origin);
-//        ProtoBufMessageOuterClass.ProtoBufMessage deserialize = serializer.deserialize(bytes, ProtoBufMessageOuterClass.ProtoBufMessage.class);
-//        System.out.println(deserialize);
+        Protobufs.register(ProtoBufMessageOuterClass.ProtoBufMessage.getDefaultInstance());
+
+        ProtobufSerializer serializer = new ProtobufSerializer();
+        ProtoBufMessageOuterClass.ProtoBufMessage copy = ProtoBufMessageOuterClass.ProtoBufMessage.newBuilder().setA(2).setB("empty").build();
+        ProtoBufMessageOuterClass.ProtoBufMessage origin = ProtoBufMessageOuterClass.ProtoBufMessage.newBuilder().setA(1).setB("aa").setData(Any.pack(copy)).build();
+        byte[] bytes = serializer.serialize(origin);
+        System.out.println(origin);
+        ProtoBufMessageOuterClass.ProtoBufMessage deserialize = serializer.deserialize(bytes, ProtoBufMessageOuterClass.ProtoBufMessage.class);
+        System.out.println(deserialize);
     }
 }

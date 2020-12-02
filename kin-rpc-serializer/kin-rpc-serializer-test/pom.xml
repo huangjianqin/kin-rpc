@@ -79,18 +79,15 @@
                 <version>0.6.1</version>
                 <configuration>
                     <protocArtifact>
-                        com.google.protobuf:protoc:3.1.0:exe:${os.detected.classifier}
+                        com.google.protobuf:protoc:3.12.0:exe:${os.detected.classifier}
                     </protocArtifact>
-                    <pluginId>grpc-java</pluginId>
-                    <!--                    <pluginArtifact>-->
-                    <!--                        io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}-->
-                    <!--                    </pluginArtifact>-->
+                    <pluginId>protobuf-java</pluginId>
                 </configuration>
                 <executions>
                     <execution>
                         <goals>
                             <goal>compile</goal>
-                            <goal>compile-custom</goal>
+                            <goal>test-compile</goal>
                         </goals>
                     </execution>
                 </executions>

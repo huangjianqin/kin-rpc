@@ -17,8 +17,8 @@
 
 syntax = "proto3";
 
-package org.kin.kinrpc.serializer;
 import "google/protobuf/any.proto";
+package org.kin.kinrpc.serializer;
 
 message ProtoBufMessage {
   int32 a = 1;
