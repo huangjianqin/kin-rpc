@@ -109,10 +109,13 @@
                     <protocArtifact>
                         com.google.protobuf:protoc:3.12.0:exe:${os.detected.classifier}
                     </protocArtifact>
-                    <pluginId>kinrpc-grpc</pluginId>
+                    <pluginId>grpc-java</pluginId>
+                    <pluginArtifact>
+                        io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}
+                    </pluginArtifact>
                     <protocPlugins>
                         <protocPlugin>
-                            <id>kinrpc-grpc</id>
+                            <id>kinrpc-grpc-java</id>
                             <groupId>org.kin</groupId>
                             <artifactId>kin-rpc-transport-grpc</artifactId>
                             <version>${project.version}</version>
@@ -125,6 +128,8 @@
                         <goals>
                             <goal>compile</goal>
                             <goal>compile-custom</goal>
+                            <goal>test-compile</goal>
+                            <goal>test-compile-custom</goal>
                         </goals>
                     </execution>
                 </executions>
