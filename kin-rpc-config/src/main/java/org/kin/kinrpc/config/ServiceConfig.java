@@ -37,7 +37,7 @@ public class ServiceConfig<T> extends AbstractConfig {
     /** 序列化类型, 在kinrpc协议下生效 */
     private int serialize = SerializerType.KRYO.getCode();
     /** 服务调用类型(invoker收到请求后, 用哪种方式调用服务) */
-    private InvokeType invokeType = InvokeType.JAVASSIST;
+    private ProxyType proxyType = ProxyType.JAVASSIST;
 
     /** 压缩类型, 在kinrpc协议下生效 todo 考虑降低耦合性 */
     private CompressionType compressionType = CompressionType.NONE;
@@ -100,7 +100,7 @@ public class ServiceConfig<T> extends AbstractConfig {
             params.put(Constants.SERVICE_NAME_KEY, serviceName);
             params.put(Constants.VERSION_KEY, version);
             params.put(Constants.SERIALIZE_KEY, serialize + "");
-            params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(InvokeType.JAVASSIST.equals(invokeType)));
+            params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(ProxyType.JAVASSIST.equals(proxyType)));
             params.put(Constants.COMPRESSION_KEY, Integer.toString(compressionType.getId()));
             params.put(Constants.PARALLELISM_KEY, parallelism + "");
             params.put(Constants.RATE_KEY, rate + "");
@@ -228,16 +228,16 @@ public class ServiceConfig<T> extends AbstractConfig {
         return this;
     }
 
-    public ServiceConfig<T> javaInvoke() {
+    public ServiceConfig<T> javaProxy() {
         if (!isExport) {
-            this.invokeType = InvokeType.JAVA;
+            this.proxyType = ProxyType.JAVA;
         }
         return this;
     }
 
-    public ServiceConfig<T> javassistInvoke() {
+    public ServiceConfig<T> javassistProxy() {
         if (!isExport) {
-            this.invokeType = InvokeType.JAVASSIST;
+            this.proxyType = ProxyType.JAVASSIST;
         }
         return this;
     }
@@ -320,8 +320,8 @@ public class ServiceConfig<T> extends AbstractConfig {
         return serialize;
     }
 
-    public InvokeType getInvokeType() {
-        return invokeType;
+    public ProxyType getProxyType() {
+        return proxyType;
     }
 
     public String getVersion() {

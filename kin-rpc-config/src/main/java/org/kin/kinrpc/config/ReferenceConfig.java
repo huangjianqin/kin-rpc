@@ -44,7 +44,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
     /** 路由类型 */
     private String routerType = RouterType.NONE.getType();
     /** 客户端服务invoker调用类型 */
-    private InvokeType invokeType = InvokeType.JAVASSIST;
+    private ProxyType proxyType = ProxyType.JAVASSIST;
     /** 服务限流, 每秒发送多少个 */
     private int rate = Constants.REFERENCE_REQUEST_THRESHOLD;
     /** 是否支持异步rpc call */
@@ -99,7 +99,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
             params.put(Constants.RETRY_INTERVAL_KEY, retryInterval + "");
             params.put(Constants.LOADBALANCE_KEY, loadBalanceType);
             params.put(Constants.ROUTER_KEY, routerType);
-            params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(InvokeType.JAVASSIST.equals(invokeType)));
+            params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(ProxyType.JAVASSIST.equals(proxyType)));
             params.put(Constants.RATE_KEY, rate + "");
             params.put(Constants.ASYNC_KEY, Boolean.toString(async));
             params.put(Constants.GENERIC_KEY, Boolean.toString(useGeneric));
@@ -261,14 +261,14 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
     public ReferenceConfig<T> javaInvoke() {
         if (!isReference) {
-            this.invokeType = InvokeType.JAVA;
+            this.proxyType = ProxyType.JAVA;
         }
         return this;
     }
 
     public ReferenceConfig<T> javassistInvoke() {
         if (!isReference) {
-            this.invokeType = InvokeType.JAVASSIST;
+            this.proxyType = ProxyType.JAVASSIST;
         }
         return this;
     }
@@ -371,8 +371,8 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return routerType;
     }
 
-    public InvokeType getInvokeType() {
-        return invokeType;
+    public ProxyType getProxyType() {
+        return proxyType;
     }
 
     public int getRate() {
