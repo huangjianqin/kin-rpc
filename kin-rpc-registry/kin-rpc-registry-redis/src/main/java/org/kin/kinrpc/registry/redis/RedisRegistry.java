@@ -56,8 +56,8 @@ public final class RedisRegistry extends AbstractRegistry implements LoggerOprs 
         this.host = addressParseResult[0].toString();
         this.port = Integer.parseInt(addressParseResult[1].toString());
 
-        this.sessionTimeout = Long.parseLong(url.getParam(Constants.SESSION_TIMEOUT_KEY));
-        this.watchInterval = Long.parseLong(url.getParam(Constants.WATCH_INTERVAL_KEY));
+        this.sessionTimeout = url.getLongParam(Constants.SESSION_TIMEOUT_KEY);
+        this.watchInterval = url.getLongParam(Constants.WATCH_INTERVAL_KEY);
     }
 
     @Override

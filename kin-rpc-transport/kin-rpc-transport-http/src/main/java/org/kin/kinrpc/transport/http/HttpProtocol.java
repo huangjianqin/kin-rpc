@@ -85,8 +85,8 @@ public final class HttpProtocol extends AbstractProxyProtocol {
     @SuppressWarnings("unchecked")
     @Override
     protected <T> T doReference(Class<T> interfaceC, Url url) {
-        boolean useGeneric = Boolean.parseBoolean(url.getParam(Constants.GENERIC_KEY));
-        boolean byteCodeInvoke = Boolean.parseBoolean(url.getParam(Constants.BYTE_CODE_INVOKE_KEY));
+        boolean useGeneric = url.getBooleanParam(Constants.GENERIC_KEY);
+        boolean byteCodeInvoke = url.getBooleanParam(Constants.BYTE_CODE_INVOKE_KEY);
 
         //构建json rpc proxy
         JsonProxyFactoryBean jsonProxyFactoryBean = new JsonProxyFactoryBean();

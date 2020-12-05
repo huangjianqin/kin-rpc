@@ -28,7 +28,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
     public JavassistClusterInvoker(Cluster<T> cluster, Url url, Class<T> interfaceClass, List<Notifier<?>> notifiers) {
         super(cluster, url, notifiers);
         this.interfaceClass = interfaceClass;
-        this.rate = Integer.parseInt(url.getParam(Constants.RATE_KEY));
+        this.rate = url.getIntParam(Constants.RATE_KEY);
     }
 
     public static <T> T proxy(Cluster<T> cluster, Url url, Class<T> interfaceClass, List<Notifier<?>> notifiers) {

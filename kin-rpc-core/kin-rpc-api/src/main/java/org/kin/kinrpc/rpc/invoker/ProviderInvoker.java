@@ -25,7 +25,7 @@ public abstract class ProviderInvoker<T> extends AbstractInvoker<T> {
         super(url);
         this.interfaceC = interfaceC;
         this.serivce = serivce;
-        int rate = Integer.parseInt(url.getParam(Constants.RATE_KEY));
+        int rate = url.getIntParam(Constants.RATE_KEY);
         rateLimiter = RateLimiter.create(rate);
     }
 

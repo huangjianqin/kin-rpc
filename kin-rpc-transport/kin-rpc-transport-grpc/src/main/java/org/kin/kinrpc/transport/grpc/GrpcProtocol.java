@@ -71,7 +71,7 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
             throw new RpcCallErrorException(e);
         }
 
-        boolean useByteCode = Boolean.parseBoolean(url.getParam(Constants.BYTE_CODE_INVOKE_KEY));
+        boolean useByteCode = url.getBooleanParam(Constants.BYTE_CODE_INVOKE_KEY);
         T proxy;
         if (useByteCode) {
             proxy = javassistProxyedProviderInvoker(invoker, interfaceC);

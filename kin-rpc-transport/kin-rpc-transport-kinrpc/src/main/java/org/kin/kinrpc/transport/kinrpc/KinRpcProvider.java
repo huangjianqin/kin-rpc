@@ -321,7 +321,7 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
         public InvokerWrapper(Invoker invoker) {
             super(RpcThreadPool.providerWorkers());
             this.invoker = invoker;
-            this.parallelism = Boolean.parseBoolean(invoker.url().getParam(Constants.PARALLELISM_KEY));
+            this.parallelism = invoker.url().getBooleanParam(Constants.PARALLELISM_KEY);
         }
 
         //getter

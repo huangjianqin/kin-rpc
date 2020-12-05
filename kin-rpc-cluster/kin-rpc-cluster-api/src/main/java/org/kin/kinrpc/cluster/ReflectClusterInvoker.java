@@ -23,7 +23,7 @@ final class ReflectClusterInvoker<T> extends ClusterInvoker<T> implements Invoca
 
     public ReflectClusterInvoker(Cluster<T> cluster, Url url, List<Notifier<?>> notifiers) {
         super(cluster, url, notifiers);
-        int rate = Integer.parseInt(url.getParam(Constants.RATE_KEY));
+        int rate = url.getIntParam(Constants.RATE_KEY);
         if (rate > 0) {
             rateLimiter = RateLimiter.create(rate);
         }

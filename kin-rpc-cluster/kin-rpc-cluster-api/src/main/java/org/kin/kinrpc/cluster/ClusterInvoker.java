@@ -42,9 +42,9 @@ abstract class ClusterInvoker<T> implements Closeable {
     public ClusterInvoker(Cluster<T> cluster, Url url, List<Notifier<?>> notifiers) {
         this.cluster = cluster;
         this.url = url;
-        this.retryTimes = Integer.parseInt(url.getParam(Constants.RETRY_TIMES_KEY));
-        this.retryInterval = Integer.parseInt(url.getParam(Constants.RETRY_INTERVAL_KEY));
-        this.callTimeout = Integer.parseInt(url.getParam(Constants.CALL_TIMEOUT_KEY));
+        this.retryTimes = url.getIntParam(Constants.RETRY_TIMES_KEY);
+        this.retryInterval = url.getIntParam(Constants.RETRY_INTERVAL_KEY);
+        this.callTimeout = url.getIntParam(Constants.CALL_TIMEOUT_KEY);
 
         Map<Class<?>, Notifier<?>> returnType2Notifier = new HashMap<>();
 
@@ -153,7 +153,7 @@ abstract class ClusterInvoker<T> implements Closeable {
      * @return rpc call是否异步
      */
     protected boolean isAsync() {
-        return Boolean.parseBoolean(url.getParam(Constants.ASYNC_KEY));
+        return url.getBooleanParam(Constants.ASYNC_KEY);
     }
 
     /**

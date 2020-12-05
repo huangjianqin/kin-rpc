@@ -33,7 +33,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
         Url url = invoker.url();
         Class<T> interfaceC = invoker.getInterface();
 
-        boolean useByteCode = Boolean.parseBoolean(url.getParam(Constants.BYTE_CODE_INVOKE_KEY));
+        boolean useByteCode = url.getBooleanParam(Constants.BYTE_CODE_INVOKE_KEY);
         T proxy;
         if (useByteCode) {
             proxy = javassistProxyedProviderInvoker(invoker, interfaceC);

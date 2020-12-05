@@ -36,12 +36,12 @@ public final class KinRpcProtocol implements Protocol, LoggerOprs {
 
         String host = url.getHost();
         int port = url.getPort();
-        int serializerType = Integer.parseInt(url.getParam(Constants.SERIALIZE_KEY));
+        int serializerType = url.getIntParam(Constants.SERIALIZE_KEY);
 
         Serializer serializer = Serializers.getSerializer(serializerType);
         Preconditions.checkNotNull(serializer, "unvalid serializer type: [" + serializerType + "]");
 
-        int compression = Integer.parseInt(url.getParam(Constants.COMPRESSION_KEY));
+        int compression = url.getIntParam(Constants.COMPRESSION_KEY);
         CompressionType compressionType = CompressionType.getById(compression);
         Preconditions.checkNotNull(serializer, "unvalid compression type: id=[" + compression + "]");
 

@@ -49,17 +49,17 @@ public final class {{className}} {
         @java.lang.Deprecated
         {{/deprecated}}
         public {{outputType}} {{methodName}}({{inputType}} request) {
-            return blockingStub.withDeadlineAfter(Long.parseLong(url.getParam(Constants.CALL_TIMEOUT_KEY)), TimeUnit.MILLISECONDS)
+            return blockingStub.withDeadlineAfter(url.getLongParam(Constants.CALL_TIMEOUT_KEY), TimeUnit.MILLISECONDS)
             .{{methodName}}(request);
         }
 
         public com.google.common.util.concurrent.ListenableFuture<{{outputType}}> {{methodName}}Async({{inputType}} request) {
-            return futureStub.withDeadlineAfter(Long.parseLong(url.getParam(Constants.CALL_TIMEOUT_KEY)), TimeUnit.MILLISECONDS)
+            return futureStub.withDeadlineAfter(url.getLongParam(Constants.CALL_TIMEOUT_KEY), TimeUnit.MILLISECONDS)
             .{{methodName}}(request);
         }
 
         public void {{methodName}}({{inputType}} request, io.grpc.stub.StreamObserver<{{outputType}}> responseObserver){
-            stub.withDeadlineAfter(Long.parseLong(url.getParam(Constants.CALL_TIMEOUT_KEY)), TimeUnit.MILLISECONDS)
+            stub.withDeadlineAfter(url.getLongParam(Constants.CALL_TIMEOUT_KEY), TimeUnit.MILLISECONDS)
             .{{methodName}}(request, responseObserver);
         }
 
@@ -74,12 +74,12 @@ public final class {{className}} {
         @java.lang.Deprecated
         {{/deprecated}}
         public java.util.Iterator<{{outputType}}> {{methodName}}({{inputType}} request) {
-            return blockingStub.withDeadlineAfter(url.getParameter(TIMEOUT_KEY, DEFAULT_TIMEOUT), TimeUnit.MILLISECONDS)
+            return blockingStub.withDeadlineAfter(url.getLongParam(Constants.CALL_TIMEOUT_KEY), TimeUnit.MILLISECONDS)
             .{{methodName}}(request);
         }
 
         public void {{methodName}}({{inputType}} request, io.grpc.stub.StreamObserver<{{outputType}}> responseObserver) {
-            stub.withDeadlineAfter(url.getParameter(TIMEOUT_KEY, DEFAULT_TIMEOUT), TimeUnit.MILLISECONDS)
+            stub.withDeadlineAfter(url.getLongParam(Constants.CALL_TIMEOUT_KEY), TimeUnit.MILLISECONDS)
             .{{methodName}}(request, responseObserver);
         }
 
@@ -94,7 +94,7 @@ public final class {{className}} {
         @java.lang.Deprecated
         {{/deprecated}}
         public io.grpc.stub.StreamObserver<{{inputType}}> {{methodName}}(io.grpc.stub.StreamObserver<{{outputType}}> responseObserver) {
-            return stub.withDeadlineAfter(url.getParameter(TIMEOUT_KEY, DEFAULT_TIMEOUT), TimeUnit.MILLISECONDS)
+            return stub.withDeadlineAfter(url.getLongParam(Constants.CALL_TIMEOUT_KEY), TimeUnit.MILLISECONDS)
             .{{methodName}}(responseObserver);
         }
     {{/biStreamingMethods}}

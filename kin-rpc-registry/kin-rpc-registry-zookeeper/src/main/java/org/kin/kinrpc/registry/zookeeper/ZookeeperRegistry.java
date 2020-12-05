@@ -39,7 +39,7 @@ public final class ZookeeperRegistry extends AbstractRegistry {
     public ZookeeperRegistry(Url url) {
         super(url);
         this.address = url.getParam(Constants.REGISTRY_URL_KEY);
-        this.sessionTimeout = Long.parseLong(url.getParam(Constants.SESSION_TIMEOUT_KEY));
+        this.sessionTimeout = url.getLongParam(Constants.SESSION_TIMEOUT_KEY);
     }
 
     @Override

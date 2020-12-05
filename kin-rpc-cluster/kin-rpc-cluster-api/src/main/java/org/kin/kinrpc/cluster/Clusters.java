@@ -46,7 +46,7 @@ public class Clusters {
 
         Preconditions.checkNotNull(protocol, String.format("unknown protocol: %s", protocolName));
 
-        boolean byteCodeInvoke = Boolean.parseBoolean(url.getParam(Constants.BYTE_CODE_INVOKE_KEY));
+        boolean byteCodeInvoke = url.getBooleanParam(Constants.BYTE_CODE_INVOKE_KEY);
         ProviderInvoker<T> invoker;
         if (byteCodeInvoke) {
             invoker = new JavassistProviderInvoker<>(url, instance, interfaceClass);
@@ -119,7 +119,7 @@ public class Clusters {
 
         T proxy;
 
-        boolean byteCodeInvoke = Boolean.parseBoolean(url.getParam(Constants.BYTE_CODE_INVOKE_KEY));
+        boolean byteCodeInvoke = url.getBooleanParam(Constants.BYTE_CODE_INVOKE_KEY);
         if (byteCodeInvoke) {
             JavassistClusterInvoker<T> javassistClusterInvoker = new JavassistClusterInvoker<>(cluster, url, interfaceClass, notifiers);
             proxy = javassistClusterInvoker.proxy();
