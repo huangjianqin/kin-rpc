@@ -172,9 +172,30 @@ public class Url implements Serializable, Cloneable {
     /**
      * 获取url参数(boolean类型)
      */
-    public String getBooleanParam(String k) {
+    public boolean getBooleanParam(String k) {
         String param = getParam(k);
-        return StringUtils.isNotBlank(param) ? param : Boolean.FALSE.toString();
+        return StringUtils.isNotBlank(param) ? Boolean.parseBoolean(param) : false;
+    }
+
+    /**
+     * 获取url参数(int类型, 默认返回0)
+     */
+    public int getIntParam(String k) {
+        return Integer.parseInt(getNumberParam(k));
+    }
+
+    /**
+     * 获取url参数(long类型, 默认返回0)
+     */
+    public long getLongParam(String k) {
+        return Long.parseLong(getNumberParam(k));
+    }
+
+    /**
+     * 获取url参数(double类型, 默认返回0)
+     */
+    public double getDoubleParam(String k) {
+        return Double.parseDouble(getNumberParam(k));
     }
 
     /**
@@ -248,6 +269,15 @@ public class Url implements Serializable, Cloneable {
      */
     public String getAddress() {
         return NetUtils.getIpPort(getHost(), getPort());
+    }
+
+    /**
+     * 关联额外参数, 主要用于支持不同协议层的额外配置
+     */
+    public void attach(Map<String, Object> attachment) {
+        for (Map.Entry<String, Object> entry : attachment.entrySet()) {
+            params.put(entry.getKey(), entry.getValue().toString());
+        }
     }
 
     @Override

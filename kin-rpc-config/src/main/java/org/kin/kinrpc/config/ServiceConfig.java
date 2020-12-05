@@ -47,6 +47,10 @@ public class ServiceConfig<T> extends AbstractConfig {
     private int rate = Constants.PROVIDER_REQUEST_THRESHOLD;
     /** 协议类型 */
     private ProtocolType protocolType = ProtocolType.KinRpc;
+    /** 是否允许ssl */
+    private boolean ssl;
+    /** 额外参数, 主要用于支持不同协议层的额外配置 */
+    private Map<String, Object> attachment = new HashMap<>();
 
     /** 唯一url */
     private Url url;
@@ -101,6 +105,7 @@ public class ServiceConfig<T> extends AbstractConfig {
             params.put(Constants.PARALLELISM_KEY, parallelism + "");
             params.put(Constants.RATE_KEY, rate + "");
             params.put(Constants.INTERFACE_KEY, interfaceClass.getName());
+            params.put(Constants.SSL_ENABLED_KEY, Boolean.toString(ssl));
 
             url = createURL(
                     applicationConfig,
@@ -109,6 +114,8 @@ public class ServiceConfig<T> extends AbstractConfig {
                     params,
                     protocolType);
             Preconditions.checkNotNull(url);
+            //关联
+            url.attach(attachment);
 
             Clusters.export(url, interfaceClass, ref);
 
@@ -263,8 +270,28 @@ public class ServiceConfig<T> extends AbstractConfig {
         return this;
     }
 
-    //setter && getter
+    public ServiceConfig<T> enableSsl() {
+        if (!isExport) {
+            this.ssl = true;
+        }
+        return this;
+    }
 
+    public ServiceConfig<T> attach(String key, Object value) {
+        if (!isExport) {
+            this.attachment.put(key, value);
+        }
+        return this;
+    }
+
+    public ServiceConfig<T> attach(Map<String, Object> attachment) {
+        if (!isExport) {
+            this.attachment.putAll(attachment);
+        }
+        return this;
+    }
+
+    //setter && getter
     public ApplicationConfig getApplicationConfig() {
         return applicationConfig;
     }
@@ -315,5 +342,13 @@ public class ServiceConfig<T> extends AbstractConfig {
 
     public ProtocolType getProtocolType() {
         return protocolType;
+    }
+
+    public boolean isSsl() {
+        return ssl;
+    }
+
+    public Map<String, Object> getAttachment() {
+        return attachment;
     }
 }

@@ -3,21 +3,37 @@ package org.kin.kinrpc.transport.grpc;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import io.grpc.*;
+import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyChannelBuilder;
 import io.grpc.netty.NettyServerBuilder;
+import io.netty.handler.ssl.ClientAuth;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
 import org.kin.framework.proxy.ProxyEnhanceUtils;
+import org.kin.framework.utils.CollectionUtils;
 import org.kin.kinrpc.AbstractProxyProtocol;
 import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.kin.kinrpc.rpc.Exporter;
 import org.kin.kinrpc.rpc.Invoker;
 import org.kin.kinrpc.rpc.common.Constants;
+import org.kin.kinrpc.rpc.common.RpcServiceLoader;
+import org.kin.kinrpc.rpc.common.SslConfig;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
+import org.kin.kinrpc.transport.grpc.interceptor.ClientInterceptor;
+import org.kin.kinrpc.transport.grpc.interceptor.GrpcConfigurator;
+import org.kin.kinrpc.transport.grpc.interceptor.ServerInterceptor;
+import org.kin.kinrpc.transport.grpc.interceptor.ServerTransportFilter;
 
+import javax.net.ssl.SSLException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
@@ -49,13 +65,7 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
         try {
             grpcServer = SERVERS.get(address, () -> {
                 GrpcHandlerRegistry registry = new GrpcHandlerRegistry();
-
-                NettyServerBuilder builder =
-                        NettyServerBuilder
-                                .forPort(url.getPort())
-                                .fallbackHandlerRegistry(registry);
-                Server server = builder.build();
-                return new GrpcServer(address, server, registry);
+                return new GrpcServer(address, builderServer(url, registry), registry);
             });
         } catch (ExecutionException e) {
             throw new RpcCallErrorException(e);
@@ -105,6 +115,101 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
         };
     }
 
+    /**
+     * @return 获取开发者自定义grpc 配置
+     */
+    private static Optional<GrpcConfigurator> getConfigurator() {
+        // Give users the chance to customize ServerBuilder
+        List<GrpcConfigurator> configurators = RpcServiceLoader.LOADER.getAdaptiveExtensions(GrpcConfigurator.class);
+        if (CollectionUtils.isNonEmpty(configurators)) {
+            return Optional.of(configurators.iterator().next());
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * 构建Grpc server
+     */
+    private Server builderServer(Url url, GrpcHandlerRegistry registry) {
+        NettyServerBuilder builder =
+                NettyServerBuilder
+                        .forPort(url.getPort())
+                        .fallbackHandlerRegistry(registry);
+
+        int maxInboundMessageSize = url.getIntParam(Constants.MAX_INBOUND_MESSAGE_SIZE_KEY);
+        if (maxInboundMessageSize > 0) {
+            builder.maxInboundMessageSize(maxInboundMessageSize);
+        }
+
+        int maxInboundMetadataSize = url.getIntParam(Constants.MAX_INBOUND_METADATA_SIZE_KEY);
+        if (maxInboundMetadataSize > 0) {
+            builder.maxInboundMetadataSize(maxInboundMetadataSize);
+        }
+
+        if (url.getBooleanParam(Constants.SSL_ENABLED_KEY)) {
+            builder.sslContext(buildServerSslContext());
+        }
+
+        int flowControlWindow = url.getIntParam(Constants.FLOWCONTROL_WINDOW_KEY);
+        if (flowControlWindow > 0) {
+            builder.flowControlWindow(flowControlWindow);
+        }
+
+        int maxCalls = url.getIntParam(Constants.MAX_CONCURRENT_CALLS_PER_CONNECTION_KEY);
+        if (maxCalls > 0) {
+            builder.maxConcurrentCallsPerConnection(maxCalls);
+        }
+
+        // server interceptors
+        List<ServerInterceptor> serverInterceptors = RpcServiceLoader.LOADER.getAdaptiveExtensions(ServerInterceptor.class);
+        for (ServerInterceptor serverInterceptor : serverInterceptors) {
+            builder.intercept(serverInterceptor);
+        }
+
+        // server filters
+        List<ServerTransportFilter> transportFilters = RpcServiceLoader.LOADER.getAdaptiveExtensions(ServerTransportFilter.class);
+        for (ServerTransportFilter transportFilter : transportFilters) {
+            builder.addTransportFilter(transportFilter.grpcTransportFilter());
+        }
+
+        return getConfigurator()
+                .map(configurator -> configurator.configureServerBuilder(builder, url))
+                .orElse(builder)
+                .build();
+    }
+
+    /**
+     * 构建server ssl
+     */
+    private static SslContext buildServerSslContext() {
+        SslConfig sslConfig = SslConfig.INSTANCE;
+
+        SslContextBuilder sslClientContextBuilder;
+        try {
+            String password = sslConfig.getServerKeyPassword();
+            if (password != null) {
+                sslClientContextBuilder = GrpcSslContexts.forServer(sslConfig.getServerKeyCertChainPathStream(),
+                        sslConfig.getServerPrivateKeyPathStream(), password);
+            } else {
+                sslClientContextBuilder = GrpcSslContexts.forServer(sslConfig.getServerKeyCertChainPathStream(),
+                        sslConfig.getServerPrivateKeyPathStream());
+            }
+
+            InputStream trustCertCollectionFilePath = sslConfig.getServerTrustCertCollectionPathStream();
+            if (trustCertCollectionFilePath != null) {
+                sslClientContextBuilder.trustManager(trustCertCollectionFilePath);
+                sslClientContextBuilder.clientAuth(ClientAuth.REQUIRE);
+            }
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Could not find certificate file or the certificate is invalid.", e);
+        }
+        try {
+            return sslClientContextBuilder.build();
+        } catch (SSLException e) {
+            throw new IllegalStateException("Build SslSession failed.", e);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public <T> AsyncInvoker<T> reference(Url url) throws Throwable {
@@ -139,7 +244,7 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
         try {
             return generateAsyncInvoker(url, interfaceC, (T) kinRpcStubMethod.invoke(null,
                     channel,
-                    CallOptions.DEFAULT,
+                    buildCallOptions(url),
                     url
             ), channel::shutdown);
         } catch (IllegalAccessException | InvocationTargetException e) {
@@ -178,10 +283,63 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
      */
     private ManagedChannel initChannel(Url url) {
         NettyChannelBuilder builder = NettyChannelBuilder.forAddress(url.getHost(), url.getPort());
-        //todo use ssl
-        builder.usePlaintext();
+        if (url.getBooleanParam(Constants.SSL_ENABLED_KEY)) {
+            builder.sslContext(buildClientSslContext());
+        } else {
+            builder.usePlaintext();
+        }
         builder.disableRetry();
-        return builder.build();
+
+        // client interceptors
+        List<io.grpc.ClientInterceptor> interceptors = new ArrayList<>(RpcServiceLoader.LOADER.getAdaptiveExtensions(ClientInterceptor.class));
+        builder.intercept(interceptors);
+
+        return getConfigurator()
+                .map(configurator -> configurator.configureChannelBuilder(builder, url))
+                .orElse(builder)
+                .build();
+    }
+
+    /**
+     * 构建client ssl
+     */
+    private static SslContext buildClientSslContext() {
+        SslConfig sslConfig = SslConfig.INSTANCE;
+
+        SslContextBuilder builder = GrpcSslContexts.forClient();
+        try {
+            InputStream trustCertCollectionFilePath = sslConfig.getClientTrustCertCollectionPathStream();
+            if (trustCertCollectionFilePath != null) {
+                builder.trustManager(trustCertCollectionFilePath);
+            }
+            InputStream clientCertChainFilePath = sslConfig.getClientKeyCertChainPathStream();
+            InputStream clientPrivateKeyFilePath = sslConfig.getClientPrivateKeyPathStream();
+            if (clientCertChainFilePath != null && clientPrivateKeyFilePath != null) {
+                String password = sslConfig.getClientKeyPassword();
+                if (password != null) {
+                    builder.keyManager(clientCertChainFilePath, clientPrivateKeyFilePath, password);
+                } else {
+                    builder.keyManager(clientCertChainFilePath, clientPrivateKeyFilePath);
+                }
+            }
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Could not find certificate file or find invalid certificate.", e);
+        }
+        try {
+            return builder.build();
+        } catch (SSLException e) {
+            throw new IllegalStateException("Build SslSession failed.", e);
+        }
+    }
+
+    /**
+     * 获取grpc call options
+     */
+    private CallOptions buildCallOptions(Url url) {
+        CallOptions callOptions = CallOptions.DEFAULT;
+        return getConfigurator()
+                .map(configurator -> configurator.configureCallOptions(callOptions, url))
+                .orElse(callOptions);
     }
 
     @Override

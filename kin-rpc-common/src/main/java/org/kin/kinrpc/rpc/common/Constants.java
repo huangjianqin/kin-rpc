@@ -56,6 +56,19 @@ public class Constants {
     public static final String GENERIC_KEY = "useGeneric";
     /** rpc call等待时间(ms) */
     public static final String CALL_TIMEOUT_KEY = "callTimeout";
+    /** 是否允许开启ssl */
+    public static final String SSL_ENABLED_KEY = "ssl";
+
+    //<<<grpc相关>>>
+    /** Inbound消息大小 */
+    public static final String MAX_INBOUND_MESSAGE_SIZE_KEY = "grpc.maxInboundMessageSize";
+    /** Inbound元数据大小 */
+    public static final String MAX_INBOUND_METADATA_SIZE_KEY = "grpc.maxInboundMetaDataSize";
+    /** 流控窗口 */
+    public static final String FLOWCONTROL_WINDOW_KEY = "grpc.flowControlWindow";
+    /** 每个连接最大请求并发处理 */
+    public static final String MAX_CONCURRENT_CALLS_PER_CONNECTION_KEY = "grpc.maxConcurrentCallsPerConnection";
+
 
     //-------------------------------------------------配置value--------------------------------------------------------
     /** 注册中心会话超时(ms) */

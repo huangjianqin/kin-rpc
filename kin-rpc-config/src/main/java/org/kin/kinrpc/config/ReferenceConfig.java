@@ -55,6 +55,10 @@ public class ReferenceConfig<T> extends AbstractConfig {
     private boolean useGeneric;
     /** rpc call超时 */
     private long callTimeout = Constants.RPC_CALL_TIMEOUT;
+    /** 是否允许ssl */
+    private boolean ssl;
+    /** 额外参数, 主要用于支持不同协议层的额外配置 */
+    private Map<String, Object> attachment = new HashMap<>();
 
     /** 唯一url */
     private Url url;
@@ -101,6 +105,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
             params.put(Constants.GENERIC_KEY, Boolean.toString(useGeneric));
             params.put(Constants.CALL_TIMEOUT_KEY, callTimeout + "");
             params.put(Constants.INTERFACE_KEY, interfaceClass.getName());
+            params.put(Constants.SSL_ENABLED_KEY, Boolean.toString(ssl));
 
             url = createURL(
                     applicationConfig,
@@ -109,6 +114,9 @@ public class ReferenceConfig<T> extends AbstractConfig {
                     params,
                     null);
             Preconditions.checkNotNull(url);
+
+            //关联
+            url.attach(attachment);
 
             reference = Clusters.reference(url, interfaceClass, notifiers);
 
@@ -309,6 +317,27 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return this;
     }
 
+    public ReferenceConfig<T> enableSsl() {
+        if (!isReference) {
+            this.ssl = true;
+        }
+        return this;
+    }
+
+    public ReferenceConfig<T> attach(String key, Object value) {
+        if (!isReference) {
+            this.attachment.put(key, value);
+        }
+        return this;
+    }
+
+    public ReferenceConfig<T> attach(Map<String, Object> attachment) {
+        if (!isReference) {
+            this.attachment.putAll(attachment);
+        }
+        return this;
+    }
+
     //getter
     public ApplicationConfig getApplicationConfig() {
         return applicationConfig;
@@ -356,5 +385,13 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
     public boolean isUseGeneric() {
         return useGeneric;
+    }
+
+    public boolean isSsl() {
+        return ssl;
+    }
+
+    public Map<String, Object> getAttachment() {
+        return attachment;
     }
 }
