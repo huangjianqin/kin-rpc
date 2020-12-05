@@ -24,6 +24,10 @@ public class Message implements Serializable {
         this.copy = copy;
     }
 
+    public int getC() {
+        return 1;
+    }
+
     public int getA() {
         return a;
     }
