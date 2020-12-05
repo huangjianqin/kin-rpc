@@ -13,64 +13,36 @@ import java.io.InputStream;
 public class SslConfig {
     public static final SslConfig INSTANCE = new SslConfig();
 
-    /**
-     *
-     */
+    /** provider 证书路径 */
     private String serverKeyCertChainPath;
-    /**
-     *
-     */
+    /** provider 私钥路径 */
     private String serverPrivateKeyPath;
-    /**
-     *
-     */
+    /** provider 密钥密码路径 */
     private String serverKeyPassword;
-    /**
-     *
-     */
+    /** provider 信任证书路径 */
     private String serverTrustCertCollectionPath;
 
-    /**
-     *
-     */
+    /** reference 证书路径 */
     private String clientKeyCertChainPath;
-    /**
-     *
-     */
+    /** reference 私钥路径 */
     private String clientPrivateKeyPath;
-    /**
-     *
-     */
+    /** reference 密钥密码路径 */
     private String clientKeyPassword;
-    /**
-     *
-     */
+    /** reference 信任证书路径 */
     private String clientTrustCertCollectionPath;
 
-    /**
-     *
-     */
+    /** provider 证书路径stream */
     private InputStream serverKeyCertChainPathStream;
-    /**
-     *
-     */
+    /** provider 私钥路径stream */
     private InputStream serverPrivateKeyPathStream;
-    /**
-     *
-     */
+    /** provider 信任证书路径stream */
     private InputStream serverTrustCertCollectionPathStream;
 
-    /**
-     *
-     */
+    /** reference 证书路径 */
     private InputStream clientKeyCertChainPathStream;
-    /**
-     *
-     */
+    /** reference 私钥路径stream */
     private InputStream clientPrivateKeyPathStream;
-    /**
-     *
-     */
+    /** reference 信任证书路径stream */
     private InputStream clientTrustCertCollectionPathStream;
 
     private SslConfig() {
