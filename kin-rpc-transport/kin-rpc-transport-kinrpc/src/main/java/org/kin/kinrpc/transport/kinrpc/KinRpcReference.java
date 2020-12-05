@@ -7,8 +7,10 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.utils.ExceptionUtils;
+import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.rpc.RpcThreadPool;
 import org.kin.kinrpc.rpc.common.Constants;
+import org.kin.kinrpc.rpc.common.SslConfig;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 import org.kin.kinrpc.serializer.Serializer;
@@ -61,18 +63,26 @@ public class KinRpcReference {
 
         this.serializer = Serializers.getSerializer(serializerType);
         this.referenceHandler = new ReferenceHandler();
-        this.clientTransportOption =
-                Transports.socket().client()
-                        .channelOption(ChannelOption.TCP_NODELAY, true)
-                        .channelOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout)
-                        .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                        //receive窗口缓存6mb
-                        .channelOption(ChannelOption.SO_RCVBUF, 10 * 1024 * 1024)
-                        //send窗口缓存64kb
-                        .channelOption(ChannelOption.SO_SNDBUF, 64 * 1024)
-                        .protocolHandler(this.referenceHandler)
-                        .compress(compressionType)
-                        .build();
+
+        SocketClientTransportOption.SocketClientTransportOptionBuilder builder = Transports.socket().client()
+                .channelOption(ChannelOption.TCP_NODELAY, true)
+                .channelOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout)
+                .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                //receive窗口缓存6mb
+                .channelOption(ChannelOption.SO_RCVBUF, 10 * 1024 * 1024)
+                //send窗口缓存64kb
+                .channelOption(ChannelOption.SO_SNDBUF, 64 * 1024)
+                .protocolHandler(this.referenceHandler)
+                .compress(compressionType);
+
+        String certPath = SslConfig.INSTANCE.getClientKeyCertChainPath();
+        String keyPath = SslConfig.INSTANCE.getClientPrivateKeyPath();
+
+        if (StringUtils.isNotBlank(certPath) && StringUtils.isNotBlank(keyPath)) {
+            builder.ssl(certPath, keyPath);
+        }
+
+        this.clientTransportOption = builder.build();
     }
 
     /**

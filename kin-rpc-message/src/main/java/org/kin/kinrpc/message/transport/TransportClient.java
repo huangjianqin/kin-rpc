@@ -12,6 +12,7 @@ import org.kin.kinrpc.message.core.RpcResponseCallback;
 import org.kin.kinrpc.message.exception.ClientConnectFailException;
 import org.kin.kinrpc.message.exception.ClientStoppedException;
 import org.kin.kinrpc.message.transport.protocol.RpcMessage;
+import org.kin.kinrpc.rpc.common.SslConfig;
 import org.kin.kinrpc.serializer.Serializer;
 import org.kin.kinrpc.serializer.Serializers;
 import org.kin.kinrpc.serializer.UnknownSerializerException;
@@ -56,7 +57,8 @@ public final class TransportClient {
         this.rpcEnv = rpcEnv;
         this.rpcEndpointRefHandler = new RpcEndpointRefHandlerImpl();
         this.rpcAddress = rpcAddress;
-        this.clientTransportOption =
+
+        SocketClientTransportOption.SocketClientTransportOptionBuilder builder =
                 Transports.socket().client()
                         .channelOption(ChannelOption.TCP_NODELAY, true)
                         .channelOption(ChannelOption.SO_KEEPALIVE, true)
@@ -67,8 +69,16 @@ public final class TransportClient {
                         //send窗口缓存64kb
                         .channelOption(ChannelOption.SO_SNDBUF, 64 * 1024)
                         .protocolHandler(rpcEndpointRefHandler)
-                        .compress(compressionType)
-                        .build();
+                        .compress(compressionType);
+
+        String certPath = SslConfig.INSTANCE.getClientKeyCertChainPath();
+        String keyPath = SslConfig.INSTANCE.getClientPrivateKeyPath();
+
+        if (StringUtils.isNotBlank(certPath) && StringUtils.isNotBlank(keyPath)) {
+            builder.ssl(certPath, keyPath);
+        }
+
+        this.clientTransportOption = builder.build();
     }
 
     /**

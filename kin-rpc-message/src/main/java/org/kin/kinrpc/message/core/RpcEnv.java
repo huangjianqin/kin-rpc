@@ -15,6 +15,7 @@ import org.kin.kinrpc.message.core.message.ClientDisconnected;
 import org.kin.kinrpc.message.transport.TransportClient;
 import org.kin.kinrpc.message.transport.domain.RpcEndpointAddress;
 import org.kin.kinrpc.message.transport.protocol.RpcMessage;
+import org.kin.kinrpc.rpc.common.SslConfig;
 import org.kin.kinrpc.serializer.Serializer;
 import org.kin.kinrpc.serializer.SerializerType;
 import org.kin.kinrpc.serializer.Serializers;
@@ -141,19 +142,28 @@ public final class RpcEnv {
             address = new InetSocketAddress(port);
         }
 
-        SocketServerTransportOption transportOption = Transports.socket().server()
-                .channelOption(ChannelOption.TCP_NODELAY, true)
-                .channelOption(ChannelOption.SO_KEEPALIVE, true)
-                .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                //复用端口
-                .channelOption(ChannelOption.SO_REUSEADDR, true)
-                //receive窗口缓存6mb
-                .channelOption(ChannelOption.SO_RCVBUF, 10 * 1024 * 1024)
-                //send窗口缓存64kb
-                .channelOption(ChannelOption.SO_SNDBUF, 64 * 1024)
-                .protocolHandler(rpcEndpoint)
-                .compress(compressionType)
-                .build();
+        SocketServerTransportOption.SocketServerTransportOptionBuilder builder =
+                Transports.socket().server()
+                        .channelOption(ChannelOption.TCP_NODELAY, true)
+                        .channelOption(ChannelOption.SO_KEEPALIVE, true)
+                        .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                        //复用端口
+                        .channelOption(ChannelOption.SO_REUSEADDR, true)
+                        //receive窗口缓存6mb
+                        .channelOption(ChannelOption.SO_RCVBUF, 10 * 1024 * 1024)
+                        //send窗口缓存64kb
+                        .channelOption(ChannelOption.SO_SNDBUF, 64 * 1024)
+                        .protocolHandler(rpcEndpoint)
+                        .compress(compressionType);
+
+        String certPath = SslConfig.INSTANCE.getServerKeyCertChainPath();
+        String keyPath = SslConfig.INSTANCE.getServerPrivateKeyPath();
+
+        if (StringUtils.isNotBlank(certPath) && StringUtils.isNotBlank(keyPath)) {
+            builder.ssl(certPath, keyPath);
+        }
+
+        SocketServerTransportOption transportOption = builder.build();
 
         try {
             rpcEndpoint.bind(transportOption, address);

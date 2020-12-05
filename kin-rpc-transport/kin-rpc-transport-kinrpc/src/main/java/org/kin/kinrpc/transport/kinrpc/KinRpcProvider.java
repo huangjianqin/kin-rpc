@@ -9,6 +9,7 @@ import org.kin.kinrpc.rpc.Invoker;
 import org.kin.kinrpc.rpc.ProviderFutureContext;
 import org.kin.kinrpc.rpc.RpcThreadPool;
 import org.kin.kinrpc.rpc.common.Constants;
+import org.kin.kinrpc.rpc.common.SslConfig;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RateLimitException;
 import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
@@ -66,19 +67,29 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
         }
 
         this.providerHandler = new ProviderHandler();
-        this.transportOption = Transports.socket().server()
-                .channelOption(ChannelOption.TCP_NODELAY, true)
-                .channelOption(ChannelOption.SO_KEEPALIVE, true)
-                .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                //复用端口
-                .channelOption(ChannelOption.SO_REUSEADDR, true)
-                //receive窗口缓存6mb
-                .channelOption(ChannelOption.SO_RCVBUF, 10 * 1024 * 1024)
-                //send窗口缓存64kb
-                .channelOption(ChannelOption.SO_SNDBUF, 64 * 1024)
-                .protocolHandler(providerHandler)
-                .compress(compressionType)
-                .build();
+
+        SocketServerTransportOption.SocketServerTransportOptionBuilder builder =
+                Transports.socket().server()
+                        .channelOption(ChannelOption.TCP_NODELAY, true)
+                        .channelOption(ChannelOption.SO_KEEPALIVE, true)
+                        .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                        //复用端口
+                        .channelOption(ChannelOption.SO_REUSEADDR, true)
+                        //receive窗口缓存6mb
+                        .channelOption(ChannelOption.SO_RCVBUF, 10 * 1024 * 1024)
+                        //send窗口缓存64kb
+                        .channelOption(ChannelOption.SO_SNDBUF, 64 * 1024)
+                        .protocolHandler(providerHandler)
+                        .compress(compressionType);
+
+        String certPath = SslConfig.INSTANCE.getServerKeyCertChainPath();
+        String keyPath = SslConfig.INSTANCE.getServerPrivateKeyPath();
+
+        if (StringUtils.isNotBlank(certPath) && StringUtils.isNotBlank(keyPath)) {
+            builder.ssl(certPath, keyPath);
+        }
+
+        this.transportOption = builder.build();
     }
 
     /**
