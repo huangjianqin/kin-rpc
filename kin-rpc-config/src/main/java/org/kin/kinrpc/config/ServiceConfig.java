@@ -35,7 +35,7 @@ public class ServiceConfig<T> extends AbstractConfig {
     /** 版本号 */
     private String version = "0.1.0.0";
     /** 序列化类型, 在kinrpc协议下生效 */
-    private int serialize = SerializerType.KRYO.getCode();
+    private int serializerCode = SerializerType.KRYO.getCode();
     /** 服务调用类型(invoker收到请求后, 用哪种方式调用服务) */
     private ProxyType proxyType = ProxyType.JAVASSIST;
 
@@ -99,7 +99,7 @@ public class ServiceConfig<T> extends AbstractConfig {
             Map<String, String> params = new HashMap<>(50);
             params.put(Constants.SERVICE_NAME_KEY, serviceName);
             params.put(Constants.VERSION_KEY, version);
-            params.put(Constants.SERIALIZE_KEY, serialize + "");
+            params.put(Constants.SERIALIZE_KEY, serializerCode + "");
             params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(ProxyType.JAVASSIST.equals(proxyType)));
             params.put(Constants.COMPRESSION_KEY, Integer.toString(compressionType.getId()));
             params.put(Constants.PARALLELISM_KEY, parallelism + "");
@@ -214,16 +214,16 @@ public class ServiceConfig<T> extends AbstractConfig {
         return this;
     }
 
-    public ServiceConfig<T> serialize(Class<? extends Serializer> serializerClass) {
+    public ServiceConfig<T> serializer(Class<? extends Serializer> serializerClass) {
         if (!isExport) {
-            this.serialize = Serializers.getOrLoadSerializer(serializerClass);
+            this.serializerCode = Serializers.getSerializerType(serializerClass);
         }
         return this;
     }
 
-    public ServiceConfig<T> serialize(SerializerType serializerType) {
+    public ServiceConfig<T> serializer(SerializerType serializerType) {
         if (!isExport) {
-            this.serialize = serializerType.getCode();
+            this.serializerCode = serializerType.getCode();
         }
         return this;
     }
@@ -316,8 +316,8 @@ public class ServiceConfig<T> extends AbstractConfig {
         return serviceName;
     }
 
-    public int getSerialize() {
-        return serialize;
+    public int getSerializerCode() {
+        return serializerCode;
     }
 
     public ProxyType getProxyType() {

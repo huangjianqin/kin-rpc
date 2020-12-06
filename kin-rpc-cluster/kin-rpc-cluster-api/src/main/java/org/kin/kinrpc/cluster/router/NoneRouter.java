@@ -1,6 +1,6 @@
-package org.kin.kinrpc.cluster.router.impl;
+package org.kin.kinrpc.cluster.router;
 
-import org.kin.kinrpc.cluster.router.Router;
+import org.kin.kinrpc.cluster.Router;
 import org.kin.kinrpc.rpc.AsyncInvoker;
 
 import java.util.List;

@@ -1,9 +1,11 @@
 package org.kin.kinrpc.serializer;
 
-import org.kin.framework.utils.ClassUtils;
 import org.kin.kinrpc.rpc.common.RpcServiceLoader;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author huangjianqin
@@ -31,96 +33,47 @@ public class Serializers {
      * @param name 序列化名称
      */
     public static Serializer getSerializer(String name) {
-        return SERIALIZER_CACHE.values().stream()
+        Serializer target = SERIALIZER_CACHE.values().stream()
                 .filter(serializer -> serializer.getClass().getSimpleName().toLowerCase().startsWith(name))
                 .findFirst()
                 .orElse(null);
+        if (Objects.isNull(target)) {
+            throw new IllegalArgumentException(String.format("unknown Serializer or unable to load Serializer '%s'", name));
+        }
+
+        return null;
     }
 
     /**
      * 根据Serializer class 返回type code
      */
     public static int getSerializerType(Class<? extends Serializer> serializerClass) {
-        return SERIALIZER_CACHE.entrySet().stream()
+        int serializerType = SERIALIZER_CACHE.entrySet().stream()
                 .filter(e -> e.getValue().getClass().equals(serializerClass))
                 .findFirst()
                 .map(Map.Entry::getKey)
                 .orElse(0);
-    }
-
-    /**
-     * 根据Serializer class 返回type code, 如果没有加载到, 则主动重新加载
-     */
-    public static synchronized int getOrLoadSerializer(Class<? extends Serializer> serializerClass) {
-        int serializerType = getSerializerType(serializerClass);
-        if (serializerType < 0) {
-            //主动加载该serializer
-            serializerType = loadNew(serializerClass);
+        if (serializerType <= 0) {
+            throw new IllegalArgumentException(String.format("unknown Serializer or unable to load Serializer '%s'", serializerClass));
         }
-
         return serializerType;
     }
 
     /**
-     * 加载Serializer
-     */
-    private static Serializer load0(Map<Integer, Serializer> serializerCache, Class<? extends Serializer> serializerClass) {
-        try {
-            Serializer serializer = serializerClass.newInstance();
-            return load1(serializerCache, serializer);
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    /**
-     * 加载Serializer
-     */
-    private static Serializer load1(Map<Integer, Serializer> serializerCache, Serializer serializer) {
-        int type = serializer.type();
-        if (serializerCache.containsKey(type)) {
-            throw new SerializerTypeConflictException(type, serializer.getClass(), serializerCache.get(type).getClass());
-        }
-        serializerCache.put(type, serializer);
-        return serializer;
-    }
-
-    /**
-     * 加载已知所有Serializer
+     * 加载已注册Serializer
      */
     private static void load() {
         Map<Integer, Serializer> serializerCache = new HashMap<>();
 
-        //加载内部提供的Serializer
-        Set<Class<? extends Serializer>> classes = ClassUtils.getSubClass(Serializer.class.getPackage().getName(), Serializer.class, true);
-        if (classes.size() > 0) {
-            for (Class<? extends Serializer> claxx : classes) {
-                load0(serializerCache, claxx);
-            }
-        }
-
         //通过spi机制加载自定义的Serializer
-        Iterator<Serializer> customSerializers = RpcServiceLoader.LOADER.iterator(Serializer.class);
-        while (customSerializers.hasNext()) {
-            load1(serializerCache, customSerializers.next());
+        for (Serializer serializer : RpcServiceLoader.LOADER.getExtensions(Serializer.class)) {
+            int type = serializer.type();
+            if (serializerCache.containsKey(type)) {
+                throw new SerializerTypeConflictException(type, serializer.getClass(), serializerCache.get(type).getClass());
+            }
+            serializerCache.put(type, serializer);
         }
 
         SERIALIZER_CACHE = Collections.unmodifiableMap(serializerCache);
-    }
-
-    /**
-     * 加载新的Serializer
-     */
-    private static int loadNew(Class<? extends Serializer> serializerClass) {
-        Map<Integer, Serializer> serializerCache = new HashMap<>(SERIALIZER_CACHE);
-        try {
-            Serializer serializer = load0(serializerCache, serializerClass);
-
-            SERIALIZER_CACHE = Collections.unmodifiableMap(serializerCache);
-
-            return serializer.type();
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
     }
 }

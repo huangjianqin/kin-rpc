@@ -1,4 +1,4 @@
-package org.kin.kinrpc.cluster.loadbalance;
+package org.kin.kinrpc.cluster;
 
 
 import org.kin.framework.utils.SPI;

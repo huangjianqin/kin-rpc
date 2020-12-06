@@ -1,0 +1,2 @@
+org.kin.kinrpc.transport.Protocol=org.kin.kinrpc.transport.http.HttpProtocol
+org.kin.kinrpc.transport.http.HttpBinder=org.kin.kinrpc.transport.http.tomcat.TomcatHttpBinder

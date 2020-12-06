@@ -23,16 +23,17 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- 默认传输层 -->
         <dependency>
             <groupId>org.kin</groupId>
             <artifactId>kin-rpc-transport-kinrpc</artifactId>
             <version>${project.version}</version>
         </dependency>
 
-        <!-- 序列化-->
+        <!-- 默认序列化-->
         <dependency>
             <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-serializer</artifactId>
+            <artifactId>kin-rpc-serializer-kryo</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

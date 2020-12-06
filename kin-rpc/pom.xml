@@ -20,9 +20,16 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- 默认支持直连和zookeeper注册中心 -->
         <dependency>
             <groupId>org.kin</groupId>
             <artifactId>kin-rpc-registry-directurls</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-rpc-registry-zookeeper</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

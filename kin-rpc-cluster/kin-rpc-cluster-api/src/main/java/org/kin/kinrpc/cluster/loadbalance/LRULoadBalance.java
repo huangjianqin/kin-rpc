@@ -1,8 +1,8 @@
-package org.kin.kinrpc.cluster.loadbalance.impl;
+package org.kin.kinrpc.cluster.loadbalance;
 
 import org.kin.framework.collection.LRUMap;
 import org.kin.framework.utils.TimeUtils;
-import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
+import org.kin.kinrpc.cluster.LoadBalance;
 import org.kin.kinrpc.rpc.AsyncInvoker;
 
 import java.util.ArrayList;

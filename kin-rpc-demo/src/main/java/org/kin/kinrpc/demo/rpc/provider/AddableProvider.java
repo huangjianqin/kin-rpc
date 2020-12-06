@@ -13,7 +13,7 @@ import org.kin.kinrpc.serializer.SerializerType;
 public class AddableProvider {
     protected static ServiceConfig<Addable> config() {
         return Services.service(new Adder(), Addable.class)
-                .serialize(SerializerType.JSON)
+                .serializer(SerializerType.JSON)
                 .version("001")
                 .actorLike();
     }

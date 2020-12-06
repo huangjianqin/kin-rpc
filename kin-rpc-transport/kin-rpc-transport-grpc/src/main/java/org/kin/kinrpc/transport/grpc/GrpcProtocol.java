@@ -120,7 +120,7 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
      */
     private static Optional<GrpcConfigurator> getConfigurator() {
         // Give users the chance to customize ServerBuilder
-        List<GrpcConfigurator> configurators = RpcServiceLoader.LOADER.getAdaptiveExtensions(GrpcConfigurator.class);
+        List<GrpcConfigurator> configurators = RpcServiceLoader.LOADER.getExtensions(GrpcConfigurator.class);
         if (CollectionUtils.isNonEmpty(configurators)) {
             return Optional.of(configurators.iterator().next());
         }
@@ -161,13 +161,13 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
         }
 
         // server interceptors
-        List<ServerInterceptor> serverInterceptors = RpcServiceLoader.LOADER.getAdaptiveExtensions(ServerInterceptor.class);
+        List<ServerInterceptor> serverInterceptors = RpcServiceLoader.LOADER.getExtensions(ServerInterceptor.class);
         for (ServerInterceptor serverInterceptor : serverInterceptors) {
             builder.intercept(serverInterceptor);
         }
 
         // server filters
-        List<ServerTransportFilter> transportFilters = RpcServiceLoader.LOADER.getAdaptiveExtensions(ServerTransportFilter.class);
+        List<ServerTransportFilter> transportFilters = RpcServiceLoader.LOADER.getExtensions(ServerTransportFilter.class);
         for (ServerTransportFilter transportFilter : transportFilters) {
             builder.addTransportFilter(transportFilter.grpcTransportFilter());
         }
@@ -291,7 +291,7 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
         builder.disableRetry();
 
         // client interceptors
-        List<io.grpc.ClientInterceptor> interceptors = new ArrayList<>(RpcServiceLoader.LOADER.getAdaptiveExtensions(ClientInterceptor.class));
+        List<io.grpc.ClientInterceptor> interceptors = new ArrayList<>(RpcServiceLoader.LOADER.getExtensions(ClientInterceptor.class));
         builder.intercept(interceptors);
 
         return getConfigurator()

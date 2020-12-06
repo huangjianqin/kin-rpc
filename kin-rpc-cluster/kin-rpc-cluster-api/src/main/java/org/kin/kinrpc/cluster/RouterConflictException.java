@@ -1,4 +1,4 @@
-package org.kin.kinrpc.cluster.router;
+package org.kin.kinrpc.cluster;
 
 /**
  * Router冲突异常

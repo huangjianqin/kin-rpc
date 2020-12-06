@@ -1,4 +1,4 @@
-package org.kin.kinrpc.cluster.loadbalance;
+package org.kin.kinrpc.cluster;
 
 /**
  * LoadBalance冲突异常

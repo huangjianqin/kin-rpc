@@ -1,7 +1,7 @@
-package org.kin.kinrpc.cluster.loadbalance.impl;
+package org.kin.kinrpc.cluster.loadbalance;
 
 import org.kin.framework.utils.HashUtils;
-import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
+import org.kin.kinrpc.cluster.LoadBalance;
 import org.kin.kinrpc.rpc.AsyncInvoker;
 
 import java.util.List;
