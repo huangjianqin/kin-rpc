@@ -1,0 +1,39 @@
+{
+  "properties": [
+    {
+      "name": "kin.conf.client.appName",
+      "type": "java.lang.String",
+      "description": "应用名",
+      "sourceType": "org.kin.conf.client.starter.config.KinConfClientProperties",
+      "defaultValue": "kin-conf-client"
+    },
+    {
+      "name": "kin.conf.client.diamondAddress",
+      "type": "java.lang.String",
+      "description": "配置中心地址",
+      "sourceType": "org.kin.conf.client.starter.config.KinConfClientProperties",
+      "defaultValue": "http://localhost:8080"
+    },
+    {
+      "name": "kin.conf.client.env",
+      "type": "java.lang.String",
+      "description": "应用环境",
+      "sourceType": "org.kin.conf.client.starter.config.KinConfClientProperties",
+      "defaultValue": "test"
+    },
+    {
+      "name": "kin.conf.client.mirrorFile",
+      "type": "java.lang.String",
+      "description": "配置镜像文件地址",
+      "sourceType": "org.kin.conf.client.starter.config.KinConfClientProperties",
+      "defaultValue": "data/mirror.properties"
+    },
+    {
+      "name": "kin.conf.client.enabled",
+      "type": "java.lang.Boolean",
+      "description": "是否允许注入配置中心客户端",
+      "sourceType": "org.kin.conf.client.starter.config.KinConfClientProperties",
+      "defaultValue": true
+    }
+  ]
+}
