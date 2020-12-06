@@ -73,8 +73,8 @@ public final class HttpProtocol extends AbstractProxyProtocol {
         skeletonMap.put(path, skeleton);
         skeletonMap.put(genericPath, genericServer);
 
-        info("service '{}' export path '{}'", url.str(), path);
-        info("service '{}' export path '{}'", url.str(), genericPath);
+        info("http service '{}' export path '{}'", url.str(), path);
+        info("http service '{}' export path '{}'", url.str(), genericPath);
 
         return () -> {
             skeletonMap.remove(path);
@@ -107,6 +107,9 @@ public final class HttpProtocol extends AbstractProxyProtocol {
             key = key + "/" + Constants.GENERIC;
         }
         httpRpcProxyFactoryBean.setServiceUrl(key);
+
+        info("http reference '{}' refer path '{}'", url.str(), key);
+
         //设置服务接口
         if (useGeneric) {
             httpRpcProxyFactoryBean.setServiceInterface(GenericRpcService.class);

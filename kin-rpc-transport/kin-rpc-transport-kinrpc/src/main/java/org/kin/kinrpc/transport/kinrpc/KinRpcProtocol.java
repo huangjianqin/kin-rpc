@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.kin.framework.log.LoggerOprs;
+import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.kin.kinrpc.rpc.Exporter;
 import org.kin.kinrpc.rpc.Invoker;
@@ -69,11 +70,13 @@ public final class KinRpcProtocol implements Protocol, LoggerOprs {
         Exporter<T> exporter = null;
         try {
             provider.addService(invoker);
-            exporter = new KinRpcExporter<>(((ProviderInvoker<T>) invoker));
+            exporter = new KinRpcExporter<>((invoker));
         } catch (Exception e) {
             log().error(e.getMessage(), e);
             unexport(url);
         }
+
+        info("kinrpc service '{}' export address '{}'", NetUtils.getIpPort(host, port));
 
         return exporter;
     }
@@ -97,6 +100,7 @@ public final class KinRpcProtocol implements Protocol, LoggerOprs {
 
     @Override
     public <T> AsyncInvoker<T> reference(Url url) {
+        info("kinrpc reference '{}' refer address '{}'", url.getAddress());
         return new KinRpcReferenceInvoker<>(url);
     }
 

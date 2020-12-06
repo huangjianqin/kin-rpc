@@ -96,6 +96,8 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
             grpcServer.start();
         }
 
+        info("kinrpc service '{}' export address '{}'", url.getAddress());
+
         return new Exporter<T>() {
             @Override
             public Invoker<T> getInvoker() {
@@ -239,6 +241,8 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
 
         //grpc Channel
         ReferenceCountManagedChannel channel = getSharedChannel(url);
+
+        info("grpc reference '{}' refer address '{}'", url.getAddress());
 
         //获取stub
         try {
