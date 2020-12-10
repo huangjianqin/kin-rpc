@@ -52,6 +52,6 @@ public class Hessian2Serializer implements Serializer {
 
     @Override
     public int type() {
-        return SerializerType.HESSION2.getCode();
+        return SerializerType.HESSIAN2.getCode();
     }
 }

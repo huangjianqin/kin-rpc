@@ -6,7 +6,7 @@ package org.kin.kinrpc.serializer;
 public class Hessian2SerializeTest {
     public static void main(String[] args) {
         SerializeTestBase
-                .builder(SerializerType.HESSION2)
+                .builder(SerializerType.HESSIAN2)
                 .run();
     }
 }
