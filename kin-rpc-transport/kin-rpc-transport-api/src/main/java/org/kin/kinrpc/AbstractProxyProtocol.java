@@ -287,7 +287,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
         //rpc call代码
         StringBuilder invokeCode = new StringBuilder();
         invokeCode.append(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME.concat(".invoke"));
-        invokeCode.append("($0, $1);");
+        invokeCode.append("($1, $2);");
         String invokeCodeStr = invokeCode.toString();
 
         //return
