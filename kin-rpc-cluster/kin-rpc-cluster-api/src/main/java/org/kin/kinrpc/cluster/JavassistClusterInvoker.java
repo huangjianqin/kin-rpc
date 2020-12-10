@@ -1,7 +1,10 @@
 package org.kin.kinrpc.cluster;
 
 import com.google.common.util.concurrent.RateLimiter;
-import javassist.*;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtConstructor;
+import javassist.CtField;
 import org.kin.framework.proxy.ProxyEnhanceUtils;
 import org.kin.framework.utils.ClassUtils;
 import org.kin.kinrpc.rpc.Notifier;
@@ -54,7 +57,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
             invokeCode.append(", new Object[]{");
             StringJoiner invokeBody = new StringJoiner(", ");
             for (int i = 0; i < parameterTypes.length; i++) {
-                String argStr = "arg".concat(Integer.toString(i));
+                String argStr = ProxyEnhanceUtils.METHOD_DECLARATION_PARAM_NAME.concat(Integer.toString(i + 1));
                 invokeBody.add(org.kin.framework.utils.ClassUtils.primitivePackage(parameterTypes[i], argStr));
             }
             invokeCode.append(invokeBody.toString());
@@ -171,8 +174,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
                         methodBody.append(generateRateLimitBody(rateLimiterFieldName, method)).append(System.lineSeparator());
                         methodBody.append(generateMethodBody(method)).append(System.lineSeparator());
 
-                        CtMethod ctMethod = CtMethod.make(ClassUtils.generateMethodContent(method, methodBody.toString()), proxyClass);
-                        proxyClass.addMethod(ctMethod);
+                        ProxyEnhanceUtils.makeCtPublicFinalMethod(classPool, method, methodBody.toString(), proxyClass);
                     }
                     ProxyEnhanceUtils.cacheCTClass(ctClassName, proxyClass);
                 }

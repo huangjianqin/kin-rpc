@@ -1,7 +1,10 @@
 package org.kin.kinrpc;
 
 import com.google.common.base.Preconditions;
-import javassist.*;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtConstructor;
+import javassist.CtField;
 import org.kin.framework.log.LoggerOprs;
 import org.kin.framework.proxy.ProxyEnhanceUtils;
 import org.kin.framework.utils.ClassUtils;
@@ -201,14 +204,12 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
 
                     //生成服务接口方法方法体
                     for (Method method : interfaceC.getDeclaredMethods()) {
-                        CtMethod ctMethod = CtMethod.make(ClassUtils.generateMethodContent(method, generateProviderServiceMethodBody(method)), proxyClass);
-                        proxyClass.addMethod(ctMethod);
+                        ProxyEnhanceUtils.makeCtPublicFinalMethod(classPool, method, generateProviderServiceMethodBody(method), proxyClass);
                     }
 
                     //生成通用服务接口方法方法体
                     for (Method method : GenericRpcService.class.getDeclaredMethods()) {
-                        CtMethod ctMethod = CtMethod.make(ClassUtils.generateMethodContent(method, generateProviderGenericRpcServiceMethodBody()), proxyClass);
-                        proxyClass.addMethod(ctMethod);
+                        ProxyEnhanceUtils.makeCtPublicFinalMethod(classPool, method, generateProviderGenericRpcServiceMethodBody(), proxyClass);
                     }
 
                     ProxyEnhanceUtils.cacheCTClass(ctClassName, proxyClass);
@@ -237,7 +238,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
             invokeCode.append(", new Object[]{");
             StringJoiner invokeBody = new StringJoiner(", ");
             for (int i = 0; i < parameterTypes.length; i++) {
-                String argStr = "arg".concat(Integer.toString(i));
+                String argStr = ProxyEnhanceUtils.METHOD_DECLARATION_PARAM_NAME.concat(Integer.toString(i + 1));
                 invokeBody.add(org.kin.framework.utils.ClassUtils.primitivePackage(parameterTypes[i], argStr));
             }
             invokeCode.append(invokeBody.toString());
@@ -286,7 +287,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
         //rpc call代码
         StringBuilder invokeCode = new StringBuilder();
         invokeCode.append(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME.concat(".invoke"));
-        invokeCode.append("(arg0, arg1);");
+        invokeCode.append("($0, $1);");
         String invokeCodeStr = invokeCode.toString();
 
         //return
@@ -354,14 +355,13 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
 
                     //生成服务接口方法方法体
                     for (Method method : interfaceC.getDeclaredMethods()) {
-                        CtMethod ctMethod = CtMethod.make(ClassUtils.generateMethodContent(method, generateProviderServiceMethodBody(method)), proxyClass);
-                        proxyClass.addMethod(ctMethod);
+                        ProxyEnhanceUtils.makeCtPublicFinalMethod(classPool, method, generateProviderServiceMethodBody(method), proxyClass);
+
                     }
 
                     //生成通用服务接口方法方法体
                     for (Method method : GenericRpcService.class.getDeclaredMethods()) {
-                        CtMethod ctMethod = CtMethod.make(ClassUtils.generateMethodContent(method, generateProviderGenericRpcServiceMethodBody()), proxyClass);
-                        proxyClass.addMethod(ctMethod);
+                        ProxyEnhanceUtils.makeCtPublicFinalMethod(classPool, method, generateProviderGenericRpcServiceMethodBody(), proxyClass);
                     }
 
                     ProxyEnhanceUtils.cacheCTClass(ctClassName, proxyClass);

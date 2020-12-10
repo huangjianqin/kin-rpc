@@ -1,4 +1,4 @@
-package org.kin.kinrpc.serializer.hession2;
+package org.kin.kinrpc.serializer.hessian2;
 
 import com.caucho.hessian.io.Hessian2Input;
 import com.caucho.hessian.io.Hessian2Output;
