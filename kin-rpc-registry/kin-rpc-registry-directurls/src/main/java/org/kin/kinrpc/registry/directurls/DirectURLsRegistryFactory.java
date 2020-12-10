@@ -1,5 +1,6 @@
 package org.kin.kinrpc.registry.directurls;
 
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.registry.AbstractRegistryFactory;
 import org.kin.kinrpc.registry.Registry;
 import org.kin.kinrpc.rpc.common.Constants;
@@ -21,7 +22,7 @@ public class DirectURLsRegistryFactory extends AbstractRegistryFactory {
             registry.retain();
             return registry;
         } catch (ExecutionException e) {
-            log.error(e.getMessage(), e);
+            ExceptionUtils.throwExt(e);
         }
 
         return null;

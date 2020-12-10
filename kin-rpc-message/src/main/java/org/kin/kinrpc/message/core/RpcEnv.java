@@ -8,6 +8,7 @@ import org.kin.framework.concurrent.ExecutionContext;
 import org.kin.framework.concurrent.actor.Dispatcher;
 import org.kin.framework.concurrent.actor.EventBasedDispatcher;
 import org.kin.framework.utils.CollectionUtils;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.message.core.message.ClientConnected;
@@ -168,7 +169,7 @@ public final class RpcEnv {
         try {
             rpcEndpoint.bind(transportOption, address);
         } catch (Exception e) {
-            log.error("", e);
+            ExceptionUtils.throwExt(e);
         }
     }
 
@@ -253,7 +254,7 @@ public final class RpcEnv {
             );
             return message;
         } catch (IOException | ClassNotFoundException e) {
-            log.error("", e);
+            ExceptionUtils.throwExt(e);
         }
         return null;
     }
@@ -272,7 +273,7 @@ public final class RpcEnv {
 
             return data;
         } catch (IOException e) {
-            log.error("", e);
+            ExceptionUtils.throwExt(e);
         }
         return null;
     }

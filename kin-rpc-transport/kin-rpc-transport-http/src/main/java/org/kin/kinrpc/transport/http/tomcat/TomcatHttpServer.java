@@ -5,6 +5,7 @@ import org.apache.catalina.LifecycleException;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.startup.Tomcat;
 import org.kin.framework.log.LoggerOprs;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.transport.http.AbstractHttpServer;
 import org.kin.kinrpc.transport.http.HttpHandler;
@@ -70,7 +71,7 @@ public class TomcatHttpServer extends AbstractHttpServer implements LoggerOprs {
             //关闭tomcat
             tomcat.stop();
         } catch (Exception e) {
-            warn(e.getMessage(), e);
+            ExceptionUtils.throwExt(e);
         }
     }
 }

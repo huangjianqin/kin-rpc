@@ -3,6 +3,7 @@ package org.kin.kinrpc.cluster;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.registry.Registries;
 import org.kin.kinrpc.registry.Registry;
 import org.kin.kinrpc.rpc.Exporter;
@@ -51,12 +52,13 @@ public class Clusters {
         }
 
         //先启动服务
-        Exporter<T> export;
+        Exporter<T> export = null;
         try {
             export = protocol.export(invoker);
         } catch (Throwable throwable) {
-            throw new IllegalStateException(throwable);
+            ExceptionUtils.throwExt(throwable);
         }
+
         EXPORTER_CACHE.put(url, export);
 
         //再注册

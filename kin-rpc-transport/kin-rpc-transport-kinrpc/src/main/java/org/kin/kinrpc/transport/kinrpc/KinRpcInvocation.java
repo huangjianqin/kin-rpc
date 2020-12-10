@@ -88,7 +88,7 @@ public class KinRpcInvocation {
             case RETRY:
                 throw new RpcCallRetryException(response.getInfo(), request.getServiceKey(), request.getMethod(), request.getParams());
             case ERROR:
-                throw new RpcCallErrorException("Response error", new Throwable(response.getInfo()));
+                throw new RpcCallErrorException("Response error due to " + response.getInfo());
             default:
                 throw new IllegalStateException("kinrpc response unknown state '".concat(response.getState().name()).concat("'"));
         }

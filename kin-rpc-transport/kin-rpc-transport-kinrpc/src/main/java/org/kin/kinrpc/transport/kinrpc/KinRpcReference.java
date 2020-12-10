@@ -109,7 +109,7 @@ public class KinRpcReference {
             removeInvalid(request);
             //此处才抛出异常, 因为KinRpcInvocation内部需要记录一下信息
             if (obj instanceof Throwable) {
-                throw new RpcCallErrorException("", (Throwable) obj);
+                ExceptionUtils.throwExt((Throwable) obj);
             }
             //返回服务接口结果
             return obj;
@@ -237,9 +237,7 @@ public class KinRpcReference {
 
                 handleResponse(rpcResponse);
             } catch (Exception e) {
-                log.error(e.getMessage(), e);
-
-                throw new RpcCallErrorException(e);
+                ExceptionUtils.throwExt(e);
             }
         }
 

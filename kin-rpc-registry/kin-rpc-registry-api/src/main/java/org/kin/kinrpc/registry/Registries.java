@@ -3,6 +3,7 @@ package org.kin.kinrpc.registry;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.kin.framework.utils.ClassUtils;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
@@ -47,7 +48,7 @@ public class Registries {
                 return null;
             });
         } catch (ExecutionException e) {
-            log.error(e.getMessage(), e);
+            ExceptionUtils.throwExt(e);
         }
 
         throw new IllegalStateException("init registry error >>>" + registryType);

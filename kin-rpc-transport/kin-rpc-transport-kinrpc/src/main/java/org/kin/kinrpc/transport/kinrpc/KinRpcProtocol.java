@@ -4,13 +4,13 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.kin.framework.log.LoggerOprs;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.kin.kinrpc.rpc.Exporter;
 import org.kin.kinrpc.rpc.Invoker;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
-import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
 import org.kin.kinrpc.serializer.Serializer;
 import org.kin.kinrpc.serializer.Serializers;
@@ -46,7 +46,7 @@ public final class KinRpcProtocol implements Protocol, LoggerOprs {
         CompressionType compressionType = CompressionType.getById(compression);
         Preconditions.checkNotNull(serializer, "unvalid compression type: id=[" + compression + "]");
 
-        KinRpcProvider provider;
+        KinRpcProvider provider = null;
         try {
             provider = PROVIDER_CACHE.get(port, () -> {
                 KinRpcProvider provider0 = new KinRpcProvider(host, port, serializer, compressionType);
@@ -63,8 +63,7 @@ public final class KinRpcProtocol implements Protocol, LoggerOprs {
                 throw new IllegalStateException(String.format("origin server(port=%s) serializer type is not equals %s", port, serializerType));
             }
         } catch (Exception e) {
-            log().error(e.getMessage(), e);
-            throw new RpcCallErrorException(e);
+            ExceptionUtils.throwExt(e);
         }
 
         Exporter<T> exporter = null;
@@ -72,8 +71,8 @@ public final class KinRpcProtocol implements Protocol, LoggerOprs {
             provider.addService(invoker);
             exporter = new KinRpcExporter<>((invoker));
         } catch (Exception e) {
-            log().error(e.getMessage(), e);
             unexport(url);
+            ExceptionUtils.throwExt(e);
         }
 
         info("kinrpc service '{}' export address '{}'", NetUtils.getIpPort(host, port));

@@ -1,5 +1,6 @@
 package org.kin.kinrpc.transport.kinrpc;
 
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.NetUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +40,7 @@ public class KinRpcAddress implements Serializable {
             address.port = uri.getPort();
             return address;
         } catch (URISyntaxException e) {
-            log.error("", e);
+            ExceptionUtils.throwExt(e);
         }
 
         return null;

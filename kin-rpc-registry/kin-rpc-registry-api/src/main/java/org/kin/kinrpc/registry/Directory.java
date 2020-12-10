@@ -2,6 +2,7 @@ package org.kin.kinrpc.registry;
 
 import com.google.common.base.Preconditions;
 import org.kin.framework.utils.CollectionUtils;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.kin.kinrpc.rpc.Invoker;
 import org.kin.kinrpc.rpc.common.Url;
@@ -110,11 +111,11 @@ public final class Directory {
 
                 Preconditions.checkNotNull(protocol, String.format("unknown protocol: %s", protocolName));
 
-                AsyncInvoker referenceInvoker;
+                AsyncInvoker referenceInvoker = null;
                 try {
                     referenceInvoker = protocol.reference(url);
                 } catch (Throwable throwable) {
-                    throw new IllegalStateException(throwable);
+                    ExceptionUtils.throwExt(throwable);
                 }
                 validInvokers.add(referenceInvoker);
             }

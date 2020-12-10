@@ -5,6 +5,7 @@ import javassist.*;
 import org.kin.framework.log.LoggerOprs;
 import org.kin.framework.proxy.ProxyEnhanceUtils;
 import org.kin.framework.utils.ClassUtils;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.*;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
@@ -174,7 +175,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
         try {
             realProxyClass = (Class<T>) Class.forName(ctClassName);
         } catch (ClassNotFoundException e) {
-
+            ExceptionUtils.throwExt(e);
         }
 
         try {
@@ -218,7 +219,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
             }
             return realProxyClass.getConstructor(Invoker.class).newInstance(invoker);
         } catch (Exception e) {
-            error(e.getMessage(), e);
+            ExceptionUtils.throwExt(e);
         }
         return null;
     }
@@ -327,7 +328,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
         try {
             realProxyClass = (Class<T>) Class.forName(ctClassName);
         } catch (ClassNotFoundException e) {
-
+            ExceptionUtils.throwExt(e);
         }
 
         try {
@@ -371,7 +372,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
             }
             return realProxyClass.getConstructor(GenericRpcService.class).newInstance(genericRpcService);
         } catch (Exception e) {
-            error(e.getMessage(), e);
+            ExceptionUtils.throwExt(e);
         }
         return null;
     }

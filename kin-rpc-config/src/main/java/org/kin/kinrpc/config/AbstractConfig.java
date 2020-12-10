@@ -1,5 +1,6 @@
 package org.kin.kinrpc.config;
 
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.transport.ProtocolType;
@@ -66,7 +67,7 @@ abstract class AbstractConfig {
             try {
                 sb.append(entry.getKey()).append("=").append(URLEncoder.encode(entry.getValue(), "UTF-8")).append("&");
             } catch (UnsupportedEncodingException e) {
-                log.error("", e);
+                ExceptionUtils.throwExt(e);
             }
         }
 

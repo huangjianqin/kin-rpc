@@ -1,9 +1,9 @@
 package org.kin.kinrpc.rpc.invoker;
 
 
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.kin.kinrpc.rpc.common.Url;
-import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +28,9 @@ public abstract class ReferenceInvoker<T> extends AbstractInvoker<T> implements 
         try {
             return (Class<T>) Class.forName(url.getInterfaceN());
         } catch (ClassNotFoundException e) {
-            throw new RpcCallErrorException(e);
+            ExceptionUtils.throwExt(e);
         }
+
+        throw new IllegalStateException("encounter unknown error");
     }
 }

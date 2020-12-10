@@ -7,6 +7,7 @@ import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.*;
 import org.kin.framework.concurrent.SimpleThreadFactory;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.registry.AbstractRegistry;
 import org.kin.kinrpc.registry.Directory;
 import org.kin.kinrpc.registry.common.RegistryConstants;
@@ -87,7 +88,7 @@ public final class ZookeeperRegistry extends AbstractRegistry {
                     .forPath(path, data);
             log.debug("create persistent znode(data= '{}') successfully>>> {}", data, path);
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            ExceptionUtils.throwExt(e);
         }
     }
 
@@ -101,7 +102,7 @@ public final class ZookeeperRegistry extends AbstractRegistry {
                     .forPath(path);
             log.debug("delete znode successfully>>> " + path);
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            ExceptionUtils.throwExt(e);
         }
     }
 
@@ -110,7 +111,7 @@ public final class ZookeeperRegistry extends AbstractRegistry {
             client.delete().forPath(path);
             log.debug("delete znode successfully>>> " + path);
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            ExceptionUtils.throwExt(e);
         }
     }
 
@@ -189,10 +190,10 @@ public final class ZookeeperRegistry extends AbstractRegistry {
                 //尝试重新订阅服务
                 watch(directory);
             } else {
-                log.error(e.getMessage(), e);
+                ExceptionUtils.throwExt(e);
             }
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            ExceptionUtils.throwExt(e);
         }
     }
 
@@ -218,12 +219,10 @@ public final class ZookeeperRegistry extends AbstractRegistry {
                 }
             }
             directory.discover(url, urls);
-        } catch (KeeperException e) {
-            log.error(e.getMessage(), e);
         } catch (InterruptedException e) {
-
+            //ignore
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            ExceptionUtils.throwExt(e);
         }
     }
 

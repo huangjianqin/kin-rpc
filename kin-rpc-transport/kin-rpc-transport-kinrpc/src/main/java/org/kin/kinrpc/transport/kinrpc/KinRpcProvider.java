@@ -4,6 +4,7 @@ import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.concurrent.actor.PinnedThreadSafeHandler;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.rpc.Invoker;
 import org.kin.kinrpc.rpc.ProviderFutureContext;
@@ -12,7 +13,6 @@ import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.SslConfig;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RateLimitException;
-import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 import org.kin.kinrpc.rpc.invoker.RateLimitInvoker;
 import org.kin.kinrpc.serializer.Serializer;
 import org.kin.kinrpc.serializer.Serializers;
@@ -259,8 +259,9 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
             try {
                 return future.get();
             } catch (Exception e) {
-                throw new RpcCallErrorException(e.getMessage());
+                ExceptionUtils.throwExt(e);
             }
+            return null;
         }, RpcThreadPool.providerWorkers()).thenAcceptAsync(obj -> {
             rpcResponse.setState(RpcResponse.State.SUCCESS, "success");
 

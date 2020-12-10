@@ -2,6 +2,7 @@ package org.kin.kinrpc.config;
 
 import com.google.common.base.Preconditions;
 import org.kin.framework.utils.ClassUtils;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.NetUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.cluster.Clusters;
@@ -131,7 +132,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
             try {
                 Clusters.disableReference(url);
             } catch (Exception e) {
-                log.error("", e);
+                ExceptionUtils.throwExt(e);
             }
         }
     }

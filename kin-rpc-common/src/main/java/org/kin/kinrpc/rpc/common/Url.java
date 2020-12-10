@@ -1,6 +1,7 @@
 package org.kin.kinrpc.rpc.common;
 
 import org.kin.framework.utils.CollectionUtils;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.NetUtils;
 import org.kin.framework.utils.StringUtils;
 import org.slf4j.Logger;
@@ -82,7 +83,7 @@ public class Url implements Serializable, Cloneable {
                         try {
                             parameters.put(part.substring(0, j), URLDecoder.decode(part.substring(j + 1), "UTF-8"));
                         } catch (UnsupportedEncodingException e) {
-                            log.error("", e);
+                            ExceptionUtils.throwExt(e);
                         }
                     } else {
                         parameters.put(part, part);

@@ -4,6 +4,7 @@ import com.google.common.util.concurrent.RateLimiter;
 import javassist.*;
 import org.kin.framework.proxy.ProxyEnhanceUtils;
 import org.kin.framework.utils.ClassUtils;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.Notifier;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
@@ -136,7 +137,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
         try {
             realProxyClass = (Class<T>) Class.forName(ctClassName);
         } catch (ClassNotFoundException e) {
-
+            ExceptionUtils.throwExt(e);
         }
 
         try {
@@ -181,7 +182,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
             }
             return realProxyClass.getConstructor(myClass, Double.TYPE).newInstance(this, (double) rate);
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            ExceptionUtils.throwExt(e);
         }
         return null;
     }
