@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
  * @author huangjianqin
  * @date 2020/12/2
  */
-public class GrpcReference {
+public class GrpcAddableReference {
     public static void main(String[] args) throws InterruptedException {
         ReferenceConfig<KinRpcGrpcServiceGrpc.GrpcService> config = References.reference(KinRpcGrpcServiceGrpc.GrpcService.class)
                 .version("001")
