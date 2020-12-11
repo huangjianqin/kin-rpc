@@ -1,0 +1,1 @@
+org.kin.kinrpc.serializer.Serializer=org.kin.kinrpc.serializer.hessian2.Hessian2Serializer

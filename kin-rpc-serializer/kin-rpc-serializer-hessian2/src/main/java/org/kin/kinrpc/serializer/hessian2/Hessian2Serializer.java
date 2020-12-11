@@ -1,4 +1,4 @@
-package org.kin.kinrpc.serializer.hession2;
+package org.kin.kinrpc.serializer.hessian2;
 
 import com.caucho.hessian.io.Hessian2Input;
 import com.caucho.hessian.io.Hessian2Output;
@@ -52,6 +52,6 @@ public class Hessian2Serializer implements Serializer {
 
     @Override
     public int type() {
-        return SerializerType.HESSION2.getCode();
+        return SerializerType.HESSIAN2.getCode();
     }
 }

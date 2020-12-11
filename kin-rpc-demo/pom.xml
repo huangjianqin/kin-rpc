@@ -61,7 +61,7 @@
 
         <dependency>
             <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-serializer-hession2</artifactId>
+            <artifactId>kin-rpc-serializer-hessian2</artifactId>
             <version>${project.version}</version>
         </dependency>
 

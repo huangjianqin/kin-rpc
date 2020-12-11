@@ -13,9 +13,9 @@ public enum SerializerType {
      */
     KRYO(2),
     /**
-     * hession2序列化
+     * hessian2序列化
      */
-    HESSION2(3),
+    HESSIAN2(3),
     /**
      * json序列化
      */

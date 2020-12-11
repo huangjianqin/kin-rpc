@@ -10,7 +10,7 @@ import org.kin.kinrpc.transport.ProtocolType;
  * @author huangjianqin
  * @date 2020/12/2
  */
-public class GrpcProvider {
+public class GrpcAddableProvider {
     public static void main(String[] args) throws Exception {
         ServiceConfig<KinRpcGrpcServiceGrpc.GrpcService> serviceConfig =
                 Services.service(new GrpcServiceImpl(), KinRpcGrpcServiceGrpc.GrpcService.class)
