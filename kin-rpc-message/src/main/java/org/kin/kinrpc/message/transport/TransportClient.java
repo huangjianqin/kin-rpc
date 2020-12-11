@@ -1,8 +1,6 @@
 package org.kin.kinrpc.message.transport;
 
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.utils.StringUtils;
@@ -122,15 +120,16 @@ public final class TransportClient {
 
             long requestId = message.getRequestId();
             KinRpcRequestProtocol protocol = KinRpcRequestProtocol.create(requestId, (byte) rpcEnv.serializer().type(), data);
-            respCallbacks.put(requestId, outBoxMessage);
-            rpcEndpointRefHandler.client().request(protocol, new ReferenceRequestListener(requestId));
+            if (rpcEndpointRefHandler.client().request(protocol)) {
+                respCallbacks.put(requestId, outBoxMessage);
+            }
         }
     }
 
     /**
      * 移除无效request绑定的callback
      */
-    public void removeRpcMessage(long requestId) {
+    public void removeInvalidRespCallback(long requestId) {
         respCallbacks.remove(requestId);
     }
 
@@ -188,22 +187,6 @@ public final class TransportClient {
 
         public Client<SocketProtocol> client() {
             return client;
-        }
-    }
-
-    private class ReferenceRequestListener implements ChannelFutureListener {
-        private long requestId;
-
-        public ReferenceRequestListener(long requestId) {
-            this.requestId = requestId;
-        }
-
-        @Override
-        public void operationComplete(ChannelFuture future) {
-            if (!future.isSuccess()) {
-                //发送消息时遇到异常
-                removeRpcMessage(requestId);
-            }
         }
     }
 }
