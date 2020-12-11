@@ -23,7 +23,7 @@ import org.kin.kinrpc.transport.kinrpc.KinRpcResponseProtocol;
 import org.kin.transport.netty.Client;
 import org.kin.transport.netty.CompressionType;
 import org.kin.transport.netty.Transports;
-import org.kin.transport.netty.socket.client.SocketClientTransportOption;
+import org.kin.transport.netty.socket.SocketTransportOption;
 import org.kin.transport.netty.socket.protocol.SocketProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +42,7 @@ public final class TransportClient {
     /** 序列化 */
     private final RpcEnv rpcEnv;
     /** 客户端配置 */
-    private final SocketClientTransportOption clientTransportOption;
+    private final SocketTransportOption clientTransportOption;
     /** 服务器地址 */
     private final KinRpcAddress rpcAddress;
     /** client handler */
@@ -58,18 +58,17 @@ public final class TransportClient {
         this.rpcEndpointRefHandler = new RpcEndpointRefHandlerImpl();
         this.rpcAddress = rpcAddress;
 
-        SocketClientTransportOption.SocketClientTransportOptionBuilder builder =
-                Transports.socket().client()
-                        .channelOption(ChannelOption.TCP_NODELAY, true)
-                        .channelOption(ChannelOption.SO_KEEPALIVE, true)
-                        .channelOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-                        .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                        //receive窗口缓存6mb
-                        .channelOption(ChannelOption.SO_RCVBUF, 10 * 1024 * 1024)
-                        //send窗口缓存64kb
-                        .channelOption(ChannelOption.SO_SNDBUF, 64 * 1024)
-                        .protocolHandler(rpcEndpointRefHandler)
-                        .compress(compressionType);
+        SocketTransportOption.SocketClientTransportOptionBuilder builder = Transports.socket().client()
+                .channelOption(ChannelOption.TCP_NODELAY, true)
+                .channelOption(ChannelOption.SO_KEEPALIVE, true)
+                .channelOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
+                .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                //receive窗口缓存6mb
+                .channelOption(ChannelOption.SO_RCVBUF, 10 * 1024 * 1024)
+                //send窗口缓存64kb
+                .channelOption(ChannelOption.SO_SNDBUF, 64 * 1024)
+                .protocolHandler(rpcEndpointRefHandler)
+                .compress(compressionType);
 
         String certPath = SslConfig.INSTANCE.getClientKeyCertChainPath();
         String keyPath = SslConfig.INSTANCE.getClientPrivateKeyPath();

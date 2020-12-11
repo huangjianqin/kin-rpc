@@ -4,7 +4,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import org.kin.transport.netty.Client;
 import org.kin.transport.netty.socket.SocketProtocolHandler;
-import org.kin.transport.netty.socket.client.SocketClientTransportOption;
+import org.kin.transport.netty.socket.SocketTransportOption;
 import org.kin.transport.netty.socket.protocol.SocketProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +27,7 @@ public abstract class KinRpcEndpointRefHandler extends SocketProtocolHandler {
     /**
      * 连接服务器
      */
-    public final void connect(SocketClientTransportOption transportOption, InetSocketAddress address) {
+    public final void connect(SocketTransportOption transportOption, InetSocketAddress address) {
         if (isStopped) {
             return;
         }
