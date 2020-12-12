@@ -51,6 +51,7 @@
         <grpc-contrib.version>0.8.1</grpc-contrib.version>
         <jprotoc.version>0.9.1</jprotoc.version>
         <springboot.version>2.3.1.RELEASE</springboot.version>
+        <netty.version>4.1.54.Final</netty.version>
     </properties>
 
     <dependencies>

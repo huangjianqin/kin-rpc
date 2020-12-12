@@ -18,7 +18,7 @@ public final class RateLimitInvoker<T> extends WrapInvoker<T> {
     private final RateLimiter rateLimiter;
 
     public RateLimitInvoker(Invoker<T> wrapper) {
-        this(wrapper, Constants.SERVER_REQUEST_THRESHOLD);
+        this(wrapper, Constants.REQUEST_THRESHOLD);
     }
 
     public RateLimitInvoker(Invoker<T> wrapper, double permitsPerSecond) {

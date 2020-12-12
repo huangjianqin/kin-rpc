@@ -1,8 +1,6 @@
 package org.kin.kinrpc.message.transport;
 
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelOption;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.message.core.OutBoxMessage;
 import org.kin.kinrpc.message.core.RpcEnv;
@@ -57,14 +55,7 @@ public final class TransportClient {
         this.rpcAddress = rpcAddress;
 
         SocketTransportOption.SocketClientTransportOptionBuilder builder = Transports.socket().client()
-                .channelOption(ChannelOption.TCP_NODELAY, true)
-                .channelOption(ChannelOption.SO_KEEPALIVE, true)
-                .channelOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-                .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                //receive窗口缓存6mb
-                .channelOption(ChannelOption.SO_RCVBUF, 10 * 1024 * 1024)
-                //send窗口缓存64kb
-                .channelOption(ChannelOption.SO_SNDBUF, 64 * 1024)
+                .channelOptions(rpcEnv.getClientChannelOptions())
                 .protocolHandler(rpcEndpointRefHandler)
                 .compress(compressionType);
 

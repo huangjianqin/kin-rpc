@@ -155,6 +155,13 @@ public class Url implements Serializable, Cloneable {
     //----------------------------------------------------------------------------------------------------------------
 
     /**
+     * @return 是否包含某个参数
+     */
+    public boolean containsParam(String k) {
+        return params.containsKey(k);
+    }
+
+    /**
      * 获取url参数
      */
     public String getParam(String k) {

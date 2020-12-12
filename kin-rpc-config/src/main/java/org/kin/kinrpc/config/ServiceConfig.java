@@ -61,6 +61,17 @@ public class ServiceConfig<T> extends AbstractConfig {
         this.ref = ref;
         this.interfaceClass = interfaceClass;
         this.serviceName = interfaceClass.getName();
+
+        //默认netty channel options
+        Map<String, Object> nettyOptions = new HashMap<>(5);
+        nettyOptions.put(Constants.NETTY_NODELAY, true);
+        nettyOptions.put(Constants.NETTY_KEEPALIVE, true);
+        nettyOptions.put(Constants.NETTY_REUSEADDR, true);
+        //receive窗口缓存8mb
+        nettyOptions.put(Constants.NETTY_RCVBUF, 8 * 1024 * 1024);
+        //send窗口缓存64kb
+        nettyOptions.put(Constants.NETTY_SNDBUF, 64 * 1024);
+        attach(nettyOptions);
     }
 
     //---------------------------------------------------------------------------------------------------------

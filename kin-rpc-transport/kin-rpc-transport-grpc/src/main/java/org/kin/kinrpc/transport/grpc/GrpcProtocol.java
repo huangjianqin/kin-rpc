@@ -6,12 +6,12 @@ import io.grpc.*;
 import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyChannelBuilder;
 import io.grpc.netty.NettyServerBuilder;
+import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.ClientAuth;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import org.kin.framework.proxy.ProxyEnhanceUtils;
 import org.kin.framework.utils.CollectionUtils;
-import org.kin.kinrpc.AbstractProxyProtocol;
 import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.kin.kinrpc.rpc.Exporter;
 import org.kin.kinrpc.rpc.Invoker;
@@ -21,6 +21,8 @@ import org.kin.kinrpc.rpc.common.SslConfig;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
+import org.kin.kinrpc.transport.AbstractProxyProtocol;
+import org.kin.kinrpc.transport.NettyUtils;
 import org.kin.kinrpc.transport.grpc.interceptor.ClientInterceptor;
 import org.kin.kinrpc.transport.grpc.interceptor.GrpcConfigurator;
 import org.kin.kinrpc.transport.grpc.interceptor.ServerInterceptor;
@@ -33,6 +35,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -132,18 +135,19 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
     /**
      * 构建Grpc server
      */
+    @SuppressWarnings("unchecked")
     private Server builderServer(Url url, GrpcHandlerRegistry registry) {
         NettyServerBuilder builder =
                 NettyServerBuilder
                         .forPort(url.getPort())
                         .fallbackHandlerRegistry(registry);
 
-        int maxInboundMessageSize = url.getIntParam(Constants.MAX_INBOUND_MESSAGE_SIZE_KEY);
+        int maxInboundMessageSize = url.getIntParam(Constants.GRPC_MAX_INBOUND_MESSAGE_SIZE_KEY);
         if (maxInboundMessageSize > 0) {
             builder.maxInboundMessageSize(maxInboundMessageSize);
         }
 
-        int maxInboundMetadataSize = url.getIntParam(Constants.MAX_INBOUND_METADATA_SIZE_KEY);
+        int maxInboundMetadataSize = url.getIntParam(Constants.GRPC_MAX_INBOUND_METADATA_SIZE_KEY);
         if (maxInboundMetadataSize > 0) {
             builder.maxInboundMetadataSize(maxInboundMetadataSize);
         }
@@ -152,14 +156,19 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
             builder.sslContext(buildServerSslContext());
         }
 
-        int flowControlWindow = url.getIntParam(Constants.FLOWCONTROL_WINDOW_KEY);
+        int flowControlWindow = url.getIntParam(Constants.GRPC_FLOWCONTROL_WINDOW_KEY);
         if (flowControlWindow > 0) {
             builder.flowControlWindow(flowControlWindow);
         }
 
-        int maxCalls = url.getIntParam(Constants.MAX_CONCURRENT_CALLS_PER_CONNECTION_KEY);
+        int maxCalls = url.getIntParam(Constants.GRPC_MAX_CONCURRENT_CALLS_PER_CONNECTION_KEY);
         if (maxCalls > 0) {
             builder.maxConcurrentCallsPerConnection(maxCalls);
+        }
+
+        //netty options
+        for (Map.Entry<ChannelOption, Object> entry : NettyUtils.convert(url).entrySet()) {
+            builder.withOption(entry.getKey(), entry.getValue());
         }
 
         // server interceptors
@@ -285,6 +294,7 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
     /**
      * 创建新的grpc channel
      */
+    @SuppressWarnings("unchecked")
     private ManagedChannel initChannel(Url url) {
         NettyChannelBuilder builder = NettyChannelBuilder.forAddress(url.getHost(), url.getPort());
         if (url.getBooleanParam(Constants.SSL_ENABLED_KEY)) {
@@ -293,6 +303,10 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
             builder.usePlaintext();
         }
         builder.disableRetry();
+        //netty options
+        for (Map.Entry<ChannelOption, Object> entry : NettyUtils.convert(url).entrySet()) {
+            builder.withOption(entry.getKey(), entry.getValue());
+        }
 
         // client interceptors
         List<io.grpc.ClientInterceptor> interceptors = new ArrayList<>(RpcServiceLoader.LOADER.getExtensions(ClientInterceptor.class));

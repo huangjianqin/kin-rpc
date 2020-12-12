@@ -1,6 +1,5 @@
 package org.kin.kinrpc.transport.kinrpc;
 
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.concurrent.actor.PinnedThreadSafeHandler;
@@ -56,7 +55,7 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
     /** 标识是否stopped */
     private volatile boolean isStopped = false;
 
-    public KinRpcProvider(String host, int port, Serializer serializer, CompressionType compressionType) {
+    public KinRpcProvider(String host, int port, Serializer serializer, CompressionType compressionType, Map<ChannelOption, Object> options) {
         super(RpcThreadPool.providerWorkers());
         this.serializer = serializer;
 
@@ -69,15 +68,7 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
         this.providerHandler = new ProviderHandler();
 
         SocketTransportOption.SocketServerTransportOptionBuilder builder = Transports.socket().server()
-                .channelOption(ChannelOption.TCP_NODELAY, true)
-                .channelOption(ChannelOption.SO_KEEPALIVE, true)
-                .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                //复用端口
-                .channelOption(ChannelOption.SO_REUSEADDR, true)
-                //receive窗口缓存6mb
-                .channelOption(ChannelOption.SO_RCVBUF, 10 * 1024 * 1024)
-                //send窗口缓存64kb
-                .channelOption(ChannelOption.SO_SNDBUF, 64 * 1024)
+                .channelOptions(options)
                 .protocolHandler(providerHandler)
                 .compress(compressionType);
 

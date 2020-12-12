@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -88,6 +89,11 @@ public final class RpcEnv {
     /** key -> RpcEndpoint, value -> RpcEndpoint对应的RpcEndpointRef */
     private Map<RpcEndpoint, RpcEndpointRef> endpoint2Ref = new ConcurrentHashMap<>();
 
+    /** server child channel options */
+    private Map<ChannelOption, Object> serverChannelOptions = new HashMap<>();
+    /** client channel options */
+    private Map<ChannelOption, Object> clientChannelOptions = new HashMap<>();
+
     public RpcEnv(String host, int port) {
         this(host, port, SysUtils.getSuitableThreadNum(),
                 Serializers.getSerializer(SerializerType.KRYO.getCode()), CompressionType.NONE);
@@ -118,6 +124,31 @@ public final class RpcEnv {
         this.dispatcher = new EventBasedDispatcher<>(parallelism);
         this.serializer = serializer;
         this.compressionType = compressionType;
+
+        //server child channel options, 默认值
+        Map<ChannelOption, Object> serverChannelOptions = new HashMap<>(6);
+        serverChannelOptions.put(ChannelOption.TCP_NODELAY, true);
+        serverChannelOptions.put(ChannelOption.SO_KEEPALIVE, true);
+        serverChannelOptions.put(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+        //复用端口
+        serverChannelOptions.put(ChannelOption.SO_REUSEADDR, true);
+        //receive窗口缓存8mb
+        serverChannelOptions.put(ChannelOption.SO_RCVBUF, 8 * 1024 * 1024);
+        //send窗口缓存64kb
+        serverChannelOptions.put(ChannelOption.SO_SNDBUF, 64 * 1024);
+        updateServerChannelOptions(serverChannelOptions);
+
+        //client channel options, 默认值
+        Map<ChannelOption, Object> clientChannelOptions = new HashMap<>(6);
+        clientChannelOptions.put(ChannelOption.TCP_NODELAY, true);
+        clientChannelOptions.put(ChannelOption.SO_KEEPALIVE, true);
+        clientChannelOptions.put(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000);
+        clientChannelOptions.put(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+        //receive窗口缓存8mb
+        clientChannelOptions.put(ChannelOption.SO_RCVBUF, 8 * 1024 * 1024);
+        //send窗口缓存64kb
+        clientChannelOptions.put(ChannelOption.SO_SNDBUF, 64 * 1024);
+        updateClientChannelOptions(clientChannelOptions);
     }
 
     //--------------------------------------------------------------------------------------------------------------------------------
@@ -142,17 +173,8 @@ public final class RpcEnv {
             address = new InetSocketAddress(port);
         }
 
-
         SocketTransportOption.SocketServerTransportOptionBuilder builder = Transports.socket().server()
-                .channelOption(ChannelOption.TCP_NODELAY, true)
-                .channelOption(ChannelOption.SO_KEEPALIVE, true)
-                .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                //复用端口
-                .channelOption(ChannelOption.SO_REUSEADDR, true)
-                //receive窗口缓存6mb
-                .channelOption(ChannelOption.SO_RCVBUF, 10 * 1024 * 1024)
-                //send窗口缓存64kb
-                .channelOption(ChannelOption.SO_SNDBUF, 64 * 1024)
+                .channelOptions(serverChannelOptions)
                 .protocolHandler(rpcEndpoint)
                 .compress(compressionType);
 
@@ -423,6 +445,14 @@ public final class RpcEnv {
         removeClient(address);
     }
 
+    //setter
+    public void updateServerChannelOptions(Map<ChannelOption, Object> serverChannelOptions) {
+        this.serverChannelOptions.putAll(serverChannelOptions);
+    }
+
+    public void updateClientChannelOptions(Map<ChannelOption, Object> clientChannelOptions) {
+        this.clientChannelOptions.putAll(clientChannelOptions);
+    }
 
     //------------------------------------------------------------------------------------------------------------------
 
@@ -457,6 +487,14 @@ public final class RpcEnv {
     /** serializer */
     public Serializer serializer() {
         return serializer;
+    }
+
+    public Map<ChannelOption, Object> getServerChannelOptions() {
+        return serverChannelOptions;
+    }
+
+    public Map<ChannelOption, Object> getClientChannelOptions() {
+        return clientChannelOptions;
     }
 
     //------------------------------------------------------------------------------------------------------------------
