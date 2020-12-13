@@ -1,39 +1,31 @@
 package org.kin.kinrpc.config;
 
+import com.google.common.base.Preconditions;
+import org.kin.framework.utils.NetUtils;
+
 /**
  * Created by huangjianqin on 2019/6/18.
  */
 public abstract class AbstractRegistryConfig extends AbstractConfig {
     /** 注册中心地址 */
     protected String address;
-    /** 会话超时 */
-    protected long sessionTimeout;
-    /** 观察服务变化间隔, 目前仅用于redis */
-    protected long watchInterval;
 
     AbstractRegistryConfig(String address) {
         this.address = address;
     }
 
-    //setter && getter
+    @Override
+    void check() {
+        Preconditions.checkArgument(NetUtils.checkHostPort(address),
+                "redis address '".concat(address).concat("' format error"));
+    }
 
+    //setter && getter
     public String getAddress() {
         return address;
     }
 
-    public long getSessionTimeout() {
-        return sessionTimeout;
-    }
-
-    void setSessionTimeout(long sessionTimeout) {
-        this.sessionTimeout = sessionTimeout;
-    }
-
-    public long getWatchInterval() {
-        return watchInterval;
-    }
-
-    public void setWatchInterval(long watchInterval) {
-        this.watchInterval = watchInterval;
+    public void setAddress(String address) {
+        this.address = address;
     }
 }

@@ -1,8 +1,6 @@
 package org.kin.kinrpc.rpc.common;
 
 
-import java.util.concurrent.TimeUnit;
-
 /**
  * Created by 健勤 on 2016/10/9.
  */
@@ -112,8 +110,8 @@ public class Constants {
      * 全局
      */
     public static final int REQUEST_THRESHOLD = Integer.MAX_VALUE;
-    /** 定时轮询注册中心间隔默认值(30s), 目前只有redis注册中心用到 */
-    public static final long WATCH_INTERVAL = TimeUnit.SECONDS.toMillis(30);
+    /** 轮询redis注册中心间隔默认值(30s), 目前只有redis注册中心用到 */
+    public static final long WATCH_INTERVAL = 30000;
 
     /** Reference默认连接超时配置 */
     public static final int DEFAULT_CONNECT_TIMEOUT = 5000;

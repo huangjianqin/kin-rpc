@@ -3,7 +3,6 @@ package org.kin.kinrpc.config;
 
 import com.google.common.base.Preconditions;
 import org.kin.framework.utils.NetUtils;
-import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.cluster.Clusters;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
@@ -60,7 +59,7 @@ public class ServiceConfig<T> extends AbstractConfig {
     ServiceConfig(T ref, Class<T> interfaceClass) {
         this.ref = ref;
         this.interfaceClass = interfaceClass;
-        this.serviceName = interfaceClass.getName();
+        this.serviceName = interfaceClass.getCanonicalName();
 
         //默认netty channel options
         Map<String, Object> nettyOptions = new HashMap<>(5);
@@ -190,37 +189,12 @@ public class ServiceConfig<T> extends AbstractConfig {
         return this;
     }
 
-    public ServiceConfig<T> urls(String... urls) {
-        if (!isExport) {
-            this.registryConfig = new DirectURLsRegistryConfig(StringUtils.mkString(";", urls));
+    public ServiceConfig<T> registry(AbstractRegistryConfig registryConfig) {
+        if (registryConfig instanceof DirectURLsRegistryConfig) {
+            throw new IllegalArgumentException("kinrpc service does not support direct url registry");
         }
-        return this;
-    }
-
-    public ServiceConfig<T> zookeeper(String address) {
         if (!isExport) {
-            this.registryConfig = new ZookeeperRegistryConfig(address);
-        }
-        return this;
-    }
-
-    public ServiceConfig<T> redis(String address) {
-        if (!isExport) {
-            this.registryConfig = new RedisRegistryConfig(address);
-        }
-        return this;
-    }
-
-    public ServiceConfig<T> registrySessionTimeout(long sessionTimeout) {
-        if (!isExport) {
-            this.registryConfig.setSessionTimeout(sessionTimeout);
-        }
-        return this;
-    }
-
-    public ServiceConfig<T> registryWatchInterval(long watchInterval) {
-        if (!isExport) {
-            this.registryConfig.setWatchInterval(watchInterval);
+            this.registryConfig = registryConfig;
         }
         return this;
     }
@@ -235,6 +209,13 @@ public class ServiceConfig<T> extends AbstractConfig {
     public ServiceConfig<T> serializer(SerializerType serializerType) {
         if (!isExport) {
             this.serializerCode = serializerType.getCode();
+        }
+        return this;
+    }
+
+    public ServiceConfig<T> serializer(int serializerCode) {
+        if (!isExport) {
+            this.serializerCode = serializerCode;
         }
         return this;
     }

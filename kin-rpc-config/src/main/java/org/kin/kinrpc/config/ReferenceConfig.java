@@ -172,30 +172,9 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return this;
     }
 
-    public ReferenceConfig<T> zookeeper(String address) {
+    public ReferenceConfig<T> registry(AbstractRegistryConfig registryConfig) {
         if (!isReference) {
-            this.registryConfig = new ZookeeperRegistryConfig(address);
-        }
-        return this;
-    }
-
-    public ReferenceConfig<T> redis(String address) {
-        if (!isReference) {
-            this.registryConfig = new RedisRegistryConfig(address);
-        }
-        return this;
-    }
-
-    public ReferenceConfig<T> registrySessionTimeout(long sessionTimeout) {
-        if (!isReference) {
-            this.registryConfig.setSessionTimeout(sessionTimeout);
-        }
-        return this;
-    }
-
-    public ReferenceConfig<T> registryWatchInterval(long watchInterval) {
-        if (!isReference) {
-            this.registryConfig.setWatchInterval(watchInterval);
+            this.registryConfig = registryConfig;
         }
         return this;
     }

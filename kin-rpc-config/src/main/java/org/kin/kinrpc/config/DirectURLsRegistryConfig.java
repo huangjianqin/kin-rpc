@@ -6,8 +6,8 @@ import org.kin.kinrpc.rpc.common.Url;
 /**
  * Created by huangjianqin on 2019/6/20.
  */
-class DirectURLsRegistryConfig extends AbstractRegistryConfig {
-    DirectURLsRegistryConfig(String adress) {
+public class DirectURLsRegistryConfig extends AbstractRegistryConfig {
+    public DirectURLsRegistryConfig(String adress) {
         super(adress);
     }
 

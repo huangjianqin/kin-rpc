@@ -1,9 +1,23 @@
 package org.kin.kinrpc.spring;
 
+import org.kin.kinrpc.cluster.LoadBalance;
+import org.kin.kinrpc.cluster.Router;
+import org.kin.kinrpc.cluster.loadbalance.RoundRobinLoadBalance;
+import org.kin.kinrpc.cluster.router.NoneRouter;
+import org.kin.kinrpc.rpc.Notifier;
+import org.kin.kinrpc.rpc.common.Constants;
+
+import java.lang.annotation.*;
+
 /**
+ * 配置的含义请看{@link org.kin.kinrpc.config.ReferenceConfig}
+ *
  * @author huangjianqin
  * @date 2020/12/6
  */
+@Documented
+@Target(ElementType.FIELD)
+@Retention(RetentionPolicy.RUNTIME)
 public @interface KinRpcReference {
     String appName() default "";
 

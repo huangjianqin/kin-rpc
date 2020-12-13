@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * @author huangjianqin
- * @date 2020/12/6
+ * @date 2020/12/13
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties({ZookeeperRegistryProperties.class, RedisRegistryProperties.class})
