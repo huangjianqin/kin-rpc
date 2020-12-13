@@ -21,6 +21,9 @@ import java.lang.annotation.*;
 public @interface KinRpcReference {
     String appName() default "";
 
+    /** jvm进程内寻找服务 */
+    boolean jvm() default false;
+
     String[] urls() default {};
 
     String serviceName() default "";

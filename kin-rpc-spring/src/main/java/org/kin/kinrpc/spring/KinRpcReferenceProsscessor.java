@@ -68,18 +68,24 @@ public class KinRpcReferenceProsscessor implements ApplicationContextAware, Logg
                 .notify(referenceAnno.notifiers())
                 .callTimeout(referenceAnno.callTimeout());
 
-        //url
-        String[] urls = referenceAnno.urls();
-        if (CollectionUtils.isNonEmpty(urls)) {
-            //直连
-            referenceConfig.urls(urls);
+        //jvm
+        boolean jvm = referenceAnno.jvm();
+        if (jvm) {
+            referenceConfig.jvm();
         } else {
-            //寻找注册中心
-            AbstractRegistryConfig registryConfig = KinRpcAnnoUtils.parseRegistryConfig(field, applicationContext);
-            if (Objects.nonNull(registryConfig)) {
-                referenceConfig.registry(registryConfig);
+            //url
+            String[] urls = referenceAnno.urls();
+            if (CollectionUtils.isNonEmpty(urls)) {
+                //直连
+                referenceConfig.urls(urls);
             } else {
-                warn("reference '%s' does not config a registry, check it is all right", serviceName);
+                //寻找注册中心
+                AbstractRegistryConfig registryConfig = KinRpcAnnoUtils.parseRegistryConfig(field, applicationContext);
+                if (Objects.nonNull(registryConfig)) {
+                    referenceConfig.registry(registryConfig);
+                } else {
+                    warn("reference '%s' does not config a registry, check it is all right", serviceName);
+                }
             }
         }
 
