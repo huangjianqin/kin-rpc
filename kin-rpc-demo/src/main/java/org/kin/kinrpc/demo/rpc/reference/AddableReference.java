@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2020/11/16
  */
 public class AddableReference {
-    protected static ReferenceConfig<Addable> config() {
+    public static ReferenceConfig<Addable> config() {
         return References.reference(Addable.class)
                 .version("001")
                 .async()
@@ -22,7 +22,7 @@ public class AddableReference {
                 .rate(10000);
     }
 
-    protected static void roundTest(ReferenceConfig<Addable> config) throws Exception {
+    public static void roundTest(ReferenceConfig<Addable> config) throws Exception {
         Addable service = config.get();
         int count = 0;
         while (count < 10000) {

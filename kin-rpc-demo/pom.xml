@@ -34,6 +34,7 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- transport -->
         <dependency>
             <groupId>org.kin</groupId>
             <artifactId>kin-rpc-transport-grpc</artifactId>
@@ -43,6 +44,12 @@
         <dependency>
             <groupId>org.kin</groupId>
             <artifactId>kin-rpc-transport-http</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-rpc-transport-jvm</artifactId>
             <version>${project.version}</version>
         </dependency>
 

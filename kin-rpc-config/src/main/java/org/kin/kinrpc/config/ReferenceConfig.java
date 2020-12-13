@@ -172,6 +172,13 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return this;
     }
 
+    public ReferenceConfig<T> jvm() {
+        if (!isReference) {
+            this.registryConfig = new DirectURLsRegistryConfig("jvm://0.0.0.0");
+        }
+        return this;
+    }
+
     public ReferenceConfig<T> registry(AbstractRegistryConfig registryConfig) {
         if (!isReference) {
             this.registryConfig = registryConfig;
