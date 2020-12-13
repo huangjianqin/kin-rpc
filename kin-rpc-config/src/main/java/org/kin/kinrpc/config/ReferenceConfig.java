@@ -256,14 +256,14 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return this;
     }
 
-    public ReferenceConfig<T> javaInvoke() {
+    public ReferenceConfig<T> javaProxy() {
         if (!isReference) {
             this.proxyType = ProxyType.JAVA;
         }
         return this;
     }
 
-    public ReferenceConfig<T> javassistInvoke() {
+    public ReferenceConfig<T> javassistProxy() {
         if (!isReference) {
             this.proxyType = ProxyType.JAVASSIST;
         }
