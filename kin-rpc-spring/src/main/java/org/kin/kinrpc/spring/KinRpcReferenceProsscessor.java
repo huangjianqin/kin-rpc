@@ -8,8 +8,12 @@ import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.References;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessorAdapter;
+import org.springframework.beans.factory.support.MergedBeanDefinitionPostProcessor;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
@@ -22,7 +26,8 @@ import java.util.Objects;
  * @date 2020/12/12
  */
 @Component
-public class KinRpcReferenceProsscessor implements ApplicationContextAware, LoggerOprs {
+public class KinRpcReferenceProsscessor extends InstantiationAwareBeanPostProcessorAdapter
+        implements MergedBeanDefinitionPostProcessor, Ordered, ApplicationContextAware, LoggerOprs {
     @Value("${spring.application.name:kinrpc}")
     private String springAppName;
     private ApplicationContext applicationContext;
@@ -30,6 +35,16 @@ public class KinRpcReferenceProsscessor implements ApplicationContextAware, Logg
     @Override
     public void setApplicationContext(@Nonnull ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
+    }
+
+    @Override
+    public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
+
+    }
+
+    @Override
+    public int getOrder() {
+        return 0;
     }
 
     /**

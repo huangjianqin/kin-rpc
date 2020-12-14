@@ -18,6 +18,7 @@
         <module>kin-rpc-common</module>
         <module>kin-rpc-serializer</module>
         <module>kin-rpc-spring</module>
+        <module>kin-rpc-starter</module>
     </modules>
     <packaging>pom</packaging>
 
