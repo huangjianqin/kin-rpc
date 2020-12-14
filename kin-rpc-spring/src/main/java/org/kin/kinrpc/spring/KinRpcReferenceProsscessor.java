@@ -1,19 +1,22 @@
 package org.kin.kinrpc.spring;
 
 import org.kin.framework.log.LoggerOprs;
+import org.kin.framework.spring.AbstractAnnotationBeanPostProcessor;
 import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.config.AbstractRegistryConfig;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.References;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.annotation.InjectionMetadata;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessorAdapter;
-import org.springframework.beans.factory.support.MergedBeanDefinitionPostProcessor;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.Ordered;
+import org.springframework.core.PriorityOrdered;
+import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
@@ -26,11 +29,16 @@ import java.util.Objects;
  * @date 2020/12/12
  */
 @Component
-public class KinRpcReferenceProsscessor extends InstantiationAwareBeanPostProcessorAdapter
-        implements MergedBeanDefinitionPostProcessor, Ordered, ApplicationContextAware, LoggerOprs {
+public class KinRpcReferenceProsscessor extends AbstractAnnotationBeanPostProcessor
+        implements PriorityOrdered, ApplicationContextAware, BeanFactoryAware, LoggerOprs {
     @Value("${spring.application.name:kinrpc}")
     private String springAppName;
     private ApplicationContext applicationContext;
+    private BeanFactory beanFactory;
+
+    public KinRpcReferenceProsscessor() {
+        super(KinRpcReference.class);
+    }
 
     @Override
     public void setApplicationContext(@Nonnull ApplicationContext applicationContext) throws BeansException {
@@ -38,13 +46,25 @@ public class KinRpcReferenceProsscessor extends InstantiationAwareBeanPostProces
     }
 
     @Override
-    public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
+    public void setBeanFactory(@Nonnull BeanFactory beanFactory) throws BeansException {
+        this.beanFactory = beanFactory;
+    }
 
+
+    @Override
+    protected Object doGetInjectedBean(AnnotationAttributes attributes, Object bean, String beanName, Class<?> injectedType, InjectionMetadata.InjectedElement injectedElement) throws Exception {
+        return null;
+    }
+
+    @Override
+    protected String buildInjectedObjectCacheKey(AnnotationAttributes attributes, Object bean, String beanName, Class<?> injectedType, InjectionMetadata.InjectedElement injectedElement) {
+        return null;
     }
 
     @Override
     public int getOrder() {
-        return 0;
+        //最高优先级
+        return Ordered.HIGHEST_PRECEDENCE;
     }
 
     /**
