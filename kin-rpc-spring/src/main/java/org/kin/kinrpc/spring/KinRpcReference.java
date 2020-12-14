@@ -19,6 +19,9 @@ import java.lang.annotation.*;
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface KinRpcReference {
+    /** reference bean name */
+    String beanName() default "";
+
     String appName() default "";
 
     /** jvm进程内寻找服务 */

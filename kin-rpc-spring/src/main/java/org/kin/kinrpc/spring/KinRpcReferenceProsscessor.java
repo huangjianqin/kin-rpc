@@ -7,11 +7,13 @@ import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.config.AbstractRegistryConfig;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.References;
+import org.kin.kinrpc.rpc.Notifier;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.annotation.InjectionMetadata;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.Ordered;
@@ -23,6 +25,8 @@ import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author huangjianqin
@@ -34,7 +38,9 @@ public class KinRpcReferenceProsscessor extends AbstractAnnotationBeanPostProces
     @Value("${spring.application.name:kinrpc}")
     private String springAppName;
     private ApplicationContext applicationContext;
-    private BeanFactory beanFactory;
+    private ConfigurableListableBeanFactory beanFactory;
+
+    private final ConcurrentMap<String, ReferenceConfig<?>> referenceConfigs = new ConcurrentHashMap<>(32);
 
     public KinRpcReferenceProsscessor() {
         super(KinRpcReference.class);
@@ -47,18 +53,41 @@ public class KinRpcReferenceProsscessor extends AbstractAnnotationBeanPostProces
 
     @Override
     public void setBeanFactory(@Nonnull BeanFactory beanFactory) throws BeansException {
-        this.beanFactory = beanFactory;
+        this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
     }
 
+    /**
+     * @return reference config bean name
+     */
+    private String getReferenceConfigBeanName(AnnotationAttributes attributes, Class<?> interfaceClass) {
+        String beanName = attributes.getString("beanName");
+        if (!StringUtils.isNotBlank(beanName)) {
+            beanName = "Reference".concat("$").concat(getAppName(attributes))
+                    .concat("$").concat(getServiceName(attributes, interfaceClass));
+        }
+        return beanName;
+    }
 
     @Override
     protected Object doGetInjectedBean(AnnotationAttributes attributes, Object bean, String beanName, Class<?> injectedType, InjectionMetadata.InjectedElement injectedElement) throws Exception {
-        return null;
+        String referenceConfigBeanName = getReferenceConfigBeanName(attributes, injectedType);
+
+        ReferenceConfig<?> referenceConfig = buildReferenceConfig(referenceConfigBeanName, attributes, injectedType, injectedElement);
+
+        if (!beanFactory.containsBean(referenceConfigBeanName)) {
+            //注册bean
+            beanFactory.registerSingleton(referenceConfigBeanName, referenceConfig);
+        }
+        //缓存reference config
+        referenceConfigs.put(referenceConfigBeanName, referenceConfig);
+
+        return referenceConfig.get();
     }
 
     @Override
     protected String buildInjectedObjectCacheKey(AnnotationAttributes attributes, Object bean, String beanName, Class<?> injectedType, InjectionMetadata.InjectedElement injectedElement) {
-        return null;
+        //相当于reference config bean name
+        return getReferenceConfigBeanName(attributes, injectedType);
     }
 
     @Override
@@ -68,54 +97,67 @@ public class KinRpcReferenceProsscessor extends AbstractAnnotationBeanPostProces
     }
 
     /**
-     * 获取需要注入的实例, 即kinRpcReference实例
+     * @return 注解的appName
      */
-    private Object kinRpcReference(Field field) {
-        KinRpcReference referenceAnno = field.getAnnotation(KinRpcReference.class);
-        if (Objects.isNull(referenceAnno)) {
-            throw new IllegalStateException("field does not have @KinRpcReference");
-        }
-
-        Class<?> interfaceClass = field.getType();
-        if (!interfaceClass.isInterface()) {
-            throw new IllegalStateException("field with @KinRpcReference must be a interface");
-        }
-
-        String appName = referenceAnno.appName();
+    private String getAppName(AnnotationAttributes attributes) {
+        String appName = attributes.getString("appName");
         if (StringUtils.isBlank(appName)) {
             //如果没有配置appName, 则尝试用spring application name, 最后用默认
             appName = springAppName;
         }
 
-        String serviceName = referenceAnno.serviceName();
+        return appName;
+    }
+
+    /**
+     * @return 注解的服务名
+     */
+    private String getServiceName(AnnotationAttributes attributes, Class<?> interfaceClass) {
+        String serviceName = attributes.getString("serviceName");
         if (StringUtils.isBlank(serviceName)) {
             //如果没有配置serviceName, 则采用接口java package path命名
             serviceName = interfaceClass.getCanonicalName();
         }
 
-        ReferenceConfig<?> referenceConfig = References.reference(interfaceClass)
+        return serviceName;
+    }
+
+    /**
+     * 解析注解配置, 返回{@link ReferenceConfig}
+     */
+    @SuppressWarnings("unchecked")
+    private ReferenceConfig<?> buildReferenceConfig(String referenceConfigBeanName, AnnotationAttributes attributes, Class<?> injectedType, InjectionMetadata.InjectedElement injectedElement) {
+        if (referenceConfigs.containsKey(referenceConfigBeanName)) {
+            return referenceConfigs.get(referenceConfigBeanName);
+        }
+
+        String appName = getAppName(attributes);
+
+        String serviceName = getServiceName(attributes, injectedType);
+
+        ReferenceConfig<?> referenceConfig = References.reference(injectedType)
                 .appName(appName)
                 .serviceName(serviceName)
-                .version(referenceAnno.version())
-                .retry(referenceAnno.retryTimes())
-                .retryTimeout(referenceAnno.retryInterval())
-                .rate(referenceAnno.rate())
-                .notify(referenceAnno.notifiers())
-                .callTimeout(referenceAnno.callTimeout());
+                .version(attributes.getString("version"))
+                .retry(attributes.getNumber("retryTimes"))
+                .retryTimeout(attributes.getNumber("retryInterval"))
+                .rate(attributes.getNumber("rate"))
+                .notify((Class<? extends Notifier<?>>[]) attributes.getClassArray("notifiers"))
+                .callTimeout(attributes.getNumber("callTimeout"));
 
         //jvm
-        boolean jvm = referenceAnno.jvm();
+        boolean jvm = attributes.getBoolean("jvm");
         if (jvm) {
             referenceConfig.jvm();
         } else {
             //url
-            String[] urls = referenceAnno.urls();
+            String[] urls = attributes.getStringArray("urls");
             if (CollectionUtils.isNonEmpty(urls)) {
                 //直连
                 referenceConfig.urls(urls);
             } else {
                 //寻找注册中心
-                AbstractRegistryConfig registryConfig = KinRpcAnnoUtils.parseRegistryConfig(field, applicationContext);
+                AbstractRegistryConfig registryConfig = KinRpcAnnoUtils.parseRegistryConfig((Field) injectedElement.getMember(), applicationContext);
                 if (Objects.nonNull(registryConfig)) {
                     referenceConfig.registry(registryConfig);
                 } else {
@@ -126,52 +168,52 @@ public class KinRpcReferenceProsscessor extends AbstractAnnotationBeanPostProces
 
         //loadBalance
         //1. 默认先找通过字符串定义的loadBalance
-        String loadBalance = referenceAnno.loadBalance();
+        String loadBalance = attributes.getString("loadBalance");
         if (StringUtils.isNotBlank(loadBalance)) {
             referenceConfig.loadbalance(loadBalance);
         } else {
             //2. loadBalance class
-            referenceConfig.loadbalance(referenceAnno.loadBalanceClass());
+            referenceConfig.loadbalance(attributes.getClass("loadBalanceClass"));
         }
 
         //router
         //1. 默认先找通过字符串定义的router
-        String router = referenceAnno.router();
+        String router = attributes.getString("router");
         if (StringUtils.isNotBlank(router)) {
             referenceConfig.router(router);
         } else {
             //2. router class
-            referenceConfig.router(referenceAnno.routerClass());
+            referenceConfig.router(attributes.getClass("routerClass"));
         }
 
         //byteCodeEnhance
-        if (referenceAnno.byteCodeEnhance()) {
+        if (attributes.getBoolean("byteCodeEnhance")) {
             referenceConfig.javassistProxy();
         } else {
             referenceConfig.javaProxy();
         }
 
         //async
-        if (referenceAnno.async()) {
+        if (attributes.getBoolean("async")) {
             referenceConfig.async();
         }
 
         //useGeneric
-        if (referenceAnno.useGeneric()) {
+        if (attributes.getBoolean("useGeneric")) {
             referenceConfig.useGeneric();
         }
 
         //ssl
-        if (referenceAnno.ssl()) {
+        if (attributes.getBoolean("ssl")) {
             referenceConfig.enableSsl();
         }
 
         //attachment
-        Map<String, Object> attachment = KinRpcAnnoUtils.parseAttachment(referenceAnno.attachment());
+        Map<String, Object> attachment = KinRpcAnnoUtils.parseAttachment(attributes.getAnnotationArray("attachment", Attachment.class));
         if (CollectionUtils.isNonEmpty(attachment)) {
             referenceConfig.attach(attachment);
         }
 
-        return referenceConfig.get();
+        return referenceConfig;
     }
 }
