@@ -20,7 +20,6 @@ public class KinRpcAutoConfiguration {
     @Autowired
     private RedisRegistryProperties redisRegistryProperties;
 
-
     @Bean
     @ConditionalOnProperty("kin.rpc.zookeeper.address")
     public ZookeeperRegistryConfig zookeeperRegistryConfig() {

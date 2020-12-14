@@ -5,9 +5,9 @@ import org.kin.kinrpc.config.AbstractRegistryConfig;
 import org.kin.kinrpc.config.RedisRegistryConfig;
 import org.kin.kinrpc.config.ZookeeperRegistryConfig;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.annotation.AnnotationUtils;
 
 import javax.annotation.Nonnull;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashMap;
@@ -44,16 +44,14 @@ public class KinRpcAnnoUtils {
      */
     public static AbstractRegistryConfig parseRegistryConfig(Class<?> beanClass, ApplicationContext applicationContext) {
         //todo 目前支持配置一个注册中心, 如果使用了多个, 则取第一个
-        for (Annotation declaredAnnotation : beanClass.getDeclaredAnnotations()) {
-            //zookeeper
-            if (ZookeeperRegistry.class.equals(declaredAnnotation.annotationType())) {
-                return convert((ZookeeperRegistry) declaredAnnotation);
-            }
+        ZookeeperRegistry zookeeperRegistryAnno = AnnotationUtils.getAnnotation(beanClass, ZookeeperRegistry.class);
+        if (Objects.nonNull(zookeeperRegistryAnno)) {
+            return convert(zookeeperRegistryAnno);
+        }
 
-            //redis
-            if (RedisRegistry.class.equals(declaredAnnotation.annotationType())) {
-                return convert((RedisRegistry) declaredAnnotation);
-            }
+        RedisRegistry redisRegistryAnno = AnnotationUtils.getAnnotation(beanClass, RedisRegistry.class);
+        if (Objects.nonNull(redisRegistryAnno)) {
+            return convert(redisRegistryAnno);
         }
 
         //2. 都没有
@@ -91,16 +89,14 @@ public class KinRpcAnnoUtils {
     public static AbstractRegistryConfig parseRegistryConfig(Field field, ApplicationContext applicationContext) {
         //1. field上是否有注册中心注解
         //todo 目前支持配置一个注册中心, 如果使用了多个, 则取第一个
-        for (Annotation declaredAnnotation : field.getDeclaredAnnotations()) {
-            //zookeeper
-            if (ZookeeperRegistry.class.equals(declaredAnnotation.annotationType())) {
-                return convert((ZookeeperRegistry) declaredAnnotation);
-            }
+        ZookeeperRegistry zookeeperRegistryAnno = AnnotationUtils.getAnnotation(field, ZookeeperRegistry.class);
+        if (Objects.nonNull(zookeeperRegistryAnno)) {
+            return convert(zookeeperRegistryAnno);
+        }
 
-            //redis
-            if (RedisRegistry.class.equals(declaredAnnotation.annotationType())) {
-                return convert((RedisRegistry) declaredAnnotation);
-            }
+        RedisRegistry redisRegistryAnno = AnnotationUtils.getAnnotation(field, RedisRegistry.class);
+        if (Objects.nonNull(redisRegistryAnno)) {
+            return convert(redisRegistryAnno);
         }
 
         //2. 查看当前是否有注册中心注解

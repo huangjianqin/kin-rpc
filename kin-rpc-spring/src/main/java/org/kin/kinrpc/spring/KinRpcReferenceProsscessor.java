@@ -104,6 +104,10 @@ public class KinRpcReferenceProsscessor extends AbstractAnnotationBeanPostProces
         if (StringUtils.isBlank(appName)) {
             //如果没有配置appName, 则尝试用spring application name, 最后用默认
             appName = springAppName;
+            if (StringUtils.isBlank(appName)) {
+                //用默认
+                appName = "kinrpc";
+            }
         }
 
         return appName;

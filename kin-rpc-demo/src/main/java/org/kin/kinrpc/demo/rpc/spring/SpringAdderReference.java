@@ -3,8 +3,7 @@ package org.kin.kinrpc.demo.rpc.spring;
 import org.kin.kinrpc.cluster.RpcContext;
 import org.kin.kinrpc.demo.rpc.Addable;
 import org.kin.kinrpc.spring.KinRpcReference;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.concurrent.CompletableFuture;
@@ -14,38 +13,45 @@ import java.util.concurrent.TimeUnit;
  * @author huangjianqin
  * @date 2020/12/15
  */
-@SpringBootApplication
+@Component
 public class SpringAdderReference {
-    @KinRpcReference()
+    @KinRpcReference(urls = "kinrpc://0.0.0.0:16888", async = true)
     private Addable addable;
 
     @PostConstruct
-    public void test() throws InterruptedException {
-        int count = 0;
-        while (count < 10000) {
+    public void test() {
+        new Thread(() -> {
             try {
-                addable.add(1, 1);
-                CompletableFuture<Object> future = RpcContext.future();
-                System.out.println("结果" + future.get());
-
-                addable.print(++count + "");
-                addable.get(1);
-                future = RpcContext.future();
-                System.out.println(future.get());
-                addable.notifyTest();
-
-                addable.asyncReturn();
-            } catch (Exception e) {
-                e.printStackTrace();
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                //ignore
             }
+            int count = 0;
+            while (count < 10000) {
+                try {
+                    addable.add(1, 1);
+                    CompletableFuture<Object> future = RpcContext.future();
+                    System.out.println("结果" + future.get());
 
-            TimeUnit.MILLISECONDS.sleep(300);
-        }
-        addable.print(++count + "");
-        System.out.println("结束");
-    }
+                    addable.print(++count + "");
+                    addable.get(1);
+                    future = RpcContext.future();
+                    System.out.println(future.get());
+                    addable.notifyTest();
 
-    public static void main(String[] args) {
-        SpringApplication.run(SpringAdderReference.class);
+                    addable.asyncReturn();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                try {
+                    TimeUnit.MILLISECONDS.sleep(300);
+                } catch (InterruptedException e) {
+                    //ignore
+                }
+            }
+            addable.print(++count + "");
+            System.out.println("结束");
+        }).start();
     }
 }

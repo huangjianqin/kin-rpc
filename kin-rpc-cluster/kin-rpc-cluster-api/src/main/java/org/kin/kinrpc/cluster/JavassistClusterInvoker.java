@@ -129,6 +129,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
     /**
      * 构建javassist字节码增强代理类
      */
+    @SuppressWarnings("unchecked")
     public T proxy() {
         Class<? extends JavassistClusterInvoker> myClass = this.getClass();
         String ctClassName =
@@ -140,7 +141,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
         try {
             realProxyClass = (Class<T>) Class.forName(ctClassName);
         } catch (ClassNotFoundException e) {
-            ExceptionUtils.throwExt(e);
+            //ignore
         }
 
         try {

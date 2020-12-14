@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.*;
 import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
@@ -56,11 +57,12 @@ public class KinRpcServiceProsscessor implements BeanPostProcessor, ApplicationL
 
     @Override
     public Object postProcessAfterInitialization(@Nonnull Object bean, @Nonnull String beanName) throws BeansException {
-        Class<?> beanClass = bean.getClass();
-        if (beanClass.isAnnotationPresent(KinRpcService.class)) {
+        //todo 解决spring 自带的cglib代理问题, bean.getclass在javassist会找不到对应的class
+        KinRpcService serviceAnno = AnnotationUtils.findAnnotation(bean.getClass(), KinRpcService.class);
+        if (Objects.nonNull(serviceAnno)) {
             //有注解才需要export services
             try {
-                export(beanClass, bean, beanName);
+                export(serviceAnno, bean, beanName);
             } catch (Exception e) {
                 error("service export fail due to ", e);
             }
@@ -73,9 +75,9 @@ public class KinRpcServiceProsscessor implements BeanPostProcessor, ApplicationL
      * export service bean
      */
     @SuppressWarnings("unchecked")
-    private void export(Class<?> beanClass, Object bean, String beanName) {
-        KinRpcService serviceAnno = beanClass.getAnnotation(KinRpcService.class);
+    private void export(KinRpcService serviceAnno, Object bean, String beanName) {
         Class interfaceClass = serviceAnno.interfaceClass();
+        Class<?> beanClass = bean.getClass();
         if (!interfaceClass.isAssignableFrom(beanClass)) {
             //接口没对上
             return;
@@ -83,8 +85,12 @@ public class KinRpcServiceProsscessor implements BeanPostProcessor, ApplicationL
 
         String appName = serviceAnno.appName();
         if (StringUtils.isBlank(appName)) {
-            //如果没有配置appName, 则尝试用spring application name, 最后用默认
+            //如果没有配置appName, 则尝试用spring application name
             appName = springAppName;
+            if (StringUtils.isBlank(appName)) {
+                //用默认
+                appName = "kinrpc";
+            }
         }
 
         String serviceName = serviceAnno.serviceName();

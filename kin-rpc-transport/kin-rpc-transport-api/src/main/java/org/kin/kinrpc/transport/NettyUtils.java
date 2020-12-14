@@ -23,7 +23,7 @@ public class NettyUtils {
         //目前就只有9个参数
         Map<ChannelOption, Object> options = new HashMap<>(9);
         if (url.containsParam(Constants.NETTY_CONNECT_TIMEOUT_KEY)) {
-            options.put(ChannelOption.CONNECT_TIMEOUT_MILLIS, url.getLongParam(Constants.NETTY_CONNECT_TIMEOUT_KEY));
+            options.put(ChannelOption.CONNECT_TIMEOUT_MILLIS, url.getIntParam(Constants.NETTY_CONNECT_TIMEOUT_KEY));
         }
 
         if (url.containsParam(Constants.NETTY_NODELAY)) {
@@ -35,11 +35,11 @@ public class NettyUtils {
         }
 
         if (url.containsParam(Constants.NETTY_RCVBUF)) {
-            options.put(ChannelOption.SO_RCVBUF, url.getLongParam(Constants.NETTY_RCVBUF));
+            options.put(ChannelOption.SO_RCVBUF, url.getIntParam(Constants.NETTY_RCVBUF));
         }
 
         if (url.containsParam(Constants.NETTY_SNDBUF)) {
-            options.put(ChannelOption.SO_SNDBUF, url.getLongParam(Constants.NETTY_SNDBUF));
+            options.put(ChannelOption.SO_SNDBUF, url.getIntParam(Constants.NETTY_SNDBUF));
         }
 
         if (url.containsParam(Constants.NETTY_BACKLOG)) {

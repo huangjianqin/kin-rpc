@@ -6,8 +6,6 @@ import org.kin.kinrpc.demo.rpc.Return2;
 import org.kin.kinrpc.rpc.ProviderFutureContext;
 import org.kin.kinrpc.rpc.RpcThreadPool;
 import org.kin.kinrpc.spring.KinRpcService;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -16,7 +14,6 @@ import java.util.concurrent.TimeUnit;
  * @author huangjianqin
  * @date 2020/12/15
  */
-@SpringBootApplication
 @KinRpcService(interfaceClass = Addable.class)
 public class SpringAdder implements Addable {
     @Override
@@ -54,9 +51,5 @@ public class SpringAdder implements Addable {
         ScheduledFuture<Return2> future = RpcThreadPool.executors().schedule(Return2::new, 1, TimeUnit.SECONDS);
         ProviderFutureContext.updateFuture(future);
         return null;
-    }
-
-    public static void main(String[] args) {
-        SpringApplication.run(SpringAdder.class);
     }
 }
