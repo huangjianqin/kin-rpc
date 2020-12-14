@@ -1,9 +1,8 @@
-package org.kin.kinrpc.demo.rpc.provider;
+package org.kin.kinrpc.demo.rpc.grpc;
 
 import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.config.Services;
 import org.kin.kinrpc.demo.rpc.KinRpcGrpcServiceGrpc;
-import org.kin.kinrpc.demo.rpc.service.GrpcServiceImpl;
 import org.kin.kinrpc.transport.ProtocolType;
 
 /**

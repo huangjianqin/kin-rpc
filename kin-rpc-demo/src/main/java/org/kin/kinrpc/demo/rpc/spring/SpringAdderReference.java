@@ -1,7 +1,7 @@
-package org.kin.kinrpc.demo.rpc.reference;
+package org.kin.kinrpc.demo.rpc.spring;
 
 import org.kin.kinrpc.cluster.RpcContext;
-import org.kin.kinrpc.demo.rpc.service.Addable;
+import org.kin.kinrpc.demo.rpc.Addable;
 import org.kin.kinrpc.spring.KinRpcReference;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2020/12/15
  */
 @SpringBootApplication
-public class AnnotationReference {
+public class SpringAdderReference {
     @KinRpcReference()
     private Addable addable;
 
@@ -46,6 +46,6 @@ public class AnnotationReference {
     }
 
     public static void main(String[] args) {
-        SpringApplication.run(AnnotationReference.class);
+        SpringApplication.run(SpringAdderReference.class);
     }
 }

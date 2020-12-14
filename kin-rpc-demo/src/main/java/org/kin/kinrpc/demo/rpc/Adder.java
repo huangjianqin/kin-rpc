@@ -1,4 +1,4 @@
-package org.kin.kinrpc.demo.rpc.service;
+package org.kin.kinrpc.demo.rpc;
 
 import org.kin.kinrpc.rpc.ProviderFutureContext;
 import org.kin.kinrpc.rpc.RpcThreadPool;

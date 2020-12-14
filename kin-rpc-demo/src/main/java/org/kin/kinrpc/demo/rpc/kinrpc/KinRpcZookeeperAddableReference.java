@@ -1,10 +1,10 @@
-package org.kin.kinrpc.demo.rpc.reference;
+package org.kin.kinrpc.demo.rpc.kinrpc;
 
 import org.kin.kinrpc.cluster.RpcContext;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.References;
 import org.kin.kinrpc.config.ZookeeperRegistryConfig;
-import org.kin.kinrpc.demo.rpc.service.Addable;
+import org.kin.kinrpc.demo.rpc.Addable;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;

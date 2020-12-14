@@ -1,8 +1,8 @@
-package org.kin.kinrpc.demo.rpc.provider;
+package org.kin.kinrpc.demo.rpc.spring;
 
-import org.kin.kinrpc.demo.rpc.service.Addable;
-import org.kin.kinrpc.demo.rpc.service.Return1;
-import org.kin.kinrpc.demo.rpc.service.Return2;
+import org.kin.kinrpc.demo.rpc.Addable;
+import org.kin.kinrpc.demo.rpc.Return1;
+import org.kin.kinrpc.demo.rpc.Return2;
 import org.kin.kinrpc.rpc.ProviderFutureContext;
 import org.kin.kinrpc.rpc.RpcThreadPool;
 import org.kin.kinrpc.spring.KinRpcService;
@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
  */
 @SpringBootApplication
 @KinRpcService(interfaceClass = Addable.class)
-public class AnnotationAdder implements Addable {
+public class SpringAdder implements Addable {
     @Override
     public int add(int a, int b) {
         return a + b;
@@ -57,6 +57,6 @@ public class AnnotationAdder implements Addable {
     }
 
     public static void main(String[] args) {
-        SpringApplication.run(AnnotationAdder.class);
+        SpringApplication.run(SpringAdder.class);
     }
 }

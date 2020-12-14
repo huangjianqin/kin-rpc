@@ -1,4 +1,4 @@
-package org.kin.kinrpc.demo.rpc.service;
+package org.kin.kinrpc.demo.rpc;
 
 import java.io.Serializable;
 

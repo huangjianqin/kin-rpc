@@ -1,10 +1,10 @@
-package org.kin.kinrpc.demo.rpc.provider;
+package org.kin.kinrpc.demo.rpc.kinrpc;
 
 import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.config.Services;
 import org.kin.kinrpc.config.ZookeeperRegistryConfig;
-import org.kin.kinrpc.demo.rpc.service.Addable;
-import org.kin.kinrpc.demo.rpc.service.Adder;
+import org.kin.kinrpc.demo.rpc.Addable;
+import org.kin.kinrpc.demo.rpc.Adder;
 
 /**
  * @author huangjianqin

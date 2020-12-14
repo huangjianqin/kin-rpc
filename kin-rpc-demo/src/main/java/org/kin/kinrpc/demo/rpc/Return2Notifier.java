@@ -1,6 +1,5 @@
-package org.kin.kinrpc.demo.rpc.reference;
+package org.kin.kinrpc.demo.rpc;
 
-import org.kin.kinrpc.demo.rpc.service.Return2;
 import org.kin.kinrpc.rpc.Notifier;
 
 /**

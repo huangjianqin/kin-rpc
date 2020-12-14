@@ -1,4 +1,4 @@
-package org.kin.kinrpc.demo.rpc.reference;
+package org.kin.kinrpc.demo.rpc.grpc;
 
 import org.kin.kinrpc.cluster.RpcContext;
 import org.kin.kinrpc.config.ReferenceConfig;

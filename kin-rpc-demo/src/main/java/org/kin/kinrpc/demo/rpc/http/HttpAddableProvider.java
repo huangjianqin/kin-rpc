@@ -1,7 +1,8 @@
-package org.kin.kinrpc.demo.rpc.provider;
+package org.kin.kinrpc.demo.rpc.http;
 
 import org.kin.kinrpc.config.ServiceConfig;
-import org.kin.kinrpc.demo.rpc.service.Addable;
+import org.kin.kinrpc.demo.rpc.Addable;
+import org.kin.kinrpc.demo.rpc.AddableProvider;
 import org.kin.kinrpc.transport.ProtocolType;
 
 /**

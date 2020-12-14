@@ -1,4 +1,4 @@
-package org.kin.kinrpc.demo.rpc.service;
+package org.kin.kinrpc.demo.rpc.grpc;
 
 import io.grpc.stub.StreamObserver;
 import org.kin.kinrpc.demo.rpc.KinRpcGrpcServiceGrpc;
