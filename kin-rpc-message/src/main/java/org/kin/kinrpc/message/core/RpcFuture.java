@@ -43,7 +43,7 @@ public final class RpcFuture<R extends Serializable> implements Future<R> {
         if (!isDone() && cancelled.compareAndSet(false, true)) {
             TransportClient client = rpcEnv.getClient(address);
             if (Objects.nonNull(client)) {
-                client.removeRpcMessage(requestId);
+                client.removeInvalidRespCallback(requestId);
             }
         }
         return false;

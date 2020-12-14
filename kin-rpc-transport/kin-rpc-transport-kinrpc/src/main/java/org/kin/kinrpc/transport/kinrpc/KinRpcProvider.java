@@ -1,6 +1,5 @@
 package org.kin.kinrpc.transport.kinrpc;
 
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.concurrent.actor.PinnedThreadSafeHandler;
@@ -19,8 +18,8 @@ import org.kin.kinrpc.serializer.Serializers;
 import org.kin.kinrpc.serializer.UnknownSerializerException;
 import org.kin.transport.netty.CompressionType;
 import org.kin.transport.netty.Transports;
+import org.kin.transport.netty.socket.SocketTransportOption;
 import org.kin.transport.netty.socket.protocol.ProtocolStatisicService;
-import org.kin.transport.netty.socket.server.SocketServerTransportOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,11 +51,11 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
     /** 底层的连接 */
     private final ProviderHandler providerHandler;
     /** 服务器启动配置 */
-    private final SocketServerTransportOption transportOption;
+    private final SocketTransportOption transportOption;
     /** 标识是否stopped */
     private volatile boolean isStopped = false;
 
-    public KinRpcProvider(String host, int port, Serializer serializer, CompressionType compressionType) {
+    public KinRpcProvider(String host, int port, Serializer serializer, CompressionType compressionType, Map<ChannelOption, Object> options) {
         super(RpcThreadPool.providerWorkers());
         this.serializer = serializer;
 
@@ -68,19 +67,10 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
 
         this.providerHandler = new ProviderHandler();
 
-        SocketServerTransportOption.SocketServerTransportOptionBuilder builder =
-                Transports.socket().server()
-                        .channelOption(ChannelOption.TCP_NODELAY, true)
-                        .channelOption(ChannelOption.SO_KEEPALIVE, true)
-                        .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                        //复用端口
-                        .channelOption(ChannelOption.SO_REUSEADDR, true)
-                        //receive窗口缓存6mb
-                        .channelOption(ChannelOption.SO_RCVBUF, 10 * 1024 * 1024)
-                        //send窗口缓存64kb
-                        .channelOption(ChannelOption.SO_SNDBUF, 64 * 1024)
-                        .protocolHandler(providerHandler)
-                        .compress(compressionType);
+        SocketTransportOption.SocketServerTransportOptionBuilder builder = Transports.socket().server()
+                .channelOptions(options)
+                .protocolHandler(providerHandler)
+                .compress(compressionType);
 
         String certPath = SslConfig.INSTANCE.getServerKeyCertChainPath();
         String keyPath = SslConfig.INSTANCE.getServerPrivateKeyPath();

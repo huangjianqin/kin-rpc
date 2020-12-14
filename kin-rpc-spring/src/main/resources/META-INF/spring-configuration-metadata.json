@@ -1,39 +1,32 @@
 {
   "properties": [
     {
-      "name": "kin.conf.client.appName",
+      "name": "kin.rpc.zookeeper.address",
       "type": "java.lang.String",
-      "description": "应用名",
-      "sourceType": "org.kin.conf.client.starter.config.KinConfClientProperties",
-      "defaultValue": "kin-conf-client"
+      "description": "zookeeper地址",
+      "sourceType": "org.kin.kinrpc.spring.ZookeeperRegistryProperties",
+      "defaultValue": "0.0.0.0:2181"
     },
     {
-      "name": "kin.conf.client.diamondAddress",
-      "type": "java.lang.String",
-      "description": "配置中心地址",
-      "sourceType": "org.kin.conf.client.starter.config.KinConfClientProperties",
-      "defaultValue": "http://localhost:8080"
+      "name": "kin.rpc.zookeeper.sessionTimeout",
+      "type": "java.lang.Long",
+      "description": "zookeeper client seesion timeout",
+      "sourceType": "org.kin.kinrpc.spring.ZookeeperRegistryProperties",
+      "defaultValue": "5000"
     },
     {
-      "name": "kin.conf.client.env",
+      "name": "kin.rpc.redis.address",
       "type": "java.lang.String",
-      "description": "应用环境",
-      "sourceType": "org.kin.conf.client.starter.config.KinConfClientProperties",
-      "defaultValue": "test"
+      "description": "redis地址",
+      "sourceType": "org.kin.kinrpc.spring.RedisRegistryProperties",
+      "defaultValue": "0.0.0.0:6379"
     },
     {
-      "name": "kin.conf.client.mirrorFile",
-      "type": "java.lang.String",
-      "description": "配置镜像文件地址",
-      "sourceType": "org.kin.conf.client.starter.config.KinConfClientProperties",
-      "defaultValue": "data/mirror.properties"
-    },
-    {
-      "name": "kin.conf.client.enabled",
-      "type": "java.lang.Boolean",
-      "description": "是否允许注入配置中心客户端",
-      "sourceType": "org.kin.conf.client.starter.config.KinConfClientProperties",
-      "defaultValue": true
+      "name": "kin.rpc.redis.watchInterval",
+      "type": "java.lang.Long",
+      "description": "轮询redis间隔",
+      "sourceType": "org.kin.kinrpc.spring.RedisRegistryProperties",
+      "defaultValue": "30000"
     }
   ]
 }

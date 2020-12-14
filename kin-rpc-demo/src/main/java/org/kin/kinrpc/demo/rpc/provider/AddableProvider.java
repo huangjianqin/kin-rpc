@@ -11,7 +11,7 @@ import org.kin.kinrpc.serializer.SerializerType;
  * @date 2020/11/16
  */
 public class AddableProvider {
-    protected static ServiceConfig<Addable> config() {
+    public static ServiceConfig<Addable> config() {
         return Services.service(new Adder(), Addable.class)
                 .serializer(SerializerType.JSON)
                 .version("001")

@@ -19,12 +19,6 @@
             <version>${project.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <!-- json rpc -->
         <dependency>
             <groupId>com.github.briandilley.jsonrpc4j</groupId>

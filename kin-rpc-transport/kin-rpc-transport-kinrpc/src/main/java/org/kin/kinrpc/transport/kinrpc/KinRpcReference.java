@@ -2,10 +2,8 @@ package org.kin.kinrpc.transport.kinrpc;
 
 import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelOption;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.rpc.RpcThreadPool;
@@ -17,9 +15,10 @@ import org.kin.kinrpc.serializer.Serializer;
 import org.kin.kinrpc.serializer.SerializerType;
 import org.kin.kinrpc.serializer.Serializers;
 import org.kin.kinrpc.serializer.UnknownSerializerException;
+import org.kin.kinrpc.transport.NettyUtils;
 import org.kin.transport.netty.CompressionType;
 import org.kin.transport.netty.Transports;
-import org.kin.transport.netty.socket.client.SocketClientTransportOption;
+import org.kin.transport.netty.socket.SocketTransportOption;
 import org.kin.transport.netty.socket.protocol.ProtocolStatisicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,13 +40,12 @@ public class KinRpcReference {
     private Map<Long, KinRpcInvocation> invocations = new ConcurrentHashMap<>();
 
     private final Url url;
-    private final SocketClientTransportOption clientTransportOption;
+    private final SocketTransportOption clientTransportOption;
     private final ReferenceHandler referenceHandler;
     private final Serializer serializer;
 
     public KinRpcReference(Url url) {
         this.url = url;
-        int connectTimeout = Integer.parseInt(url.getNumberParam(Constants.CONNECT_TIMEOUT_KEY));
         int compression = Integer.parseInt(url.getNumberParam(Constants.COMPRESSION_KEY));
 
         int serializerType = Integer.parseInt(url.getNumberParam(Constants.SERIALIZE_KEY));
@@ -64,14 +62,8 @@ public class KinRpcReference {
         this.serializer = Serializers.getSerializer(serializerType);
         this.referenceHandler = new ReferenceHandler();
 
-        SocketClientTransportOption.SocketClientTransportOptionBuilder builder = Transports.socket().client()
-                .channelOption(ChannelOption.TCP_NODELAY, true)
-                .channelOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout)
-                .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                //receive窗口缓存6mb
-                .channelOption(ChannelOption.SO_RCVBUF, 10 * 1024 * 1024)
-                //send窗口缓存64kb
-                .channelOption(ChannelOption.SO_SNDBUF, 64 * 1024)
+        SocketTransportOption.SocketClientTransportOptionBuilder builder = Transports.socket().client()
+                .channelOptions(NettyUtils.convert(url))
                 .protocolHandler(this.referenceHandler)
                 .compress(compressionType);
 

@@ -16,5 +16,9 @@ public enum ProtocolType {
     /**
      * 基于grpc
      */
-    Grpc;
+    Grpc,
+    /**
+     * 在同一jvm内部直接调用
+     */
+    JVM;
 }

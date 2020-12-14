@@ -1,4 +1,4 @@
-package org.kin.kinrpc;
+package org.kin.kinrpc.transport;
 
 import com.google.common.base.Preconditions;
 import javassist.ClassPool;
@@ -15,7 +15,6 @@ import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
 import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
-import org.kin.kinrpc.transport.Protocol;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;

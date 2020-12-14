@@ -14,6 +14,7 @@ import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
 import org.kin.kinrpc.serializer.Serializer;
 import org.kin.kinrpc.serializer.Serializers;
+import org.kin.kinrpc.transport.NettyUtils;
 import org.kin.kinrpc.transport.Protocol;
 import org.kin.transport.netty.CompressionType;
 import org.kin.transport.netty.socket.protocol.ProtocolFactory;
@@ -49,7 +50,7 @@ public final class KinRpcProtocol implements Protocol, LoggerOprs {
         KinRpcProvider provider = null;
         try {
             provider = PROVIDER_CACHE.get(port, () -> {
-                KinRpcProvider provider0 = new KinRpcProvider(host, port, serializer, compressionType);
+                KinRpcProvider provider0 = new KinRpcProvider(host, port, serializer, compressionType, NettyUtils.convert(url));
                 try {
                     provider0.bind();
                 } catch (Exception e) {

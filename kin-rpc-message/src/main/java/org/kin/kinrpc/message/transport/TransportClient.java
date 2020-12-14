@@ -1,10 +1,6 @@
 package org.kin.kinrpc.message.transport;
 
-import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelOption;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.message.core.OutBoxMessage;
 import org.kin.kinrpc.message.core.RpcEnv;
@@ -23,7 +19,7 @@ import org.kin.kinrpc.transport.kinrpc.KinRpcResponseProtocol;
 import org.kin.transport.netty.Client;
 import org.kin.transport.netty.CompressionType;
 import org.kin.transport.netty.Transports;
-import org.kin.transport.netty.socket.client.SocketClientTransportOption;
+import org.kin.transport.netty.socket.SocketTransportOption;
 import org.kin.transport.netty.socket.protocol.SocketProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +38,7 @@ public final class TransportClient {
     /** 序列化 */
     private final RpcEnv rpcEnv;
     /** 客户端配置 */
-    private final SocketClientTransportOption clientTransportOption;
+    private final SocketTransportOption clientTransportOption;
     /** 服务器地址 */
     private final KinRpcAddress rpcAddress;
     /** client handler */
@@ -58,18 +54,10 @@ public final class TransportClient {
         this.rpcEndpointRefHandler = new RpcEndpointRefHandlerImpl();
         this.rpcAddress = rpcAddress;
 
-        SocketClientTransportOption.SocketClientTransportOptionBuilder builder =
-                Transports.socket().client()
-                        .channelOption(ChannelOption.TCP_NODELAY, true)
-                        .channelOption(ChannelOption.SO_KEEPALIVE, true)
-                        .channelOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-                        .channelOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                        //receive窗口缓存6mb
-                        .channelOption(ChannelOption.SO_RCVBUF, 10 * 1024 * 1024)
-                        //send窗口缓存64kb
-                        .channelOption(ChannelOption.SO_SNDBUF, 64 * 1024)
-                        .protocolHandler(rpcEndpointRefHandler)
-                        .compress(compressionType);
+        SocketTransportOption.SocketClientTransportOptionBuilder builder = Transports.socket().client()
+                .channelOptions(rpcEnv.getClientChannelOptions())
+                .protocolHandler(rpcEndpointRefHandler)
+                .compress(compressionType);
 
         String certPath = SslConfig.INSTANCE.getClientKeyCertChainPath();
         String keyPath = SslConfig.INSTANCE.getClientPrivateKeyPath();
@@ -123,15 +111,16 @@ public final class TransportClient {
 
             long requestId = message.getRequestId();
             KinRpcRequestProtocol protocol = KinRpcRequestProtocol.create(requestId, (byte) rpcEnv.serializer().type(), data);
-            respCallbacks.put(requestId, outBoxMessage);
-            rpcEndpointRefHandler.client().request(protocol, new ReferenceRequestListener(requestId));
+            if (rpcEndpointRefHandler.client().request(protocol)) {
+                respCallbacks.put(requestId, outBoxMessage);
+            }
         }
     }
 
     /**
      * 移除无效request绑定的callback
      */
-    public void removeRpcMessage(long requestId) {
+    public void removeInvalidRespCallback(long requestId) {
         respCallbacks.remove(requestId);
     }
 
@@ -189,22 +178,6 @@ public final class TransportClient {
 
         public Client<SocketProtocol> client() {
             return client;
-        }
-    }
-
-    private class ReferenceRequestListener implements ChannelFutureListener {
-        private long requestId;
-
-        public ReferenceRequestListener(long requestId) {
-            this.requestId = requestId;
-        }
-
-        @Override
-        public void operationComplete(ChannelFuture future) {
-            if (!future.isSuccess()) {
-                //发送消息时遇到异常
-                removeRpcMessage(requestId);
-            }
         }
     }
 }

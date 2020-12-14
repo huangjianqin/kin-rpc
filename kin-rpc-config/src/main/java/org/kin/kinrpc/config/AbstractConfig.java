@@ -57,8 +57,12 @@ abstract class AbstractConfig {
                 throw new IllegalStateException("unknown registry");
             }
             params.put(Constants.REGISTRY_URL_KEY, registryConfig.getAddress());
-            params.put(Constants.SESSION_TIMEOUT_KEY, registryConfig.getSessionTimeout() + "");
-            params.put(Constants.WATCH_INTERVAL_KEY, registryConfig.getWatchInterval() + "");
+            if (registryConfig instanceof ZookeeperRegistryConfig) {
+                params.put(Constants.SESSION_TIMEOUT_KEY, ((ZookeeperRegistryConfig) registryConfig).getSessionTimeout() + "");
+            }
+            if (registryConfig instanceof RedisRegistryConfig) {
+                params.put(Constants.WATCH_INTERVAL_KEY, ((RedisRegistryConfig) registryConfig).getWatchInterval() + "");
+            }
         }
 
         params.putAll(otherParams);

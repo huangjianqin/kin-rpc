@@ -15,6 +15,7 @@
         <module>kin-rpc-transport-api</module>
         <module>kin-rpc-transport-http</module>
         <module>kin-rpc-transport-grpc</module>
+        <module>kin-rpc-transport-jvm</module>
     </modules>
     <packaging>pom</packaging>
 

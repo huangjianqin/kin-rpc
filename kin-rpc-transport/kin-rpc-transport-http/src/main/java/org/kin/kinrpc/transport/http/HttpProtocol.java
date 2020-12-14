@@ -8,11 +8,11 @@ import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator
 import com.googlecode.jsonrpc4j.JsonRpcServer;
 import com.googlecode.jsonrpc4j.spring.JsonProxyFactoryBean;
 import org.kin.framework.utils.JSON;
-import org.kin.kinrpc.AbstractProxyProtocol;
 import org.kin.kinrpc.rpc.GenericRpcService;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.RpcServiceLoader;
 import org.kin.kinrpc.rpc.common.Url;
+import org.kin.kinrpc.transport.AbstractProxyProtocol;
 import org.kin.kinrpc.transport.http.tomcat.TomcatHttpBinder;
 
 import javax.servlet.ServletException;

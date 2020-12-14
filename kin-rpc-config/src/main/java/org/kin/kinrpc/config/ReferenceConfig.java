@@ -32,8 +32,6 @@ public class ReferenceConfig<T> extends AbstractConfig {
     private String serviceName;
     /** 版本号 */
     private String version = "0.1.0.0";
-    /** 连接超时 */
-    private int timeout = Constants.REFERENCE_DEFAULT_CONNECT_TIMEOUT;
     /** 重试次数 */
     private int retryTimes;
     /** 重试等待时间(即两次重试间隔时间) */
@@ -69,6 +67,16 @@ public class ReferenceConfig<T> extends AbstractConfig {
     ReferenceConfig(Class<T> interfaceClass) {
         this.interfaceClass = interfaceClass;
         this.serviceName = interfaceClass.getName();
+
+        //默认netty channel options
+        Map<String, Object> nettyOptions = new HashMap<>(4);
+        nettyOptions.put(Constants.NETTY_NODELAY, true);
+        nettyOptions.put(Constants.NETTY_CONNECT_TIMEOUT_KEY, Constants.DEFAULT_CONNECT_TIMEOUT);
+        //receive窗口缓存8mb
+        nettyOptions.put(Constants.NETTY_RCVBUF, 8 * 1024 * 1024);
+        //send窗口缓存64kb
+        nettyOptions.put(Constants.NETTY_SNDBUF, 64 * 1024);
+        attach(nettyOptions);
     }
 
     //---------------------------------------------------------------------------------------------------------
@@ -80,7 +88,6 @@ public class ReferenceConfig<T> extends AbstractConfig {
         Preconditions.checkNotNull(this.registryConfig, "reference must need to configure register");
         this.registryConfig.check();
         Preconditions.checkNotNull(this.interfaceClass, "reference subscribed interface must be not null");
-        Preconditions.checkArgument(this.timeout > 0, "connection's timeout must greater than 0");
         Preconditions.checkArgument(this.retryInterval > 0, "retryTimeout must greater than 0");
         Preconditions.checkArgument(this.rate > 0, "rate must be greater than 0");
         Preconditions.checkArgument(this.callTimeout > 0, "callTimeout must greater than 0");
@@ -93,7 +100,6 @@ public class ReferenceConfig<T> extends AbstractConfig {
             Map<String, String> params = new HashMap<>(50);
             params.put(Constants.SERVICE_NAME_KEY, serviceName);
             params.put(Constants.VERSION_KEY, version);
-            params.put(Constants.CONNECT_TIMEOUT_KEY, timeout + "");
             params.put(Constants.RETRY_TIMES_KEY, retryTimes + "");
             params.put(Constants.RETRY_INTERVAL_KEY, retryInterval + "");
             params.put(Constants.LOADBALANCE_KEY, loadBalanceType);
@@ -167,37 +173,16 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return this;
     }
 
-    public ReferenceConfig<T> zookeeper(String address) {
+    public ReferenceConfig<T> jvm() {
         if (!isReference) {
-            this.registryConfig = new ZookeeperRegistryConfig(address);
+            this.registryConfig = new DirectURLsRegistryConfig("jvm://0.0.0.0");
         }
         return this;
     }
 
-    public ReferenceConfig<T> redis(String address) {
+    public ReferenceConfig<T> registry(AbstractRegistryConfig registryConfig) {
         if (!isReference) {
-            this.registryConfig = new RedisRegistryConfig(address);
-        }
-        return this;
-    }
-
-    public ReferenceConfig<T> registrySessionTimeout(long sessionTimeout) {
-        if (!isReference) {
-            this.registryConfig.setSessionTimeout(sessionTimeout);
-        }
-        return this;
-    }
-
-    public ReferenceConfig<T> registryWatchInterval(long watchInterval) {
-        if (!isReference) {
-            this.registryConfig.setWatchInterval(watchInterval);
-        }
-        return this;
-    }
-
-    public ReferenceConfig<T> timeout(int timeout) {
-        if (!isReference) {
-            this.timeout = timeout;
+            this.registryConfig = registryConfig;
         }
         return this;
     }
@@ -258,14 +243,14 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return this;
     }
 
-    public ReferenceConfig<T> javaInvoke() {
+    public ReferenceConfig<T> javaProxy() {
         if (!isReference) {
             this.proxyType = ProxyType.JAVA;
         }
         return this;
     }
 
-    public ReferenceConfig<T> javassistInvoke() {
+    public ReferenceConfig<T> javassistProxy() {
         if (!isReference) {
             this.proxyType = ProxyType.JAVASSIST;
         }
@@ -348,10 +333,6 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
     public Class<T> getInterfaceClass() {
         return interfaceClass;
-    }
-
-    public int getTimeout() {
-        return timeout;
     }
 
     public int getRetryTimes() {
