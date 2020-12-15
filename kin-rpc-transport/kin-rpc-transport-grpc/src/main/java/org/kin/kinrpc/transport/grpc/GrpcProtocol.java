@@ -115,7 +115,6 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
 
                 grpcServer.registry.removeService(url.getServiceKey());
                 grpcServer.close();
-
             }
         };
     }
@@ -251,7 +250,7 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
         //grpc Channel
         ReferenceCountManagedChannel channel = getSharedChannel(url);
 
-        info("grpc reference '{}' refer address '{}'", url.getAddress());
+        info("grpc reference '{}' refer address '{}'", url.getServiceName(), url.getAddress());
 
         //获取stub
         try {
@@ -259,7 +258,7 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
                     channel,
                     buildCallOptions(url),
                     url
-            ), channel::shutdown);
+            ), url.getBooleanParam(Constants.BYTE_CODE_INVOKE_KEY), channel::shutdown);
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new IllegalStateException("Could not create stub through reflection.", e);
         }

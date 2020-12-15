@@ -1,11 +1,10 @@
 package org.kin.kinrpc.demo.rpc.grpc;
 
+import javassist.NotFoundException;
+import org.kin.framework.proxy.ProxyEnhanceUtils;
 import org.kin.kinrpc.cluster.RpcContext;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.References;
-import org.kin.kinrpc.demo.rpc.KinRpcGrpcServiceGrpc;
-import org.kin.kinrpc.demo.rpc.Notify;
-import org.kin.kinrpc.demo.rpc.Num;
 import org.kin.kinrpc.rpc.Notifier;
 
 import java.util.concurrent.CompletableFuture;
@@ -17,6 +16,11 @@ import java.util.concurrent.TimeUnit;
  */
 public class GrpcAddableReference {
     public static void main(String[] args) throws InterruptedException {
+        try {
+            ProxyEnhanceUtils.getPool().get("org.kin.kinrpc.demo.rpc.grpc.KinRpcGrpcServiceGrpc$KinRpcGrpcServiceStub");
+        } catch (NotFoundException e) {
+            e.printStackTrace();
+        }
         ReferenceConfig<KinRpcGrpcServiceGrpc.GrpcService> config = References.reference(KinRpcGrpcServiceGrpc.GrpcService.class)
                 .version("001")
                 .async()
