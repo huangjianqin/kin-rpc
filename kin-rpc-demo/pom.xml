@@ -12,8 +12,18 @@
     <version>0.1.0.0</version>
     <packaging>jar</packaging>
 
-    <properties>
-    </properties>
+    <!--spring boot基本starter-->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-parent</artifactId>
+                <version>${springboot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -100,6 +110,12 @@
             <groupId>org.kin</groupId>
             <artifactId>kin-rpc-starter</artifactId>
             <version>${project.version}</version>
+        </dependency>
+
+        <!-- 不引入会缺少读取yaml的依赖 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
         </dependency>
     </dependencies>
 

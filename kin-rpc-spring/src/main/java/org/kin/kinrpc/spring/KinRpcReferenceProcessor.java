@@ -19,7 +19,6 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.Ordered;
 import org.springframework.core.PriorityOrdered;
 import org.springframework.core.annotation.AnnotationAttributes;
-import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
@@ -32,8 +31,7 @@ import java.util.concurrent.ConcurrentMap;
  * @author huangjianqin
  * @date 2020/12/12
  */
-@Component
-public class KinRpcReferenceProsscessor extends AbstractAnnotationBeanPostProcessor
+public class KinRpcReferenceProcessor extends AbstractAnnotationBeanPostProcessor
         implements PriorityOrdered, ApplicationContextAware, BeanFactoryAware, LoggerOprs {
     @Value("${spring.application.name:kinrpc}")
     private String springAppName;
@@ -42,7 +40,7 @@ public class KinRpcReferenceProsscessor extends AbstractAnnotationBeanPostProces
 
     private final ConcurrentMap<String, ReferenceConfig<?>> referenceConfigs = new ConcurrentHashMap<>(32);
 
-    public KinRpcReferenceProsscessor() {
+    public KinRpcReferenceProcessor() {
         super(KinRpcReference.class);
     }
 
@@ -219,5 +217,15 @@ public class KinRpcReferenceProsscessor extends AbstractAnnotationBeanPostProces
         }
 
         return referenceConfig;
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        for (ReferenceConfig<?> referenceConfig : referenceConfigs.values()) {
+            referenceConfig.disable();
+        }
+        referenceConfigs.clear();
+
+        super.destroy();
     }
 }

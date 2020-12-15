@@ -1,5 +1,6 @@
 package org.kin.kinrpc.spring;
 
+import org.kin.kinrpc.config.ServiceConfig;
 import org.springframework.context.ApplicationEvent;
 
 /**
@@ -9,7 +10,16 @@ import org.springframework.context.ApplicationEvent;
  * @date 2020/12/12
  */
 public class ServiceExportedEvent extends ApplicationEvent {
-    public ServiceExportedEvent(Object source) {
+    private final ServiceConfig serviceConfig;
+
+    public ServiceExportedEvent(ServiceConfig serviceConfig, Object source) {
         super(source);
+        this.serviceConfig = serviceConfig;
+    }
+
+    //getter
+
+    public ServiceConfig getServiceConfig() {
+        return serviceConfig;
     }
 }

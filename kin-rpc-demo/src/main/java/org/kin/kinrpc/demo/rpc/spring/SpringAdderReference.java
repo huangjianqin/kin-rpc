@@ -22,7 +22,7 @@ public class SpringAdderReference {
     public void test() {
         new Thread(() -> {
             try {
-                Thread.sleep(2000);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 //ignore
             }

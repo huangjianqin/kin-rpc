@@ -6,13 +6,14 @@ import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.config.AbstractRegistryConfig;
 import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.config.Services;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.*;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
@@ -23,9 +24,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author huangjianqin
  * @date 2020/12/12
  */
-@Component
-public class KinRpcServiceProsscessor implements BeanPostProcessor, ApplicationListener<ContextClosedEvent>,
-        ApplicationContextAware, ApplicationEventPublisherAware, LoggerOprs {
+public class KinRpcServiceProcessor implements BeanPostProcessor, ApplicationListener<ContextClosedEvent>,
+        ApplicationContextAware, ApplicationEventPublisherAware, LoggerOprs, DisposableBean {
     @Value("${spring.application.name:kinrpc}")
     private String springAppName;
 
@@ -49,20 +49,17 @@ public class KinRpcServiceProsscessor implements BeanPostProcessor, ApplicationL
 
     @Override
     public void onApplicationEvent(@Nonnull ContextClosedEvent contextClosedEvent) {
-        //spring容器关闭时, un exported
-        for (ServiceConfig<?> config : beanName2ServiceConfig.values()) {
-            config.disable();
-        }
+        destroy();
     }
 
     @Override
     public Object postProcessAfterInitialization(@Nonnull Object bean, @Nonnull String beanName) throws BeansException {
-        //todo 解决spring 自带的cglib代理问题, bean.getclass在javassist会找不到对应的class
-        KinRpcService serviceAnno = AnnotationUtils.findAnnotation(bean.getClass(), KinRpcService.class);
+        //解决spring 自带的java proxy | cglib代理问题, bean.getclass在javassist会找不到对应的class
+        KinRpcService serviceAnno = AnnotationUtils.findAnnotation(AopUtils.getTargetClass(bean), KinRpcService.class);
         if (Objects.nonNull(serviceAnno)) {
             //有注解才需要export services
             try {
-                export(serviceAnno, bean, beanName);
+                exportService(serviceAnno, bean, beanName);
             } catch (Exception e) {
                 error("service export fail due to ", e);
             }
@@ -75,7 +72,7 @@ public class KinRpcServiceProsscessor implements BeanPostProcessor, ApplicationL
      * export service bean
      */
     @SuppressWarnings("unchecked")
-    private void export(KinRpcService serviceAnno, Object bean, String beanName) {
+    private void exportService(KinRpcService serviceAnno, Object bean, String beanName) {
         Class interfaceClass = serviceAnno.interfaceClass();
         Class<?> beanClass = bean.getClass();
         if (!interfaceClass.isAssignableFrom(beanClass)) {
@@ -151,6 +148,15 @@ public class KinRpcServiceProsscessor implements BeanPostProcessor, ApplicationL
         beanName2ServiceConfig.put(beanName, serviceConfig);
 
         //推事件
-        applicationEventPublisher.publishEvent(new ServiceExportedEvent(bean));
+        applicationEventPublisher.publishEvent(new ServiceExportedEvent(serviceConfig, bean));
+    }
+
+    @Override
+    public void destroy() {
+        //spring容器关闭时, un exported
+        for (ServiceConfig<?> config : beanName2ServiceConfig.values()) {
+            config.disable();
+        }
+        beanName2ServiceConfig.clear();
     }
 }
