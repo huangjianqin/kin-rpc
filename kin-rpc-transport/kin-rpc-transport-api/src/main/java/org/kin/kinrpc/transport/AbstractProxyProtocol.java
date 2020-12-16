@@ -1,6 +1,5 @@
 package org.kin.kinrpc.transport;
 
-import com.google.common.base.Preconditions;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtConstructor;
@@ -9,12 +8,15 @@ import org.kin.framework.log.LoggerOprs;
 import org.kin.framework.proxy.ProxyEnhanceUtils;
 import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.ExceptionUtils;
-import org.kin.kinrpc.rpc.*;
+import org.kin.kinrpc.rpc.AsyncInvoker;
+import org.kin.kinrpc.rpc.Exporter;
+import org.kin.kinrpc.rpc.GenericRpcService;
+import org.kin.kinrpc.rpc.Invoker;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
-import org.kin.kinrpc.rpc.invoker.ReferenceInvoker;
+import org.kin.kinrpc.rpc.invoker.ProxyedProviderInvoker;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -22,7 +24,6 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.util.Objects;
 import java.util.StringJoiner;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * 需代理的传输协议
@@ -70,58 +71,22 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
         } catch (ClassNotFoundException e) {
             throw e;
         }
-        return generateAsyncInvoker(url, interfaceC, doReference(interfaceC, url), null);
+        return generateAsyncInvoker(url, interfaceC, doReference(interfaceC, url), url.getBooleanParam(Constants.BYTE_CODE_INVOKE_KEY), null);
     }
 
     /**
      * 为代理协议生成Invoker
      */
-    protected <T> AsyncInvoker<T> generateAsyncInvoker(Url url, Class<T> interfaceC, T proxy, Runnable destroyMethod) {
-        return new ReferenceInvoker<T>(url) {
+    protected <T> AsyncInvoker<T> generateAsyncInvoker(Url url, Class<T> interfaceC, T proxy, boolean byteCodeInvoke, Runnable destroyMethod) {
+        return new ProxyedProviderInvoker<>(url, proxy, interfaceC, byteCodeInvoke, () -> {
+            //释放无用代理类
+            ProxyEnhanceUtils.detach(proxy.getClass().getName());
 
-            @Override
-            public Object invoke(String methodName, Object... params) throws Throwable {
-                Method targetMethod = null;
-                for (Method method : interfaceC.getMethods()) {
-                    //用方法名生成某一标识判断
-                    if (methodName.equals(ClassUtils.getUniqueName(method))) {
-                        targetMethod = method;
-                        break;
-                    }
-                }
-
-                Preconditions.checkNotNull(targetMethod, String.format("can't not find method '%s'", methodName));
-
-                return targetMethod.invoke(proxy, params);
+            //自定义销毁操作
+            if (Objects.nonNull(destroyMethod)) {
+                destroyMethod.run();
             }
-
-            @Override
-            public CompletableFuture<Object> invokeAsync(String methodName, Object... params) {
-                return CompletableFuture.supplyAsync(() -> {
-                    try {
-                        return invoke(methodName, params);
-                    } catch (Throwable throwable) {
-                        throw new IllegalStateException(throwable);
-                    }
-                }, RpcThreadPool.executors());
-            }
-
-            @Override
-            public boolean isAvailable() {
-                return true;
-            }
-
-            @Override
-            public void destroy() {
-                //释放无用代理类
-                ProxyEnhanceUtils.detach(proxy.getClass().getName());
-
-                //自定义销毁操作
-                if (Objects.nonNull(destroyMethod)) {
-                    destroyMethod.run();
-                }
-            }
-        };
+        });
     }
 
     /**
@@ -160,7 +125,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
     }
 
     /**
-     * 代理invoker的invoker, 相当于reference了, 但其实是provider, provider端的reference
+     * 代理provider invoker的invoker, 相当于reference了, 但其实是provider, provider端的reference
      * 基于javassist代理的invoker
      */
     @SuppressWarnings("unchecked")
@@ -177,7 +142,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
         try {
             realProxyClass = (Class<T>) Class.forName(ctClassName);
         } catch (ClassNotFoundException e) {
-            ExceptionUtils.throwExt(e);
+            //ignore
         }
 
         try {
@@ -278,7 +243,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
     }
 
     /**
-     * 生成限流代码
+     * 生成generic provider代码
      */
     private String generateProviderGenericRpcServiceMethodBody() {
         //真正逻辑
@@ -328,7 +293,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
         try {
             realProxyClass = (Class<T>) Class.forName(ctClassName);
         } catch (ClassNotFoundException e) {
-            ExceptionUtils.throwExt(e);
+            //ignore
         }
 
         try {

@@ -1,9 +1,6 @@
 package org.kin.kinrpc.demo.rpc.grpc;
 
 import io.grpc.stub.StreamObserver;
-import org.kin.kinrpc.demo.rpc.KinRpcGrpcServiceGrpc;
-import org.kin.kinrpc.demo.rpc.Notify;
-import org.kin.kinrpc.demo.rpc.Num;
 
 /**
  * @author huangjianqin
