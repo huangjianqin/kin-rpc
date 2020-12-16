@@ -13,7 +13,7 @@ import org.kin.kinrpc.rpc.exception.RateLimitException;
  * @author huangjianqin
  * @date 2020/11/4
  */
-public final class RateLimitInvoker<T> extends WrapInvoker<T> {
+public final class RateLimitInvoker<T> extends ProxyedInvoker<T> {
     /** 流控 */
     private final RateLimiter rateLimiter;
 
@@ -31,7 +31,7 @@ public final class RateLimitInvoker<T> extends WrapInvoker<T> {
         //简单地添加到任务队列交由上层的线程池去完成服务调用
         //流控
         if (!rateLimiter.tryAcquire()) {
-            Url url = wrapper.url();
+            Url url = proxy.url();
             throw new RateLimitException(RpcUtils.generateInvokeMsg(url.getServiceKey(), methodName, params));
         }
         return super.invoke(methodName, params);

@@ -14,14 +14,15 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 /**
+ * reference端没有必要使用字节码生成技术, 因为本来代码的实现就是把服务接口必要的参数传给provider, 仅此而已.
+ *
  * @author huangjianqin
  * @date 2019-09-09
- * reference端没有必要使用字节码生成技术, 因为本来代码的实现就是把服务接口必要的参数传给provider, 仅此而已.
  */
-final class ReflectClusterInvoker<T> extends ClusterInvoker<T> implements InvocationHandler {
+final class JdkProxyClusterInvoker<T> extends ClusterInvoker<T> implements InvocationHandler {
     private RateLimiter rateLimiter;
 
-    public ReflectClusterInvoker(Cluster<T> cluster, Url url, List<Notifier<?>> notifiers) {
+    public JdkProxyClusterInvoker(Cluster<T> cluster, Url url, List<Notifier<?>> notifiers) {
         super(cluster, url, notifiers);
         int rate = url.getIntParam(Constants.RATE_KEY);
         if (rate > 0) {

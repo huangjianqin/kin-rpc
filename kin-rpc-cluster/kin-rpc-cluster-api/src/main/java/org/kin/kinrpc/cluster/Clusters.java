@@ -11,8 +11,8 @@ import org.kin.kinrpc.rpc.Notifier;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.invoker.JavassistProviderInvoker;
+import org.kin.kinrpc.rpc.invoker.JdkProxyProviderInvoker;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
-import org.kin.kinrpc.rpc.invoker.ReflectProviderInvoker;
 import org.kin.kinrpc.transport.Protocol;
 import org.kin.kinrpc.transport.Protocols;
 import org.slf4j.Logger;
@@ -48,7 +48,7 @@ public class Clusters {
         if (byteCodeInvoke) {
             invoker = new JavassistProviderInvoker<>(url, instance, interfaceClass);
         } else {
-            invoker = new ReflectProviderInvoker<>(url, instance, interfaceClass);
+            invoker = new JdkProxyProviderInvoker<>(url, instance, interfaceClass);
         }
 
         //先启动服务
@@ -124,10 +124,10 @@ public class Clusters {
 
             REFERENCE_CACHE.put(url.getServiceKey(), javassistClusterInvoker);
         } else {
-            ReflectClusterInvoker<T> reflectClusterInvoker = new ReflectClusterInvoker<>(cluster, url, notifiers);
-            proxy = (T) Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class<?>[]{interfaceClass}, reflectClusterInvoker);
+            JdkProxyClusterInvoker<T> jdkProxyClusterInvoker = new JdkProxyClusterInvoker<>(cluster, url, notifiers);
+            proxy = (T) Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class<?>[]{interfaceClass}, jdkProxyClusterInvoker);
 
-            REFERENCE_CACHE.put(url.getServiceKey(), reflectClusterInvoker);
+            REFERENCE_CACHE.put(url.getServiceKey(), jdkProxyClusterInvoker);
         }
 
         return proxy;

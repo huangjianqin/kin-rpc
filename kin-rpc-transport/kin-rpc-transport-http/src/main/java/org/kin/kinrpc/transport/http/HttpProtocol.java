@@ -121,9 +121,9 @@ public final class HttpProtocol extends AbstractProxyProtocol {
         Object proxy = jsonProxyFactoryBean.getObject();
         if (useGeneric) {
             if (byteCodeInvoke) {
-                return javassistProxyedGenericRpcService((GenericRpcService) proxy, interfaceC);
+                return javassistProxyGenericRpcService((GenericRpcService) proxy, interfaceC);
             } else {
-                return reflectProxyedGenericRpcService((GenericRpcService) proxy, interfaceC);
+                return jdkProxyGenericRpcService((GenericRpcService) proxy, interfaceC);
             }
         } else {
             return (T) proxy;

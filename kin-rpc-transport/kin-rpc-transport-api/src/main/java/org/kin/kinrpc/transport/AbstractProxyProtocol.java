@@ -16,7 +16,7 @@ import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
-import org.kin.kinrpc.rpc.invoker.ProxyedProviderInvoker;
+import org.kin.kinrpc.rpc.invoker.ProxyedInvoker;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -40,9 +40,9 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
         boolean useByteCode = url.getBooleanParam(Constants.BYTE_CODE_INVOKE_KEY);
         T proxy;
         if (useByteCode) {
-            proxy = javassistProxyedProviderInvoker(invoker, interfaceC);
+            proxy = javassistProxyProviderInvoker(invoker, interfaceC);
         } else {
-            proxy = reflectProxyedProviderInvoker(invoker, interfaceC);
+            proxy = jdkProxyProviderInvoker(invoker, interfaceC);
         }
 
         Runnable destroyRunnable = doExport(proxy, interfaceC, url);
@@ -78,7 +78,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
      * 为代理协议生成Invoker
      */
     protected <T> AsyncInvoker<T> generateAsyncInvoker(Url url, Class<T> interfaceC, T proxy, boolean byteCodeInvoke, Runnable destroyMethod) {
-        return new ProxyedProviderInvoker<>(url, proxy, interfaceC, byteCodeInvoke, () -> {
+        return ProxyedInvoker.proxyedProviderInvoker(url, proxy, interfaceC, byteCodeInvoke, () -> {
             //释放无用代理类
             ProxyEnhanceUtils.detach(proxy.getClass().getName());
 
@@ -112,7 +112,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
      * 基于反射代理的invoker
      */
     @SuppressWarnings("unchecked")
-    protected <T> T reflectProxyedProviderInvoker(Invoker<T> invoker, Class<T> interfaceC) {
+    protected <T> T jdkProxyProviderInvoker(Invoker<T> invoker, Class<T> interfaceC) {
         return (T) Proxy.newProxyInstance(interfaceC.getClassLoader(), new Class<?>[]{interfaceC, GenericRpcService.class}, new InvocationHandler() {
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -129,7 +129,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
      * 基于javassist代理的invoker
      */
     @SuppressWarnings("unchecked")
-    protected <T> T javassistProxyedProviderInvoker(Invoker<T> invoker, Class<T> interfaceC) {
+    protected <T> T javassistProxyProviderInvoker(Invoker<T> invoker, Class<T> interfaceC) {
         Class<? extends AbstractProxyProtocol> myClass = getClass();
         String ctClassName =
                 myClass.getPackage().getName().concat(".")
@@ -266,7 +266,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
      * 基于反射
      */
     @SuppressWarnings("unchecked")
-    protected <T> T reflectProxyedGenericRpcService(GenericRpcService genericRpcService, Class<T> interfaceC) {
+    protected <T> T jdkProxyGenericRpcService(GenericRpcService genericRpcService, Class<T> interfaceC) {
         return (T) Proxy.newProxyInstance(interfaceC.getClassLoader(), new Class<?>[]{interfaceC}, new InvocationHandler() {
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -280,7 +280,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
      * 基于javassist
      */
     @SuppressWarnings("unchecked")
-    protected <T> T javassistProxyedGenericRpcService(GenericRpcService genericRpcService, Class<T> interfaceC) {
+    protected <T> T javassistProxyGenericRpcService(GenericRpcService genericRpcService, Class<T> interfaceC) {
         Class<? extends AbstractProxyProtocol> myClass = getClass();
         String ctClassName =
                 myClass.getPackage().getName().concat(".")

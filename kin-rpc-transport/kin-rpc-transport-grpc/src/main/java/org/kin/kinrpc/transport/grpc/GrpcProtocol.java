@@ -77,9 +77,9 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
         boolean useByteCode = url.getBooleanParam(Constants.BYTE_CODE_INVOKE_KEY);
         T proxy;
         if (useByteCode) {
-            proxy = javassistProxyedProviderInvoker(invoker, interfaceC);
+            proxy = javassistProxyProviderInvoker(invoker, interfaceC);
         } else {
-            proxy = reflectProxyedProviderInvoker(invoker, interfaceC);
+            proxy = jdkProxyProviderInvoker(invoker, interfaceC);
         }
 
         //获取服务实例
@@ -99,7 +99,7 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
             grpcServer.start();
         }
 
-        info("kinrpc service '{}' export address '{}'", url.getAddress());
+        info("kinrpc service '{}' export address '{}'", url.getServiceName(), url.getAddress());
 
         return new Exporter<T>() {
             @Override

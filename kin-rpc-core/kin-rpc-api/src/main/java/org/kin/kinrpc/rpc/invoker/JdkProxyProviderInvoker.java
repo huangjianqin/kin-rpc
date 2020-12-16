@@ -12,14 +12,13 @@ import java.util.Map;
 /**
  * Created by 健勤 on 2017/2/12.
  */
-public class ReflectProviderInvoker<T> extends ProviderInvoker<T> {
+public class JdkProxyProviderInvoker<T> extends ProviderInvoker<T> {
     /**
      * 方法调用入口
      */
     private Map<String, Method> methodMap = new HashMap<>();
 
-
-    public ReflectProviderInvoker(Url url, T service, Class<T> interfaceClass) {
+    public JdkProxyProviderInvoker(Url url, T service, Class<T> interfaceClass) {
         super(url, interfaceClass, service);
         init(interfaceClass);
     }
