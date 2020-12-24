@@ -1,8 +1,9 @@
 package org.kin.kinrpc.rpc.invoker;
 
-import org.kin.framework.proxy.ProxyEnhanceUtils;
+import org.kin.framework.proxy.Javassists;
+import org.kin.framework.proxy.MethodDefinition;
 import org.kin.framework.proxy.ProxyInvoker;
-import org.kin.framework.proxy.ProxyMethodDefinition;
+import org.kin.framework.proxy.Proxys;
 import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.rpc.common.Url;
@@ -36,9 +37,8 @@ public class JavassistProviderInvoker<T> extends ProviderInvoker<T> {
         Map<String, ProxyInvoker<?>> methodMap = new HashMap<>(declaredMethods.length);
         for (Method method : declaredMethods) {
             String uniqueName = ClassUtils.getUniqueName(method);
-            ProxyInvoker<?> proxyInvoker = ProxyEnhanceUtils.enhanceMethod(
-                    new ProxyMethodDefinition(service, method,
-                            "org.kin.kinrpc.rpc.invoker.proxy", interfaceClass.getSimpleName() + "$" + ClassUtils.getUniqueName(method)));
+            ProxyInvoker<?> proxyInvoker = Proxys.javassist().enhanceMethod(
+                    new MethodDefinition<>(service, method));
             methodMap.put(uniqueName, proxyInvoker);
         }
         this.methodMap = methodMap;
@@ -77,7 +77,7 @@ public class JavassistProviderInvoker<T> extends ProviderInvoker<T> {
         super.destroy();
         for (ProxyInvoker<?> proxyInvoker : methodMap.values()) {
             //释放无用代理类
-            ProxyEnhanceUtils.detach(proxyInvoker.getClass().getName());
+            Javassists.detach(proxyInvoker.getClass().getName());
         }
     }
 }

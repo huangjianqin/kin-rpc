@@ -5,7 +5,8 @@ import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtConstructor;
 import javassist.CtField;
-import org.kin.framework.proxy.ProxyEnhanceUtils;
+import org.kin.framework.proxy.JavassistFactory;
+import org.kin.framework.proxy.Javassists;
 import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.Notifier;
@@ -49,7 +50,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
         String futureVarName = "future";
         StringBuilder invokeCode = new StringBuilder();
         invokeCode.append(CompletableFuture.class.getName()).append(" ").append(futureVarName).append(" = ");
-        invokeCode.append(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME.concat(".invokeAsync"));
+        invokeCode.append(JavassistFactory.DEFAULT_INSTANCE_FIELD_NAME.concat(".invokeAsync"));
         invokeCode.append("(\"").append(ClassUtils.getUniqueName(method)).append("\"");
         invokeCode.append(", ").append(method.getReturnType().getName()).append(".class");
 
@@ -58,7 +59,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
             invokeCode.append(", new Object[]{");
             StringJoiner invokeBody = new StringJoiner(", ");
             for (int i = 0; i < parameterTypes.length; i++) {
-                String argStr = ProxyEnhanceUtils.METHOD_DECLARATION_PARAM_NAME.concat(Integer.toString(i + 1));
+                String argStr = JavassistFactory.METHOD_DECLARATION_PARAM_NAME.concat(Integer.toString(i + 1));
                 invokeBody.add(org.kin.framework.utils.ClassUtils.primitivePackage(parameterTypes[i], argStr));
             }
             invokeCode.append(invokeBody.toString());
@@ -72,7 +73,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
         Class<?> returnType = method.getReturnType();
         boolean isVoid = Void.class.equals(returnType) || Void.TYPE.equals(returnType);
 
-        methodBody.append("if(").append(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME).append(".isAsync()){").append(System.lineSeparator());
+        methodBody.append("if(").append(JavassistFactory.DEFAULT_INSTANCE_FIELD_NAME).append(".isAsync()){").append(System.lineSeparator());
         methodBody.append(RpcContext.class.getName()).append(".updateFuture(".concat(futureVarName).concat(");")).append(System.lineSeparator());
         //方法返回
         if (!isVoid) {
@@ -146,7 +147,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
 
         try {
             if (Objects.isNull(realProxyClass)) {
-                ClassPool classPool = ProxyEnhanceUtils.getPool();
+                ClassPool classPool = Javassists.getPool();
                 CtClass proxyClass = classPool.getOrNull(ctClassName);
 
                 if (Objects.isNull(proxyClass)) {
@@ -154,7 +155,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
                     //接口
                     proxyClass.addInterface(classPool.get(interfaceClass.getName()));
 
-                    CtField invokerField = new CtField(classPool.get(myClass.getName()), ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME, proxyClass);
+                    CtField invokerField = new CtField(classPool.get(myClass.getName()), JavassistFactory.DEFAULT_INSTANCE_FIELD_NAME, proxyClass);
                     invokerField.setModifiers(Modifier.PRIVATE | Modifier.FINAL);
                     proxyClass.addField(invokerField);
 
@@ -166,7 +167,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
                     //构造器
                     CtConstructor constructor = new CtConstructor(
                             new CtClass[]{classPool.get(myClass.getName()), classPool.get(Double.TYPE.getName())}, proxyClass);
-                    constructor.setBody("{$0.".concat(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME).concat(" = $1;")
+                    constructor.setBody("{$0.".concat(JavassistFactory.DEFAULT_INSTANCE_FIELD_NAME).concat(" = $1;")
                             .concat("if($2 > 0){$0.".concat(rateLimiterFieldName).concat(" = ").concat(RateLimiter.class.getName()).concat(".create($2);}}")));
                     proxyClass.addConstructor(constructor);
 
@@ -176,9 +177,9 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
                         methodBody.append(generateRateLimitBody(rateLimiterFieldName, method)).append(System.lineSeparator());
                         methodBody.append(generateMethodBody(method)).append(System.lineSeparator());
 
-                        ProxyEnhanceUtils.makeCtPublicFinalMethod(classPool, method, methodBody.toString(), proxyClass);
+                        Javassists.makeCtPublicFinalMethod(classPool, method, methodBody.toString(), proxyClass);
                     }
-                    ProxyEnhanceUtils.cacheCTClass(ctClassName, proxyClass);
+                    Javassists.cacheCTClass(ctClassName, proxyClass);
                 }
 
                 realProxyClass = (Class<T>) proxyClass.toClass();
@@ -205,6 +206,6 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
     @Override
     public void close() {
         super.close();
-        ProxyEnhanceUtils.detach(proxyClassName());
+        Javassists.detach(proxyClassName());
     }
 }

@@ -10,7 +10,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.ClientAuth;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
-import org.kin.framework.proxy.ProxyEnhanceUtils;
+import org.kin.framework.proxy.Javassists;
 import org.kin.framework.utils.CollectionUtils;
 import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.kin.kinrpc.rpc.Exporter;
@@ -111,7 +111,7 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
             public void unexport() {
                 invoker.destroy();
                 //释放无用代理类
-                ProxyEnhanceUtils.detach(proxy.getClass().getName());
+                Javassists.detach(proxy.getClass().getName());
 
                 grpcServer.registry.removeService(url.getServiceKey());
                 grpcServer.close();

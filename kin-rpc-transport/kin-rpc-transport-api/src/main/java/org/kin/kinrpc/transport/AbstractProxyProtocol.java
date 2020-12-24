@@ -5,7 +5,8 @@ import javassist.CtClass;
 import javassist.CtConstructor;
 import javassist.CtField;
 import org.kin.framework.log.LoggerOprs;
-import org.kin.framework.proxy.ProxyEnhanceUtils;
+import org.kin.framework.proxy.JavassistFactory;
+import org.kin.framework.proxy.Javassists;
 import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.AsyncInvoker;
@@ -57,7 +58,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
                 invoker.destroy();
                 destroyRunnable.run();
                 //释放无用代理类
-                ProxyEnhanceUtils.detach(proxy.getClass().getName());
+                Javassists.detach(proxy.getClass().getName());
             }
         };
     }
@@ -80,7 +81,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
     protected <T> AsyncInvoker<T> generateAsyncInvoker(Url url, Class<T> interfaceC, T proxy, boolean byteCodeInvoke, Runnable destroyMethod) {
         return ProxyedInvoker.proxyedProviderInvoker(url, proxy, interfaceC, byteCodeInvoke, () -> {
             //释放无用代理类
-            ProxyEnhanceUtils.detach(proxy.getClass().getName());
+            Javassists.detach(proxy.getClass().getName());
 
             //自定义销毁操作
             if (Objects.nonNull(destroyMethod)) {
@@ -147,7 +148,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
 
         try {
             if (Objects.isNull(realProxyClass)) {
-                ClassPool classPool = ProxyEnhanceUtils.getPool();
+                ClassPool classPool = Javassists.getPool();
                 CtClass proxyClass = classPool.getOrNull(ctClassName);
 
                 if (Objects.isNull(proxyClass)) {
@@ -157,27 +158,27 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
                     //通用接口
                     proxyClass.addInterface(classPool.get(GenericRpcService.class.getName()));
 
-                    CtField invokerField = new CtField(classPool.get(Invoker.class.getName()), ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME, proxyClass);
+                    CtField invokerField = new CtField(classPool.get(Invoker.class.getName()), JavassistFactory.DEFAULT_INSTANCE_FIELD_NAME, proxyClass);
                     invokerField.setModifiers(Modifier.PRIVATE | Modifier.FINAL);
                     proxyClass.addField(invokerField);
 
                     //构造器
                     CtConstructor constructor = new CtConstructor(
                             new CtClass[]{classPool.get(Invoker.class.getName())}, proxyClass);
-                    constructor.setBody("{$0.".concat(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME).concat(" = $1;").concat("}"));
+                    constructor.setBody("{$0.".concat(JavassistFactory.DEFAULT_INSTANCE_FIELD_NAME).concat(" = $1;").concat("}"));
                     proxyClass.addConstructor(constructor);
 
                     //生成服务接口方法方法体
                     for (Method method : interfaceC.getDeclaredMethods()) {
-                        ProxyEnhanceUtils.makeCtPublicFinalMethod(classPool, method, generateProviderServiceMethodBody(method), proxyClass);
+                        Javassists.makeCtPublicFinalMethod(classPool, method, generateProviderServiceMethodBody(method), proxyClass);
                     }
 
                     //生成通用服务接口方法方法体
                     for (Method method : GenericRpcService.class.getDeclaredMethods()) {
-                        ProxyEnhanceUtils.makeCtPublicFinalMethod(classPool, method, generateProviderGenericRpcServiceMethodBody(), proxyClass);
+                        Javassists.makeCtPublicFinalMethod(classPool, method, generateProviderGenericRpcServiceMethodBody(), proxyClass);
                     }
 
-                    ProxyEnhanceUtils.cacheCTClass(ctClassName, proxyClass);
+                    Javassists.cacheCTClass(ctClassName, proxyClass);
                 }
 
                 realProxyClass = (Class<T>) proxyClass.toClass();
@@ -195,7 +196,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
 
         //rpc call代码
         StringBuilder invokeCode = new StringBuilder();
-        invokeCode.append(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME.concat(".invoke"));
+        invokeCode.append(JavassistFactory.DEFAULT_INSTANCE_FIELD_NAME.concat(".invoke"));
         invokeCode.append("(\"").append(ClassUtils.getUniqueName(method)).append("\"");
 
         Class<?>[] parameterTypes = method.getParameterTypes();
@@ -203,7 +204,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
             invokeCode.append(", new Object[]{");
             StringJoiner invokeBody = new StringJoiner(", ");
             for (int i = 0; i < parameterTypes.length; i++) {
-                String argStr = ProxyEnhanceUtils.METHOD_DECLARATION_PARAM_NAME.concat(Integer.toString(i + 1));
+                String argStr = JavassistFactory.METHOD_DECLARATION_PARAM_NAME.concat(Integer.toString(i + 1));
                 invokeBody.add(org.kin.framework.utils.ClassUtils.primitivePackage(parameterTypes[i], argStr));
             }
             invokeCode.append(invokeBody.toString());
@@ -251,7 +252,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
 
         //rpc call代码
         StringBuilder invokeCode = new StringBuilder();
-        invokeCode.append(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME.concat(".invoke"));
+        invokeCode.append(JavassistFactory.DEFAULT_INSTANCE_FIELD_NAME.concat(".invoke"));
         invokeCode.append("($1, $2);");
         String invokeCodeStr = invokeCode.toString();
 
@@ -298,7 +299,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
 
         try {
             if (Objects.isNull(realProxyClass)) {
-                ClassPool classPool = ProxyEnhanceUtils.getPool();
+                ClassPool classPool = Javassists.getPool();
                 CtClass proxyClass = classPool.getOrNull(ctClassName);
 
                 if (Objects.isNull(proxyClass)) {
@@ -308,28 +309,28 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
                     //通用接口
                     proxyClass.addInterface(classPool.get(GenericRpcService.class.getName()));
 
-                    CtField invokerField = new CtField(classPool.get(GenericRpcService.class.getName()), ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME, proxyClass);
+                    CtField invokerField = new CtField(classPool.get(GenericRpcService.class.getName()), JavassistFactory.DEFAULT_INSTANCE_FIELD_NAME, proxyClass);
                     invokerField.setModifiers(Modifier.PRIVATE | Modifier.FINAL);
                     proxyClass.addField(invokerField);
 
                     //构造器
                     CtConstructor constructor = new CtConstructor(
                             new CtClass[]{classPool.get(GenericRpcService.class.getName())}, proxyClass);
-                    constructor.setBody("{$0.".concat(ProxyEnhanceUtils.DEFAULT_PROXY_FIELD_NAME).concat(" = $1;").concat("}"));
+                    constructor.setBody("{$0.".concat(JavassistFactory.DEFAULT_INSTANCE_FIELD_NAME).concat(" = $1;").concat("}"));
                     proxyClass.addConstructor(constructor);
 
                     //生成服务接口方法方法体
                     for (Method method : interfaceC.getDeclaredMethods()) {
-                        ProxyEnhanceUtils.makeCtPublicFinalMethod(classPool, method, generateProviderServiceMethodBody(method), proxyClass);
+                        Javassists.makeCtPublicFinalMethod(classPool, method, generateProviderServiceMethodBody(method), proxyClass);
 
                     }
 
                     //生成通用服务接口方法方法体
                     for (Method method : GenericRpcService.class.getDeclaredMethods()) {
-                        ProxyEnhanceUtils.makeCtPublicFinalMethod(classPool, method, generateProviderGenericRpcServiceMethodBody(), proxyClass);
+                        Javassists.makeCtPublicFinalMethod(classPool, method, generateProviderGenericRpcServiceMethodBody(), proxyClass);
                     }
 
-                    ProxyEnhanceUtils.cacheCTClass(ctClassName, proxyClass);
+                    Javassists.cacheCTClass(ctClassName, proxyClass);
                 }
 
                 realProxyClass = (Class<T>) proxyClass.toClass();
