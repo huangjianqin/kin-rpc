@@ -377,7 +377,7 @@ public class GrpcGenerator extends Generator {
          */
         public String methodNamePascalCase() {
             String mn = methodName.replace("_", "");
-            return String.valueOf(Character.toUpperCase(mn.charAt(0))) + mn.substring(1);
+            return Character.toUpperCase(mn.charAt(0)) + mn.substring(1);
         }
 
         /**
@@ -385,7 +385,7 @@ public class GrpcGenerator extends Generator {
          */
         public String methodNameCamelCase() {
             String mn = methodName.replace("_", "");
-            return String.valueOf(Character.toLowerCase(mn.charAt(0))) + mn.substring(1);
+            return Character.toLowerCase(mn.charAt(0)) + mn.substring(1);
         }
     }
 }
