@@ -2,9 +2,9 @@ spring:
   application:
     name: kinrpc-demo
 
-kin:
-  rpc:
-    zookeeper:
-      address: 0.0.0.0:2181
-    redis:
-      address: 0.0.0.0:6379
+#kin:
+#  rpc:
+#    zookeeper:
+#      address: 0.0.0.0:2181
+#    redis:
+#      address: 0.0.0.0:6379

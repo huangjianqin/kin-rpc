@@ -1,5 +1,7 @@
 package org.kin.kinrpc.spring;
 
+import org.springframework.core.annotation.AliasFor;
+
 import java.lang.annotation.*;
 
 /**
@@ -15,4 +17,9 @@ import java.lang.annotation.*;
 @EnableKinRpcService
 @EnableKinRpcReference
 public @interface EnableKinRpc {
+    /**
+     * 指定扫描定义有@KinRpcReference的服务接口的classpath
+     */
+    @AliasFor(annotation = EnableKinRpcReference.class, attribute = "scanBasePackages")
+    String[] scanBasePackages() default {};
 }

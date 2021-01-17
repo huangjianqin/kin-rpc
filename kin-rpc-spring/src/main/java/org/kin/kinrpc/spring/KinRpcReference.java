@@ -11,12 +11,21 @@ import java.lang.annotation.*;
 
 /**
  * 配置的含义请看{@link org.kin.kinrpc.config.ReferenceConfig}
+ * 两种用法:
+ * 1. 注解在Field上. 当多个service需要使用同一reference时, 将{@link KinRpcReference}, {@link RedisRegistry}和{@link ZookeeperRegistry}注解复制到其他用到Field上即可,
+ * 此类beanName=Reference${appName}${serviceName}. 上面场景, 可通用自定义注解达到减少重复使用注解, 难以维护; 或者使用用法2
+ * 2. 注解在服务接口上. 可以通过@Autowired, 在需要的services注入服务引用
  *
  * @author huangjianqin
  * @date 2020/12/6
+ * @see KinRpcReferenceFieldProcessor
+ * @see KinRpcReferenceRegistrar
+ * @see KinRpcReferenceScannerConfiguration
+ * @see KinRpcReferenceScanner
+ * @see KinRpcReferenceFactoryBean
  */
 @Documented
-@Target(ElementType.FIELD)
+@Target({ElementType.FIELD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface KinRpcReference {
     /** reference bean name */

@@ -3,6 +3,7 @@ package org.kin.kinrpc.demo.rpc;
 /**
  * Created by 健勤 on 2017/2/16.
  */
+//@KinRpcReference(urls = "kinrpc://0.0.0.0:16888", async = true)
 public interface Addable {
     int add(int a, int b);
 

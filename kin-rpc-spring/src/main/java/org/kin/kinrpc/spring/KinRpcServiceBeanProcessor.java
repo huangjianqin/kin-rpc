@@ -21,10 +21,12 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * 处理{@link KinRpcService}注解在bean class的场景
+ *
  * @author huangjianqin
  * @date 2020/12/12
  */
-public class KinRpcServiceProcessor implements BeanPostProcessor, ApplicationListener<ContextClosedEvent>,
+final class KinRpcServiceBeanProcessor implements BeanPostProcessor, ApplicationListener<ContextClosedEvent>,
         ApplicationContextAware, ApplicationEventPublisherAware, LoggerOprs, DisposableBean {
     @Value("${spring.application.name:kinrpc}")
     private String springAppName;

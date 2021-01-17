@@ -9,7 +9,7 @@ import org.springframework.context.ApplicationEvent;
  * @author huangjianqin
  * @date 2020/12/12
  */
-public class ServiceExportedEvent extends ApplicationEvent {
+public final class ServiceExportedEvent extends ApplicationEvent {
     private final ServiceConfig serviceConfig;
 
     public ServiceExportedEvent(ServiceConfig serviceConfig, Object source) {

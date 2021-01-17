@@ -14,6 +14,10 @@ import java.lang.annotation.*;
 @Inherited
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Import(KinRpcReferenceProcessor.class)
+@Import({KinRpcReferenceFieldProcessor.class, KinRpcReferenceRegistrar.class})
 public @interface EnableKinRpcReference {
+    /**
+     * 指定扫描定义有@KinRpcReference的服务接口的classpath
+     */
+    String[] scanBasePackages() default {};
 }

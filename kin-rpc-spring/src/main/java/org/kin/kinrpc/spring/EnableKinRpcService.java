@@ -14,6 +14,6 @@ import java.lang.annotation.*;
 @Inherited
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Import(KinRpcServiceProcessor.class)
+@Import(KinRpcServiceBeanProcessor.class)
 public @interface EnableKinRpcService {
 }
