@@ -22,10 +22,10 @@ public class Protocols {
         }
         List<Protocol> protocols = RpcServiceLoader.LOADER.getExtensions(Protocol.class);
         for (Protocol protocol : protocols) {
-            String simpleName = protocol.getClass().getSimpleName().toLowerCase();
+            String simpleName = protocol.getClass().getSimpleName();
             if (type.equals(protocol.getClass().getName()) ||
-                    type.equals(simpleName) ||
-                    type.concat(Protocol.class.getSimpleName()).toLowerCase().equals(simpleName)) {
+                    type.equalsIgnoreCase(simpleName) ||
+                    type.concat(Protocol.class.getSimpleName()).equalsIgnoreCase(simpleName)) {
                 //扩展service class name | service simple class name | 前缀 + service simple class name
                 return protocol;
             }

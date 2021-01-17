@@ -28,18 +28,18 @@ public class Registries {
         if (StringUtils.isBlank(registryType)) {
             return null;
         }
-        registryType = registryType.toLowerCase();
 
         //从整个classpath寻找RegistryFactory子类
         try {
-            String registryName = (registryType + RegistryFactory.class.getSimpleName()).toLowerCase();
-
             return REGISTRY_FACTORY_CACHE.get(registryType, () -> {
                 Set<Class<? extends RegistryFactory>> classes = ClassUtils.getSubClass(RegistryFactory.class.getPackage().getName(), RegistryFactory.class, true);
                 if (classes.size() > 0) {
                     for (Class<? extends RegistryFactory> claxx : classes) {
-                        String className = claxx.getSimpleName().toLowerCase();
-                        if (className.equals(registryName)) {
+                        String simpleName = claxx.getSimpleName();
+                        if (registryType.equals(claxx.getName()) ||
+                                registryType.equalsIgnoreCase(simpleName) ||
+                                registryType.concat(RegistryFactory.class.getSimpleName()).equalsIgnoreCase(simpleName)) {
+                            //扩展service class name | service simple class name | 前缀 + service simple class name
                             return claxx.newInstance();
                         }
                     }
