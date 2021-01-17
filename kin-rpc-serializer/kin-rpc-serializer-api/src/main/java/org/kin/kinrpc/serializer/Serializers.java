@@ -41,7 +41,7 @@ public class Serializers {
             throw new IllegalArgumentException(String.format("unknown Serializer or unable to load Serializer '%s'", name));
         }
 
-        return null;
+        return target;
     }
 
     /**
