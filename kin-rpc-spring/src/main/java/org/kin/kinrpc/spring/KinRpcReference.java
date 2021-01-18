@@ -20,7 +20,7 @@ import java.lang.annotation.*;
  * @date 2020/12/6
  * @see KinRpcReferenceFieldProcessor
  * @see KinRpcReferenceRegistrar
- * @see KinRpcReferenceScannerConfiguration
+ * @see EnableKinRpcReferencePostProcessor
  * @see KinRpcReferenceScanner
  * @see KinRpcReferenceFactoryBean
  */

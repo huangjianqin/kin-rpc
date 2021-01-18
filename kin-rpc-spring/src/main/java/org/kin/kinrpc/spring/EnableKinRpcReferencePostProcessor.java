@@ -7,23 +7,25 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProce
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.Nonnull;
+
 /**
  * 扫描{@link KinRpcReference}注解在interface的scanner配置
  *
  * @author huangjianqin
  * @date 2021/1/17
  */
-final class KinRpcReferenceScannerConfiguration implements BeanDefinitionRegistryPostProcessor {
+final class EnableKinRpcReferencePostProcessor implements BeanDefinitionRegistryPostProcessor {
     /** 扫描package classpath的路径集合, 以,分隔 */
     private String basePackage;
 
     @Override
-    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+    public void postProcessBeanFactory(@Nonnull ConfigurableListableBeanFactory beanFactory) throws BeansException {
         //do nothing
     }
 
     @Override
-    public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
+    public void postProcessBeanDefinitionRegistry(@Nonnull BeanDefinitionRegistry registry) throws BeansException {
         KinRpcReferenceScanner scanner = new KinRpcReferenceScanner(registry);
         scanner.scan(StringUtils.tokenizeToStringArray(this.basePackage, ConfigurableApplicationContext.CONFIG_LOCATION_DELIMITERS));
     }

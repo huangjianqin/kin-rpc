@@ -26,14 +26,14 @@ final class KinRpcReferenceRegistrar implements ImportBeanDefinitionRegistrar {
         AnnotationAttributes scanAttrs = AnnotationAttributes
                 .fromMap(importingClassMetadata.getAnnotationAttributes(EnableKinRpcReference.class.getName()));
         registerBeanDefinitions(importingClassMetadata, registry, scanAttrs,
-                importingClassMetadata.getClassName() + "#" + KinRpcReferenceScannerConfiguration.class.getSimpleName());
+                importingClassMetadata.getClassName() + "#" + EnableKinRpcReferencePostProcessor.class.getSimpleName());
     }
 
     /**
      * 注册KinRpcReferenceScannerConfiguration bean
      */
     void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry, AnnotationAttributes scanAttrs, String beanName) {
-        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(KinRpcReferenceScannerConfiguration.class);
+        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(EnableKinRpcReferencePostProcessor.class);
         List<String> basePackages = new ArrayList<>();
 
         String[] basePackageArr = scanAttrs.getStringArray("scanBasePackages");
