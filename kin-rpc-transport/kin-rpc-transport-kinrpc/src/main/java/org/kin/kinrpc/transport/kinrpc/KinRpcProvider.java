@@ -2,7 +2,7 @@ package org.kin.kinrpc.transport.kinrpc;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
-import org.kin.framework.concurrent.actor.PinnedThreadSafeHandler;
+import org.kin.framework.concurrent.PinnedThreadExecutor;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.rpc.Invoker;
@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  * 可以作为多个服务的Server
  * Created by 健勤 on 2017/2/10.
  */
-public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
+public class KinRpcProvider extends PinnedThreadExecutor<KinRpcProvider> {
     private static final Logger log = LoggerFactory.getLogger(KinRpcProvider.class);
 
     /** 服务 */
@@ -86,7 +86,7 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
      * 支持动态添加服务
      */
     public <T> void addService(Invoker<T> proxy) {
-        handle((rpcProvider) -> {
+        receive((rpcProvider) -> {
             if (isAlive()) {
                 Url url = proxy.url();
                 String serviceKey = url.getServiceKey();
@@ -106,7 +106,7 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
      * 支持动态移除服务
      */
     public void disableService(Url url) {
-        handle(rpcProvider -> {
+        receive(rpcProvider -> {
             String serviceKey = url.getServiceKey();
             services.remove(serviceKey);
         });
@@ -119,7 +119,7 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
         if (isStopped) {
             throw new IllegalStateException("try start stopped provider");
         }
-        handle(rpcProvider -> {
+        receive(rpcProvider -> {
             log.info("provider(port={}) starting...", getPort());
 
             //启动连接
@@ -144,7 +144,7 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
      * 不管3721,马上stop
      */
     public void shutdownNow() {
-        handle(rpcProvider1 -> {
+        receive(rpcProvider1 -> {
             if (isStopped) {
                 return;
             }
@@ -155,7 +155,7 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
             isStopped = true;
 
             //让所有请求都拒绝返回时, 才关闭channel
-            handle(rpcProvider2 -> {
+            receive(rpcProvider2 -> {
                 //最后关闭连接
                 providerHandler.close();
                 log.info("server connection close successfully");
@@ -187,7 +187,7 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
                     RpcThreadPool.providerWorkers().execute(() -> handlerRpcRequest0(invokerWrapper.getInvoker(), methodName, params, channel, rpcRequest, rpcResponse));
                 } else {
                     //同一invoker同一线程处理
-                    invokerWrapper.handle(iw -> handlerRpcRequest0(invokerWrapper.getInvoker(), methodName, params, channel, rpcRequest, rpcResponse));
+                    invokerWrapper.receive(iw -> handlerRpcRequest0(invokerWrapper.getInvoker(), methodName, params, channel, rpcRequest, rpcResponse));
                 }
             } else {
                 log.error("can not find service>>> {}", rpcRequest);
@@ -314,7 +314,7 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
     /**
      * 类actor的invoker
      */
-    private class InvokerWrapper extends PinnedThreadSafeHandler<InvokerWrapper> {
+    private class InvokerWrapper extends PinnedThreadExecutor<InvokerWrapper> {
         /** 包装的invoker */
         private final Invoker invoker;
         /** invoker invoke方式, 并发或者类actor */
@@ -400,7 +400,7 @@ public class KinRpcProvider extends PinnedThreadSafeHandler<KinRpcProvider> {
             }
 
             RpcRequest finalRpcRequest = rpcRequest;
-            KinRpcProvider.this.handle(rpcProvider -> handleRpcRequest(finalRpcRequest, channel));
+            KinRpcProvider.this.receive(rpcProvider -> handleRpcRequest(finalRpcRequest, channel));
         }
     }
 }

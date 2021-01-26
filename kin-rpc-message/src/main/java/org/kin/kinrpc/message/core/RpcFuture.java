@@ -1,6 +1,6 @@
 package org.kin.kinrpc.message.core;
 
-import org.kin.framework.concurrent.lock.OneLock;
+import org.kin.framework.concurrent.OneLock;
 import org.kin.kinrpc.message.transport.TransportClient;
 import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
 

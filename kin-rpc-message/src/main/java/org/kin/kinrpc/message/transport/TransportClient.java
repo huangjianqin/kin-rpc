@@ -111,7 +111,7 @@ public final class TransportClient {
 
             long requestId = message.getRequestId();
             KinRpcRequestProtocol protocol = KinRpcRequestProtocol.create(requestId, (byte) rpcEnv.serializer().type(), data);
-            if (rpcEndpointRefHandler.client().request(protocol)) {
+            if (rpcEndpointRefHandler.client().sendAndFlush(protocol)) {
                 respCallbacks.put(requestId, outBoxMessage);
             }
         }

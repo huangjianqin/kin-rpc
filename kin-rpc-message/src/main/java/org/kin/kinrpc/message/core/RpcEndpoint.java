@@ -1,6 +1,6 @@
 package org.kin.kinrpc.message.core;
 
-import org.kin.framework.concurrent.actor.Receiver;
+import org.kin.framework.concurrent.Receiver;
 import org.kin.kinrpc.message.transport.protocol.RpcMessage;
 import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
 import org.kin.kinrpc.transport.kinrpc.KinRpcRequestIdGenerator;

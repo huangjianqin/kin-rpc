@@ -188,7 +188,7 @@ public class KinRpcReference {
                     byte[] data = serializer.serialize(request);
 
                     KinRpcRequestProtocol protocol = KinRpcRequestProtocol.create(request.getRequestId(), (byte) serializer.type(), data);
-                    client.request(protocol, new ReferenceRequestListener(request.getRequestId()));
+                    client.sendAndFlush(protocol, new ReferenceRequestListener(request.getRequestId()));
 
                     ProtocolStatisicService.instance().statisticReq(
                             request.getServiceKey() + "-" + request.getMethod(), data.length

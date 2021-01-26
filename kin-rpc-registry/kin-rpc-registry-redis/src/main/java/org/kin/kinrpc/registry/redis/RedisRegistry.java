@@ -5,7 +5,7 @@ import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import org.kin.framework.concurrent.ExecutionContext;
-import org.kin.framework.concurrent.keeper.Keeper;
+import org.kin.framework.concurrent.Keeper;
 import org.kin.framework.log.LoggerOprs;
 import org.kin.framework.utils.NetUtils;
 import org.kin.framework.utils.SysUtils;
