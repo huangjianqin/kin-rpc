@@ -20,5 +20,6 @@ public enum ProtocolType {
     /**
      * 在同一jvm内部直接调用
      */
-    JVM;
+    Jvm;
+
 }

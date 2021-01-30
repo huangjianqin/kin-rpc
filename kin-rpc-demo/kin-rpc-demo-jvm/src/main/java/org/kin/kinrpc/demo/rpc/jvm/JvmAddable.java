@@ -14,7 +14,7 @@ import org.kin.kinrpc.transport.ProtocolType;
 public class JvmAddable {
     public static void main(String[] args) throws Exception {
         ServiceConfig<Addable> serviceConfig = AddableProvider.config();
-        serviceConfig.protocol(ProtocolType.JVM);
+        serviceConfig.protocol(ProtocolType.Jvm);
         serviceConfig.export();
 
         ReferenceConfig<Addable> config = AddableReference.config();
