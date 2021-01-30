@@ -1,6 +1,6 @@
 package org.kin.kinrpc.demo.rpc.kinrpc;
 
-import org.kin.kinrpc.cluster.RpcContext;
+import org.kin.kinrpc.cluster.RpcCallContext;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.References;
 import org.kin.kinrpc.config.ZookeeperRegistryConfig;
@@ -29,7 +29,7 @@ public class KinRpcZookeeperAddableReference {
 //                System.out.println("结果" + result);
 //                service.print(++count + "");
                 service.get(1);
-                CompletableFuture<Object> future = RpcContext.future();
+                CompletableFuture<Object> future = RpcCallContext.future();
                 System.out.println(future.get());
 //                CompletableFuture<String> completableFuture = service.get("A");
 //                System.out.println(completableFuture.handleAsync((s, t) -> s + s).get());

@@ -42,7 +42,7 @@ final class JdkProxyClusterInvoker<T> extends ClusterInvoker<T> implements Invoc
         CompletableFuture<?> future = invokeAsync(method, method.getReturnType(), args);
         if (isAsync()) {
             //async rpc call
-            RpcContext.updateFuture(future);
+            RpcCallContext.updateFuture(future);
             return ClassUtils.getDefaultValue(method.getReturnType());
         } else {
             //sync rpc call

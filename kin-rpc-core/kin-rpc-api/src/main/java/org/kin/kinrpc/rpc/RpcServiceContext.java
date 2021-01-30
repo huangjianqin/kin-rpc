@@ -9,14 +9,14 @@ import java.util.concurrent.Future;
  * @author huangjianqin
  * @date 2020/11/19
  */
-public class ProviderFutureContext {
+public class RpcServiceContext {
     private static ThreadLocal<Future<?>> future = new ThreadLocal<>();
 
     /**
      * 设置future
      */
     public static void updateFuture(Future<?> future) {
-        ProviderFutureContext.future.set(future);
+        RpcServiceContext.future.set(future);
     }
 
     /**

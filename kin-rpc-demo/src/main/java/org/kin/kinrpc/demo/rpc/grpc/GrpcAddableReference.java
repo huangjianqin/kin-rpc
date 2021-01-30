@@ -1,6 +1,6 @@
 package org.kin.kinrpc.demo.rpc.grpc;
 
-import org.kin.kinrpc.cluster.RpcContext;
+import org.kin.kinrpc.cluster.RpcCallContext;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.References;
 import org.kin.kinrpc.rpc.Notifier;
@@ -26,7 +26,7 @@ public class GrpcAddableReference {
         while (count < 10000) {
             try {
                 service.add(Num.newBuilder().setNum1(1).setNum2(1).build());
-                CompletableFuture<Object> future = RpcContext.future();
+                CompletableFuture<Object> future = RpcCallContext.future();
                 System.out.println("结果" + future.get());
 
                 service.notify(Num.newBuilder().setNum1(2).setNum2(2).build());

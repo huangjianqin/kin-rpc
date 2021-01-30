@@ -74,7 +74,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
         boolean isVoid = Void.class.equals(returnType) || Void.TYPE.equals(returnType);
 
         methodBody.append("if(").append(JavassistFactory.DEFAULT_INSTANCE_FIELD_NAME).append(".isAsync()){").append(System.lineSeparator());
-        methodBody.append(RpcContext.class.getName()).append(".updateFuture(".concat(futureVarName).concat(");")).append(System.lineSeparator());
+        methodBody.append(RpcCallContext.class.getName()).append(".updateFuture(".concat(futureVarName).concat(");")).append(System.lineSeparator());
         //方法返回
         if (!isVoid) {
             if (returnType.isPrimitive()) {

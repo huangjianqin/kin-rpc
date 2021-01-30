@@ -8,12 +8,13 @@ import java.util.concurrent.CompletableFuture;
  * @author huangjianqin
  * @date 2020/11/11
  */
-public class RpcContext {
+public class RpcCallContext {
     private static ThreadLocal<CompletableFuture> future = new ThreadLocal<>();
 
     /**
      * 获取future
      */
+    @SuppressWarnings("unchecked")
     public static <T> CompletableFuture<T> future() {
         return future.get();
     }
@@ -22,6 +23,6 @@ public class RpcContext {
      * 设置future
      */
     static void updateFuture(CompletableFuture<?> future) {
-        RpcContext.future.set(future);
+        RpcCallContext.future.set(future);
     }
 }

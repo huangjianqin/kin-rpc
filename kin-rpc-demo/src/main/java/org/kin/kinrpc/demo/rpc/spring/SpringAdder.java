@@ -3,7 +3,7 @@ package org.kin.kinrpc.demo.rpc.spring;
 import org.kin.kinrpc.demo.rpc.Addable;
 import org.kin.kinrpc.demo.rpc.Return1;
 import org.kin.kinrpc.demo.rpc.Return2;
-import org.kin.kinrpc.rpc.ProviderFutureContext;
+import org.kin.kinrpc.rpc.RpcServiceContext;
 import org.kin.kinrpc.rpc.RpcThreadPool;
 import org.kin.kinrpc.spring.KinRpcService;
 
@@ -49,7 +49,7 @@ public class SpringAdder implements Addable {
     @Override
     public Return2 asyncReturn() {
         ScheduledFuture<Return2> future = RpcThreadPool.executors().schedule(Return2::new, 1, TimeUnit.SECONDS);
-        ProviderFutureContext.updateFuture(future);
+        RpcServiceContext.updateFuture(future);
         return null;
     }
 }

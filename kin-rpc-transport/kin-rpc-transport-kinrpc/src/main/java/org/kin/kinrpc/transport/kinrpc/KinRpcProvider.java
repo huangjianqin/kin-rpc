@@ -6,7 +6,7 @@ import org.kin.framework.concurrent.PinnedThreadExecutor;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.rpc.Invoker;
-import org.kin.kinrpc.rpc.ProviderFutureContext;
+import org.kin.kinrpc.rpc.RpcServiceContext;
 import org.kin.kinrpc.rpc.RpcThreadPool;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.SslConfig;
@@ -220,7 +220,7 @@ public class KinRpcProvider extends PinnedThreadExecutor<KinRpcProvider> {
         Object result = null;
         try {
             result = invoker.invoke(methodName, params);
-            if (ProviderFutureContext.asyncReturn()) {
+            if (RpcServiceContext.asyncReturn()) {
                 //provider service异步返回结果
                 handlerServiceAsyncReturn(channel, rpcRequest, rpcResponse);
                 return;
@@ -242,8 +242,8 @@ public class KinRpcProvider extends PinnedThreadExecutor<KinRpcProvider> {
      */
     private void handlerServiceAsyncReturn(Channel channel, RpcRequest rpcRequest, RpcResponse rpcResponse) {
         //获取并移除future
-        Future<Object> future = ProviderFutureContext.future();
-        ProviderFutureContext.reset();
+        Future<Object> future = RpcServiceContext.future();
+        RpcServiceContext.reset();
 
         CompletableFuture.supplyAsync(() -> {
             try {

@@ -1,9 +1,9 @@
 package org.kin.kinrpc.demo.message;
 
 import org.kin.framework.JvmCloseCleaner;
+import org.kin.kinrpc.message.core.RpcCallContext;
 import org.kin.kinrpc.message.core.RpcEndpoint;
 import org.kin.kinrpc.message.core.RpcEnv;
-import org.kin.kinrpc.message.core.RpcMessageCallContext;
 
 import java.io.Serializable;
 
@@ -40,7 +40,7 @@ public class RpcEndpointDemo extends RpcEndpoint {
     }
 
     @Override
-    protected void onReceiveMessage(RpcMessageCallContext context) {
+    protected void onReceiveMessage(RpcCallContext context) {
         Serializable message = context.getMessage();
         System.out.println(message);
         context.reply(new ReplyMessage(context.getRequestId()));
