@@ -20,7 +20,7 @@
         <module>kin-rpc-serializer-avro</module>
         <module>kin-rpc-serializer-protobuf</module>
         <module>kin-rpc-serializer-java</module>
-        <module>kin-rpc-serializer-test</module>
+        <module>kin-rpc-serializer-example</module>
     </modules>
     <packaging>pom</packaging>
 
