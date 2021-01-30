@@ -94,8 +94,10 @@ public class ServiceConfig<T> extends AbstractConfig {
             throw new IllegalStateException("service class " + serviceClass.getName() + " must implements the certain interface '" + this.interfaceClass.getName() + "'");
         }
 
-        //检查暴露的服务接口的参数和返回值是否满足条件
-        checkInterfaceClass();
+        //kinrpc协议下, 检查暴露的服务接口的参数和返回值是否满足条件
+        if (ProtocolType.KinRpc.equals(protocolType)) {
+            checkInterfaceClass();
+        }
 
         Preconditions.checkArgument(this.rate > 0, "rate must be greater than 0");
 
