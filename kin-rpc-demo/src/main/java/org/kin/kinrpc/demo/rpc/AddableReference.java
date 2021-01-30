@@ -37,6 +37,7 @@ public class AddableReference {
                 service.notifyTest();
 
                 service.asyncReturn();
+                System.out.println(service.returnFuture().get());
             } catch (Exception e) {
                 e.printStackTrace();
             }

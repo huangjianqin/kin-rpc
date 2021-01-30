@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 /**
  * @author huangjianqin
@@ -42,9 +43,25 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
 
     //------------------此处需自定义, 有点特殊-------------------------------------
 
+    /**
+     * 本质上参考{@link JdkProxyClusterInvoker invoke}方法逻辑写的
+     */
     private String generateMethodBody(Method method) {
         //真正逻辑
         StringBuilder methodBody = new StringBuilder();
+
+        //判断返回值是否是future的代码
+        boolean returnFuture = false;
+        Class<?> returnType = method.getReturnType();
+        if (Future.class.equals(returnType) || CompletableFuture.class.equals(returnType)) {
+            //支持服务接口返回值是future, 直接返回内部使用的future即可
+            //不支持自定义future, 只有上帝知道你的future是如何定义的
+            returnFuture = true;
+        }
+        methodBody.append("boolean returnFuture = ")
+                .append(returnFuture)
+                .append(";")
+                .append(System.lineSeparator());
 
         //rpc call代码
         String futureVarName = "future";
@@ -70,18 +87,26 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
         methodBody.append(invokeCode.toString()).append(";").append(System.lineSeparator());
 
         //after rpc call逻辑
-        Class<?> returnType = method.getReturnType();
         boolean isVoid = Void.class.equals(returnType) || Void.TYPE.equals(returnType);
 
         methodBody.append("if(").append(JavassistFactory.DEFAULT_INSTANCE_FIELD_NAME).append(".isAsync()){").append(System.lineSeparator());
         methodBody.append(RpcCallContext.class.getName()).append(".updateFuture(".concat(futureVarName).concat(");")).append(System.lineSeparator());
         //方法返回
         if (!isVoid) {
-            if (returnType.isPrimitive()) {
-                //基础类型
-                methodBody.append("return ").append(ClassUtils.getDefaultValue(returnType)).append(";").append(System.lineSeparator());
+            if (returnFuture) {
+                //服务接口返回值是future, 直接返回内部使用的future即可
+                methodBody.append("return ")
+                        .append(futureVarName)
+                        .append(";")
+                        .append(System.lineSeparator());
+
             } else {
-                methodBody.append("return null;").append(System.lineSeparator());
+                if (returnType.isPrimitive()) {
+                    //基础类型
+                    methodBody.append("return ").append(ClassUtils.getDefaultValue(returnType)).append(";").append(System.lineSeparator());
+                } else {
+                    methodBody.append("return null;").append(System.lineSeparator());
+                }
             }
         }
         methodBody.append("}").append(System.lineSeparator());
@@ -92,17 +117,25 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
             methodBody.append(futureVarName.concat(".get()"))
                     .append(";").append(System.lineSeparator());
         } else {
-            if (returnType.isPrimitive()) {
-                //基础类型
+            if (returnFuture) {
+                //服务接口返回值是future, 直接返回内部使用的future即可
                 methodBody.append("return ")
-                        .append(ClassUtils.primitiveUnpackage(returnType, futureVarName.concat(".get()")))
-                        .append(";").append(System.lineSeparator());
-            } else {
-                methodBody.append("return ")
-                        .append("(").append(returnType.getName()).append(")").append(futureVarName.concat(".get()"))
-                        .append(";").append(System.lineSeparator());
-            }
+                        .append(futureVarName)
+                        .append(";")
+                        .append(System.lineSeparator());
 
+            } else {
+                if (returnType.isPrimitive()) {
+                    //基础类型
+                    methodBody.append("return ")
+                            .append(ClassUtils.primitiveUnpackage(returnType, futureVarName.concat(".get()")))
+                            .append(";").append(System.lineSeparator());
+                } else {
+                    methodBody.append("return ")
+                            .append("(").append(returnType.getName()).append(")").append(futureVarName.concat(".get()"))
+                            .append(";").append(System.lineSeparator());
+                }
+            }
         }
 
         methodBody.append("} catch (Exception e) {").append(System.lineSeparator());

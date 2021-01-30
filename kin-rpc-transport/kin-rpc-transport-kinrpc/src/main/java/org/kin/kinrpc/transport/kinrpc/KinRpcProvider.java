@@ -221,8 +221,14 @@ public class KinRpcProvider extends PinnedThreadExecutor<KinRpcProvider> {
         try {
             result = invoker.invoke(methodName, params);
             if (RpcServiceContext.asyncReturn()) {
-                //provider service异步返回结果
-                handlerServiceAsyncReturn(channel, rpcRequest, rpcResponse);
+                //provider service利用RpcServiceContext实现异步返回结果
+                handlerServiceAsyncReturn(RpcServiceContext.future(), channel, rpcRequest, rpcResponse);
+                RpcServiceContext.reset();
+                return;
+            }
+            if (result instanceof Future) {
+                //返回结果是future
+                handlerServiceAsyncReturn((Future) result, channel, rpcRequest, rpcResponse);
                 return;
             }
             rpcResponse.setState(RpcResponse.State.SUCCESS, "success");
@@ -240,11 +246,7 @@ public class KinRpcProvider extends PinnedThreadExecutor<KinRpcProvider> {
     /**
      * 处理provider service异步返回结果
      */
-    private void handlerServiceAsyncReturn(Channel channel, RpcRequest rpcRequest, RpcResponse rpcResponse) {
-        //获取并移除future
-        Future<Object> future = RpcServiceContext.future();
-        RpcServiceContext.reset();
-
+    private void handlerServiceAsyncReturn(Future future, Channel channel, RpcRequest rpcRequest, RpcResponse rpcResponse) {
         CompletableFuture.supplyAsync(() -> {
             try {
                 return future.get();

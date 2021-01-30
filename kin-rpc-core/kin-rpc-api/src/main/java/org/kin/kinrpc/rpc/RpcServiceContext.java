@@ -22,6 +22,7 @@ public class RpcServiceContext {
     /**
      * 获取future
      */
+    @SuppressWarnings("unchecked")
     public static <T> Future<T> future() {
         return (Future<T>) future.get();
     }

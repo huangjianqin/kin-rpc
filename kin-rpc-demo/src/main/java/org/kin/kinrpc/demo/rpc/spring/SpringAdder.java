@@ -1,14 +1,9 @@
 package org.kin.kinrpc.demo.rpc.spring;
 
-import org.kin.kinrpc.demo.rpc.Addable;
-import org.kin.kinrpc.demo.rpc.Return1;
-import org.kin.kinrpc.demo.rpc.Return2;
-import org.kin.kinrpc.rpc.RpcServiceContext;
-import org.kin.kinrpc.rpc.RpcThreadPool;
+import org.kin.kinrpc.demo.rpc.*;
 import org.kin.kinrpc.spring.KinRpcService;
 
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Future;
 
 /**
  * @author huangjianqin
@@ -16,40 +11,45 @@ import java.util.concurrent.TimeUnit;
  */
 @KinRpcService(interfaceClass = Addable.class)
 public class SpringAdder implements Addable {
+    private final Addable addable = new Adder();
+
     @Override
     public int add(int a, int b) {
-        return a + b;
+        return addable.add(a, b);
     }
 
     @Override
     public void print(String content) {
-        System.out.println(content);
+        addable.print(content);
     }
 
     @Override
     public int get(int a) {
-        return a;
+        return addable.get(a);
     }
 
     @Override
     public String get(String a) {
-        return a;
+        return addable.get(a);
     }
 
     @Override
     public void throwException() {
-        throw new RuntimeException("test throw Exception");
+        addable.throwException();
     }
 
     @Override
     public Return1 notifyTest() {
-        return new Return1();
+        return addable.notifyTest();
     }
 
     @Override
     public Return2 asyncReturn() {
-        ScheduledFuture<Return2> future = RpcThreadPool.executors().schedule(Return2::new, 1, TimeUnit.SECONDS);
-        RpcServiceContext.updateFuture(future);
-        return null;
+        return addable.asyncReturn();
+    }
+
+    @Override
+    public Future<Return3> returnFuture() {
+        return addable.returnFuture();
     }
 }

@@ -3,6 +3,8 @@ package org.kin.kinrpc.demo.rpc;
 import org.kin.kinrpc.rpc.RpcServiceContext;
 import org.kin.kinrpc.rpc.RpcThreadPool;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -45,5 +47,10 @@ public class Adder implements Addable {
         ScheduledFuture<Return2> future = RpcThreadPool.executors().schedule(Return2::new, 1, TimeUnit.SECONDS);
         RpcServiceContext.updateFuture(future);
         return null;
+    }
+
+    @Override
+    public Future<Return3> returnFuture() {
+        return CompletableFuture.supplyAsync(Return3::new);
     }
 }
