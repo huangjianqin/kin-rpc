@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>kin-rpc-demo</artifactId>
+        <groupId>org.kin</groupId>
+        <version>0.1.0.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>kin-rpc-demo-api</artifactId>
+    <version>0.1.0.0</version>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-rpc</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-rpc-registry-zookeeper</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- 序列化 -->
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-rpc-serializer-avro</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-rpc-serializer-gson</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-rpc-serializer-hessian2</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-rpc-serializer-java</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-rpc-serializer-json</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-rpc-serializer-protobuf</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-rpc-serializer-protostuff</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+</project>

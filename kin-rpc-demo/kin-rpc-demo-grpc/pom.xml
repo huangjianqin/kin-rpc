@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>kin-rpc-demo</artifactId>
+        <groupId>org.kin</groupId>
+        <version>0.1.0.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>kin-rpc-demo-grpc</artifactId>
+    <version>0.1.0.0</version>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-rpc-demo-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-rpc-transport-grpc</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <extensions>
+            <extension>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>1.6.2</version>
+            </extension>
+        </extensions>
+
+        <plugins>
+            <!-- 添加kin-rpc-transport-grpc依赖, 添加下面插件, kinrpc-grpc代码生成demo -->
+            <plugin>
+                <groupId>org.xolstice.maven.plugins</groupId>
+                <artifactId>protobuf-maven-plugin</artifactId>
+                <version>0.6.1</version>
+                <configuration>
+                    <protocArtifact>
+                        com.google.protobuf:protoc:3.12.0:exe:${os.detected.classifier}
+                    </protocArtifact>
+                    <pluginId>grpc-java</pluginId>
+                    <pluginArtifact>
+                        io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}
+                    </pluginArtifact>
+                    <protocPlugins>
+                        <protocPlugin>
+                            <id>kinrpc-grpc-java</id>
+                            <groupId>org.kin</groupId>
+                            <artifactId>kin-rpc-transport-grpc</artifactId>
+                            <version>${project.version}</version>
+                            <mainClass>org.kin.kinrpc.transport.grpc.GrpcGenerator</mainClass>
+                        </protocPlugin>
+                    </protocPlugins>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>compile-custom</goal>
+                            <goal>test-compile</goal>
+                            <goal>test-compile-custom</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
