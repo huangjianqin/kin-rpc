@@ -12,8 +12,11 @@ import org.kin.kinrpc.serializer.Serializers;
 import org.kin.kinrpc.transport.ProtocolType;
 import org.kin.transport.netty.CompressionType;
 
+import java.io.Serializable;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Future;
 
 /**
  * Created by 健勤 on 2017/2/12.
@@ -85,10 +88,14 @@ public class ServiceConfig<T> extends AbstractConfig {
             throw new IllegalStateException("the class '" + this.interfaceClass.getName() + "' is not a interface");
         }
 
+        //检查暴露的服务接口是否于实现实例满足继承关系
         Class<?> serviceClass = this.ref.getClass();
         if (!this.interfaceClass.isAssignableFrom(serviceClass)) {
             throw new IllegalStateException("service class " + serviceClass.getName() + " must implements the certain interface '" + this.interfaceClass.getName() + "'");
         }
+
+        //检查暴露的服务接口的参数和返回值是否满足条件
+        checkInterfaceClass();
 
         Preconditions.checkArgument(this.rate > 0, "rate must be greater than 0");
 
@@ -96,6 +103,29 @@ public class ServiceConfig<T> extends AbstractConfig {
         this.serverConfig.check();
         if (this.registryConfig != null) {
             this.registryConfig.check();
+        }
+    }
+
+    /**
+     * 检查暴露的服务接口的参数和返回值是否满足条件
+     */
+    private void checkInterfaceClass() {
+        for (Method method : interfaceClass.getMethods()) {
+            for (Class<?> parameterType : method.getParameterTypes()) {
+                if (!parameterType.isPrimitive() && !Serializable.class.isAssignableFrom(parameterType)) {
+                    //如果参数不是基础类型, 且没有实现Serializable
+                    throw new IllegalArgumentException(String.format("arg '' in method '%s' doesn't implement Serializable", method));
+                }
+            }
+
+            Class<?> returnType = method.getReturnType();
+            if (!returnType.isPrimitive() &&
+                    !Void.class.equals(returnType) &&
+                    !Future.class.isAssignableFrom(returnType) &&
+                    !Serializable.class.isAssignableFrom(returnType)) {
+                //如果返回值不是Future, 且没有实现Serializable
+                throw new IllegalArgumentException(String.format("method '%s' return type doesn't implement Serializable", method));
+            }
         }
     }
 
