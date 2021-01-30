@@ -95,6 +95,7 @@ public class ServiceConfig<T> extends AbstractConfig {
         }
 
         //kinrpc协议下, 检查暴露的服务接口的参数和返回值是否满足条件
+        //其余兼容协议不做检查, 像grpc或者rsocket这种, 返回值和参数就是没有实现Serializable
         if (ProtocolType.KinRpc.equals(protocolType)) {
             checkInterfaceClass();
         }
