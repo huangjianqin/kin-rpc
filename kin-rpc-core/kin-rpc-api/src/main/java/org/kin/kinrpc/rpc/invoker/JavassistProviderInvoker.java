@@ -40,6 +40,8 @@ public class JavassistProviderInvoker<T> extends ProviderInvoker<T> {
             ProxyInvoker<?> proxyInvoker = Proxys.javassist().enhanceMethod(
                     new MethodDefinition<>(service, method));
             methodMap.put(uniqueName, proxyInvoker);
+
+            log.info("service '{}'s method '{}'/'{}' is ready to provide service", getServiceKey(), uniqueName, method.toString());
         }
         this.methodMap = methodMap;
     }
