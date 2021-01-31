@@ -114,14 +114,11 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
      */
     @SuppressWarnings("unchecked")
     protected <T> T jdkProxyProviderInvoker(Invoker<T> invoker, Class<T> interfaceC) {
-        return (T) Proxy.newProxyInstance(interfaceC.getClassLoader(), new Class<?>[]{interfaceC, GenericRpcService.class}, new InvocationHandler() {
-            @Override
-            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                if (GenericRpcService.class.equals(method.getDeclaringClass())) {
-                    return invoker.invoke(args[0].toString(), (Object[]) args[1]);
-                }
-                return invoker.invoke(ClassUtils.getUniqueName(method), args);
+        return (T) Proxy.newProxyInstance(interfaceC.getClassLoader(), new Class<?>[]{interfaceC, GenericRpcService.class}, (proxy, method, args) -> {
+            if (GenericRpcService.class.equals(method.getDeclaringClass())) {
+                return invoker.invoke(args[0].toString(), (Object[]) args[1]);
             }
+            return invoker.invoke(ClassUtils.getUniqueName(method), args);
         });
     }
 
