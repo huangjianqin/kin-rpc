@@ -107,7 +107,7 @@ public class RSocketProtocol extends AbstractProxyProtocol {
         boolean isAsyncCall = url.getBooleanParam(Constants.ASYNC_KEY);
         if (isAsyncCall) {
             //打印警告
-            //使用rsocket时, 推荐使用同步rpc call, 因为异步rpc call会使得服务接口返回空值为null, 而且根据reactive的定义, mono flux本身已实现异步操作, 故无需多此一举, 使用同步rpc call更直观
+            //使用rsocket时, 推荐使用同步rpc call, 因为异步rpc call会使得服务接口返回空值为null, 而且根据reactive的定义, mono flux本身已实现异步操作, 故无需多此一举
             warn("recommand to use sync call when using 'roscket' protocol!!!! because async call service method call will return null and roscket implement has included async operation itself");
         }
 

@@ -11,6 +11,7 @@ import reactor.core.publisher.Flux;
  */
 public class RSocketServiceReference {
     public static void main(String[] args) throws InterruptedException {
+        //推荐使用sync rpc call, 因为异步rpc call会使得服务接口返回空值为null, 而且根据reactive的定义, mono flux本身已实现异步操作, 故无需多此一举
         ReferenceConfig<RSocketService> config = References.reference(RSocketService.class)
                 .version("001")
                 .callTimeout(2000)
