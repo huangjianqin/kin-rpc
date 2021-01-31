@@ -16,6 +16,7 @@
         <module>kin-rpc-transport-http</module>
         <module>kin-rpc-transport-grpc</module>
         <module>kin-rpc-transport-jvm</module>
+        <module>kin-rpc-transport-rsocket</module>
     </modules>
     <packaging>pom</packaging>
 
