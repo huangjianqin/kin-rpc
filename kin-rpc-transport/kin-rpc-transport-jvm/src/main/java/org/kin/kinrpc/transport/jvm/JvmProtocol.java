@@ -1,6 +1,7 @@
 package org.kin.kinrpc.transport.jvm;
 
 import com.google.common.base.Preconditions;
+import org.kin.framework.log.LoggerOprs;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.kin.kinrpc.rpc.Exporter;
@@ -20,14 +21,17 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author huangjianqin
  * @date 2020/12/13
  */
-public class JvmProtocol implements Protocol {
+public class JvmProtocol implements Protocol, LoggerOprs {
     /** key -> service key, value -> service provider invoker */
     private Map<String, ProviderInvoker<?>> providers = new ConcurrentHashMap<>();
 
     @Override
-    public <T> Exporter<T> export(ProviderInvoker<T> invoker) throws Throwable {
+    public <T> Exporter<T> export(ProviderInvoker<T> invoker) {
         Url url = invoker.url();
         providers.put(url.getServiceKey(), invoker);
+
+        info("jvm service '{}' export address '{}'", url.getServiceName(), url.getAddress());
+
         return new Exporter<T>() {
             @Override
             public Invoker<T> getInvoker() {
@@ -43,7 +47,9 @@ public class JvmProtocol implements Protocol {
     }
 
     @Override
-    public <T> AsyncInvoker<T> reference(Url url) throws Throwable {
+    public <T> AsyncInvoker<T> reference(Url url) {
+        info("jvm reference '{}' refer address '{}'", url.getServiceName(), url.getAddress());
+
         return new AsyncInvoker<T>() {
             @Override
             public CompletableFuture<Object> invokeAsync(String methodName, Object... params) {
