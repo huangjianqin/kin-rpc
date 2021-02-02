@@ -24,13 +24,13 @@ import java.util.stream.Collectors;
  */
 class CopyOnWriteRouter implements MutableRouter<CopyOnWriteRouter> {
     /** 已注册的fireAndForget router */
-    private Map<String, IPCFunction<Mono<Void>>> fireAndForgetRegistry = new HashMap<>();
+    private volatile Map<String, IPCFunction<Mono<Void>>> fireAndForgetRegistry = new HashMap<>();
     /** 已注册的requestResponse router */
-    private Map<String, IPCFunction<Mono<Payload>>> requestResponseRegistry = new HashMap<>();
+    private volatile Map<String, IPCFunction<Mono<Payload>>> requestResponseRegistry = new HashMap<>();
     /** 已注册的requestStream router */
-    private Map<String, IPCFunction<Flux<Payload>>> requestStreamRegistry = new HashMap<>();
+    private volatile Map<String, IPCFunction<Flux<Payload>>> requestStreamRegistry = new HashMap<>();
     /** 已注册的requestChannel router */
-    private Map<String, IPCChannelFunction> requestChannelRegistry = new HashMap<>();
+    private volatile Map<String, IPCChannelFunction> requestChannelRegistry = new HashMap<>();
 
     @Override
     public CopyOnWriteRouter withFireAndForgetRoute(String route, IPCFunction<Mono<Void>> ipcFunction) {

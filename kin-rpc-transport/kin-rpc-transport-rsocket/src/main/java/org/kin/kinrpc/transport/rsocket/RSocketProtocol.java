@@ -114,7 +114,11 @@ public class RSocketProtocol extends AbstractProxyProtocol {
         //rsocket rpc中定义的服务名
         String rsocketServiceName = interfaceC.getName();
         //client
-        RSocket rSocket = RSocketConnector.create().payloadDecoder(PayloadDecoder.ZERO_COPY).connect(TcpClientTransport.create(url.getHost(), url.getPort())).block();
+        RSocket rSocket = RSocketConnector.create()
+                .payloadDecoder(PayloadDecoder.ZERO_COPY)
+                .connect(TcpClientTransport.create(url.getHost(), url.getPort()))
+                .retry(3)
+                .block();
 
         Preconditions.checkNotNull(rSocket, "construct rsocket client error");
 
