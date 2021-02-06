@@ -11,6 +11,6 @@ public class Return1 implements Serializable {
 
     @Override
     public String toString() {
-        return Thread.currentThread().getName().concat(" notify rpc call return");
+        return Thread.currentThread().getName().concat("--notify rpc call return");
     }
 }

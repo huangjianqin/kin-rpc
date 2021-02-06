@@ -12,7 +12,6 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 
 /**
  * reference端没有必要使用字节码生成技术, 因为本来代码的实现就是把服务接口必要的参数传给provider, 仅此而已.
@@ -40,35 +39,8 @@ final class JdkProxyClusterInvoker<T> extends ClusterInvoker<T> implements Invoc
             throw new RateLimitException(proxy.getClass().getName().concat("$").concat(method.toString()));
         }
 
-        boolean returnFuture = false;
         Class<?> returnType = method.getReturnType();
-        if (Future.class.equals(returnType) || CompletableFuture.class.equals(returnType)) {
-            //支持服务接口返回值是future, 直接返回内部使用的future即可
-            //不支持自定义future, 只有上帝知道你的future是如何定义的
-            returnFuture = true;
-        }
-
         CompletableFuture<?> future = invokeAsync(method, returnType, args);
-        if (isAsync()) {
-            //async rpc call
-            RpcCallContext.updateFuture(future);
-            if (returnFuture) {
-                return future;
-            } else {
-                //返回默认空值
-                return ClassUtils.getDefaultValue(returnType);
-            }
-        } else {
-            if (returnFuture) {
-                return future;
-            } else {
-                //sync rpc call, sync 等待异步调用返回
-                try {
-                    return future.get();
-                } catch (Exception e) {
-                    throw e;
-                }
-            }
-        }
+        return RpcCallReturnAdapters.INSTANCE.handleReturn(returnType, isAsync(), future);
     }
 }

@@ -13,7 +13,6 @@ import org.kin.kinrpc.rpc.Notifier;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RateLimitException;
-import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -21,7 +20,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 
 /**
  * @author huangjianqin
@@ -50,17 +48,14 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
         //真正逻辑
         StringBuilder methodBody = new StringBuilder();
 
-        //判断返回值是否是future的代码
-        boolean returnFuture = false;
+        //返回值类型定义
         Class<?> returnType = method.getReturnType();
-        if (Future.class.equals(returnType) || CompletableFuture.class.equals(returnType)) {
-            //支持服务接口返回值是future, 直接返回内部使用的future即可
-            //不支持自定义future, 只有上帝知道你的future是如何定义的
-            returnFuture = true;
-        }
-        methodBody.append("boolean returnFuture = ")
-                .append(returnFuture)
-                .append(";")
+        String returnTypeVarName = "returnType";
+        methodBody.append("Class ")
+                .append(returnTypeVarName)
+                .append(" = ")
+                .append(returnType.getName())
+                .append(".class;")
                 .append(System.lineSeparator());
 
         //rpc call代码
@@ -69,7 +64,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
         invokeCode.append(CompletableFuture.class.getName()).append(" ").append(futureVarName).append(" = ");
         invokeCode.append(JavassistFactory.DEFAULT_INSTANCE_FIELD_NAME.concat(".invokeAsync"));
         invokeCode.append("(\"").append(ClassUtils.getUniqueName(method)).append("\"");
-        invokeCode.append(", ").append(method.getReturnType().getName()).append(".class");
+        invokeCode.append(", ").append("returnType");
 
         Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length > 0) {
@@ -89,59 +84,37 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
         //after rpc call逻辑
         boolean isVoid = Void.class.equals(returnType) || Void.TYPE.equals(returnType);
 
-        methodBody.append("if(").append(JavassistFactory.DEFAULT_INSTANCE_FIELD_NAME).append(".isAsync()){").append(System.lineSeparator());
-        methodBody.append(RpcCallContext.class.getName()).append(".updateFuture(".concat(futureVarName).concat(");")).append(System.lineSeparator());
-        //方法返回
+        //返回值处理
+        StringBuilder handleResultCode = new StringBuilder();
+        handleResultCode.append(RpcCallReturnAdapters.class.getName())
+                .append(".INSTANCE.handleReturn(")
+                .append(returnTypeVarName).append(", ")
+                //获取是否rpc async call
+                .append(JavassistFactory.DEFAULT_INSTANCE_FIELD_NAME).append(".isAsync(), ")
+                .append(futureVarName)
+                .append(")");
+
         if (!isVoid) {
-            if (returnFuture) {
-                //服务接口返回值是future, 直接返回内部使用的future即可
-                methodBody.append("return ")
-                        .append(futureVarName)
+            //返回值非空
+            methodBody.append("return ");
+            if (returnType.isPrimitive()) {
+                //基础类型
+                methodBody.append(ClassUtils.primitiveUnpackage(returnType, handleResultCode.toString()))
+                        .append(";").append(System.lineSeparator());
+            } else {
+                //强转类型
+                methodBody.append("(")
+                        .append(returnType.getName())
+                        .append(")")
+                        .append(handleResultCode.toString())
                         .append(";")
                         .append(System.lineSeparator());
-
-            } else {
-                if (returnType.isPrimitive()) {
-                    //基础类型
-                    methodBody.append("return ").append(ClassUtils.getDefaultValue(returnType)).append(";").append(System.lineSeparator());
-                } else {
-                    methodBody.append("return null;").append(System.lineSeparator());
-                }
             }
-        }
-        methodBody.append("}").append(System.lineSeparator());
-        methodBody.append("else{").append(System.lineSeparator());
-        methodBody.append("try{").append(System.lineSeparator());
-        //方法返回
-        if (isVoid) {
-            methodBody.append(futureVarName.concat(".get()"))
-                    .append(";").append(System.lineSeparator());
         } else {
-            if (returnFuture) {
-                //服务接口返回值是future, 直接返回内部使用的future即可
-                methodBody.append("return ")
-                        .append(futureVarName)
-                        .append(";")
-                        .append(System.lineSeparator());
-
-            } else {
-                if (returnType.isPrimitive()) {
-                    //基础类型
-                    methodBody.append("return ")
-                            .append(ClassUtils.primitiveUnpackage(returnType, futureVarName.concat(".get()")))
-                            .append(";").append(System.lineSeparator());
-                } else {
-                    methodBody.append("return ")
-                            .append("(").append(returnType.getName()).append(")").append(futureVarName.concat(".get()"))
-                            .append(";").append(System.lineSeparator());
-                }
-            }
+            methodBody.append(handleResultCode.toString())
+                    .append(";")
+                    .append(System.lineSeparator());
         }
-
-        methodBody.append("} catch (Exception e) {").append(System.lineSeparator());
-        methodBody.append("throw new ").append(RpcCallErrorException.class.getName()).append("(e);").append(System.lineSeparator());
-        methodBody.append("}").append(System.lineSeparator());
-        methodBody.append("}");
 
         return methodBody.toString();
     }
@@ -204,6 +177,8 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
                             .concat("if($2 > 0){$0.".concat(rateLimiterFieldName).concat(" = ").concat(RateLimiter.class.getName()).concat(".create($2);}}")));
                     proxyClass.addConstructor(constructor);
 
+                    //加载RpcCallReturnAdapters类
+                    classPool.get(RpcCallReturnAdapters.class.getName());
                     //生成接口方法方法体
                     for (Method method : interfaceClass.getDeclaredMethods()) {
                         StringBuilder methodBody = new StringBuilder();

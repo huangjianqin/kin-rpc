@@ -1,1 +1,2 @@
 org.kin.kinrpc.transport.Protocol=org.kin.kinrpc.transport.rsocket.RSocketProtocol
+org.kin.kinrpc.rpc.RpcCallReturnAdapter=org.kin.kinrpc.transport.rsocket.ReactiveReturnAdapter
