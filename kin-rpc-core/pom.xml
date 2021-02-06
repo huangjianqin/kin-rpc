@@ -16,9 +16,6 @@
         <module>kin-rpc-api</module>
     </modules>
 
-    <properties>
-    </properties>
-
     <dependencyManagement>
         <dependencies>
             <dependency>

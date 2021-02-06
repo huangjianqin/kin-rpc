@@ -12,9 +12,11 @@
     <version>0.1.0.0</version>
     <packaging>jar</packaging>
 
-    <properties>
-    </properties>
-
     <dependencies>
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-framework-java</artifactId>
+            <version>${kin-framework.version}</version>
+        </dependency>
     </dependencies>
 </project>
