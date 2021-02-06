@@ -14,7 +14,7 @@ public class RSocketServiceProvider {
                 Services.service(new RSocketServiceImpl(), RSocketService.class)
                         .version("001")
                         .actorLike();
-        serviceConfig.protocol(ProtocolType.RSocket);
+        serviceConfig.protocol(ProtocolType.RSOCKET);
         serviceConfig.exportSync();
     }
 }

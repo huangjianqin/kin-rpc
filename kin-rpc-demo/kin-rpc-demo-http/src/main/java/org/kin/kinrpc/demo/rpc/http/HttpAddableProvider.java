@@ -12,7 +12,7 @@ import org.kin.kinrpc.transport.ProtocolType;
 public class HttpAddableProvider {
     public static void main(String[] args) throws Exception {
         ServiceConfig<Addable> serviceConfig = AddableProvider.config();
-        serviceConfig.protocol(ProtocolType.Http);
+        serviceConfig.protocol(ProtocolType.HTTP);
         serviceConfig.exportSync();
     }
 }

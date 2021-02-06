@@ -48,7 +48,7 @@ public class ServiceConfig<T> extends AbstractConfig {
     /** 流控, 每秒最多处理多少个request */
     private int rate = Constants.PROVIDER_REQUEST_THRESHOLD;
     /** 协议类型 */
-    private ProtocolType protocolType = ProtocolType.KinRpc;
+    private ProtocolType protocolType = ProtocolType.KINRPC;
     /** 是否允许ssl */
     private boolean ssl;
     /** 额外参数, 主要用于支持不同协议层的额外配置 */
@@ -96,7 +96,7 @@ public class ServiceConfig<T> extends AbstractConfig {
 
         //kinrpc协议下, 检查暴露的服务接口的参数和返回值是否满足条件
         //其余兼容协议不做检查, 像grpc或者rsocket这种, 返回值和参数就是没有实现Serializable
-        if (ProtocolType.KinRpc.equals(protocolType)) {
+        if (ProtocolType.KINRPC.equals(protocolType)) {
             checkInterfaceClass();
         }
 

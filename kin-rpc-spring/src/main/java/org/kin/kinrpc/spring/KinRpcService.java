@@ -45,7 +45,7 @@ public @interface KinRpcService {
 
     int rate() default Constants.PROVIDER_REQUEST_THRESHOLD;
 
-    ProtocolType protocolType() default ProtocolType.KinRpc;
+    ProtocolType protocolType() default ProtocolType.KINRPC;
 
     boolean ssl() default false;
 

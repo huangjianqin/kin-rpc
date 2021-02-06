@@ -8,22 +8,22 @@ public enum ProtocolType {
     /**
      * 基于netty tcp的自研发传输层
      */
-    KinRpc,
+    KINRPC,
     /**
      * 基于json rpc
      */
-    Http,
+    HTTP,
     /**
      * 基于grpc
      */
-    Grpc,
+    GRPC,
     /**
      * 在同一jvm内部直接调用
      */
-    Jvm,
+    JVM,
     /**
      * 基于rsocket
      */
-    RSocket;
+    RSOCKET;
 
 }

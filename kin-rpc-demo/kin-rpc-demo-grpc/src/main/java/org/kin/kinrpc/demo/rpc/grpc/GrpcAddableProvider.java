@@ -14,7 +14,7 @@ public class GrpcAddableProvider {
                 Services.service(new GrpcServiceImpl(), KinRpcGrpcServiceGrpc.GrpcService.class)
                         .version("001")
                         .actorLike();
-        serviceConfig.protocol(ProtocolType.Grpc);
+        serviceConfig.protocol(ProtocolType.GRPC);
         serviceConfig.exportSync();
     }
 }
