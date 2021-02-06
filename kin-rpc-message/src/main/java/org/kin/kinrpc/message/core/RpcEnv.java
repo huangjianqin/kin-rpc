@@ -73,7 +73,7 @@ public final class RpcEnv {
             "rpc-message", 2, "rpc-message-scheduler");
 
     /** 事件调度 */
-    private Dispatcher<String, RpcCallContext> dispatcher;
+    private Dispatcher<String, MessagePostContext> dispatcher;
     private final KinRpcAddress address;
     /** 序列化方式 */
     private final Serializer serializer;
@@ -379,10 +379,10 @@ public final class RpcEnv {
      * 分派并处理接受到的消息
      */
     public void postMessage(Channel channel, RpcMessage message) {
-        RpcCallContext rpcCallContext =
-                new RpcCallContext(this, message.getFromAddress(), channel, message.getTo(), message.getMessage(), message.getRequestId(), message.getCreateTime());
-        rpcCallContext.setEventTime(System.currentTimeMillis());
-        dispatcher.postMessage(message.getTo().getEndpointAddress().getName(), rpcCallContext);
+        MessagePostContext messagePostContext =
+                new MessagePostContext(this, message.getFromAddress(), channel, message.getTo(), message.getMessage(), message.getRequestId(), message.getCreateTime());
+        messagePostContext.setEventTime(System.currentTimeMillis());
+        dispatcher.postMessage(message.getTo().getEndpointAddress().getName(), messagePostContext);
     }
 
     public RpcEndpointRef createEndpointRef(String host, int port, String receiverName) {
@@ -481,7 +481,7 @@ public final class RpcEnv {
     /**
      * dispatcher
      */
-    public Dispatcher<String, RpcCallContext> dispatcher() {
+    public Dispatcher<String, MessagePostContext> dispatcher() {
         return dispatcher;
     }
 
@@ -538,10 +538,10 @@ public final class RpcEnv {
             InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
             KinRpcAddress clientAddr = KinRpcAddress.of(remoteAddress.getHostName(), remoteAddress.getPort());
             ClientConnected clientConnected = ClientConnected.of(clientAddr);
-            RpcCallContext rpcCallContext =
-                    new RpcCallContext(RpcEnv.this, clientAddr, channel, clientConnected);
+            MessagePostContext messagePostContext =
+                    new MessagePostContext(RpcEnv.this, clientAddr, channel, clientConnected);
             //分派
-            dispatcher.post2All(rpcCallContext);
+            dispatcher.post2All(messagePostContext);
         }
 
         @Override
@@ -558,10 +558,10 @@ public final class RpcEnv {
             KinRpcAddress remoteBindAddr = clientAddr2RemoteBindAddr.remove(clientAddr);
             if (Objects.nonNull(remoteBindAddr)) {
                 ClientDisconnected clientDisconnected = ClientDisconnected.of(remoteBindAddr);
-                RpcCallContext rpcCallContext =
-                        new RpcCallContext(RpcEnv.this, remoteBindAddr, channel, clientDisconnected);
+                MessagePostContext messagePostContext =
+                        new MessagePostContext(RpcEnv.this, remoteBindAddr, channel, clientDisconnected);
                 //分派
-                dispatcher.post2All(rpcCallContext);
+                dispatcher.post2All(messagePostContext);
             }
         }
     }

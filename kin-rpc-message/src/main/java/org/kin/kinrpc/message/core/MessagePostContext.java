@@ -13,7 +13,7 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2020-06-08
  */
-public final class RpcCallContext {
+public final class MessagePostContext {
     /** rpc环境 */
     private RpcEnv rpcEnv;
     /** sender地址 */
@@ -33,7 +33,7 @@ public final class RpcCallContext {
     /** 消息处理时间 */
     private long handleTime;
 
-    public RpcCallContext(RpcEnv rpcEnv, KinRpcAddress fromAddress, Channel channel, RpcEndpointRef to, Serializable message, long requestId, long createTime) {
+    public MessagePostContext(RpcEnv rpcEnv, KinRpcAddress fromAddress, Channel channel, RpcEndpointRef to, Serializable message, long requestId, long createTime) {
         this.rpcEnv = rpcEnv;
         this.fromAddress = fromAddress;
         this.channel = channel;
@@ -43,7 +43,7 @@ public final class RpcCallContext {
         this.createTime = createTime;
     }
 
-    public RpcCallContext(RpcEnv rpcEnv, KinRpcAddress address, Channel channel, Serializable message) {
+    public MessagePostContext(RpcEnv rpcEnv, KinRpcAddress address, Channel channel, Serializable message) {
         this(rpcEnv, address, channel, null, message, 0, System.currentTimeMillis());
     }
 
