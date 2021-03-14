@@ -2,7 +2,7 @@ package org.kin.kinrpc.transport.kinrpc;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
-import org.kin.framework.concurrent.PinnedThreadExecutor;
+import org.kin.framework.concurrent.OrderedEventLoop;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.rpc.Invoker;
@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  * 可以作为多个服务的Server
  * Created by 健勤 on 2017/2/10.
  */
-public class KinRpcProvider extends PinnedThreadExecutor<KinRpcProvider> {
+public class KinRpcProvider extends OrderedEventLoop<KinRpcProvider> {
     private static final Logger log = LoggerFactory.getLogger(KinRpcProvider.class);
 
     /** 服务 */
@@ -52,11 +52,9 @@ public class KinRpcProvider extends PinnedThreadExecutor<KinRpcProvider> {
     private final ProviderHandler providerHandler;
     /** 服务器启动配置 */
     private final SocketTransportOption transportOption;
-    /** 标识是否stopped */
-    private volatile boolean isStopped = false;
 
     public KinRpcProvider(String host, int port, Serializer serializer, CompressionType compressionType, Map<ChannelOption, Object> options) {
-        super(RpcThreadPool.providerWorkers());
+        super(null, RpcThreadPool.providerWorkers());
         this.serializer = serializer;
 
         if (StringUtils.isNotBlank(host)) {
@@ -116,7 +114,7 @@ public class KinRpcProvider extends PinnedThreadExecutor<KinRpcProvider> {
      * 启动Server
      */
     public void bind() {
-        if (isStopped) {
+        if (isTerminated()) {
             throw new IllegalStateException("try start stopped provider");
         }
         receive(rpcProvider -> {
@@ -133,34 +131,28 @@ public class KinRpcProvider extends PinnedThreadExecutor<KinRpcProvider> {
      * 默认每个服务关闭都需要关闭Server
      * 但如果仍然有服务在此Server上提供服务,则仍然运行该Server
      */
+    @Override
     public void shutdown() {
-        if (!isStopped) {
-            shutdownNow();
+        if (!isTerminated()) {
+            receive(rpcProvider1 -> {
+                if (isTerminated()) {
+                    return;
+                }
+                if (this.providerHandler == null) {
+                    throw new IllegalStateException("Provider Server has not started");
+                }
+                log.info("server(port= " + getPort() + ") shutdowning...");
+
+                //让所有请求都拒绝返回时, 才关闭channel
+                receive(rpcProvider2 -> {
+                    //最后关闭连接
+                    providerHandler.close();
+                    super.shutdown();
+                    log.info("server connection close successfully");
+                });
+            });
         }
         log.warn("try shutdown stopped provider");
-    }
-
-    /**
-     * 不管3721,马上stop
-     */
-    public void shutdownNow() {
-        receive(rpcProvider1 -> {
-            if (isStopped) {
-                return;
-            }
-            if (this.providerHandler == null) {
-                throw new IllegalStateException("Provider Server has not started");
-            }
-            log.info("server(port= " + getPort() + ") shutdowning...");
-            isStopped = true;
-
-            //让所有请求都拒绝返回时, 才关闭channel
-            receive(rpcProvider2 -> {
-                //最后关闭连接
-                providerHandler.close();
-                log.info("server connection close successfully");
-            });
-        });
     }
 
     /**
@@ -289,7 +281,7 @@ public class KinRpcProvider extends PinnedThreadExecutor<KinRpcProvider> {
     }
 
     public boolean isAlive() {
-        return !isStopped && providerHandler.isActive();
+        return !isTerminated() && providerHandler.isActive();
     }
 
     public Collection<Url> getAvailableServices() {
@@ -316,14 +308,14 @@ public class KinRpcProvider extends PinnedThreadExecutor<KinRpcProvider> {
     /**
      * 类actor的invoker
      */
-    private class InvokerWrapper extends PinnedThreadExecutor<InvokerWrapper> {
+    private class InvokerWrapper extends OrderedEventLoop<InvokerWrapper> {
         /** 包装的invoker */
         private final Invoker invoker;
         /** invoker invoke方式, 并发或者类actor */
         private final boolean parallelism;
 
         public InvokerWrapper(Invoker invoker) {
-            super(RpcThreadPool.providerWorkers());
+            super(null, RpcThreadPool.providerWorkers());
             this.invoker = invoker;
             this.parallelism = invoker.url().getBooleanParam(Constants.PARALLELISM_KEY);
         }
