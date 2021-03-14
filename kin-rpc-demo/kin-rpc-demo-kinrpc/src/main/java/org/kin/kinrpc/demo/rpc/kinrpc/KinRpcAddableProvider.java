@@ -1,5 +1,6 @@
 package org.kin.kinrpc.demo.rpc.kinrpc;
 
+import org.kin.framework.JvmCloseCleaner;
 import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.demo.rpc.Addable;
 import org.kin.kinrpc.demo.rpc.AddableProvider;
@@ -11,5 +12,7 @@ public class KinRpcAddableProvider {
     public static void main(String[] args) throws Exception {
         ServiceConfig<Addable> serviceConfig = AddableProvider.config();
         serviceConfig.exportSync();
+
+        JvmCloseCleaner.DEFAULT().add(serviceConfig::disable);
     }
 }

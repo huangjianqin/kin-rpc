@@ -2,12 +2,16 @@ package org.kin.kinrpc.transport.kinrpc;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
-import org.kin.framework.concurrent.OrderedEventLoop;
+import org.kin.framework.JvmCloseCleaner;
+import org.kin.framework.concurrent.EventLoop;
+import org.kin.framework.concurrent.EventLoopGroup;
+import org.kin.framework.concurrent.SingleThreadEventLoop;
+import org.kin.framework.concurrent.SingleThreadEventLoopGroup;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
+import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.rpc.Invoker;
 import org.kin.kinrpc.rpc.RpcServiceContext;
-import org.kin.kinrpc.rpc.RpcThreadPool;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.SslConfig;
 import org.kin.kinrpc.rpc.common.Url;
@@ -38,12 +42,18 @@ import java.util.stream.Collectors;
  * 可以作为多个服务的Server
  * Created by 健勤 on 2017/2/10.
  */
-public class KinRpcProvider extends OrderedEventLoop<KinRpcProvider> {
+@SuppressWarnings("rawtypes")
+public class KinRpcProvider {
     private static final Logger log = LoggerFactory.getLogger(KinRpcProvider.class);
+    /** provider 服务逻辑执行线程池 */
+    private static final EventLoopGroup<SingleThreadEventLoop> PROVIDER_WORKER = new SingleThreadEventLoopGroup(SysUtils.getSuitableThreadNum(), "rpc-provider");
+
+    static {
+        JvmCloseCleaner.DEFAULT().add(PROVIDER_WORKER::shutdown);
+    }
 
     /** 服务 */
     private final Map<String, InvokerWrapper> services = new ConcurrentHashMap<>();
-
     /** 绑定地址 */
     protected final InetSocketAddress address;
     /** 序列化方式 */
@@ -52,9 +62,12 @@ public class KinRpcProvider extends OrderedEventLoop<KinRpcProvider> {
     private final ProviderHandler providerHandler;
     /** 服务器启动配置 */
     private final SocketTransportOption transportOption;
+    /** 与该provider绑定的event loop */
+    private final EventLoop<SingleThreadEventLoop> loop;
+    /** 是否stopped */
+    private volatile boolean stopped;
 
     public KinRpcProvider(String host, int port, Serializer serializer, CompressionType compressionType, Map<ChannelOption, Object> options) {
-        super(null, RpcThreadPool.providerWorkers());
         this.serializer = serializer;
 
         if (StringUtils.isNotBlank(host)) {
@@ -63,6 +76,7 @@ public class KinRpcProvider extends OrderedEventLoop<KinRpcProvider> {
             this.address = new InetSocketAddress(port);
         }
 
+        this.loop = PROVIDER_WORKER.next();
         this.providerHandler = new ProviderHandler();
 
         SocketTransportOption.SocketServerTransportOptionBuilder builder = Transports.socket().server()
@@ -84,7 +98,7 @@ public class KinRpcProvider extends OrderedEventLoop<KinRpcProvider> {
      * 支持动态添加服务
      */
     public <T> void addService(Invoker<T> proxy) {
-        receive((rpcProvider) -> {
+        loop.receive((e) -> {
             if (isAlive()) {
                 Url url = proxy.url();
                 String serviceKey = url.getServiceKey();
@@ -104,7 +118,7 @@ public class KinRpcProvider extends OrderedEventLoop<KinRpcProvider> {
      * 支持动态移除服务
      */
     public void disableService(Url url) {
-        receive(rpcProvider -> {
+        loop.receive(e -> {
             String serviceKey = url.getServiceKey();
             services.remove(serviceKey);
         });
@@ -114,10 +128,10 @@ public class KinRpcProvider extends OrderedEventLoop<KinRpcProvider> {
      * 启动Server
      */
     public void bind() {
-        if (isTerminated()) {
+        if (isShutdown()) {
             throw new IllegalStateException("try start stopped provider");
         }
-        receive(rpcProvider -> {
+        loop.receive(e -> {
             log.info("provider(port={}) starting...", getPort());
 
             //启动连接
@@ -131,28 +145,56 @@ public class KinRpcProvider extends OrderedEventLoop<KinRpcProvider> {
      * 默认每个服务关闭都需要关闭Server
      * 但如果仍然有服务在此Server上提供服务,则仍然运行该Server
      */
-    @Override
     public void shutdown() {
-        if (!isTerminated()) {
-            receive(rpcProvider1 -> {
-                if (isTerminated()) {
-                    return;
-                }
+        if (!isShutdown()) {
+            stopped = true;
+            loop.receive(e1 -> {
                 if (this.providerHandler == null) {
                     throw new IllegalStateException("Provider Server has not started");
                 }
+
                 log.info("server(port= " + getPort() + ") shutdowning...");
 
                 //让所有请求都拒绝返回时, 才关闭channel
-                receive(rpcProvider2 -> {
+                loop.receive(e2 -> {
                     //最后关闭连接
                     providerHandler.close();
-                    super.shutdown();
                     log.info("server connection close successfully");
                 });
             });
         }
         log.warn("try shutdown stopped provider");
+    }
+
+
+    /**
+     * @return 是否shutdown
+     */
+    public boolean isShutdown() {
+        return stopped;
+    }
+
+    /**
+     * provider 空闲 shutdown
+     *
+     * @param other 额外的处理逻辑
+     */
+    public void idleShutdown(Runnable other) {
+        if (isShutdown()) {
+            return;
+        }
+        loop.receive(e -> {
+            if (isBusy()) {
+                return;
+            }
+            if (isShutdown()) {
+                return;
+            }
+            shutdown();
+            if (Objects.nonNull(other)) {
+                other.run();
+            }
+        });
     }
 
     /**
@@ -176,10 +218,10 @@ public class KinRpcProvider extends OrderedEventLoop<KinRpcProvider> {
                 InvokerWrapper invokerWrapper = services.get(serviceKey);
                 if (invokerWrapper.parallelism) {
                     //并发处理
-                    RpcThreadPool.providerWorkers().execute(() -> handlerRpcRequest0(invokerWrapper.getInvoker(), methodName, params, channel, rpcRequest, rpcResponse));
+                    PROVIDER_WORKER.execute(() -> handlerRpcRequest0(invokerWrapper.invoker, methodName, params, channel, rpcRequest, rpcResponse));
                 } else {
                     //同一invoker同一线程处理
-                    invokerWrapper.receive(iw -> handlerRpcRequest0(invokerWrapper.getInvoker(), methodName, params, channel, rpcRequest, rpcResponse));
+                    invokerWrapper.eventLoop.receive(e -> handlerRpcRequest0(invokerWrapper.invoker, methodName, params, channel, rpcRequest, rpcResponse));
                 }
             } else {
                 log.error("can not find service>>> {}", rpcRequest);
@@ -243,14 +285,16 @@ public class KinRpcProvider extends OrderedEventLoop<KinRpcProvider> {
             try {
                 return future.get();
             } catch (Exception e) {
-                ExceptionUtils.throwExt(e);
+                if (!(e instanceof InterruptedException)) {
+                    ExceptionUtils.throwExt(e);
+                }
             }
             return null;
-        }, RpcThreadPool.providerWorkers()).thenAcceptAsync(obj -> {
+        }, PROVIDER_WORKER).thenAcceptAsync(obj -> {
             rpcResponse.setState(RpcResponse.State.SUCCESS, "success");
 
             responseRpcCall(obj, channel, rpcRequest, rpcResponse);
-        }, RpcThreadPool.providerWorkers()).exceptionally(th -> {
+        }, PROVIDER_WORKER).exceptionally(th -> {
             if (th instanceof RateLimitException) {
                 rpcResponse.setState(RpcResponse.State.RETRY, "service rate limited, just reject");
             } else {
@@ -276,14 +320,24 @@ public class KinRpcProvider extends OrderedEventLoop<KinRpcProvider> {
     }
 
     //--------------------------------------------------------------------------------------------------------------
+
+    /**
+     * 端口绑定没有断开 && 仍然可以对外提供服务(有服务绑定到该端口)
+     */
     public boolean isBusy() {
         return isAlive() && !services.isEmpty();
     }
 
+    /**
+     * @return 端口绑定是否断开
+     */
     public boolean isAlive() {
-        return !isTerminated() && providerHandler.isActive();
+        return !isShutdown() && providerHandler.isActive();
     }
 
+    /**
+     * @return 可提供的服务
+     */
     public Collection<Url> getAvailableServices() {
         if (!isAlive()) {
             return Collections.emptyList();
@@ -291,6 +345,7 @@ public class KinRpcProvider extends OrderedEventLoop<KinRpcProvider> {
         return services.values().stream().map(InvokerWrapper::getUrl).collect(Collectors.toList());
     }
 
+    //getter
     public String getHost() {
         return address.getHostName();
     }
@@ -308,29 +363,23 @@ public class KinRpcProvider extends OrderedEventLoop<KinRpcProvider> {
     /**
      * 类actor的invoker
      */
-    private class InvokerWrapper extends OrderedEventLoop<InvokerWrapper> {
+    private class InvokerWrapper {
         /** 包装的invoker */
         private final Invoker invoker;
         /** invoker invoke方式, 并发或者类actor */
         private final boolean parallelism;
+        /** 与服务绑定的event loop */
+        private final EventLoop<SingleThreadEventLoop> eventLoop;
 
         public InvokerWrapper(Invoker invoker) {
-            super(null, RpcThreadPool.providerWorkers());
             this.invoker = invoker;
             this.parallelism = invoker.url().getBooleanParam(Constants.PARALLELISM_KEY);
+            this.eventLoop = PROVIDER_WORKER.next();
         }
 
         //getter
         public Url getUrl() {
             return invoker.url();
-        }
-
-        public Invoker getInvoker() {
-            return invoker;
-        }
-
-        public boolean isParallelism() {
-            return parallelism;
         }
     }
 
@@ -365,6 +414,9 @@ public class KinRpcProvider extends OrderedEventLoop<KinRpcProvider> {
 
         @Override
         protected void handleRpcRequestProtocol(Channel channel, KinRpcRequestProtocol requestProtocol) {
+            if (isShutdown()) {
+                return;
+            }
             long requestId = requestProtocol.getRequestId();
             byte serializerType = requestProtocol.getSerializer();
             byte[] data = requestProtocol.getReqContent();
@@ -394,7 +446,7 @@ public class KinRpcProvider extends OrderedEventLoop<KinRpcProvider> {
             }
 
             RpcRequest finalRpcRequest = rpcRequest;
-            KinRpcProvider.this.receive(rpcProvider -> handleRpcRequest(finalRpcRequest, channel));
+            KinRpcProvider.this.loop.receive(e -> handleRpcRequest(finalRpcRequest, channel));
         }
     }
 }

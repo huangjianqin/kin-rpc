@@ -54,7 +54,7 @@ public final class KinRpcProtocol implements Protocol, LoggerOprs {
                 try {
                     provider0.bind();
                 } catch (Exception e) {
-                    provider0.shutdownNow();
+                    provider0.shutdown();
                     throw e;
                 }
 
@@ -88,13 +88,7 @@ public final class KinRpcProtocol implements Protocol, LoggerOprs {
         KinRpcProvider provider = PROVIDER_CACHE.getIfPresent(url.getPort());
         if (Objects.nonNull(provider)) {
             provider.disableService(url);
-            provider.receive((p) -> {
-                if (!p.isBusy()) {
-                    //该端口没有提供服务, 关闭网络连接
-                    p.shutdown();
-                    PROVIDER_CACHE.invalidate(url.getPort());
-                }
-            });
+            provider.idleShutdown(() -> PROVIDER_CACHE.invalidate(url.getPort()));
         }
     }
 
