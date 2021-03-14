@@ -23,7 +23,7 @@ public @interface KinRpcService {
 
     String host() default "0.0.0.0";
 
-    int port() default Constants.SERVER_DEFAULT_PORT;
+    int port() default 0;
 
     Class<?> interfaceClass();
 

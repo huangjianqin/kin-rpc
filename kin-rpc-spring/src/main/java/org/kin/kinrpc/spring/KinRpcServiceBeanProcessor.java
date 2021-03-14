@@ -6,6 +6,7 @@ import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.config.AbstractRegistryConfig;
 import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.config.Services;
+import org.kin.kinrpc.rpc.common.Constants;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
@@ -29,8 +30,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @SuppressWarnings("rawtypes")
 final class KinRpcServiceBeanProcessor implements BeanPostProcessor, ApplicationListener<ContextClosedEvent>,
         ApplicationContextAware, ApplicationEventPublisherAware, LoggerOprs, DisposableBean {
+    /** spring application name */
     @Value("${spring.application.name:kinrpc}")
     private String springAppName;
+    /** spring boot server port */
+    @Value("${server.port:0}")
+    private int springServerPort;
 
     private ApplicationContext applicationContext;
     private ApplicationEventPublisher applicationEventPublisher;
@@ -105,10 +110,23 @@ final class KinRpcServiceBeanProcessor implements BeanPostProcessor, Application
             serializerCode = serviceAnno.serializerType().getCode();
         }
 
+        //解析服务绑定端口
+        //1. developer custom
+        int port = serviceAnno.port();
+        if (port <= 0) {
+            if (springServerPort > 0) {
+                //2. sprint boot server port
+                port = springServerPort;
+            } else {
+                //3. default port
+                port = Constants.SERVER_DEFAULT_PORT;
+            }
+        }
+
         //注入配置
         ServiceConfig serviceConfig = Services.service(bean, interfaceClass)
                 .appName(appName)
-                .bind(serviceAnno.host(), serviceAnno.port())
+                .bind(serviceAnno.host(), port)
                 .serviceName(serviceName)
                 .version(serviceAnno.version())
                 .serializer(serializerCode)
