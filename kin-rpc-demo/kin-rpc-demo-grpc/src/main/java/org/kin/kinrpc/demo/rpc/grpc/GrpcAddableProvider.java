@@ -1,5 +1,6 @@
 package org.kin.kinrpc.demo.rpc.grpc;
 
+import org.kin.framework.JvmCloseCleaner;
 import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.config.Services;
 import org.kin.kinrpc.transport.ProtocolType;
@@ -16,5 +17,7 @@ public class GrpcAddableProvider {
                         .actorLike();
         serviceConfig.protocol(ProtocolType.GRPC);
         serviceConfig.exportSync();
+
+        JvmCloseCleaner.DEFAULT().add(serviceConfig::disable);
     }
 }

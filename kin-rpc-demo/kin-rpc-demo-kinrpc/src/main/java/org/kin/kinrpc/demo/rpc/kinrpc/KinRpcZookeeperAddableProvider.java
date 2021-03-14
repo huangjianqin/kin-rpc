@@ -1,5 +1,6 @@
 package org.kin.kinrpc.demo.rpc.kinrpc;
 
+import org.kin.framework.JvmCloseCleaner;
 import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.config.Services;
 import org.kin.kinrpc.config.ZookeeperRegistryConfig;
@@ -17,5 +18,7 @@ public class KinRpcZookeeperAddableProvider {
                         .serviceName("test/Add")
                         .registry(ZookeeperRegistryConfig.create("127.0.0.1:2181").build());
         serviceConfig.exportSync();
+
+        JvmCloseCleaner.DEFAULT().add(serviceConfig::disable);
     }
 }

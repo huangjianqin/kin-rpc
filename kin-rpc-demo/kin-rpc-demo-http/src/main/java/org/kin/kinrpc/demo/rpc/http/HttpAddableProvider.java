@@ -1,5 +1,6 @@
 package org.kin.kinrpc.demo.rpc.http;
 
+import org.kin.framework.JvmCloseCleaner;
 import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.demo.rpc.Addable;
 import org.kin.kinrpc.demo.rpc.AddableProvider;
@@ -14,5 +15,7 @@ public class HttpAddableProvider {
         ServiceConfig<Addable> serviceConfig = AddableProvider.config();
         serviceConfig.protocol(ProtocolType.HTTP);
         serviceConfig.exportSync();
+
+        JvmCloseCleaner.DEFAULT().add(serviceConfig::disable);
     }
 }

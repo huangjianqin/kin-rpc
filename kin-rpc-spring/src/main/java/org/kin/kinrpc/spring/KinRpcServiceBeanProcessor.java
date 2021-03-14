@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author huangjianqin
  * @date 2020/12/12
  */
+@SuppressWarnings("rawtypes")
 final class KinRpcServiceBeanProcessor implements BeanPostProcessor, ApplicationListener<ContextClosedEvent>,
         ApplicationContextAware, ApplicationEventPublisherAware, LoggerOprs, DisposableBean {
     @Value("${spring.application.name:kinrpc}")
