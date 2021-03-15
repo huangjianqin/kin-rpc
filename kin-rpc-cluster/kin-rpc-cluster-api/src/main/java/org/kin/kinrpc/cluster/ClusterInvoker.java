@@ -49,7 +49,7 @@ abstract class ClusterInvoker<T> implements Closeable {
         Map<Class<?>, Notifier<?>> returnType2Notifier = new HashMap<>();
 
         for (Notifier<?> notifier : notifiers) {
-            List<Class<?>> returnTypes = ClassUtils.getSuperInterfacesGenericActualTypes(Notifier.class, notifier.getClass());
+            List<Class<?>> returnTypes = ClassUtils.getSuperInterfacesGenericRawTypes(Notifier.class, notifier.getClass());
             returnType2Notifier.put(returnTypes.get(0), notifier);
         }
 
