@@ -32,6 +32,7 @@ public class KinRpcInvocation {
     public KinRpcInvocation(RpcRequest request) {
         this.request = request;
         this.startTime = System.currentTimeMillis();
+        //root future是由netty event loop complete, 故此处需要切换到RpcThreadPool.executors()线程处理
         future = rootFuture.thenApplyAsync(this::handleResult, RpcThreadPool.executors());
     }
 

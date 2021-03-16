@@ -46,7 +46,8 @@ import java.util.stream.Collectors;
 public class KinRpcProvider {
     private static final Logger log = LoggerFactory.getLogger(KinRpcProvider.class);
     /** provider 服务逻辑执行线程池 */
-    private static final EventLoopGroup<SingleThreadEventLoop> PROVIDER_WORKER = new SingleThreadEventLoopGroup(SysUtils.getSuitableThreadNum(), "rpc-provider");
+    private static final EventLoopGroup<SingleThreadEventLoop> PROVIDER_WORKER =
+            new SingleThreadEventLoopGroup(SysUtils.getSuitableThreadNum(), "rpc-provider");
 
     static {
         JvmCloseCleaner.DEFAULT().add(PROVIDER_WORKER::shutdown);

@@ -66,13 +66,14 @@ abstract class ClusterInvoker<T> implements Closeable {
     /**
      * async rpc call
      */
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public CompletableFuture<?> invokeAsync(String methodName, Class<?> returnType, Object... params) {
         ClusterInvocation clusterInvocation = new ClusterInvocation();
         invoke0(clusterInvocation, methodName, params);
 
         if (isAsync()) {
             //触发notifier
-            clusterInvocation.consumer.thenAcceptAsync(obj -> {
+            clusterInvocation.consumer.thenAccept(obj -> {
                 Notifier notifier = getNotifier(returnType);
                 if (Objects.nonNull(notifier)) {
                     Class<?> rpcCallResultType = obj.getClass();
@@ -83,7 +84,7 @@ abstract class ClusterInvoker<T> implements Closeable {
                         notifier.onRpcCallSuc(obj);
                     }
                 }
-            }, RpcThreadPool.executors());
+            });
         }
         return clusterInvocation.consumer;
     }
@@ -116,9 +117,10 @@ abstract class ClusterInvoker<T> implements Closeable {
         AsyncInvoker<T> invoker = cluster.get(clusterInvocation.failureHostAndPorts);
         if (invoker != null) {
             //rpc call 返回结果 provier future
+            //provider需要保证CompletableFuture stage已经在RpcThreadPool.executors()上执行
             CompletableFuture<Object> provider = invoker.invokeAsync(methodName, params);
             clusterInvocation.rpcCall(invoker);
-            provider.thenAcceptAsync(clusterInvocation::done, RpcThreadPool.executors())
+            provider.thenAccept(clusterInvocation::done)
                     .exceptionally(throwable -> {
                         if (clusterInvocation.failure()) {
                             RpcThreadPool.executors().schedule(

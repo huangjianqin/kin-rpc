@@ -6,7 +6,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
-import org.kin.kinrpc.rpc.RpcThreadPool;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.SslConfig;
 import org.kin.kinrpc.rpc.common.Url;
@@ -97,7 +96,7 @@ public class KinRpcReference {
      */
     public CompletableFuture<Object> request(RpcRequest request) {
         KinRpcInvocation invocation = new KinRpcInvocation(request);
-        CompletableFuture<Object> future = invocation.getFuture().thenApplyAsync(obj -> {
+        CompletableFuture<Object> future = invocation.getFuture().thenApply(obj -> {
             removeInvalid(request);
             //此处才抛出异常, 因为KinRpcInvocation内部需要记录一下信息
             if (obj instanceof Throwable) {
@@ -105,7 +104,7 @@ public class KinRpcReference {
             }
             //返回服务接口结果
             return obj;
-        }, RpcThreadPool.executors());
+        });
         if (!isActive()) {
             invocation.done(new RpcCallErrorException("client channel closed"));
             return future;
