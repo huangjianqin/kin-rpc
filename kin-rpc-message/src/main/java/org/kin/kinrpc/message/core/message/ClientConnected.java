@@ -8,7 +8,7 @@ import java.io.Serializable;
  * @author huangjianqin
  * @date 2020/8/2
  */
-public class ClientConnected implements Serializable {
+public final class ClientConnected implements Serializable {
     private static final long serialVersionUID = -2958636572550283276L;
 
     private KinRpcAddress rpcAddress;

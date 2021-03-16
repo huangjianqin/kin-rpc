@@ -15,7 +15,7 @@ import java.util.Objects;
  * @date 2020-06-08
  */
 public abstract class RpcEndpoint extends Receiver<MessagePostContext> {
-    private static final Logger msgLog = LoggerFactory.getLogger(RpcEndpoint.class);
+    private static final Logger log = LoggerFactory.getLogger(RpcEndpoint.class);
     /** rpc环境 */
     protected final RpcEnv rpcEnv;
 
@@ -43,7 +43,7 @@ public abstract class RpcEndpoint extends Receiver<MessagePostContext> {
         //log 一些消息日志
         KinRpcAddress fromAddress = context.getFromAddress();
         RpcEndpointRef to = context.getTo();
-        msgLog.info("receive message from {} to {}({}), {}-{}-{}-{}-{}",
+        log.debug("receive message from {} to {}({}), {}-{}-{}-{}-{}",
                 fromAddress.address(),
                 Objects.nonNull(to) ? to.getEndpointAddress().getName() : "internal",
                 Objects.nonNull(to) ? to.getEndpointAddress().getRpcAddress().address() : "internal",

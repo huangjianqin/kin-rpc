@@ -132,7 +132,9 @@ public final class TransportClient {
     }
 
     //------------------------------------------------------------------------------------------------------------------
+    @SuppressWarnings("rawtypes")
     private class RpcEndpointRefHandlerImpl extends KinRpcEndpointRefHandler {
+        @SuppressWarnings("unchecked")
         @Override
         protected void handleRpcResponseProtocol(KinRpcResponseProtocol responseProtocol) {
             byte serializerType = responseProtocol.getSerializer();
