@@ -173,7 +173,7 @@ final class KinRpcAnnoUtils {
                 .version(annoAttrs.getString("version"))
                 .retry(annoAttrs.getNumber("retryTimes"))
                 .retryTimeout(annoAttrs.getNumber("retryInterval"))
-                .rate(annoAttrs.getNumber("rate"))
+                .tps(annoAttrs.getNumber("tps"))
                 .notify((Class<? extends Notifier<?>>[]) annoAttrs.getClassArray("notifiers"))
                 .callTimeout(annoAttrs.getNumber("callTimeout"));
 

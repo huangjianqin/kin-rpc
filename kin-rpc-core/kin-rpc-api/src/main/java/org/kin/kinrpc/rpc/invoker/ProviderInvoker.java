@@ -4,7 +4,7 @@ import com.google.common.util.concurrent.RateLimiter;
 import org.kin.kinrpc.rpc.RpcUtils;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
-import org.kin.kinrpc.rpc.exception.RateLimitException;
+import org.kin.kinrpc.rpc.exception.TpsLimitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,22 +19,22 @@ public abstract class ProviderInvoker<T> extends AbstractInvoker<T> {
     /** 服务实现类实例 */
     protected T serivce;
     /** 流控 */
-    private RateLimiter rateLimiter;
+    private RateLimiter tpsLimiter;
 
     protected ProviderInvoker(Url url, Class<T> interfaceC, T serivce) {
         super(url);
         this.interfaceC = interfaceC;
         this.serivce = serivce;
-        int rate = url.getIntParam(Constants.RATE_KEY);
-        rateLimiter = RateLimiter.create(rate);
+        int tps = url.getIntParam(Constants.TPS_KEY);
+        tpsLimiter = RateLimiter.create(tps);
     }
 
     @Override
     public final Object invoke(String methodName, Object[] params) throws Throwable {
         log.debug("service '{}' method '{}' invoking...", getServiceKey(), methodName);
         //流控
-        if (!rateLimiter.tryAcquire()) {
-            throw new RateLimitException(RpcUtils.generateInvokeMsg(getServiceKey(), methodName, params));
+        if (!tpsLimiter.tryAcquire()) {
+            throw new TpsLimitException(RpcUtils.generateInvokeMsg(getServiceKey(), methodName, params));
         }
         return doInvoke(methodName, params);
     }
@@ -54,7 +54,7 @@ public abstract class ProviderInvoker<T> extends AbstractInvoker<T> {
      */
     public final void setRate(double rate) {
         if (rate > 0) {
-            rateLimiter.setRate(rate);
+            tpsLimiter.setRate(rate);
         }
     }
 
@@ -62,7 +62,7 @@ public abstract class ProviderInvoker<T> extends AbstractInvoker<T> {
      * @return 流控量
      */
     public final double getRate() {
-        return rateLimiter.getRate();
+        return tpsLimiter.getRate();
     }
 
     public final T getSerivce() {

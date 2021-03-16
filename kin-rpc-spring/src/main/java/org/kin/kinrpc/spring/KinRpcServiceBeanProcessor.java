@@ -131,7 +131,7 @@ final class KinRpcServiceBeanProcessor implements BeanPostProcessor, Application
                 .version(serviceAnno.version())
                 .serializer(serializerCode)
                 .compress(serviceAnno.compressionType())
-                .rate(serviceAnno.rate())
+                .tps(serviceAnno.tps())
                 .protocol(serviceAnno.protocolType());
 
         //寻找注册中心

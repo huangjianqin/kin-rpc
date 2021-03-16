@@ -43,7 +43,7 @@ public @interface KinRpcService {
 
     boolean parallelism() default true;
 
-    int rate() default Constants.PROVIDER_REQUEST_THRESHOLD;
+    int tps() default Constants.PROVIDER_DEFAULT_TPS;
 
     ProtocolType protocolType() default ProtocolType.KINRPC;
 

@@ -18,7 +18,7 @@ public class AddableReference {
                 .async()
                 .notify(Return1Notifier.N, Return2Notifier.N)
                 .callTimeout(2000)
-                .rate(10000);
+                .tps(10000);
     }
 
     public static void roundTest(ReferenceConfig<Addable> config) throws Exception {

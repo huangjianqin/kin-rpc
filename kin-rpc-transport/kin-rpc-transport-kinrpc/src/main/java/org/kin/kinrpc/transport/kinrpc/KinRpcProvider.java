@@ -15,8 +15,8 @@ import org.kin.kinrpc.rpc.RpcServiceContext;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.SslConfig;
 import org.kin.kinrpc.rpc.common.Url;
-import org.kin.kinrpc.rpc.exception.RateLimitException;
-import org.kin.kinrpc.rpc.invoker.RateLimitInvoker;
+import org.kin.kinrpc.rpc.exception.TpsLimitException;
+import org.kin.kinrpc.rpc.invoker.TpsLimitInvoker;
 import org.kin.kinrpc.serializer.Serializer;
 import org.kin.kinrpc.serializer.Serializers;
 import org.kin.kinrpc.serializer.UnknownSerializerException;
@@ -103,7 +103,7 @@ public class KinRpcProvider {
             if (isAlive()) {
                 Url url = proxy.url();
                 String serviceKey = url.getServiceKey();
-                Invoker<T> invoker = new RateLimitInvoker<>(proxy);
+                Invoker<T> invoker = new TpsLimitInvoker<>(proxy);
 
                 if (!services.containsKey(serviceKey)) {
                     services.put(serviceKey, new InvokerWrapper(invoker));
@@ -267,8 +267,8 @@ public class KinRpcProvider {
                 return;
             }
             rpcResponse.setState(RpcResponse.State.SUCCESS, "success");
-        } catch (RateLimitException e) {
-            rpcResponse.setState(RpcResponse.State.RETRY, "service rate limited, just reject");
+        } catch (TpsLimitException e) {
+            rpcResponse.setState(RpcResponse.State.RETRY, "service tps limited, just reject");
         } catch (Throwable throwable) {
             //服务调用报错, 将异常信息返回
             rpcResponse.setState(RpcResponse.State.ERROR, throwable.getMessage());
@@ -296,8 +296,8 @@ public class KinRpcProvider {
 
             responseRpcCall(obj, channel, rpcRequest, rpcResponse);
         }, PROVIDER_WORKER).exceptionally(th -> {
-            if (th instanceof RateLimitException) {
-                rpcResponse.setState(RpcResponse.State.RETRY, "service rate limited, just reject");
+            if (th instanceof TpsLimitException) {
+                rpcResponse.setState(RpcResponse.State.RETRY, "service tps limited, just reject");
             } else {
                 //服务调用报错, 将异常信息返回
                 rpcResponse.setState(RpcResponse.State.ERROR, th.getMessage());

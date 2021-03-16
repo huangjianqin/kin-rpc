@@ -60,7 +60,7 @@ public @interface KinRpcReference {
 
     boolean byteCodeEnhance() default true;
 
-    int rate() default Constants.PROVIDER_REQUEST_THRESHOLD;
+    int tps() default Constants.PROVIDER_DEFAULT_TPS;
 
     boolean async() default false;
 

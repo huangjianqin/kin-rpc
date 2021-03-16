@@ -46,7 +46,7 @@ public class ServiceConfig<T> extends AbstractConfig {
     /** 默认支持并发执行 */
     private boolean parallelism = true;
     /** 流控, 每秒最多处理多少个request */
-    private int rate = Constants.PROVIDER_REQUEST_THRESHOLD;
+    private int tps = Constants.PROVIDER_DEFAULT_TPS;
     /** 协议类型 */
     private ProtocolType protocolType = ProtocolType.KINRPC;
     /** 是否允许ssl */
@@ -100,7 +100,7 @@ public class ServiceConfig<T> extends AbstractConfig {
             checkInterfaceClass();
         }
 
-        Preconditions.checkArgument(this.rate > 0, "rate must be greater than 0");
+        Preconditions.checkArgument(this.tps > 0, "tps must be greater than 0");
 
         this.applicationConfig.check();
         this.serverConfig.check();
@@ -146,7 +146,7 @@ public class ServiceConfig<T> extends AbstractConfig {
             params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(ProxyType.JAVASSIST.equals(proxyType)));
             params.put(Constants.COMPRESSION_KEY, Integer.toString(compressionType.getId()));
             params.put(Constants.PARALLELISM_KEY, parallelism + "");
-            params.put(Constants.RATE_KEY, rate + "");
+            params.put(Constants.TPS_KEY, tps + "");
             params.put(Constants.INTERFACE_KEY, interfaceClass.getName());
             params.put(Constants.SSL_ENABLED_KEY, Boolean.toString(ssl));
 
@@ -281,9 +281,9 @@ public class ServiceConfig<T> extends AbstractConfig {
         return this;
     }
 
-    public ServiceConfig<T> rate(int rate) {
+    public ServiceConfig<T> tps(int tps) {
         if (!isExport) {
-            this.rate = rate;
+            this.tps = tps;
         }
         return this;
     }
@@ -361,8 +361,8 @@ public class ServiceConfig<T> extends AbstractConfig {
         return parallelism;
     }
 
-    public int getRate() {
-        return rate;
+    public int getTps() {
+        return tps;
     }
 
     public ProtocolType getProtocolType() {

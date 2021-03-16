@@ -12,7 +12,7 @@ import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.Notifier;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
-import org.kin.kinrpc.rpc.exception.RateLimitException;
+import org.kin.kinrpc.rpc.exception.TpsLimitException;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -26,13 +26,13 @@ import java.util.concurrent.CompletableFuture;
  * @date 2019-09-09
  */
 class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
-    private Class<T> interfaceClass;
-    private int rate;
+    private final Class<T> interfaceClass;
+    private final int tps;
 
     public JavassistClusterInvoker(Cluster<T> cluster, Url url, Class<T> interfaceClass, List<Notifier<?>> notifiers) {
         super(cluster, url, notifiers);
         this.interfaceClass = interfaceClass;
-        this.rate = url.getIntParam(Constants.RATE_KEY);
+        this.tps = url.getIntParam(Constants.TPS_KEY);
     }
 
     public static <T> T proxy(Cluster<T> cluster, Url url, Class<T> interfaceClass, List<Notifier<?>> notifiers) {
@@ -127,7 +127,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
 
         sb.append("if(").append(Objects.class.getName()).append(".nonNull(").append(rateLimiterFieldName).append(") ")
                 .append("&& !").append(rateLimiterFieldName).append(".tryAcquire()){").append(System.lineSeparator())
-                .append("throw new ").append(RateLimitException.class.getName()).append("(\"")
+                .append("throw new ").append(TpsLimitException.class.getName()).append("(\"")
                 .append(interfaceClass.getName()).append("$").append(method.toString()).append("\");").append(System.lineSeparator())
                 .append("}");
         return sb.toString();
@@ -165,8 +165,8 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
                     invokerField.setModifiers(Modifier.PRIVATE | Modifier.FINAL);
                     proxyClass.addField(invokerField);
 
-                    String rateLimiterFieldName = "rateLimiter";
-                    CtField rateLimiterField = new CtField(classPool.get(RateLimiter.class.getName()), rateLimiterFieldName, proxyClass);
+                    String tpsLimiterFieldName = "tpsLimiter";
+                    CtField rateLimiterField = new CtField(classPool.get(RateLimiter.class.getName()), tpsLimiterFieldName, proxyClass);
                     rateLimiterField.setModifiers(Modifier.PRIVATE | Modifier.FINAL);
                     proxyClass.addField(rateLimiterField);
 
@@ -174,7 +174,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
                     CtConstructor constructor = new CtConstructor(
                             new CtClass[]{classPool.get(myClass.getName()), classPool.get(Double.TYPE.getName())}, proxyClass);
                     constructor.setBody("{$0.".concat(JavassistFactory.DEFAULT_INSTANCE_FIELD_NAME).concat(" = $1;")
-                            .concat("if($2 > 0){$0.".concat(rateLimiterFieldName).concat(" = ").concat(RateLimiter.class.getName()).concat(".create($2);}}")));
+                            .concat("if($2 > 0){$0.".concat(tpsLimiterFieldName).concat(" = ").concat(RateLimiter.class.getName()).concat(".create($2);}}")));
                     proxyClass.addConstructor(constructor);
 
                     //加载RpcCallReturnAdapters类
@@ -182,7 +182,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
                     //生成接口方法方法体
                     for (Method method : interfaceClass.getDeclaredMethods()) {
                         StringBuilder methodBody = new StringBuilder();
-                        methodBody.append(generateRateLimitBody(rateLimiterFieldName, method)).append(System.lineSeparator());
+                        methodBody.append(generateRateLimitBody(tpsLimiterFieldName, method)).append(System.lineSeparator());
                         methodBody.append(generateMethodBody(method)).append(System.lineSeparator());
 
                         Javassists.makeCtPublicFinalMethod(classPool, method, methodBody.toString(), proxyClass);
@@ -192,7 +192,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
 
                 realProxyClass = (Class<T>) proxyClass.toClass();
             }
-            return realProxyClass.getConstructor(myClass, Double.TYPE).newInstance(this, (double) rate);
+            return realProxyClass.getConstructor(myClass, Double.TYPE).newInstance(this, (double) tps);
         } catch (Exception e) {
             ExceptionUtils.throwExt(e);
         }

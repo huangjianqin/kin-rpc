@@ -5,7 +5,6 @@ import org.kin.framework.utils.ClassUtils;
 import org.kin.kinrpc.rpc.Notifier;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
-import org.kin.kinrpc.rpc.exception.RateLimitException;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -20,13 +19,13 @@ import java.util.concurrent.CompletableFuture;
  * @date 2019-09-09
  */
 final class JdkProxyClusterInvoker<T> extends ClusterInvoker<T> implements InvocationHandler {
-    private RateLimiter rateLimiter;
+    private RateLimiter tpsLimiter;
 
     public JdkProxyClusterInvoker(Cluster<T> cluster, Url url, List<Notifier<?>> notifiers) {
         super(cluster, url, notifiers);
-        int rate = url.getIntParam(Constants.RATE_KEY);
-        if (rate > 0) {
-            rateLimiter = RateLimiter.create(rate);
+        int tps = url.getIntParam(Constants.TPS_KEY);
+        if (tps > 0) {
+            tpsLimiter = RateLimiter.create(tps);
         }
     }
 
@@ -34,9 +33,10 @@ final class JdkProxyClusterInvoker<T> extends ClusterInvoker<T> implements Invoc
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         log.debug("invoke method '".concat(ClassUtils.getUniqueName(method)).concat("'"));
 
-        //限流
-        if (Objects.nonNull(rateLimiter) && !rateLimiter.tryAcquire()) {
-            throw new RateLimitException(proxy.getClass().getName().concat("$").concat(method.toString()));
+        //限流, 达到流量顶峰, 阻塞
+        while (Objects.nonNull(tpsLimiter) && !tpsLimiter.tryAcquire()) {
+            //50ms后重新尝试
+            Thread.sleep(50);
         }
 
         Class<?> returnType = method.getReturnType();

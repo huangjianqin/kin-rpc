@@ -23,7 +23,7 @@ public class Constants {
     /** 服务provider是否支持并发 */
     public static final String PARALLELISM_KEY = "parallelism";
     /** 服务provider流控 or 限流 */
-    public static final String RATE_KEY = "rate";
+    public static final String TPS_KEY = "tps";
     /** 注册中心类型 */
     public static final String REGISTRY_KEY = "registry";
     /** 注册中心地址 */
@@ -99,12 +99,12 @@ public class Constants {
      * provide默认流控
      * 每秒n次
      */
-    public static final int PROVIDER_REQUEST_THRESHOLD = Integer.MAX_VALUE;
+    public static final int PROVIDER_DEFAULT_TPS = Integer.MAX_VALUE;
     /**
      * reference默认限流
      * 每秒n次
      */
-    public static final int REFERENCE_REQUEST_THRESHOLD = Integer.MAX_VALUE;
+    public static final int REFERENCE_DEFAULT_TPS = Integer.MAX_VALUE;
     /**
      * 每秒所有请求访问量
      * 全局

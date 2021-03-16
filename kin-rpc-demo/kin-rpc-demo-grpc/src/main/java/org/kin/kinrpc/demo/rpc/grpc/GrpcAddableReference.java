@@ -19,7 +19,7 @@ public class GrpcAddableReference {
                 .async()
                 .notify(GrpcNotifier.N)
                 .callTimeout(2000)
-                .rate(10000);
+                .tps(10000);
         config.urls("grpc://0.0.0.0:16888");
         KinRpcGrpcServiceGrpc.GrpcService service = config.get();
         int count = 0;

@@ -15,7 +15,7 @@ public class RSocketServiceReference {
         ReferenceConfig<RSocketService> config = References.reference(RSocketService.class)
                 .version("001")
                 .callTimeout(2000)
-                .rate(10000);
+                .tps(10000);
         config.urls("rsocket://0.0.0.0:16888");
         RSocketService service = config.get();
 
