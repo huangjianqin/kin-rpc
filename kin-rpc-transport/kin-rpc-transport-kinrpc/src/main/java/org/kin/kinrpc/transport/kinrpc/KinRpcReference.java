@@ -121,15 +121,6 @@ public class KinRpcReference {
         return future;
     }
 
-    public void clean() {
-        for (KinRpcInvocation rpcFuture : invocations.values()) {
-            RpcRequest rpcRequest = rpcFuture.getRequest();
-            RpcResponse rpcResponse = RpcResponse.respWithRetry(rpcRequest, "channel inactive");
-            rpcFuture.done(rpcResponse);
-        }
-        this.invocations.clear();
-    }
-
     public HostAndPort getAddress() {
         return HostAndPort.fromString(url.getAddress());
     }
@@ -152,13 +143,23 @@ public class KinRpcReference {
         referenceHandler.connect(clientTransportOption, new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPort()));
     }
 
+    /**
+     * close connection
+     */
     public void shutdown() {
         if (isStopped) {
             return;
         }
         isStopped = true;
         referenceHandler.close();
-        clean();
+
+        //以error形式complete future
+        for (KinRpcInvocation rpcFuture : invocations.values()) {
+            RpcRequest rpcRequest = rpcFuture.getRequest();
+            RpcResponse rpcResponse = RpcResponse.respWithError(rpcRequest, "connection closed");
+            rpcFuture.done(rpcResponse);
+        }
+        this.invocations.clear();
     }
 
     /**
@@ -234,7 +235,13 @@ public class KinRpcReference {
 
         @Override
         protected void connectionInactive() {
-            KinRpcReference.this.clean();
+            //以retry形式complete future
+            for (KinRpcInvocation rpcFuture : invocations.values()) {
+                RpcRequest rpcRequest = rpcFuture.getRequest();
+                RpcResponse rpcResponse = RpcResponse.respWithRetry(rpcRequest, "channel inactive");
+                rpcFuture.done(rpcResponse);
+            }
+            invocations.clear();
         }
     }
 
@@ -242,6 +249,7 @@ public class KinRpcReference {
      * 用于reference发送失败时, 及时作出响应
      */
     private class ReferenceRequestListener implements ChannelFutureListener {
+        /** rpc request uuid */
         private long requestId;
 
         public ReferenceRequestListener(long requestId) {
