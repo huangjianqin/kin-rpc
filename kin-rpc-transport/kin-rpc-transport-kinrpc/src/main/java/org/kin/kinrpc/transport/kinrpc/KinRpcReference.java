@@ -180,6 +180,10 @@ public class KinRpcReference {
     }
 
     //------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * 传输层逻辑处理实现类
+     */
     private class ReferenceHandler extends KinRpcEndpointRefHandler {
         public void request(RpcRequest request) {
             if (isActive()) {
@@ -250,7 +254,7 @@ public class KinRpcReference {
      */
     private class ReferenceRequestListener implements ChannelFutureListener {
         /** rpc request uuid */
-        private long requestId;
+        private final long requestId;
 
         public ReferenceRequestListener(long requestId) {
             this.requestId = requestId;
