@@ -73,9 +73,7 @@ public abstract class KinRpcEndpointRefHandler extends SocketProtocolHandler {
         if (!isActive()) {
             return;
         }
-        if (Objects.isNull(protocol)) {
-            return;
-        }
+
         if (protocol instanceof KinRpcResponseProtocol) {
             KinRpcResponseProtocol responseProtocol = (KinRpcResponseProtocol) protocol;
             handleRpcResponseProtocol(responseProtocol);
