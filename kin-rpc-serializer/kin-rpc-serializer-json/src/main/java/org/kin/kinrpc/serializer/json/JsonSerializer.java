@@ -1,6 +1,7 @@
 package org.kin.kinrpc.serializer.json;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -39,8 +40,12 @@ public class JsonSerializer implements Serializer {
                 LaissezFaireSubTypeValidator.instance,
                 ObjectMapper.DefaultTyping.NON_FINAL,
                 JsonTypeInfo.As.PROPERTY);
+        //允许json中含有指定对象未包含的字段
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        //允许序列化空对象
         objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+        //不序列化默认值, 0,false,[],{}等等, 减少json长度
+        objectMapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_DEFAULT);
         //只认field, 那些get set is开头的方法不生成字段
         objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
         objectMapper.setVisibility(PropertyAccessor.SETTER, JsonAutoDetect.Visibility.NONE);
