@@ -32,9 +32,9 @@ public class JsonSerializer implements Serializer {
     }
 
     //------------------------------------------------------------------------------------------------------------------
-    //处理json序列化带上类型信息
     static {
         ObjectMapper objectMapper = JSON.PARSER;
+        //带上类型信息
         objectMapper.activateDefaultTyping(
                 LaissezFaireSubTypeValidator.instance,
                 ObjectMapper.DefaultTyping.NON_FINAL,
