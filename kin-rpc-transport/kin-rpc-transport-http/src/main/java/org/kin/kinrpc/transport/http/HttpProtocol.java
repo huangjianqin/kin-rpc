@@ -29,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class HttpProtocol extends AbstractProxyProtocol {
     private static final ObjectMapper PARSER = new ObjectMapper();
     static {
+        PARSER.findAndRegisterModules();
         //允许json中含有指定对象未包含的字段
         PARSER.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         //允许序列化空对象

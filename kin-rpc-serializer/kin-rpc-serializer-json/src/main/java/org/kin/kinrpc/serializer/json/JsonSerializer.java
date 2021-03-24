@@ -22,6 +22,7 @@ public class JsonSerializer implements Serializer {
     private static final ObjectMapper PARSER = new ObjectMapper();
 
     static {
+        PARSER.findAndRegisterModules();
         //带上类型信息
         //resolved 解决接口参数(返回值)中包含Object类型时, json序列化与反序列化不一致问题, 这样子会增加数据传输的压力, 可通过数据压缩缓解
         PARSER.activateDefaultTypingAsProperty(
