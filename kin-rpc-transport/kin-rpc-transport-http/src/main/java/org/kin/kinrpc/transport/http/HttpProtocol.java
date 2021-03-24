@@ -1,13 +1,13 @@
 package org.kin.kinrpc.transport.http;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.googlecode.jsonrpc4j.JsonRpcServer;
 import com.googlecode.jsonrpc4j.spring.JsonProxyFactoryBean;
-import org.kin.framework.utils.JSON;
 import org.kin.kinrpc.rpc.GenericRpcService;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.RpcServiceLoader;
@@ -27,17 +27,19 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2020/11/16
  */
 public final class HttpProtocol extends AbstractProxyProtocol {
+    private static final ObjectMapper PARSER = new ObjectMapper();
     static {
-        ObjectMapper objectMapper = JSON.PARSER;
-        //带上类型信息
-        objectMapper.activateDefaultTyping(
-                LaissezFaireSubTypeValidator.instance,
-                ObjectMapper.DefaultTyping.NON_FINAL,
-                JsonTypeInfo.As.PROPERTY);
-        //允许未知属性
-        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        //允许空bean
-        objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+        //允许json中含有指定对象未包含的字段
+        PARSER.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        //允许序列化空对象
+        PARSER.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+        //不序列化默认值, 0,false,[],{}等等, 减少json长度
+        PARSER.setDefaultPropertyInclusion(JsonInclude.Include.NON_DEFAULT);
+        //只认field, 那些get set is开头的方法不生成字段
+        PARSER.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+        PARSER.setVisibility(PropertyAccessor.SETTER, JsonAutoDetect.Visibility.NONE);
+        PARSER.setVisibility(PropertyAccessor.GETTER, JsonAutoDetect.Visibility.NONE);
+        PARSER.setVisibility(PropertyAccessor.IS_GETTER, JsonAutoDetect.Visibility.NONE);
     }
 
     /** JsonRpcServer缓存 */
@@ -68,8 +70,8 @@ public final class HttpProtocol extends AbstractProxyProtocol {
         String path = url.getPath();
         //使用generic url path
         String genericPath = path + "/" + Constants.GENERIC;
-        JsonRpcServer skeleton = new JsonRpcServer(JSON.PARSER, proxyedInvoker, interfaceC);
-        JsonRpcServer genericServer = new JsonRpcServer(JSON.PARSER, proxyedInvoker, GenericRpcService.class);
+        JsonRpcServer skeleton = new JsonRpcServer(PARSER, proxyedInvoker, interfaceC);
+        JsonRpcServer genericServer = new JsonRpcServer(PARSER, proxyedInvoker, GenericRpcService.class);
         skeletonMap.put(path, skeleton);
         skeletonMap.put(genericPath, genericServer);
 
@@ -91,7 +93,7 @@ public final class HttpProtocol extends AbstractProxyProtocol {
         //构建json rpc proxy
         JsonProxyFactoryBean jsonProxyFactoryBean = new JsonProxyFactoryBean();
         //设置jackson
-        jsonProxyFactoryBean.setObjectMapper(JSON.PARSER);
+        jsonProxyFactoryBean.setObjectMapper(PARSER);
         HttpRpcProxyFactoryBean httpRpcProxyFactoryBean = new HttpRpcProxyFactoryBean(jsonProxyFactoryBean);
 //        httpRpcProxyFactoryBean.setRemoteInvocationFactory((methodInvocation) -> {
 //            RemoteInvocation invocation = new HttpRemoteInvocation(methodInvocation);
