@@ -5,11 +5,10 @@
     <parent>
         <artifactId>kin-rpc-parent</artifactId>
         <groupId>org.kin</groupId>
-        <version>0.1.0.0</version>
+        <version>${revision}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>kin-rpc-cluster</artifactId>
-    <version>0.1.0.0</version>
     <modules>
         <module>kin-rpc-cluster-api</module>
     </modules>
