@@ -104,10 +104,10 @@ final class KinRpcServiceBeanProcessor implements BeanPostProcessor, Application
             serviceName = interfaceClass.getCanonicalName();
         }
 
-        //如果自定义了serializer, 优先使用自定义的serializer
-        int serializerCode = serviceAnno.serializerCode();
-        if (serializerCode <= 0) {
-            serializerCode = serviceAnno.serializerType().getCode();
+        //如果自定义了serialization, 优先使用自定义的serialization
+        int serializationCode = serviceAnno.serializationCode();
+        if (serializationCode <= 0) {
+            serializationCode = serviceAnno.serializationType().getCode();
         }
 
         //解析服务绑定端口
@@ -129,7 +129,7 @@ final class KinRpcServiceBeanProcessor implements BeanPostProcessor, Application
                 .bind(serviceAnno.host(), port)
                 .serviceName(serviceName)
                 .version(serviceAnno.version())
-                .serializer(serializerCode)
+                .serialization(serializationCode)
                 .compress(serviceAnno.compressionType())
                 .tps(serviceAnno.tps())
                 .protocol(serviceAnno.protocolType());

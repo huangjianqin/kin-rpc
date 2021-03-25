@@ -46,7 +46,6 @@ public @interface KinRpcReference {
 
     long retryInterval() default Constants.RETRY_INTERVAL;
 
-
     //loadBalance
     Class<? extends LoadBalance> loadBalanceClass() default RoundRobinLoadBalance.class;
 

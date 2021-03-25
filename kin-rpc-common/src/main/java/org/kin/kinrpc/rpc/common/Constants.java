@@ -35,7 +35,7 @@ public class Constants {
     /** 重试等待时间(即两次重试间隔时间) */
     public static final String RETRY_INTERVAL_KEY = "retryTimeout";
     /** 序列化方式 */
-    public static final String SERIALIZE_KEY = "serialize";
+    public static final String SERIALIZATION_KEY = "serialization";
     /** 路由策略 */
     public static final String ROUTER_KEY = "router";
     /** 负载均衡策略 */

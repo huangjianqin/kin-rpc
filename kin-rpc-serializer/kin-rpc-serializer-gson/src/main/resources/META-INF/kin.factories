@@ -1,1 +1,0 @@
-org.kin.kinrpc.serializer.Serializer=org.kin.kinrpc.serializer.gson.GsonSerializer

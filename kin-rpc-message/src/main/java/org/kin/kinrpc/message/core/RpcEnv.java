@@ -17,10 +17,10 @@ import org.kin.kinrpc.message.transport.TransportClient;
 import org.kin.kinrpc.message.transport.domain.RpcEndpointAddress;
 import org.kin.kinrpc.message.transport.protocol.RpcMessage;
 import org.kin.kinrpc.rpc.common.SslConfig;
-import org.kin.kinrpc.serializer.Serializer;
-import org.kin.kinrpc.serializer.SerializerType;
-import org.kin.kinrpc.serializer.Serializers;
-import org.kin.kinrpc.serializer.UnknownSerializerException;
+import org.kin.kinrpc.serialization.Serialization;
+import org.kin.kinrpc.serialization.SerializationType;
+import org.kin.kinrpc.serialization.Serializations;
+import org.kin.kinrpc.serialization.UnknownSerializationException;
 import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
 import org.kin.kinrpc.transport.kinrpc.KinRpcEndpointHandler;
 import org.kin.kinrpc.transport.kinrpc.KinRpcRequestProtocol;
@@ -76,7 +76,7 @@ public final class RpcEnv {
     private Dispatcher<String, MessagePostContext> dispatcher;
     private final KinRpcAddress address;
     /** 序列化方式 */
-    private final Serializer serializer;
+    private final Serialization serialization;
     /** 通讯层是否支持压缩 */
     private final CompressionType compressionType;
     /** 服务器 */
@@ -97,33 +97,33 @@ public final class RpcEnv {
 
     public RpcEnv(String host, int port) {
         this(host, port, SysUtils.getSuitableThreadNum(),
-                Serializers.getSerializer(SerializerType.KRYO.getCode()), CompressionType.NONE);
+                Serializations.getSerialization(SerializationType.KRYO.getCode()), CompressionType.NONE);
     }
 
     public RpcEnv(String host, int port, int parallelism) {
         this(host, port, parallelism,
-                Serializers.getSerializer(SerializerType.KRYO.getCode()), CompressionType.NONE);
+                Serializations.getSerialization(SerializationType.KRYO.getCode()), CompressionType.NONE);
     }
 
-    public RpcEnv(String host, int port, Serializer serializer) {
+    public RpcEnv(String host, int port, Serialization serialization) {
         this(host, port, SysUtils.getSuitableThreadNum(),
-                serializer, org.kin.transport.netty.CompressionType.NONE);
+                serialization, org.kin.transport.netty.CompressionType.NONE);
     }
 
-    public RpcEnv(String host, int port, int parallelism, Serializer serializer) {
+    public RpcEnv(String host, int port, int parallelism, Serialization serialization) {
         this(host, port, parallelism,
-                serializer, org.kin.transport.netty.CompressionType.NONE);
+                serialization, org.kin.transport.netty.CompressionType.NONE);
     }
 
     public RpcEnv(String host, int port, int parallelism, CompressionType compressionType) {
         this(host, port, parallelism,
-                Serializers.getSerializer(SerializerType.KRYO.getCode()), compressionType);
+                Serializations.getSerialization(SerializationType.KRYO.getCode()), compressionType);
     }
 
-    public RpcEnv(String host, int port, int parallelism, Serializer serializer, CompressionType compressionType) {
+    public RpcEnv(String host, int port, int parallelism, Serialization serialization, CompressionType compressionType) {
         this.address = KinRpcAddress.of(host, port);
         this.dispatcher = new EventBasedDispatcher<>(parallelism);
-        this.serializer = serializer;
+        this.serialization = serialization;
         this.compressionType = compressionType;
 
         //server child channel options, 默认值
@@ -260,16 +260,16 @@ public final class RpcEnv {
     /**
      * 反序列化消息
      *
-     * @param serializer 目标序列化类型
+     * @param serialization 目标序列化类型
      */
-    public RpcMessage deserialize(Serializer serializer, byte[] data) {
+    public RpcMessage deserialize(Serialization serialization, byte[] data) {
         //更新线程本地RpcEnv
         updateCurrentRpcEnv(this);
 
         RpcMessage message;
         try {
             //反序列化
-            message = serializer.deserialize(data, RpcMessage.class);
+            message = serialization.deserialize(data, RpcMessage.class);
             //统计消息次数及长度
             ProtocolStatisicService.instance().statisticReq(
                     message.getMessage().getClass().getName(), data.length
@@ -287,7 +287,7 @@ public final class RpcEnv {
     public byte[] serialize(RpcMessage message) {
         try {
             //序列化
-            byte[] data = serializer.serialize(message);
+            byte[] data = serialization.serialize(message);
             //统计消息次数及长度
             ProtocolStatisicService.instance().statisticReq(
                     message.getMessage().getClass().getName(), data.length
@@ -486,9 +486,9 @@ public final class RpcEnv {
         return dispatcher;
     }
 
-    /** serializer */
-    public Serializer serializer() {
-        return serializer;
+    /** serialization */
+    public Serialization serialization() {
+        return serialization;
     }
 
     public Map<ChannelOption, Object> getServerChannelOptions() {
@@ -506,15 +506,15 @@ public final class RpcEnv {
 
         @Override
         protected final void handleRpcRequestProtocol(Channel channel, KinRpcRequestProtocol requestProtocol) {
-            byte serializerType = requestProtocol.getSerializer();
+            byte serializationType = requestProtocol.getSerialization();
             //反序列化内容
             byte[] data = requestProtocol.getReqContent();
 
-            Serializer serializer = Serializers.getSerializer(serializerType);
-            if (Objects.isNull(serializer)) {
-                throw new UnknownSerializerException(serializerType);
+            Serialization serialization = Serializations.getSerialization(serializationType);
+            if (Objects.isNull(serialization)) {
+                throw new UnknownSerializationException(serializationType);
             }
-            RpcMessage message = deserialize(serializer, data);
+            RpcMessage message = deserialize(serialization, data);
             if (Objects.isNull(message)) {
                 return;
             }

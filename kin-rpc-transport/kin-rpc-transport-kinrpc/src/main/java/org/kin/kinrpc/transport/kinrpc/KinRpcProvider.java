@@ -17,9 +17,9 @@ import org.kin.kinrpc.rpc.common.SslConfig;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.TpsLimitException;
 import org.kin.kinrpc.rpc.invoker.TpsLimitInvoker;
-import org.kin.kinrpc.serializer.Serializer;
-import org.kin.kinrpc.serializer.Serializers;
-import org.kin.kinrpc.serializer.UnknownSerializerException;
+import org.kin.kinrpc.serialization.Serialization;
+import org.kin.kinrpc.serialization.Serializations;
+import org.kin.kinrpc.serialization.UnknownSerializationException;
 import org.kin.transport.netty.CompressionType;
 import org.kin.transport.netty.Transports;
 import org.kin.transport.netty.socket.SocketTransportOption;
@@ -58,7 +58,7 @@ public class KinRpcProvider {
     /** 绑定地址 */
     protected final InetSocketAddress address;
     /** 序列化方式 */
-    private final Serializer serializer;
+    private final Serialization serialization;
     /** 底层的连接 */
     private final ProviderHandler providerHandler;
     /** 服务器启动配置 */
@@ -68,8 +68,8 @@ public class KinRpcProvider {
     /** 是否stopped */
     private volatile boolean stopped;
 
-    public KinRpcProvider(String host, int port, Serializer serializer, CompressionType compressionType, Map<ChannelOption, Object> options) {
-        this.serializer = serializer;
+    public KinRpcProvider(String host, int port, Serialization serialization, CompressionType compressionType, Map<ChannelOption, Object> options) {
+        this.serialization = serialization;
 
         if (StringUtils.isNotBlank(host)) {
             this.address = new InetSocketAddress(host, port);
@@ -355,8 +355,8 @@ public class KinRpcProvider {
         return address.getPort();
     }
 
-    public Serializer getSerializer() {
-        return serializer;
+    public Serialization getSerialization() {
+        return serialization;
     }
 
     //--------------------------------------------------------------------------------------------------------------
@@ -391,20 +391,20 @@ public class KinRpcProvider {
         public void response(Channel channel, RpcResponse rpcResponse) {
             byte[] data;
             try {
-                data = serializer.serialize(rpcResponse);
+                data = serialization.serialize(rpcResponse);
             } catch (IOException e) {
                 log.error(e.getMessage(), e);
                 rpcResponse.setState(RpcResponse.State.ERROR, e.getMessage());
                 rpcResponse.setResult(null);
                 try {
-                    data = serializer.serialize(rpcResponse);
+                    data = serialization.serialize(rpcResponse);
                 } catch (IOException e1) {
                     log.error(e1.getMessage(), e1);
                     return;
                 }
             }
 
-            KinRpcResponseProtocol rpcResponseProtocol = KinRpcResponseProtocol.create(rpcResponse.getRequestId(), (byte) serializer.type(), data);
+            KinRpcResponseProtocol rpcResponseProtocol = KinRpcResponseProtocol.create(rpcResponse.getRequestId(), (byte) serialization.type(), data);
             channel.writeAndFlush(rpcResponseProtocol);
 
 
@@ -419,19 +419,19 @@ public class KinRpcProvider {
                 return;
             }
             long requestId = requestProtocol.getRequestId();
-            byte serializerType = requestProtocol.getSerializer();
+            byte serializationType = requestProtocol.getSerialization();
             byte[] data = requestProtocol.getReqContent();
 
             RpcRequest rpcRequest;
             try {
                 //request的序列化类型
-                Serializer serializer = Serializers.getSerializer(serializerType);
-                if (Objects.isNull(serializer)) {
+                Serialization serialization = Serializations.getSerialization(serializationType);
+                if (Objects.isNull(serialization)) {
                     //未知序列化类型
-                    throw new UnknownSerializerException(serializerType);
+                    throw new UnknownSerializationException(serializationType);
                 }
 
-                rpcRequest = serializer.deserialize(data, RpcRequest.class);
+                rpcRequest = serialization.deserialize(data, RpcRequest.class);
 
                 ProtocolStatisicService.instance().statisticReq(
                         rpcRequest.getServiceKey() + "-" + rpcRequest.getMethod(), data.length

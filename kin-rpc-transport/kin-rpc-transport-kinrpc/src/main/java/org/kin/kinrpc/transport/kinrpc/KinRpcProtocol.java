@@ -12,8 +12,8 @@ import org.kin.kinrpc.rpc.Invoker;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
-import org.kin.kinrpc.serializer.Serializer;
-import org.kin.kinrpc.serializer.Serializers;
+import org.kin.kinrpc.serialization.Serialization;
+import org.kin.kinrpc.serialization.Serializations;
 import org.kin.kinrpc.transport.NettyUtils;
 import org.kin.kinrpc.transport.Protocol;
 import org.kin.transport.netty.CompressionType;
@@ -38,19 +38,19 @@ public final class KinRpcProtocol implements Protocol, LoggerOprs {
 
         String host = url.getHost();
         int port = url.getPort();
-        int serializerType = url.getIntParam(Constants.SERIALIZE_KEY);
+        int serializationType = url.getIntParam(Constants.SERIALIZATION_KEY);
 
-        Serializer serializer = Serializers.getSerializer(serializerType);
-        Preconditions.checkNotNull(serializer, "unvalid serializer type: [" + serializerType + "]");
+        Serialization serialization = Serializations.getSerialization(serializationType);
+        Preconditions.checkNotNull(serialization, "unvalid serialization type: [" + serializationType + "]");
 
         int compression = url.getIntParam(Constants.COMPRESSION_KEY);
         CompressionType compressionType = CompressionType.getById(compression);
-        Preconditions.checkNotNull(serializer, "unvalid compression type: id=[" + compression + "]");
+        Preconditions.checkNotNull(serialization, "unvalid compression type: id=[" + compression + "]");
 
         KinRpcProvider provider = null;
         try {
             provider = PROVIDER_CACHE.get(port, () -> {
-                KinRpcProvider provider0 = new KinRpcProvider(host, port, serializer, compressionType, NettyUtils.convert(url));
+                KinRpcProvider provider0 = new KinRpcProvider(host, port, serialization, compressionType, NettyUtils.convert(url));
                 try {
                     provider0.bind();
                 } catch (Exception e) {
@@ -60,8 +60,8 @@ public final class KinRpcProtocol implements Protocol, LoggerOprs {
 
                 return provider0;
             });
-            if (!provider.getSerializer().equals(serializer)) {
-                throw new IllegalStateException(String.format("origin server(port=%s) serializer type is not equals %s", port, serializerType));
+            if (!provider.getSerialization().equals(serialization)) {
+                throw new IllegalStateException(String.format("origin server(port=%s) serialization type is not equals %s", port, serializationType));
             }
         } catch (Exception e) {
             ExceptionUtils.throwExt(e);

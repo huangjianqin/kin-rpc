@@ -16,7 +16,7 @@
         <module>kin-rpc-registry</module>
         <module>kin-rpc-message</module>
         <module>kin-rpc-common</module>
-        <module>kin-rpc-serializer</module>
+        <module>kin-rpc-serialization</module>
         <module>kin-rpc-spring</module>
         <module>kin-rpc-starter</module>
     </modules>

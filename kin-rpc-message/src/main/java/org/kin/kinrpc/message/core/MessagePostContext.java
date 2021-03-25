@@ -62,7 +62,7 @@ public final class MessagePostContext {
             }
 
             //直接推回去, 不走outbox
-            KinRpcResponseProtocol protocol = KinRpcResponseProtocol.create(requestId, (byte) rpcEnv.serializer().type(), data);
+            KinRpcResponseProtocol protocol = KinRpcResponseProtocol.create(requestId, (byte) rpcEnv.serialization().type(), data);
             channel.writeAndFlush(protocol);
         }
     }

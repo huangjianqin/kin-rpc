@@ -28,43 +28,43 @@
         <!-- 序列化 -->
         <dependency>
             <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-serializer-avro</artifactId>
+            <artifactId>kin-rpc-serialization-avro</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-serializer-gson</artifactId>
+            <artifactId>kin-rpc-serialization-gson</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-serializer-hessian2</artifactId>
+            <artifactId>kin-rpc-serialization-hessian2</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-serializer-java</artifactId>
+            <artifactId>kin-rpc-serialization-java</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-serializer-json</artifactId>
+            <artifactId>kin-rpc-serialization-json</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-serializer-protobuf</artifactId>
+            <artifactId>kin-rpc-serialization-protobuf</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-serializer-protostuff</artifactId>
+            <artifactId>kin-rpc-serialization-protostuff</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

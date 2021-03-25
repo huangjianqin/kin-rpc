@@ -6,9 +6,9 @@ import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.cluster.Clusters;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
-import org.kin.kinrpc.serializer.Serializer;
-import org.kin.kinrpc.serializer.SerializerType;
-import org.kin.kinrpc.serializer.Serializers;
+import org.kin.kinrpc.serialization.Serialization;
+import org.kin.kinrpc.serialization.SerializationType;
+import org.kin.kinrpc.serialization.Serializations;
 import org.kin.kinrpc.transport.ProtocolType;
 import org.kin.transport.netty.CompressionType;
 
@@ -37,7 +37,7 @@ public class ServiceConfig<T> extends AbstractConfig {
     /** 版本号 */
     private String version = "0.1.0.0";
     /** 序列化类型, 在kinrpc协议下生效 */
-    private int serializerCode = SerializerType.KRYO.getCode();
+    private int serializationCode = SerializationType.KRYO.getCode();
     /** 服务调用类型(invoker收到请求后, 用哪种方式调用服务) */
     private ProxyType proxyType = ProxyType.JAVASSIST;
 
@@ -142,7 +142,7 @@ public class ServiceConfig<T> extends AbstractConfig {
             Map<String, String> params = new HashMap<>(50);
             params.put(Constants.SERVICE_NAME_KEY, serviceName);
             params.put(Constants.VERSION_KEY, version);
-            params.put(Constants.SERIALIZE_KEY, serializerCode + "");
+            params.put(Constants.SERIALIZATION_KEY, serializationCode + "");
             params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(ProxyType.JAVASSIST.equals(proxyType)));
             params.put(Constants.COMPRESSION_KEY, Integer.toString(compressionType.getId()));
             params.put(Constants.PARALLELISM_KEY, parallelism + "");
@@ -232,23 +232,23 @@ public class ServiceConfig<T> extends AbstractConfig {
         return this;
     }
 
-    public ServiceConfig<T> serializer(Class<? extends Serializer> serializerClass) {
+    public ServiceConfig<T> serialization(Class<? extends Serialization> serializationClass) {
         if (!isExport) {
-            this.serializerCode = Serializers.getSerializerType(serializerClass);
+            this.serializationCode = Serializations.getSerializationType(serializationClass);
         }
         return this;
     }
 
-    public ServiceConfig<T> serializer(SerializerType serializerType) {
+    public ServiceConfig<T> serialization(SerializationType serializationType) {
         if (!isExport) {
-            this.serializerCode = serializerType.getCode();
+            this.serializationCode = serializationType.getCode();
         }
         return this;
     }
 
-    public ServiceConfig<T> serializer(int serializerCode) {
+    public ServiceConfig<T> serialization(int serializationCode) {
         if (!isExport) {
-            this.serializerCode = serializerCode;
+            this.serializationCode = serializationCode;
         }
         return this;
     }
@@ -341,8 +341,8 @@ public class ServiceConfig<T> extends AbstractConfig {
         return serviceName;
     }
 
-    public int getSerializerCode() {
-        return serializerCode;
+    public int getSerializationCode() {
+        return serializationCode;
     }
 
     public ProxyType getProxyType() {

@@ -2,7 +2,7 @@ package org.kin.kinrpc.demo.rpc;
 
 import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.config.Services;
-import org.kin.kinrpc.serializer.SerializerType;
+import org.kin.kinrpc.serialization.SerializationType;
 
 /**
  * @author huangjianqin
@@ -11,7 +11,7 @@ import org.kin.kinrpc.serializer.SerializerType;
 public class AddableProvider {
     public static ServiceConfig<Addable> config() {
         return Services.service(new Adder(), Addable.class)
-                .serializer(SerializerType.JSON)
+                .serialization(SerializationType.JSON)
                 .version("001")
                 .actorLike();
     }

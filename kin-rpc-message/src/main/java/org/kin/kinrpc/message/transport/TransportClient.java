@@ -9,9 +9,9 @@ import org.kin.kinrpc.message.exception.ClientConnectFailException;
 import org.kin.kinrpc.message.exception.ClientStoppedException;
 import org.kin.kinrpc.message.transport.protocol.RpcMessage;
 import org.kin.kinrpc.rpc.common.SslConfig;
-import org.kin.kinrpc.serializer.Serializer;
-import org.kin.kinrpc.serializer.Serializers;
-import org.kin.kinrpc.serializer.UnknownSerializerException;
+import org.kin.kinrpc.serialization.Serialization;
+import org.kin.kinrpc.serialization.Serializations;
+import org.kin.kinrpc.serialization.UnknownSerializationException;
 import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
 import org.kin.kinrpc.transport.kinrpc.KinRpcEndpointRefHandler;
 import org.kin.kinrpc.transport.kinrpc.KinRpcRequestProtocol;
@@ -110,7 +110,7 @@ public final class TransportClient {
             }
 
             long requestId = message.getRequestId();
-            KinRpcRequestProtocol protocol = KinRpcRequestProtocol.create(requestId, (byte) rpcEnv.serializer().type(), data);
+            KinRpcRequestProtocol protocol = KinRpcRequestProtocol.create(requestId, (byte) rpcEnv.serialization().type(), data);
             if (rpcEndpointRefHandler.client().sendAndFlush(protocol)) {
                 respCallbacks.put(requestId, outBoxMessage);
             }
@@ -137,10 +137,10 @@ public final class TransportClient {
         @SuppressWarnings("unchecked")
         @Override
         protected void handleRpcResponseProtocol(KinRpcResponseProtocol responseProtocol) {
-            byte serializerType = responseProtocol.getSerializer();
-            Serializer serializer = Serializers.getSerializer(serializerType);
-            if (Objects.isNull(serializer)) {
-                throw new UnknownSerializerException(serializerType);
+            byte serializationType = responseProtocol.getSerialization();
+            Serialization serialization = Serializations.getSerialization(serializationType);
+            if (Objects.isNull(serialization)) {
+                throw new UnknownSerializationException(serializationType);
             }
 
             //反序列化内容
@@ -149,7 +149,7 @@ public final class TransportClient {
             if (!TransportClient.this.isActive()) {
                 return;
             }
-            RpcMessage message = rpcEnv.deserialize(serializer, data);
+            RpcMessage message = rpcEnv.deserialize(serialization, data);
             if (Objects.isNull(message)) {
                 return;
             }

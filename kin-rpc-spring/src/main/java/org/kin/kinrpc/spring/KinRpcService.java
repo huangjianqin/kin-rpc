@@ -1,7 +1,7 @@
 package org.kin.kinrpc.spring;
 
 import org.kin.kinrpc.rpc.common.Constants;
-import org.kin.kinrpc.serializer.SerializerType;
+import org.kin.kinrpc.serialization.SerializationType;
 import org.kin.kinrpc.transport.ProtocolType;
 import org.kin.transport.netty.CompressionType;
 import org.springframework.stereotype.Service;
@@ -31,9 +31,9 @@ public @interface KinRpcService {
 
     String version() default "0.1.0.0";
 
-    SerializerType serializerType() default SerializerType.KRYO;
+    SerializationType serializationType() default SerializationType.KRYO;
 
-    int serializerCode() default 0;
+    int serializationCode() default 0;
 
     boolean byteCodeEnhance() default true;
 

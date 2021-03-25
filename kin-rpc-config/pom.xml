@@ -33,7 +33,7 @@
         <!-- 默认序列化-->
         <dependency>
             <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-serializer-kryo</artifactId>
+            <artifactId>kin-rpc-serialization-kryo</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

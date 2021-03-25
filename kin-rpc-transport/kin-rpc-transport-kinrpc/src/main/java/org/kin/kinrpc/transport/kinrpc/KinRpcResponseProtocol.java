@@ -13,14 +13,14 @@ public class KinRpcResponseProtocol extends SocketProtocol {
     /** request唯一id */
     private long requestId;
     /** 序列化类型 */
-    private byte serializer;
+    private byte serialization;
     /** content */
     private byte[] respContent;
 
-    public static KinRpcResponseProtocol create(long requestId, byte serializer, byte[] respContent) {
+    public static KinRpcResponseProtocol create(long requestId, byte serialization, byte[] respContent) {
         KinRpcResponseProtocol protocol = ProtocolFactory.createProtocol(KinRpcProtocolId.RPC_RESPONSE_PROTOCOL_ID);
         protocol.requestId = requestId;
-        protocol.serializer = serializer;
+        protocol.serialization = serialization;
         protocol.respContent = respContent;
         return protocol;
     }
@@ -34,12 +34,12 @@ public class KinRpcResponseProtocol extends SocketProtocol {
         this.requestId = requestId;
     }
 
-    public byte getSerializer() {
-        return serializer;
+    public byte getSerialization() {
+        return serialization;
     }
 
-    public void setSerializer(byte serializer) {
-        this.serializer = serializer;
+    public void setSerialization(byte serialization) {
+        this.serialization = serialization;
     }
 
     public byte[] getRespContent() {

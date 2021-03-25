@@ -10,10 +10,10 @@ import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.SslConfig;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
-import org.kin.kinrpc.serializer.Serializer;
-import org.kin.kinrpc.serializer.SerializerType;
-import org.kin.kinrpc.serializer.Serializers;
-import org.kin.kinrpc.serializer.UnknownSerializerException;
+import org.kin.kinrpc.serialization.Serialization;
+import org.kin.kinrpc.serialization.SerializationType;
+import org.kin.kinrpc.serialization.Serializations;
+import org.kin.kinrpc.serialization.UnknownSerializationException;
 import org.kin.kinrpc.transport.NettyUtils;
 import org.kin.transport.netty.CompressionType;
 import org.kin.transport.netty.Transports;
@@ -41,24 +41,24 @@ public class KinRpcReference {
     private final Url url;
     private final SocketTransportOption clientTransportOption;
     private final ReferenceHandler referenceHandler;
-    private final Serializer serializer;
+    private final Serialization serialization;
 
     public KinRpcReference(Url url) {
         this.url = url;
         int compression = Integer.parseInt(url.getNumberParam(Constants.COMPRESSION_KEY));
 
-        int serializerType = Integer.parseInt(url.getNumberParam(Constants.SERIALIZE_KEY));
-        if (serializerType == 0) {
+        int serializationType = Integer.parseInt(url.getNumberParam(Constants.SERIALIZATION_KEY));
+        if (serializationType == 0) {
             //未指定序列化类型, 默认kyro
-            serializerType = SerializerType.KRYO.getCode();
+            serializationType = SerializationType.KRYO.getCode();
         }
         //先校验, 顺便初始化
-        Preconditions.checkNotNull(Serializers.getSerializer(serializerType), "unvalid serializer type: [" + serializerType + "]");
+        Preconditions.checkNotNull(Serializations.getSerialization(serializationType), "unvalid serialization type: [" + serializationType + "]");
 
         CompressionType compressionType = CompressionType.getById(compression);
         Preconditions.checkNotNull(compressionType, "unvalid compression type: id=" + compression + "");
 
-        this.serializer = Serializers.getSerializer(serializerType);
+        this.serialization = Serializations.getSerialization(serializationType);
         this.referenceHandler = new ReferenceHandler();
 
         SocketTransportOption.SocketClientTransportOptionBuilder builder = Transports.socket().client()
@@ -189,9 +189,9 @@ public class KinRpcReference {
             if (isActive()) {
                 try {
                     request.setCreateTime(System.currentTimeMillis());
-                    byte[] data = serializer.serialize(request);
+                    byte[] data = serialization.serialize(request);
 
-                    KinRpcRequestProtocol protocol = KinRpcRequestProtocol.create(request.getRequestId(), (byte) serializer.type(), data);
+                    KinRpcRequestProtocol protocol = KinRpcRequestProtocol.create(request.getRequestId(), (byte) serialization.type(), data);
                     client.sendAndFlush(protocol, new ReferenceRequestListener(request.getRequestId()));
 
                     ProtocolStatisicService.instance().statisticReq(
@@ -207,18 +207,18 @@ public class KinRpcReference {
         @Override
         protected void handleRpcResponseProtocol(KinRpcResponseProtocol responseProtocol) {
             long requestId = responseProtocol.getRequestId();
-            byte serializerType = responseProtocol.getSerializer();
+            byte serializationType = responseProtocol.getSerialization();
             try {
                 RpcResponse rpcResponse;
                 byte[] respContent = responseProtocol.getRespContent();
                 try {
-                    Serializer serializer = Serializers.getSerializer(serializerType);
-                    if (Objects.isNull(serializer)) {
+                    Serialization serialization = Serializations.getSerialization(serializationType);
+                    if (Objects.isNull(serialization)) {
                         //未知序列化类型
-                        throw new UnknownSerializerException(serializerType);
+                        throw new UnknownSerializationException(serializationType);
                     }
 
-                    rpcResponse = serializer.deserialize(respContent, RpcResponse.class);
+                    rpcResponse = serialization.deserialize(respContent, RpcResponse.class);
                     rpcResponse.setEventTime(System.currentTimeMillis());
                 } catch (Exception e) {
                     onFail(requestId, e.getMessage());
