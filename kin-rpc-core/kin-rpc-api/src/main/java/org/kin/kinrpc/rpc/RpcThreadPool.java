@@ -2,7 +2,10 @@ package org.kin.kinrpc.rpc;
 
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.concurrent.ExecutionContext;
+import org.kin.framework.concurrent.HashedWheelTimer;
 import org.kin.framework.utils.SysUtils;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author huangjianqin
@@ -13,6 +16,8 @@ public class RpcThreadPool {
      * invoker公用线程池, 除了服务provider,netty以外, 都用这个线程池
      */
     private static final ExecutionContext EXECUTORS;
+    /** 时间轮, 用于处理rpc call超时 */
+    private static final HashedWheelTimer WHEEL_TIMER;
 
     //添加JVM关闭钩子,以确保释放该静态线程池
     static {
@@ -20,7 +25,11 @@ public class RpcThreadPool {
         EXECUTORS = ExecutionContext.elastic(SysUtils.getSuitableThreadNum(), SysUtils.CPU_NUM * 10,
                 "rpc-reference", 2, "rpc-reference-scheduler");
 
+        //200ms tick
+        WHEEL_TIMER = new HashedWheelTimer(200, TimeUnit.MILLISECONDS);
+
         JvmCloseCleaner.DEFAULT().add(EXECUTORS::shutdown);
+        JvmCloseCleaner.DEFAULT().add(WHEEL_TIMER::stop);
     }
 
     /**
@@ -28,5 +37,12 @@ public class RpcThreadPool {
      */
     public static ExecutionContext executors() {
         return EXECUTORS;
+    }
+
+    /**
+     * @return reference端的时间轮
+     */
+    public static HashedWheelTimer wheelTimer() {
+        return WHEEL_TIMER;
     }
 }

@@ -94,7 +94,7 @@ public class Constants {
     /** directURLs register url splitor */
     public static final String DIRECT_URLS_REGISTRY_SPLITOR = ";";
     /** 重试等待时间(即两次重试间隔时间)(ms) */
-    public static final int RETRY_INTERVAL = 50;
+    public static final int RETRY_INTERVAL = 500;
     /**
      * provide默认流控
      * 每秒n次

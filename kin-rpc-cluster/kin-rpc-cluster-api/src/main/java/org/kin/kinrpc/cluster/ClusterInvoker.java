@@ -2,6 +2,7 @@ package org.kin.kinrpc.cluster;
 
 import com.google.common.net.HostAndPort;
 import org.kin.framework.Closeable;
+import org.kin.framework.concurrent.Timeout;
 import org.kin.framework.utils.ClassUtils;
 import org.kin.kinrpc.cluster.exception.CannotFindInvokerException;
 import org.kin.kinrpc.rpc.AsyncInvoker;
@@ -18,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -137,9 +137,10 @@ abstract class ClusterInvoker<T> implements Closeable {
                         return null;
                     });
             if (callTimeout > 0 && !provider.isDone()) {
-                clusterInvocation.updateFuture(RpcThreadPool.executors().schedule(
-                        () -> provider.completeExceptionally(new RpcCallTimeOutException("rpc call time out")),
-                        callTimeout, TimeUnit.MILLISECONDS));
+                clusterInvocation.updateTimeout(
+                        RpcThreadPool.wheelTimer()
+                                .newTimeout(t -> provider.completeExceptionally(new RpcCallTimeOutException("rpc call time out")),
+                                        callTimeout, TimeUnit.MILLISECONDS));
             }
         } else {
             throw new CannotFindInvokerException(url.getServiceKey(), methodName);
@@ -185,32 +186,32 @@ abstract class ClusterInvoker<T> implements Closeable {
 
         /** 上次rpc call 的invoker */
         private volatile AsyncInvoker<T> lastInvoker;
-        /** rpc call超时future */
-        private volatile ScheduledFuture<?> callTimeoutFuture;
+        /** rpc call timeout */
+        private volatile Timeout callTimeout;
 
         /**
          * 记录上次rpc call 的invoker
          */
         public void rpcCall(AsyncInvoker<T> invoker) {
-            cancelFuture();
+            cancelTimeout();
             this.lastInvoker = invoker;
         }
 
         /**
-         * 记录上次rpc call超时future
+         * 记录上次rpc call timeout
          */
-        public void updateFuture(ScheduledFuture<?> callTimeoutFuture) {
-            cancelFuture();
-            this.callTimeoutFuture = callTimeoutFuture;
+        public void updateTimeout(Timeout callTimeout) {
+            cancelTimeout();
+            this.callTimeout = callTimeout;
         }
 
         /**
-         * 移除rpc call超时future
+         * 移除rpc call timeout
          */
-        private void cancelFuture() {
-            if (Objects.nonNull(callTimeoutFuture)) {
-                callTimeoutFuture.cancel(true);
-                callTimeoutFuture = null;
+        private void cancelTimeout() {
+            if (Objects.nonNull(callTimeout)) {
+                callTimeout.cancel();
+                callTimeout = null;
             }
         }
 
@@ -221,7 +222,7 @@ abstract class ClusterInvoker<T> implements Closeable {
          * @return 是否可以继续重试
          */
         public boolean failure() {
-            cancelFuture();
+            cancelTimeout();
             int newTryTimes = tryTimes.incrementAndGet();
             if (Objects.nonNull(lastInvoker)) {
                 failureHostAndPorts.add(HostAndPort.fromString(lastInvoker.url().getAddress()));
@@ -234,7 +235,7 @@ abstract class ClusterInvoker<T> implements Closeable {
          * rpc call完成
          */
         public void done(Object returnObj) {
-            cancelFuture();
+            cancelTimeout();
             consumer.complete(returnObj);
         }
 
@@ -242,7 +243,7 @@ abstract class ClusterInvoker<T> implements Closeable {
          * rpc call因异常而结束
          */
         public void doneError(Throwable throwable) {
-            cancelFuture();
+            cancelTimeout();
             consumer.completeExceptionally(throwable);
         }
     }
