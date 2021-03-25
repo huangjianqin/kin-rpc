@@ -16,15 +16,6 @@
         <module>kin-rpc-api</module>
     </modules>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.kin</groupId>
-                <artifactId>kin-rpc-api</artifactId>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
         <!-- 字节码技术 -->
         <dependency>

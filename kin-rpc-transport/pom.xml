@@ -19,23 +19,4 @@
         <module>kin-rpc-transport-rsocket</module>
     </modules>
     <packaging>pom</packaging>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.kin</groupId>
-                <artifactId>kin-rpc-transport-api</artifactId>
-            </dependency>
-
-            <dependency>
-                <groupId>org.kin</groupId>
-                <artifactId>kin-rpc-transport-kinrpc</artifactId>
-            </dependency>
-
-            <dependency>
-                <groupId>org.kin</groupId>
-                <artifactId>kin-rpc-transport-http</artifactId>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 </project>

@@ -21,30 +21,6 @@
     <properties>
     </properties>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.kin</groupId>
-                <artifactId>kin-rpc-registry-api</artifactId>
-            </dependency>
-
-            <dependency>
-                <groupId>org.kin</groupId>
-                <artifactId>kin-rpc-registry-directurls</artifactId>
-            </dependency>
-
-            <dependency>
-                <groupId>org.kin</groupId>
-                <artifactId>kin-rpc-registry-zookeeper</artifactId>
-            </dependency>
-
-            <dependency>
-                <groupId>org.kin</groupId>
-                <artifactId>kin-rpc-registry-redis</artifactId>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
         <dependency>
             <groupId>org.kin</groupId>
