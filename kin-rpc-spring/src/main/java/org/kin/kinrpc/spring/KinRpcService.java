@@ -25,7 +25,10 @@ public @interface KinRpcService {
 
     int port() default 0;
 
-    Class<?> interfaceClass();
+    /**
+     * 服务接口
+     */
+    Class<?> value();
 
     String serviceName() default "";
 

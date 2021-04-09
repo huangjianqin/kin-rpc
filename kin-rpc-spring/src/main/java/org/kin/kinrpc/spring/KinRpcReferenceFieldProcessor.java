@@ -18,6 +18,7 @@ import org.springframework.core.annotation.AnnotationAttributes;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -56,18 +57,24 @@ final class KinRpcReferenceFieldProcessor extends AbstractAnnotationBeanPostProc
     private String getReferenceConfigBeanName(AnnotationAttributes attributes, Class<?> interfaceClass) {
         String beanName = attributes.getString("beanName");
         if (!StringUtils.isNotBlank(beanName)) {
-            beanName = "Reference".concat("$").concat(KinRpcAnnoUtils.getAppName(attributes, springAppName))
-                    .concat("$").concat(KinRpcAnnoUtils.getServiceName(attributes, interfaceClass));
+            StringJoiner sj = new StringJoiner("$");
+            sj.add("Reference");
+            sj.add(KinRpcAnnoUtils.getAppName(attributes, springAppName));
+            sj.add(KinRpcAnnoUtils.getServiceName(attributes, interfaceClass));
+            sj.add(attributes.getString("version"));
         }
         return beanName;
     }
 
     @Override
     protected Object doGetInjectedBean(AnnotationAttributes attributes, Object bean, String beanName, Class<?> injectedType, InjectionMetadata.InjectedElement injectedElement) throws Exception {
+        if (!injectedType.isInterface()) {
+            throw new IllegalArgumentException("annotation '@KinRpcReference' must be used with interface");
+        }
+
         String referenceConfigBeanName = getReferenceConfigBeanName(attributes, injectedType);
 
-        ReferenceConfig<?> referenceConfig = buildReferenceConfig(referenceConfigBeanName, attributes, injectedType, injectedElement);
-
+        ReferenceConfig<?> referenceConfig = getOrCreateReferenceConfig(referenceConfigBeanName, attributes, injectedType, injectedElement);
         if (!beanFactory.containsBean(referenceConfigBeanName)) {
             //注册bean
             beanFactory.registerSingleton(referenceConfigBeanName, referenceConfig);
@@ -94,7 +101,7 @@ final class KinRpcReferenceFieldProcessor extends AbstractAnnotationBeanPostProc
      * 解析注解配置, 返回{@link ReferenceConfig}
      */
     @SuppressWarnings("unchecked")
-    private ReferenceConfig<?> buildReferenceConfig(String referenceConfigBeanName, AnnotationAttributes attributes, Class<?> injectedType, InjectionMetadata.InjectedElement injectedElement) {
+    private ReferenceConfig<?> getOrCreateReferenceConfig(String referenceConfigBeanName, AnnotationAttributes attributes, Class<?> injectedType, InjectionMetadata.InjectedElement injectedElement) {
         ReferenceConfig<?> referenceConfig = referenceConfigs.get(referenceConfigBeanName);
         if (Objects.isNull(referenceConfig)) {
             referenceConfig = KinRpcAnnoUtils.convert2ReferenceCfg(applicationContext, attributes, injectedType, injectedElement, springAppName);
