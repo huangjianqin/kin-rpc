@@ -81,7 +81,7 @@ final class KinRpcServiceBeanProcessor implements BeanPostProcessor, Application
      */
     @SuppressWarnings("unchecked")
     private void exportService(KinRpcService serviceAnno, Object bean, String beanName) {
-        Class interfaceClass = serviceAnno.interfaceClass();
+        Class interfaceClass = serviceAnno.value();
         Class<?> beanClass = bean.getClass();
         if (!interfaceClass.isAssignableFrom(beanClass)) {
             //接口没对上

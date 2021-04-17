@@ -2,6 +2,8 @@ package org.kin.kinrpc.demo.rpc.spring;
 
 import org.kin.kinrpc.cluster.RpcCallContext;
 import org.kin.kinrpc.demo.rpc.Addable;
+import org.kin.kinrpc.demo.rpc.Return1Notifier;
+import org.kin.kinrpc.demo.rpc.Return2Notifier;
 import org.kin.kinrpc.spring.KinRpcReference;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +17,8 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 public class SpringAdderReference {
-    @KinRpcReference(urls = "kinrpc://0.0.0.0:16888", async = true)
+    @KinRpcReference(urls = "kinrpc://0.0.0.0:16888", async = true,
+            callTimeout = 2000, notifiers = {Return1Notifier.class, Return2Notifier.class})
     private Addable addable;
 
     @PostConstruct

@@ -9,7 +9,7 @@ import java.util.concurrent.Future;
  * @author huangjianqin
  * @date 2020/12/15
  */
-@KinRpcService(interfaceClass = Addable.class)
+@KinRpcService(Addable.class)
 public class SpringAdder implements Addable {
     private final Addable addable = new Adder();
 
