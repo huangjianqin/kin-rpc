@@ -248,6 +248,10 @@ public class KinRpcProvider {
      */
     private void handlerRpcRequest0(Invoker invoker, String methodName, Object[] params,
                                     Channel channel, RpcRequest rpcRequest, RpcResponse rpcResponse) {
+        if (!channel.isActive()) {
+            throw new IllegalStateException("channel closed when handle request >>>>".concat(rpcRequest.toString()));
+        }
+
         //提交线程池处理服务执行
         rpcRequest.setHandleTime(System.currentTimeMillis());
 
@@ -392,6 +396,9 @@ public class KinRpcProvider {
      * rpc消息传输逻辑处理
      */
     private class ProviderHandler extends KinRpcEndpointHandler {
+        /**
+         * write back response
+         */
         public void response(Channel channel, RpcResponse rpcResponse) {
             byte[] data;
             try {
