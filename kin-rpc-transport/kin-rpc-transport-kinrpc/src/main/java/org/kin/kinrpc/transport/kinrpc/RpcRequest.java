@@ -1,5 +1,8 @@
 package org.kin.kinrpc.transport.kinrpc;
 
+import org.kin.kinrpc.rpc.common.Constants;
+import org.kin.kinrpc.rpc.common.Url;
+
 import java.io.Serializable;
 import java.util.Arrays;
 
@@ -13,16 +16,26 @@ public class RpcRequest extends AbstractRpcMessage implements Serializable {
     private String serviceKey;
     private String method;
     private Object[] params;
+    /** 用于provider直接拒绝call timeout请求, 而不用处理request */
+    private int callTimeout;
 
     public RpcRequest() {
 
     }
 
-    public RpcRequest(long requestId, String serviceKey, String method, Object[] params) {
+    public RpcRequest(long requestId, Url url, String serviceKey, String method, Object[] params) {
         this.requestId = requestId;
         this.serviceKey = serviceKey;
         this.method = method;
         this.params = params;
+        this.callTimeout = url.getIntParam(Constants.CALL_TIMEOUT_KEY);
+    }
+
+    /**
+     * @return 此请求是否call timeout
+     */
+    public boolean isCallTimeout() {
+        return createTime + callTimeout < System.currentTimeMillis();
     }
 
     //setter && getter
@@ -50,16 +63,25 @@ public class RpcRequest extends AbstractRpcMessage implements Serializable {
         this.params = params;
     }
 
+    public int getCallTimeout() {
+        return callTimeout;
+    }
+
+    public void setCallTimeout(int callTimeout) {
+        this.callTimeout = callTimeout;
+    }
+
     @Override
     public String toString() {
         return "RpcRequest{" +
-                "serviceKey='" + serviceKey + '\'' +
-                ", method='" + method + '\'' +
-                ", params=" + Arrays.toString(params) +
-                ", requestId=" + requestId +
+                "requestId=" + requestId +
                 ", createTime=" + createTime +
                 ", eventTime=" + eventTime +
                 ", handleTime=" + handleTime +
+                ", serviceKey='" + serviceKey + '\'' +
+                ", method='" + method + '\'' +
+                ", params=" + Arrays.toString(params) +
+                ", callTimeout=" + callTimeout +
                 '}';
     }
 }

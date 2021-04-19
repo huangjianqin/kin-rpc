@@ -34,7 +34,7 @@ public class KinRpcReferenceInvoker<T> extends ReferenceInvoker<T> {
     }
 
     protected RpcRequest createRequest(long requestId, String methodName, Object... params) {
-        return new RpcRequest(requestId, super.getServiceKey(), methodName, params);
+        return new RpcRequest(requestId, url, super.getServiceKey(), methodName, params);
     }
 
     @Override

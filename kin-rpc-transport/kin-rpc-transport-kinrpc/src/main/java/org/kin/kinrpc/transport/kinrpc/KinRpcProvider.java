@@ -205,8 +205,6 @@ public class KinRpcProvider {
     private void handleRpcRequest(RpcRequest rpcRequest, Channel channel) {
         //处理请求
         log.debug("receive a request >>> " + rpcRequest);
-        //提交线程池处理服务执行
-        rpcRequest.setHandleTime(System.currentTimeMillis());
 
         if (isAlive()) {
             String serviceKey = rpcRequest.getServiceKey();
@@ -227,7 +225,6 @@ public class KinRpcProvider {
             } else {
                 log.error("can not find service>>> {}", rpcRequest);
                 rpcResponse.setState(RpcResponse.State.ERROR, "unknown service");
-                rpcResponse.setCreateTime(System.currentTimeMillis());
                 //write back to reference
                 providerHandler.response(channel, rpcResponse);
 
@@ -235,7 +232,6 @@ public class KinRpcProvider {
             }
         } else {
             //停止对外提供服务, 直接拒绝请求
-
             //创建RpcResponse,设置服务不可用请求重试标识,直接回发
             RpcResponse rpcResponse = new RpcResponse(rpcRequest.getRequestId(), rpcRequest.getServiceKey(), rpcRequest.getMethod());
             rpcResponse.setState(RpcResponse.State.RETRY, "service unavailable");
@@ -252,27 +248,36 @@ public class KinRpcProvider {
      */
     private void handlerRpcRequest0(Invoker invoker, String methodName, Object[] params,
                                     Channel channel, RpcRequest rpcRequest, RpcResponse rpcResponse) {
+        //提交线程池处理服务执行
+        rpcRequest.setHandleTime(System.currentTimeMillis());
+
+        //是否call timeout request
         Object result = null;
-        try {
-            result = invoker.invoke(methodName, params);
-            if (RpcServiceContext.asyncReturn()) {
-                //provider service利用RpcServiceContext实现异步返回结果
-                handlerServiceAsyncReturn(RpcServiceContext.future(), channel, rpcRequest, rpcResponse);
-                RpcServiceContext.reset();
-                return;
+        if (rpcRequest.isCallTimeout()) {
+            //直接拒绝call timeout请求, 而不用调用service逻辑
+            rpcResponse.setState(RpcResponse.State.ERROR, "rpc call time out");
+        } else {
+            try {
+                result = invoker.invoke(methodName, params);
+                if (RpcServiceContext.asyncReturn()) {
+                    //provider service利用RpcServiceContext实现异步返回结果
+                    handlerServiceAsyncReturn(RpcServiceContext.future(), channel, rpcRequest, rpcResponse);
+                    RpcServiceContext.reset();
+                    return;
+                }
+                if (result instanceof Future) {
+                    //返回结果是future
+                    handlerServiceAsyncReturn((Future) result, channel, rpcRequest, rpcResponse);
+                    return;
+                }
+                rpcResponse.setState(RpcResponse.State.SUCCESS, "success");
+            } catch (TpsLimitException e) {
+                rpcResponse.setState(RpcResponse.State.RETRY, "service tps limited, just reject");
+            } catch (Throwable throwable) {
+                //服务调用报错, 将异常信息返回
+                rpcResponse.setState(RpcResponse.State.ERROR, throwable.getMessage());
+                log.error(throwable.getMessage(), throwable);
             }
-            if (result instanceof Future) {
-                //返回结果是future
-                handlerServiceAsyncReturn((Future) result, channel, rpcRequest, rpcResponse);
-                return;
-            }
-            rpcResponse.setState(RpcResponse.State.SUCCESS, "success");
-        } catch (TpsLimitException e) {
-            rpcResponse.setState(RpcResponse.State.RETRY, "service tps limited, just reject");
-        } catch (Throwable throwable) {
-            //服务调用报错, 将异常信息返回
-            rpcResponse.setState(RpcResponse.State.ERROR, throwable.getMessage());
-            log.error(throwable.getMessage(), throwable);
         }
 
         responseRpcCall(result, channel, rpcRequest, rpcResponse);
@@ -313,7 +318,6 @@ public class KinRpcProvider {
      */
     private void responseRpcCall(Object result, Channel channel, RpcRequest rpcRequest, RpcResponse rpcResponse) {
         rpcResponse.setResult(result);
-        rpcResponse.setCreateTime(System.currentTimeMillis());
         //write back to reference
         providerHandler.response(channel, rpcResponse);
 
@@ -407,7 +411,6 @@ public class KinRpcProvider {
             KinRpcResponseProtocol rpcResponseProtocol = KinRpcResponseProtocol.create(rpcResponse.getRequestId(), (byte) serialization.type(), data);
             channel.writeAndFlush(rpcResponseProtocol);
 
-
             ProtocolStatisicService.instance().statisticResp(
                     rpcResponse.getServiceKey() + "-" + rpcResponse.getMethod(), Objects.nonNull(data) ? data.length : 0
             );
@@ -446,8 +449,8 @@ public class KinRpcProvider {
                 return;
             }
 
-            RpcRequest finalRpcRequest = rpcRequest;
-            KinRpcProvider.this.loop.receive(e -> handleRpcRequest(finalRpcRequest, channel));
+            //直接io线程处理
+            handleRpcRequest(rpcRequest, channel);
         }
     }
 }

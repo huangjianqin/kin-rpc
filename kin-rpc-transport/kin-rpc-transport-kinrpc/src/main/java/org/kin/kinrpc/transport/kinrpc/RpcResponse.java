@@ -70,9 +70,7 @@ public class RpcResponse extends AbstractRpcMessage implements Serializable {
     }
 
     public static RpcResponse respWithError(RpcRequest request, String errorMsg) {
-        RpcResponse rpcResponse = respWithError(request.getRequestId(), request.getServiceKey(), request.getMethod(), errorMsg);
-        rpcResponse.setCreateTime(System.currentTimeMillis());
-        return rpcResponse;
+        return respWithError(request.getRequestId(), request.getServiceKey(), request.getMethod(), errorMsg);
     }
 
     public static RpcResponse respWithRetry(long requestId, String serviceKey, String method, String retryMsg) {
@@ -82,9 +80,7 @@ public class RpcResponse extends AbstractRpcMessage implements Serializable {
     }
 
     public static RpcResponse respWithRetry(RpcRequest request, String errorMsg) {
-        RpcResponse rpcResponse = respWithRetry(request.getRequestId(), request.getServiceKey(), request.getMethod(), errorMsg);
-        rpcResponse.setCreateTime(System.currentTimeMillis());
-        return rpcResponse;
+        return respWithRetry(request.getRequestId(), request.getServiceKey(), request.getMethod(), errorMsg);
     }
 
     public void setState(State state, String info) {

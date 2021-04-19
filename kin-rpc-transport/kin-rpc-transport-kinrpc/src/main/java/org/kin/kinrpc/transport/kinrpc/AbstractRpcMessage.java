@@ -15,7 +15,7 @@ public abstract class AbstractRpcMessage implements Serializable {
     /** 唯一id */
     protected long requestId;
     /** request创建时间 */
-    protected long createTime;
+    protected long createTime = System.currentTimeMillis();
     /** request事件时间即, 到达service端的时间 */
     protected long eventTime;
     /** request处理时间 */

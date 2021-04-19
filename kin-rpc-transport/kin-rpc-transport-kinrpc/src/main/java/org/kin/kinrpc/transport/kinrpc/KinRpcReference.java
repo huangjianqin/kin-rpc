@@ -188,7 +188,6 @@ public class KinRpcReference {
         public void request(RpcRequest request) {
             if (isActive()) {
                 try {
-                    request.setCreateTime(System.currentTimeMillis());
                     byte[] data = serialization.serialize(request);
 
                     KinRpcRequestProtocol protocol = KinRpcRequestProtocol.create(request.getRequestId(), (byte) serialization.type(), data);
