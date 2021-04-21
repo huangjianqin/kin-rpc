@@ -66,13 +66,13 @@ public class ServiceConfig<T> extends AbstractConfig {
 
         //默认netty channel options
         Map<String, Object> nettyOptions = new HashMap<>(5);
-        nettyOptions.put(Constants.NETTY_NODELAY, true);
-        nettyOptions.put(Constants.NETTY_KEEPALIVE, true);
-        nettyOptions.put(Constants.NETTY_REUSEADDR, true);
+        nettyOptions.put(Constants.NETTY_NODELAY_KEY, true);
+        nettyOptions.put(Constants.NETTY_KEEPALIVE_KEY, true);
+        nettyOptions.put(Constants.NETTY_REUSEADDR_KEY, true);
         //receive窗口缓存8mb
-        nettyOptions.put(Constants.NETTY_RCVBUF, 8 * 1024 * 1024);
+        nettyOptions.put(Constants.NETTY_RCVBUF_KEY, 8 * 1024 * 1024);
         //send窗口缓存64kb
-        nettyOptions.put(Constants.NETTY_SNDBUF, 64 * 1024);
+        nettyOptions.put(Constants.NETTY_SNDBUF_KEY, 64 * 1024);
         attach(nettyOptions);
     }
 

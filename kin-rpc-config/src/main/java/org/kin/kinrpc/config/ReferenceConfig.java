@@ -70,12 +70,12 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
         //默认netty channel options
         Map<String, Object> nettyOptions = new HashMap<>(4);
-        nettyOptions.put(Constants.NETTY_NODELAY, true);
+        nettyOptions.put(Constants.NETTY_NODELAY_KEY, true);
         nettyOptions.put(Constants.NETTY_CONNECT_TIMEOUT_KEY, Constants.DEFAULT_CONNECT_TIMEOUT);
         //receive窗口缓存8mb
-        nettyOptions.put(Constants.NETTY_RCVBUF, 8 * 1024 * 1024);
+        nettyOptions.put(Constants.NETTY_RCVBUF_KEY, 8 * 1024 * 1024);
         //send窗口缓存64kb
-        nettyOptions.put(Constants.NETTY_SNDBUF, 64 * 1024);
+        nettyOptions.put(Constants.NETTY_SNDBUF_KEY, 64 * 1024);
         attach(nettyOptions);
     }
 

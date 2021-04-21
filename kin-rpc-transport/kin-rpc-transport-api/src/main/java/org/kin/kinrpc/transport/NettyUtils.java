@@ -26,36 +26,36 @@ public class NettyUtils {
             options.put(ChannelOption.CONNECT_TIMEOUT_MILLIS, url.getIntParam(Constants.NETTY_CONNECT_TIMEOUT_KEY));
         }
 
-        if (url.containsParam(Constants.NETTY_NODELAY)) {
-            options.put(ChannelOption.TCP_NODELAY, url.getBooleanParam(Constants.NETTY_NODELAY));
+        if (url.containsParam(Constants.NETTY_NODELAY_KEY)) {
+            options.put(ChannelOption.TCP_NODELAY, url.getBooleanParam(Constants.NETTY_NODELAY_KEY));
         }
 
-        if (url.containsParam(Constants.NETTY_KEEPALIVE)) {
-            options.put(ChannelOption.SO_KEEPALIVE, url.getBooleanParam(Constants.NETTY_KEEPALIVE));
+        if (url.containsParam(Constants.NETTY_KEEPALIVE_KEY)) {
+            options.put(ChannelOption.SO_KEEPALIVE, url.getBooleanParam(Constants.NETTY_KEEPALIVE_KEY));
         }
 
-        if (url.containsParam(Constants.NETTY_RCVBUF)) {
-            options.put(ChannelOption.SO_RCVBUF, url.getIntParam(Constants.NETTY_RCVBUF));
+        if (url.containsParam(Constants.NETTY_RCVBUF_KEY)) {
+            options.put(ChannelOption.SO_RCVBUF, url.getIntParam(Constants.NETTY_RCVBUF_KEY));
         }
 
-        if (url.containsParam(Constants.NETTY_SNDBUF)) {
-            options.put(ChannelOption.SO_SNDBUF, url.getIntParam(Constants.NETTY_SNDBUF));
+        if (url.containsParam(Constants.NETTY_SNDBUF_KEY)) {
+            options.put(ChannelOption.SO_SNDBUF, url.getIntParam(Constants.NETTY_SNDBUF_KEY));
         }
 
-        if (url.containsParam(Constants.NETTY_BACKLOG)) {
-            options.put(ChannelOption.SO_BACKLOG, url.getIntParam(Constants.NETTY_BACKLOG));
+        if (url.containsParam(Constants.NETTY_BACKLOG_KEY)) {
+            options.put(ChannelOption.SO_BACKLOG, url.getIntParam(Constants.NETTY_BACKLOG_KEY));
         }
 
-        if (url.containsParam(Constants.NETTY_REUSEADDR)) {
-            options.put(ChannelOption.SO_REUSEADDR, url.getBooleanParam(Constants.NETTY_REUSEADDR));
+        if (url.containsParam(Constants.NETTY_REUSEADDR_KEY)) {
+            options.put(ChannelOption.SO_REUSEADDR, url.getBooleanParam(Constants.NETTY_REUSEADDR_KEY));
         }
 
-        if (url.containsParam(Constants.NETTY_LINGER)) {
-            options.put(ChannelOption.SO_LINGER, url.getIntParam(Constants.NETTY_LINGER));
+        if (url.containsParam(Constants.NETTY_LINGER_KEY)) {
+            options.put(ChannelOption.SO_LINGER, url.getIntParam(Constants.NETTY_LINGER_KEY));
         }
 
-        if (url.containsParam(Constants.NETTY_WRITE_BUFF_WATER_MARK)) {
-            String[] splits = url.getParam(Constants.NETTY_WRITE_BUFF_WATER_MARK).split(",");
+        if (url.containsParam(Constants.NETTY_WRITE_BUFF_WATER_MARK_KEY)) {
+            String[] splits = url.getParam(Constants.NETTY_WRITE_BUFF_WATER_MARK_KEY).split(",");
             options.put(ChannelOption.WRITE_BUFFER_WATER_MARK,
                     new WriteBufferWaterMark(Integer.parseInt(splits[0]), Integer.parseInt(splits[1])));
         }

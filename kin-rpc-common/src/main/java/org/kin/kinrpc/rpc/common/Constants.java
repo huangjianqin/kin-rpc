@@ -58,21 +58,21 @@ public interface Constants {
     /** 连接超时 */
     String NETTY_CONNECT_TIMEOUT_KEY = "netty.connectTimeout";
     /** socket直接发送消息, 不缓存 */
-    String NETTY_NODELAY = "netty.nodelay";
+    String NETTY_NODELAY_KEY = "netty.nodelay";
     /** 保持连接活跃 */
-    String NETTY_KEEPALIVE = "netty.keepalive";
+    String NETTY_KEEPALIVE_KEY = "netty.keepalive";
     /** socket receive buffer大小 */
-    String NETTY_RCVBUF = "netty.rcvbuf";
+    String NETTY_RCVBUF_KEY = "netty.rcvbuf";
     /** socket send buffer大小 */
-    String NETTY_SNDBUF = "netty.sndbuf";
+    String NETTY_SNDBUF_KEY = "netty.sndbuf";
     /** socket backlog, 相当于新连接数, 大于这个值时, 内核会拒绝新连接, 对程序支持的连接数没有影响, 只影响accept的数量 */
-    String NETTY_BACKLOG = "netty.backlog";
+    String NETTY_BACKLOG_KEY = "netty.backlog";
     /** 复用地址 */
-    String NETTY_REUSEADDR = "netty.reuseaddr";
+    String NETTY_REUSEADDR_KEY = "netty.reuseaddr";
     /** 关闭socket的延迟时间 */
-    String NETTY_LINGER = "netty.linger";
+    String NETTY_LINGER_KEY = "netty.linger";
     /** 控制socket channel write速率, 如果water mark过高, 会导致channel不可写, 同时占用内存高 */
-    String NETTY_WRITE_BUFF_WATER_MARK = "netty.writeBuffWaterMark";
+    String NETTY_WRITE_BUFF_WATER_MARK_KEY = "netty.writeBuffWaterMark";
 
     //<<<kinrpc相关>>>
     /** netty server业务线程池类型 */
