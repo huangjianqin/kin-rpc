@@ -22,7 +22,7 @@ public class RpcThreadPool {
     //添加JVM关闭钩子,以确保释放该静态线程池
     static {
         //lazy init EXECUTORS
-        EXECUTORS = ExecutionContext.elastic(SysUtils.getSuitableThreadNum(), SysUtils.CPU_NUM * 10,
+        EXECUTORS = ExecutionContext.elastic(SysUtils.getSuitableThreadNum(), SysUtils.CPU_NUM * 5,
                 "rpc-reference", 2, "rpc-reference-scheduler");
 
         //200ms tick

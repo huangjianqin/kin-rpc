@@ -166,13 +166,20 @@ public class Url implements Serializable, Cloneable {
      * 获取url参数
      */
     public String getParam(String k) {
-        return params.getOrDefault(k, "");
+        return getParam(k, "");
+    }
+
+    /**
+     * 获取url参数
+     */
+    public String getParam(String k, String defalutVal) {
+        return params.getOrDefault(k, defalutVal);
     }
 
     /**
      * 获取url参数(数字类型, 默认返回0)
      */
-    public String getNumberParam(String k) {
+    private String getNumberParam(String k) {
         String param = getParam(k);
         return StringUtils.isNotBlank(param) ? param : "0";
     }
@@ -181,8 +188,15 @@ public class Url implements Serializable, Cloneable {
      * 获取url参数(boolean类型)
      */
     public boolean getBooleanParam(String k) {
+        return getBooleanParam(k, false);
+    }
+
+    /**
+     * 获取url参数(boolean类型)
+     */
+    public boolean getBooleanParam(String k, boolean defalutVal) {
         String param = getParam(k);
-        return StringUtils.isNotBlank(param) ? Boolean.parseBoolean(param) : false;
+        return StringUtils.isNotBlank(param) ? Boolean.parseBoolean(param) : defalutVal;
     }
 
     /**
@@ -193,6 +207,18 @@ public class Url implements Serializable, Cloneable {
     }
 
     /**
+     * 获取url参数(int类型, 默认返回defalutVal)
+     */
+    public int getIntParam(String k, int defalutVal) {
+        String value = getParam(k);
+        if (StringUtils.isBlank(value)) {
+            return defalutVal;
+        } else {
+            return Integer.parseInt(value);
+        }
+    }
+
+    /**
      * 获取url参数(long类型, 默认返回0)
      */
     public long getLongParam(String k) {
@@ -200,10 +226,34 @@ public class Url implements Serializable, Cloneable {
     }
 
     /**
+     * 获取url参数(long类型, 默认返回defalutVal)
+     */
+    public long getLongParam(String k, long defalutVal) {
+        String value = getParam(k);
+        if (StringUtils.isBlank(value)) {
+            return defalutVal;
+        } else {
+            return Long.parseLong(value);
+        }
+    }
+
+    /**
      * 获取url参数(double类型, 默认返回0)
      */
     public double getDoubleParam(String k) {
         return Double.parseDouble(getNumberParam(k));
+    }
+
+    /**
+     * 获取url参数(double类型, 默认返回defalutVal)
+     */
+    public double getDoubleParam(String k, double defalutVal) {
+        String value = getParam(k);
+        if (StringUtils.isBlank(value)) {
+            return defalutVal;
+        } else {
+            return Double.parseDouble(value);
+        }
     }
 
     /**

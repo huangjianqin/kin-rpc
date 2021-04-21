@@ -50,7 +50,16 @@ public final class KinRpcProtocol implements Protocol, LoggerOprs {
         KinRpcProvider provider = null;
         try {
             provider = PROVIDER_CACHE.get(port, () -> {
-                KinRpcProvider provider0 = new KinRpcProvider(host, port, serialization, compressionType, NettyUtils.convert(url));
+                ExecutorFactory executorFactory;
+                try {
+                    executorFactory = ExecutorFactoryType.getByName(url.getParam(Constants.EXECUTOR_KEY)).create(url, port);
+                } catch (Exception e) {
+                    log().warn("fall back to use eager executor, because of ".concat(e.getMessage()));
+                    //default
+                    executorFactory = ExecutorFactoryType.EAGER.create(url, port);
+                }
+
+                KinRpcProvider provider0 = new KinRpcProvider(host, port, executorFactory, serialization, compressionType, NettyUtils.convert(url));
                 try {
                     provider0.bind();
                 } catch (Exception e) {

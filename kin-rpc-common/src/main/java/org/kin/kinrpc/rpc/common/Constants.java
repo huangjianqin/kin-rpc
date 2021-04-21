@@ -1,6 +1,8 @@
 package org.kin.kinrpc.rpc.common;
 
 
+import org.kin.framework.utils.SysUtils;
+
 /**
  * Created by 健勤 on 2016/10/9.
  */
@@ -72,6 +74,18 @@ public interface Constants {
     /** 控制socket channel write速率, 如果water mark过高, 会导致channel不可写, 同时占用内存高 */
     String NETTY_WRITE_BUFF_WATER_MARK = "netty.writeBuffWaterMark";
 
+    //<<<kinrpc相关>>>
+    /** netty server业务线程池类型 */
+    String EXECUTOR_KEY = "executor";
+    /** netty server业务线程池核心线程数 */
+    String CORES_KEY = "cores";
+    /** netty server业务线程池最大线程数 */
+    String MAX_THREADS_KEY = "maxThreads";
+    /** netty server业务线程池等待task队列大小 */
+    String QUEUES_KEY = "queues";
+    /** netty server业务线程池线程存活时间, ms */
+    String ALIVE_KEY = "alive";
+
     //<<<grpc相关>>>
     /** Inbound消息大小 */
     String GRPC_MAX_INBOUND_MESSAGE_SIZE_KEY = "grpc.maxInboundMessageSize";
@@ -115,6 +129,16 @@ public interface Constants {
 
     /** rpc call等待时间(ms) */
     int RPC_CALL_TIMEOUT = 500;
+
+    //<<<kinrpc相关>>>
+    /** 默认netty server业务线程池核心线程数 */
+    int CORES = SysUtils.getSuitableThreadNum();
+    /** 默认netty server业务线程池最大线程数 */
+    int MAX_THREADS = Integer.MAX_VALUE;
+    /** 默认netty server业务线程池等待task队列大小 */
+    int QUEUES = 0;
+    /** 默认netty server业务线程池线程存活时间, ms */
+    int ALIVE = 60_000;
 
     //-------------------------------------------------传输协议相关--------------------------------------------------------
     String GENERIC = "generic";

@@ -45,9 +45,9 @@ public class KinRpcReference {
 
     public KinRpcReference(Url url) {
         this.url = url;
-        int compression = Integer.parseInt(url.getNumberParam(Constants.COMPRESSION_KEY));
+        int compression = url.getIntParam(Constants.COMPRESSION_KEY);
 
-        int serializationType = Integer.parseInt(url.getNumberParam(Constants.SERIALIZATION_KEY));
+        int serializationType = url.getIntParam(Constants.SERIALIZATION_KEY);
         if (serializationType == 0) {
             //未指定序列化类型, 默认kyro
             serializationType = SerializationType.KRYO.getCode();
