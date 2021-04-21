@@ -22,15 +22,15 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2020/12/13
  */
 public class JvmProtocol implements Protocol, LoggerOprs {
-    /** key -> service key, value -> service provider invoker */
-    private Map<String, ProviderInvoker<?>> providers = new ConcurrentHashMap<>();
+    /** key -> service id, value -> service provider invoker */
+    private final Map<Integer, ProviderInvoker<?>> providers = new ConcurrentHashMap<>();
 
     @Override
     public <T> Exporter<T> export(ProviderInvoker<T> invoker) {
         Url url = invoker.url();
-        providers.put(url.getServiceKey(), invoker);
+        providers.put(url.getServiceId(), invoker);
 
-        info("jvm service '{}' export address '{}'", url.getServiceName(), url.getAddress());
+        info("jvm service '{}' export address '{}'", url.getServiceKey(), url.getAddress());
 
         return new Exporter<T>() {
             @Override
@@ -40,7 +40,7 @@ public class JvmProtocol implements Protocol, LoggerOprs {
 
             @Override
             public void unexport() {
-                providers.remove(url.getServiceKey());
+                providers.remove(url.getServiceId());
                 invoker.destroy();
             }
         };
@@ -48,7 +48,7 @@ public class JvmProtocol implements Protocol, LoggerOprs {
 
     @Override
     public <T> AsyncInvoker<T> reference(Url url) {
-        info("jvm reference '{}' refer address '{}'", url.getServiceName(), url.getAddress());
+        info("jvm reference '{}' refer address '{}'", url.getService(), url.getAddress());
 
         return new AsyncInvoker<T>() {
             @Override
@@ -64,7 +64,7 @@ public class JvmProtocol implements Protocol, LoggerOprs {
 
             @Override
             public Object invoke(String methodName, Object[] params) throws Throwable {
-                ProviderInvoker<?> providerInvoker = providers.get(url.getServiceKey());
+                ProviderInvoker<?> providerInvoker = providers.get(url.getServiceId());
                 Preconditions.checkNotNull(providerInvoker, "can not find valid invoker");
                 try {
                     return providerInvoker.invoke(methodName, params);
@@ -93,7 +93,7 @@ public class JvmProtocol implements Protocol, LoggerOprs {
 
             @Override
             public boolean isAvailable() {
-                return providers.containsKey(url.getServiceKey());
+                return providers.containsKey(url.getServiceId());
             }
 
             @Override

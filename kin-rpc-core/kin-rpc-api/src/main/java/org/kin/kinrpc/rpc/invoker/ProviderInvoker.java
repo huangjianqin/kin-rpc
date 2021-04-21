@@ -31,10 +31,10 @@ public abstract class ProviderInvoker<T> extends AbstractInvoker<T> {
 
     @Override
     public final Object invoke(String methodName, Object[] params) throws Throwable {
-        log.debug("service '{}' method '{}' invoking...", getServiceKey(), methodName);
+        log.debug("service '{}' method '{}' invoking...", url.getServiceKey(), methodName);
         //流控
         if (!tpsLimiter.tryAcquire()) {
-            throw new TpsLimitException(RpcUtils.generateInvokeMsg(getServiceKey(), methodName, params));
+            throw new TpsLimitException(RpcUtils.generateInvokeMsg(url.getServiceKey(), methodName, params));
         }
         return doInvoke(methodName, params);
     }

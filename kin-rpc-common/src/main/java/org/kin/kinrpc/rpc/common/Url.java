@@ -48,11 +48,7 @@ public class Url implements Serializable, Cloneable {
         this.path = path;
         this.params = params;
 
-        this.serviceKey = getParam(Constants.SERVICE_NAME_KEY);
-        String version = getParam(Constants.VERSION_KEY);
-        if (StringUtils.isNotBlank(version)) {
-            this.serviceKey += ("-" + version);
-        }
+        this.serviceKey = serviceKey(getParam(Constants.GROUP_KEY), getParam(Constants.SERVICE_KEY), getParam(Constants.VERSION_KEY));
         this.interfaceN = getParam(Constants.INTERFACE_KEY);
     }
 
@@ -377,11 +373,31 @@ public class Url implements Serializable, Cloneable {
         return serviceKey;
     }
 
-    public String getServiceName() {
-        return params.get(Constants.SERVICE_NAME_KEY);
+    public int getServiceId() {
+        return serviceKey.hashCode();
+    }
+
+    public String getService() {
+        return params.get(Constants.SERVICE_KEY);
     }
 
     public String getInterfaceN() {
         return interfaceN;
+    }
+
+    //------------------------------static------------------------------
+
+    /**
+     * @return 服务唯一标识
+     */
+    public static String serviceKey(String group, String service, String version) {
+        return group + "#" + service + ":" + version;
+    }
+
+    /**
+     * @return hash(服务唯一标识)
+     */
+    public static Integer serviceId(String group, String service, String version) {
+        return serviceKey(group, service, version).hashCode();
     }
 }

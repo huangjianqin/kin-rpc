@@ -23,9 +23,9 @@ public class RpcRequest extends AbstractRpcMessage implements Serializable {
 
     }
 
-    public RpcRequest(long requestId, Url url, String serviceKey, String method, Object[] params) {
+    public RpcRequest(long requestId, Url url, String method, Object[] params) {
         this.requestId = requestId;
-        this.serviceKey = serviceKey;
+        this.serviceKey = url.getServiceKey();
         this.method = method;
         this.params = params;
         this.callTimeout = url.getIntParam(Constants.CALL_TIMEOUT_KEY);

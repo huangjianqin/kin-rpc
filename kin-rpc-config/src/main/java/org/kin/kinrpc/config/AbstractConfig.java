@@ -40,12 +40,15 @@ abstract class AbstractConfig {
         }
         sb.append(hostPort);
         //目前是/serviceName#version
-        sb.append("/").append(otherParams.get(Constants.SERVICE_NAME_KEY))
-                .append("-").append(otherParams.get(Constants.VERSION_KEY));
+        sb.append("/")
+                .append(Url.serviceKey(
+                        otherParams.get(Constants.GROUP_KEY),
+                        otherParams.get(Constants.SERVICE_KEY),
+                        otherParams.get(Constants.VERSION_KEY)));
         sb.append("?");
 
         Map<String, String> params = new HashMap<>(Constants.URL_PARAM_NUM);
-        params.put(Constants.APP_NAME_KEY, applicationConfig.getAppName());
+        params.put(Constants.APP_KEY, applicationConfig.getApp());
         if (registryConfig != null) {
             if (registryConfig instanceof DirectURLsRegistryConfig) {
                 params.put(Constants.REGISTRY_KEY, RegistryType.DIRECTURLS.getType());

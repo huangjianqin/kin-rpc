@@ -4,7 +4,6 @@ import org.kin.framework.proxy.Javassists;
 import org.kin.framework.proxy.MethodDefinition;
 import org.kin.framework.proxy.ProxyInvoker;
 import org.kin.framework.proxy.Proxys;
-import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.rpc.common.Url;
 
@@ -14,10 +13,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * 效率比反射要高
+ *
  * @author huangjianqin
  * @date 2019-09-09
- * <p>
- * 调用方法速度接近于直接调用, 比反射要快很多
  */
 public class JavassistProviderInvoker<T> extends ProviderInvoker<T> {
     /**
@@ -36,12 +35,12 @@ public class JavassistProviderInvoker<T> extends ProviderInvoker<T> {
 
         Map<String, ProxyInvoker<?>> methodMap = new HashMap<>(declaredMethods.length);
         for (Method method : declaredMethods) {
-            String uniqueName = ClassUtils.getUniqueName(method);
+            String uniqueName = method.getName();
             ProxyInvoker<?> proxyInvoker = Proxys.javassist().enhanceMethod(
                     new MethodDefinition<>(service, method));
             methodMap.put(uniqueName, proxyInvoker);
 
-            log.info("service '{}'s method '{}'/'{}' is ready to provide service", getServiceKey(), uniqueName, method.toString());
+            log.info("service '{}'s method '{}'/'{}' is ready to provide service", url.getServiceKey(), uniqueName, method.toString());
         }
         this.methodMap = methodMap;
     }
@@ -66,10 +65,10 @@ public class JavassistProviderInvoker<T> extends ProviderInvoker<T> {
         try {
             return methodInvoker.invoke(params);
         } catch (IllegalAccessException e) {
-            log.error("service '{}' method '{}' access illegally", getServiceKey(), methodName);
+            log.error("service '{}' method '{}' access illegally", url.getServiceKey(), methodName);
             throw e;
         } catch (InvocationTargetException e) {
-            log.error("service '{}' method '{}' invoke error", getServiceKey(), methodName);
+            log.error("service '{}' method '{}' invoke error", url.getServiceKey(), methodName);
             throw e.getCause();
         }
     }

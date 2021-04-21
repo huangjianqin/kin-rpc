@@ -118,7 +118,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
             if (GenericRpcService.class.equals(method.getDeclaringClass())) {
                 return invoker.invoke(args[0].toString(), (Object[]) args[1]);
             }
-            return invoker.invoke(ClassUtils.getUniqueName(method), args);
+            return invoker.invoke(method.getName(), args);
         });
     }
 
@@ -194,7 +194,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
         //rpc call代码
         StringBuilder invokeCode = new StringBuilder();
         invokeCode.append(JavassistFactory.DEFAULT_INSTANCE_FIELD_NAME.concat(".invoke"));
-        invokeCode.append("(\"").append(ClassUtils.getUniqueName(method)).append("\"");
+        invokeCode.append("(\"").append(method.getName()).append("\"");
 
         Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length > 0) {
@@ -268,7 +268,7 @@ public abstract class AbstractProxyProtocol implements Protocol, LoggerOprs {
         return (T) Proxy.newProxyInstance(interfaceC.getClassLoader(), new Class<?>[]{interfaceC}, new InvocationHandler() {
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                return genericRpcService.invoke(ClassUtils.getUniqueName(method), args);
+                return genericRpcService.invoke(method.getName(), args);
             }
         });
     }

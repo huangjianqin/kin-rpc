@@ -8,7 +8,7 @@ import org.kin.framework.utils.StringUtils;
  */
 public class ApplicationConfig extends AbstractConfig {
     /** 应用名 */
-    private String appName;
+    private String app;
 
     ApplicationConfig() {
         //获取最外层调用的class name
@@ -16,21 +16,21 @@ public class ApplicationConfig extends AbstractConfig {
         String className = elements[elements.length - 1].getClassName();
         int last = className.lastIndexOf(".");
         //默认是main方法的simple class name
-        appName = className.substring(last + 1);
+        app = className.substring(last + 1);
     }
 
-    ApplicationConfig(String appName) {
-        this.appName = appName;
+    ApplicationConfig(String app) {
+        this.app = app;
     }
 
     @Override
     void check() {
-        Preconditions.checkArgument(StringUtils.isNotBlank(appName));
+        Preconditions.checkArgument(StringUtils.isNotBlank(app));
     }
 
     //setter && getter
 
-    public String getAppName() {
-        return appName;
+    public String getApp() {
+        return app;
     }
 }

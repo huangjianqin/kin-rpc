@@ -125,9 +125,9 @@ final class KinRpcServiceBeanProcessor implements BeanPostProcessor, Application
 
         //注入配置
         ServiceConfig serviceConfig = Services.service(bean, interfaceClass)
-                .appName(appName)
+                .app(appName)
                 .bind(serviceAnno.host(), port)
-                .serviceName(serviceName)
+                .service(serviceName)
                 .version(serviceAnno.version())
                 .serialization(serializationCode)
                 .compress(serviceAnno.compressionType())

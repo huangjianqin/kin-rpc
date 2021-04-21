@@ -106,7 +106,7 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
             grpcServer.incrementAndGetCount();
         }
 
-        info("grpc service '{}' export address '{}'", url.getServiceName(), url.getAddress());
+        info("grpc service '{}' export address '{}'", url.getServiceKey(), url.getAddress());
 
         return new Exporter<T>() {
             @Override
@@ -259,7 +259,7 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
         //grpc Channel
         ReferenceCountManagedChannel channel = getSharedChannel(url);
 
-        info("grpc reference '{}' refer address '{}'", url.getServiceName(), url.getAddress());
+        info("grpc reference '{}' refer address '{}'", url.getService(), url.getAddress());
 
         //获取stub
         try {

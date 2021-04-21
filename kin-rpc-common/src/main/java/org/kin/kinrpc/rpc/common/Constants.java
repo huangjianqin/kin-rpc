@@ -12,9 +12,11 @@ public interface Constants {
     /** url参数 */
     int URL_PARAM_NUM = 6;
     /** 应用名 */
-    String APP_NAME_KEY = "appName";
+    String APP_KEY = "app";
+    /** 服务所属组 */
+    String GROUP_KEY = "group";
     /** 服务名 */
-    String SERVICE_NAME_KEY = "serviceName";
+    String SERVICE_KEY = "service";
     /** 版本号 */
     String VERSION_KEY = "version";
     /** 发送方支持压缩, 接收方根据实际解压后接受或直接接受 */

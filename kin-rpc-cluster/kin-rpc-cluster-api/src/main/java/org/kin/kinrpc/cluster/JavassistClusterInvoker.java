@@ -63,7 +63,7 @@ class JavassistClusterInvoker<T> extends ClusterInvoker<T> {
         StringBuilder invokeCode = new StringBuilder();
         invokeCode.append(CompletableFuture.class.getName()).append(" ").append(futureVarName).append(" = ");
         invokeCode.append(JavassistFactory.DEFAULT_INSTANCE_FIELD_NAME.concat(".invokeAsync"));
-        invokeCode.append("(\"").append(ClassUtils.getUniqueName(method)).append("\"");
+        invokeCode.append("(\"").append(method.getName()).append("\"");
         invokeCode.append(", ").append("returnType");
 
         Class<?>[] parameterTypes = method.getParameterTypes();

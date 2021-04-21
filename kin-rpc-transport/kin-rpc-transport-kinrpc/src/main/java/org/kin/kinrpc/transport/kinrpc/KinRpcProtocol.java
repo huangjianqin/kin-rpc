@@ -6,6 +6,7 @@ import com.google.common.cache.CacheBuilder;
 import org.kin.framework.log.LoggerOprs;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.NetUtils;
+import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.kin.kinrpc.rpc.Exporter;
 import org.kin.kinrpc.rpc.Invoker;
@@ -50,11 +51,11 @@ public final class KinRpcProtocol implements Protocol, LoggerOprs {
         KinRpcProvider provider = null;
         try {
             provider = PROVIDER_CACHE.get(port, () -> {
+                String executorFactoryType = url.getParam(Constants.EXECUTOR_KEY);
                 ExecutorFactory executorFactory;
-                try {
-                    executorFactory = ExecutorFactoryType.getByName(url.getParam(Constants.EXECUTOR_KEY)).create(url, port);
-                } catch (Exception e) {
-                    log().warn("fall back to use eager executor, because of ".concat(e.getMessage()));
+                if (StringUtils.isNotBlank(executorFactoryType)) {
+                    executorFactory = ExecutorFactoryType.getByName(executorFactoryType).create(url, port);
+                } else {
                     //default
                     executorFactory = ExecutorFactoryType.EAGER.create(url, port);
                 }
@@ -85,7 +86,7 @@ public final class KinRpcProtocol implements Protocol, LoggerOprs {
             ExceptionUtils.throwExt(e);
         }
 
-        info("kinrpc service '{}' export address '{}'", NetUtils.getIpPort(host, port));
+        info("kinrpc service '{}' export address '{}'", url.getServiceKey(), NetUtils.getIpPort(host, port));
 
         return exporter;
     }

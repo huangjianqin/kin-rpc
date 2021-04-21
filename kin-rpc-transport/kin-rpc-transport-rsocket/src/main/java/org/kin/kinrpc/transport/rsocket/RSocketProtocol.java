@@ -75,7 +75,7 @@ public class RSocketProtocol extends AbstractProxyProtocol {
             rSocketService.selfRegister(rsocketServer.router);
         }
 
-        info("rsocket service '{}' export address '{}'", url.getServiceName(), url.getAddress());
+        info("rsocket service '{}' export address '{}'", url.getServiceKey(), url.getAddress());
 
         return () -> {
             rsocketServer.router.unregisterFireAndForgetRoute(rsocketServiceName);
@@ -140,7 +140,7 @@ public class RSocketProtocol extends AbstractProxyProtocol {
             throw new IllegalStateException("Failed to '%s' constructor with params " + RSocket.class.getName(), e);
         }
 
-        info("rsocket reference '{}' refer address '{}'", url.getServiceName(), url.getAddress());
+        info("rsocket reference '{}' refer address '{}'", url.getService(), url.getAddress());
 
         return generateAsyncInvoker(
                 url,

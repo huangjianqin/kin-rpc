@@ -32,8 +32,10 @@ public class ServiceConfig<T> extends AbstractConfig {
     private T ref;
     /** 接口 */
     private Class<T> interfaceClass;
+    /** 服务所属组 */
+    private String group = "";
     /** 服务名 */
-    private String serviceName;
+    private String service;
     /** 版本号 */
     private String version = "0.1.0.0";
     /** 序列化类型, 在kinrpc协议下生效 */
@@ -62,7 +64,7 @@ public class ServiceConfig<T> extends AbstractConfig {
     ServiceConfig(T ref, Class<T> interfaceClass) {
         this.ref = ref;
         this.interfaceClass = interfaceClass;
-        this.serviceName = interfaceClass.getCanonicalName();
+        this.service = interfaceClass.getCanonicalName();
 
         //默认netty channel options
         Map<String, Object> nettyOptions = new HashMap<>(5);
@@ -140,7 +142,8 @@ public class ServiceConfig<T> extends AbstractConfig {
             check();
 
             Map<String, String> params = new HashMap<>(50);
-            params.put(Constants.SERVICE_NAME_KEY, serviceName);
+            params.put(Constants.SERVICE_KEY, service);
+            params.put(Constants.GROUP_KEY, group);
             params.put(Constants.VERSION_KEY, version);
             params.put(Constants.SERIALIZATION_KEY, serializationCode + "");
             params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(ProxyType.JAVASSIST.equals(proxyType)));
@@ -189,16 +192,23 @@ public class ServiceConfig<T> extends AbstractConfig {
 
     //---------------------------------------builder------------------------------------------------------------
 
-    public ServiceConfig<T> appName(String appName) {
+    public ServiceConfig<T> app(String app) {
         if (!isExport) {
-            this.applicationConfig = new ApplicationConfig(appName);
+            this.applicationConfig = new ApplicationConfig(app);
         }
         return this;
     }
 
-    public ServiceConfig<T> serviceName(String serviceName) {
+    public ServiceConfig<T> group(String group) {
         if (!isExport) {
-            this.serviceName = serviceName;
+            this.group = group;
+        }
+        return this;
+    }
+
+    public ServiceConfig<T> service(String service) {
+        if (!isExport) {
+            this.service = service;
         }
         return this;
     }
@@ -337,8 +347,8 @@ public class ServiceConfig<T> extends AbstractConfig {
         return interfaceClass;
     }
 
-    public String getServiceName() {
-        return serviceName;
+    public String getService() {
+        return service;
     }
 
     public int getSerializationCode() {

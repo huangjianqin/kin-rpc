@@ -12,9 +12,4 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
     protected AbstractInvoker(Url url) {
         this.url = url;
     }
-
-    //getter
-    protected String getServiceKey() {
-        return url.getServiceKey();
-    }
 }

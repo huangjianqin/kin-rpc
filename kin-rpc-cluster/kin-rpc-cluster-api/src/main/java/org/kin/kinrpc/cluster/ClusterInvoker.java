@@ -60,7 +60,7 @@ abstract class ClusterInvoker<T> implements Closeable {
      * async rpc call
      */
     public CompletableFuture<?> invokeAsync(Method method, Class<?> returnType, Object... params) {
-        return invokeAsync(ClassUtils.getUniqueName(method), returnType, params);
+        return invokeAsync(method.getName(), returnType, params);
     }
 
     /**

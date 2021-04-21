@@ -40,8 +40,8 @@ import java.util.stream.Collectors;
 public class KinRpcProvider {
     private static final Logger log = LoggerFactory.getLogger(KinRpcProvider.class);
 
-    /** 服务 */
-    private final Map<String, Invoker> services = new ConcurrentHashMap<>();
+    /** 服务, key -> serviceId, value -> provider invoker */
+    private final Map<Integer, Invoker> services = new ConcurrentHashMap<>();
     /** 绑定地址 */
     protected final InetSocketAddress address;
     /** 序列化方式 */
@@ -89,10 +89,11 @@ public class KinRpcProvider {
         if (isAlive()) {
             Url url = proxy.url();
             String serviceKey = url.getServiceKey();
+            int serviceId = url.getServiceId();
             Invoker<T> invoker = new TpsLimitInvoker<>(proxy);
 
-            if (!services.containsKey(serviceKey)) {
-                services.put(serviceKey, invoker);
+            if (!services.containsKey(serviceId)) {
+                services.put(serviceId, invoker);
                 log.info("provider(serviceKey={}, port={}) registered", serviceKey, getPort());
             } else {
                 throw new IllegalStateException("service'" + serviceKey + "' has registered. can not register again");
@@ -104,8 +105,7 @@ public class KinRpcProvider {
      * 支持动态移除服务
      */
     public void disableService(Url url) {
-        String serviceKey = url.getServiceKey();
-        services.remove(serviceKey);
+        services.remove(url.getServiceId());
     }
 
     /**
@@ -178,13 +178,14 @@ public class KinRpcProvider {
 
         if (isAlive()) {
             String serviceKey = rpcRequest.getServiceKey();
+            int serviceId = serviceKey.hashCode();
             String methodName = rpcRequest.getMethod();
             Object[] params = rpcRequest.getParams();
 
             RpcResponse rpcResponse = new RpcResponse(rpcRequest.getRequestId(),
                     rpcRequest.getServiceKey(), rpcRequest.getMethod());
-            if (services.containsKey(serviceKey)) {
-                Invoker invoker = services.get(serviceKey);
+            if (services.containsKey(serviceId)) {
+                Invoker invoker = services.get(serviceId);
                 Executor executor = executorFactory.executor(rpcRequest, channel);
                 executor.execute(() -> handlerRpcRequest0(executor, invoker, methodName, params, channel, rpcRequest, rpcResponse));
             } else {

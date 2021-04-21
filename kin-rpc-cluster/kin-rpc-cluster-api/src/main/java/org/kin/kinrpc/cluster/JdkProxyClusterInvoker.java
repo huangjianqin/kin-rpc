@@ -1,7 +1,6 @@
 package org.kin.kinrpc.cluster;
 
 import com.google.common.util.concurrent.RateLimiter;
-import org.kin.framework.utils.ClassUtils;
 import org.kin.kinrpc.rpc.Notifier;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
@@ -31,7 +30,7 @@ final class JdkProxyClusterInvoker<T> extends ClusterInvoker<T> implements Invoc
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        log.debug("invoke method '".concat(ClassUtils.getUniqueName(method)).concat("'"));
+        log.debug("invoke method '".concat(method.getName()).concat("'"));
 
         //限流, 达到流量顶峰, 阻塞
         while (Objects.nonNull(tpsLimiter) && !tpsLimiter.tryAcquire()) {

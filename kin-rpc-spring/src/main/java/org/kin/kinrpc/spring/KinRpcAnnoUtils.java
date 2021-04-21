@@ -168,8 +168,8 @@ final class KinRpcAnnoUtils {
 
         //new服务引用配置
         ReferenceConfig<T> referenceConfig = References.reference(interfaceClass)
-                .appName(appName)
-                .serviceName(serviceName)
+                .app(appName)
+                .service(serviceName)
                 .version(annoAttrs.getString("version"))
                 .retry(annoAttrs.getNumber("retryTimes"))
                 .retryTimeout(annoAttrs.getNumber("retryInterval"))

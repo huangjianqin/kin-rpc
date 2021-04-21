@@ -15,7 +15,7 @@ public class KinRpcZookeeperAddableProvider {
     public static void main(String[] args) throws Exception {
         ServiceConfig serviceConfig =
                 Services.service(new Adder(), Addable.class)
-                        .serviceName("test/Add")
+                        .service("test/Add")
                         .registry(ZookeeperRegistryConfig.create("127.0.0.1:2181").build());
         serviceConfig.exportSync();
 

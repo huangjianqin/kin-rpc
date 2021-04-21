@@ -1,6 +1,5 @@
 package org.kin.kinrpc.rpc.invoker;
 
-import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.rpc.common.Url;
 
@@ -27,7 +26,7 @@ public class JdkProxyProviderInvoker<T> extends ProviderInvoker<T> {
         Method[] methods = interfaceClass.getMethods();
 
         for (Method method : methods) {
-            String uniqueName = ClassUtils.getUniqueName(method);
+            String uniqueName = method.getName();
 
             //打印日志信息
             Class<?>[] paramTypes = method.getParameterTypes();
@@ -40,7 +39,7 @@ public class JdkProxyProviderInvoker<T> extends ProviderInvoker<T> {
 
             method.setAccessible(true);
             this.methodMap.put(uniqueName, method);
-            log.info("service '{}'s method '{}'/'{}' is ready to provide service", getServiceKey(), uniqueName, method.toString());
+            log.info("service '{}'s method '{}'/'{}' is ready to provide service", url.getServiceKey(), uniqueName, method.toString());
         }
     }
 
@@ -64,11 +63,11 @@ public class JdkProxyProviderInvoker<T> extends ProviderInvoker<T> {
         try {
             return target.invoke(serivce, params);
         } catch (IllegalAccessException e) {
-            log.error("service '{}' method '{}' access illegally", getServiceKey(), methodName);
+            log.error("service '{}' method '{}' access illegally", url.getServiceKey(), methodName);
             log.error(e.getMessage(), e);
             throw e;
         } catch (InvocationTargetException e) {
-            log.error("service '{}' method '{}' invoke error", getServiceKey(), methodName);
+            log.error("service '{}' method '{}' invoke error", url.getServiceKey(), methodName);
             throw e.getCause();
         }
     }

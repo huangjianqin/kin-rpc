@@ -28,6 +28,8 @@ public class ReferenceConfig<T> extends AbstractConfig {
     private AbstractRegistryConfig registryConfig;
     /** 服务接口 */
     private Class<T> interfaceClass;
+    /** 服务所属组 */
+    private String group = "";
     /** 服务名 */
     private String serviceName;
     /** 版本号 */
@@ -98,7 +100,8 @@ public class ReferenceConfig<T> extends AbstractConfig {
             check();
 
             Map<String, String> params = new HashMap<>(50);
-            params.put(Constants.SERVICE_NAME_KEY, serviceName);
+            params.put(Constants.SERVICE_KEY, serviceName);
+            params.put(Constants.GROUP_KEY, group);
             params.put(Constants.VERSION_KEY, version);
             params.put(Constants.RETRY_TIMES_KEY, retryTimes + "");
             params.put(Constants.RETRY_INTERVAL_KEY, retryInterval + "");
@@ -145,16 +148,23 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
     //---------------------------------------builder------------------------------------------------------------
 
-    public ReferenceConfig<T> appName(String appName) {
+    public ReferenceConfig<T> app(String app) {
         if (!isReference) {
-            this.applicationConfig = new ApplicationConfig(appName);
+            this.applicationConfig = new ApplicationConfig(app);
         }
         return this;
     }
 
-    public ReferenceConfig<T> serviceName(String serviceName) {
+    public ReferenceConfig<T> group(String group) {
         if (!isReference) {
-            this.serviceName = serviceName;
+            this.group = group;
+        }
+        return this;
+    }
+
+    public ReferenceConfig<T> service(String service) {
+        if (!isReference) {
+            this.serviceName = service;
         }
         return this;
     }
