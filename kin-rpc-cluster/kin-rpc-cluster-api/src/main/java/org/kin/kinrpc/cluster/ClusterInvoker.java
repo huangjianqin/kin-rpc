@@ -11,6 +11,7 @@ import org.kin.kinrpc.rpc.RpcThreadPool;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
+import org.kin.kinrpc.rpc.exception.RpcCallRetryException;
 import org.kin.kinrpc.rpc.exception.RpcCallRetryOutException;
 import org.kin.kinrpc.rpc.exception.RpcCallTimeOutException;
 import org.slf4j.Logger;
@@ -96,17 +97,7 @@ abstract class ClusterInvoker<T> implements Closeable {
         try {
             invoke1(clusterInvocation, methodName, params);
         } catch (CannotFindInvokerException e) {
-            if (clusterInvocation.failure()) {
-                RpcThreadPool.executors().schedule(
-                        () -> invoke0(clusterInvocation, methodName, params),
-                        retryInterval, TimeUnit.MILLISECONDS);
-            } else {
-                if (retryTimes > 0) {
-                    throw new RpcCallRetryOutException(retryTimes);
-                } else {
-                    throw e;
-                }
-            }
+            handleInvokeException(e, clusterInvocation, methodName, params);
         }
     }
 
@@ -118,32 +109,53 @@ abstract class ClusterInvoker<T> implements Closeable {
         if (invoker != null) {
             //rpc call 返回结果 provier future
             //provider需要保证CompletableFuture stage已经在RpcThreadPool.executors()上执行
-            CompletableFuture<Object> provider = invoker.invokeAsync(methodName, params);
+            CompletableFuture<Object> invokeFuture = invoker.invokeAsync(methodName, params);
+            //mark 本次rpc remote call的invoker
             clusterInvocation.rpcCall(invoker);
-            provider.thenAccept(clusterInvocation::done)
+            //rpc invoke 后, 对结果(异常)的处理
+            CompletableFuture<Void> afterInvokeFuture = invokeFuture.thenAccept(clusterInvocation::done)
                     .exceptionally(throwable -> {
-                        if (clusterInvocation.failure()) {
-                            RpcThreadPool.executors().schedule(
-                                    () -> invoke1(clusterInvocation, methodName, params),
-                                    retryInterval, TimeUnit.MILLISECONDS);
-                        } else {
-                            //超过重试次数, 抛弃异常
-                            if (retryTimes > 0) {
-                                clusterInvocation.doneError(new RpcCallRetryOutException(retryTimes));
-                            } else {
-                                clusterInvocation.doneError(new RpcCallErrorException("", throwable));
-                            }
-                        }
+                        handleInvokeException(throwable, clusterInvocation, methodName, params);
                         return null;
                     });
-            if (callTimeout > 0 && !provider.isDone()) {
-                clusterInvocation.updateTimeout(
-                        RpcThreadPool.wheelTimer()
-                                .newTimeout(t -> provider.completeExceptionally(new RpcCallTimeOutException("rpc call time out")),
-                                        callTimeout, TimeUnit.MILLISECONDS));
+            if (callTimeout > 0 && !invokeFuture.isDone()) {
+                Timeout rpcCallTimeOut = RpcThreadPool.wheelTimer()
+                        .newTimeout(t -> invokeFuture.completeExceptionally(new RpcCallTimeOutException("rpc call time out")),
+                                callTimeout, TimeUnit.MILLISECONDS);
+                afterInvokeFuture.whenComplete((result, error) -> {
+                    //如果正常结束rpc invoke, clean time out
+                    if (!rpcCallTimeOut.isExpired() || !rpcCallTimeOut.isCancelled()) {
+                        rpcCallTimeOut.cancel();
+                    }
+                });
             }
         } else {
             throw new CannotFindInvokerException(url.getServiceKey(), methodName);
+        }
+    }
+
+    private void handleInvokeException(Throwable throwable,
+                                       ClusterInvocation clusterInvocation,
+                                       String methodName,
+                                       Object[] params) {
+        if (throwable instanceof RpcCallRetryException ||
+                throwable instanceof RpcCallTimeOutException ||
+                throwable instanceof CannotFindInvokerException) {
+            //重试异常, 尝试retry rpc call
+            if (clusterInvocation.failure()) {
+                RpcThreadPool.executors().schedule(
+                        () -> invoke1(clusterInvocation, methodName, params),
+                        retryInterval, TimeUnit.MILLISECONDS);
+            } else {
+                //超过重试次数, 抛弃异常
+                if (retryTimes > 0) {
+                    clusterInvocation.doneError(new RpcCallRetryOutException(retryTimes));
+                } else {
+                    clusterInvocation.doneError(new RpcCallErrorException("", throwable));
+                }
+            }
+        } else {
+            clusterInvocation.doneError(throwable);
         }
     }
 
@@ -186,43 +198,23 @@ abstract class ClusterInvoker<T> implements Closeable {
 
         /** 上次rpc call 的invoker */
         private volatile AsyncInvoker<T> lastInvoker;
-        /** rpc call timeout */
-        private volatile Timeout callTimeout;
 
         /**
          * 记录上次rpc call 的invoker
          */
         public void rpcCall(AsyncInvoker<T> invoker) {
-            cancelTimeout();
             this.lastInvoker = invoker;
-        }
-
-        /**
-         * 记录上次rpc call timeout
-         */
-        public void updateTimeout(Timeout callTimeout) {
-            cancelTimeout();
-            this.callTimeout = callTimeout;
-        }
-
-        /**
-         * 移除rpc call timeout
-         */
-        private void cancelTimeout() {
-            if (Objects.nonNull(callTimeout)) {
-                callTimeout.cancel();
-                callTimeout = null;
-            }
         }
 
 
         /**
          * rpc call failure
+         * <p>
+         * !!!! 如果是业务抛出异常，是不会重试的
          *
          * @return 是否可以继续重试
          */
         public boolean failure() {
-            cancelTimeout();
             int newTryTimes = tryTimes.incrementAndGet();
             if (Objects.nonNull(lastInvoker)) {
                 failureHostAndPorts.add(HostAndPort.fromString(lastInvoker.url().getAddress()));
@@ -235,7 +227,6 @@ abstract class ClusterInvoker<T> implements Closeable {
          * rpc call完成
          */
         public void done(Object returnObj) {
-            cancelTimeout();
             consumer.complete(returnObj);
         }
 
@@ -243,7 +234,6 @@ abstract class ClusterInvoker<T> implements Closeable {
          * rpc call因异常而结束
          */
         public void doneError(Throwable throwable) {
-            cancelTimeout();
             consumer.completeExceptionally(throwable);
         }
     }

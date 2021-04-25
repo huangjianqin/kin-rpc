@@ -10,6 +10,7 @@ import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.SslConfig;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
+import org.kin.kinrpc.rpc.exception.RpcCallRetryException;
 import org.kin.kinrpc.serialization.Serialization;
 import org.kin.kinrpc.serialization.SerializationType;
 import org.kin.kinrpc.serialization.Serializations;
@@ -100,13 +101,19 @@ public class KinRpcReference {
             removeInvalid(request);
             //此处才抛出异常, 因为KinRpcInvocation内部需要记录一下信息
             if (obj instanceof Throwable) {
-                ExceptionUtils.throwExt((Throwable) obj);
+                //rpc call error
+                if (obj instanceof RpcCallRetryException) {
+                    throw (RpcCallRetryException) obj;
+                } else {
+                    //封装成RpcCallRetryException
+                    throw new RpcCallRetryException((Throwable) obj);
+                }
             }
             //返回服务接口结果
             return obj;
         });
         if (!isActive()) {
-            invocation.done(new RpcCallErrorException("client channel closed"));
+            invocation.done(new IllegalStateException("client channel closed"));
             return future;
         }
         log.debug("send a request>>>" + System.lineSeparator() + request);

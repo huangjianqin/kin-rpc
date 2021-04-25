@@ -15,4 +15,8 @@ public class RpcCallRetryException extends RuntimeException {
                 "', methodName '" + methodName +
                 "', params '" + StringUtils.mkString(params) + "'");
     }
+
+    public RpcCallRetryException(Throwable cause) {
+        super(cause);
+    }
 }

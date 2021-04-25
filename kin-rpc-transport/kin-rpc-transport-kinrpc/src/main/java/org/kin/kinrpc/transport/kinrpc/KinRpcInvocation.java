@@ -12,6 +12,7 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * kinrpc传输层记录每次rpc call request信息
+ *
  * Created by 健勤 on 2017/2/15.
  */
 public class KinRpcInvocation {
@@ -40,6 +41,9 @@ public class KinRpcInvocation {
      * 响应response
      */
     public void done(Object obj) {
+        if (isDone()) {
+            return;
+        }
         rootFuture.complete(obj);
     }
 
@@ -47,21 +51,13 @@ public class KinRpcInvocation {
      * 是否完成
      */
     private boolean isDone() {
-        return Objects.nonNull(response);
+        return rootFuture.isDone();
     }
 
     /**
      * 处理结果, 有可能是RpcResponse或者异常
      */
     private Object handleResult(Object obj) {
-        if (isDone()) {
-            if (Objects.nonNull(response)) {
-                return response.getResult();
-            } else {
-                return null;
-            }
-        }
-
         long responseTime = System.currentTimeMillis() - startTime;
         if (responseTime > RESPONSE_TIME_THRESHOLD) {
             log.warn("service response time is too slow. Request id = '{}'. Response Time = {}ms", response.getRequestId(), responseTime);
@@ -69,8 +65,10 @@ public class KinRpcInvocation {
 
         if (obj instanceof RpcResponse) {
             return handleResponse((RpcResponse) obj);
-        } else {
+        } else if (obj instanceof Throwable) {
             return obj;
+        } else {
+            throw new IllegalStateException("unknown kinrpc invoke result type >>>>> " + obj);
         }
     }
 
@@ -78,10 +76,6 @@ public class KinRpcInvocation {
      * 处理RpcResponse响应逻辑
      */
     private Object handleResponse(RpcResponse response) {
-        if (isDone()) {
-            return response.getResult();
-        }
-
         this.response = response;
         switch (response.getState()) {
             case SUCCESS:
@@ -89,7 +83,7 @@ public class KinRpcInvocation {
             case RETRY:
                 throw new RpcCallRetryException(response.getInfo(), request.getServiceKey(), request.getMethod(), request.getParams());
             case ERROR:
-                throw new RpcCallErrorException("Response error due to " + response.getInfo());
+                throw new RpcCallErrorException("rpc call error due to " + response.getInfo());
             default:
                 throw new IllegalStateException("kinrpc response unknown state '".concat(response.getState().name()).concat("'"));
         }
@@ -104,8 +98,9 @@ public class KinRpcInvocation {
         return startTime;
     }
 
-    public RpcResponse getResponse() {
-        return response;
+    @SuppressWarnings("unchecked")
+    public <T> T getResult() {
+        return Objects.nonNull(response) ? (T) response.getResult() : null;
     }
 
     public CompletableFuture<Object> getFuture() {

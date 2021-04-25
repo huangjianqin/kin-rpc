@@ -190,7 +190,7 @@ public class KinRpcProvider {
                 executor.execute(() -> handlerRpcRequest0(executor, invoker, methodName, params, channel, rpcRequest, rpcResponse));
             } else {
                 log.error("can not find service>>> {}", rpcRequest);
-                rpcResponse.setState(RpcResponse.State.ERROR, "unknown service");
+                rpcResponse.setState(RpcResponse.State.RETRY, "unknown service");
                 //write back to reference
                 providerHandler.response(channel, rpcResponse);
 
@@ -225,7 +225,7 @@ public class KinRpcProvider {
         Object result = null;
         if (rpcRequest.isCallTimeout()) {
             //直接拒绝call timeout请求, 而不用调用service逻辑
-            rpcResponse.setState(RpcResponse.State.ERROR, "rpc call time out");
+            rpcResponse.setState(RpcResponse.State.RETRY, "rpc call time out");
         } else {
             try {
                 result = invoker.invoke(methodName, params);
