@@ -1,4 +1,4 @@
-package org.kin.kinrpc.spring.boot;
+package org.kin.kinrpc.springboot;
 
 import org.kin.kinrpc.config.RedisRegistryConfig;
 import org.kin.kinrpc.config.ZookeeperRegistryConfig;

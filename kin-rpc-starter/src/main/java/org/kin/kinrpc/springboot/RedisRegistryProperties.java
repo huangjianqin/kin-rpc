@@ -1,4 +1,4 @@
-package org.kin.kinrpc.spring.boot;
+package org.kin.kinrpc.springboot;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

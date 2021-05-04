@@ -4,28 +4,28 @@
       "name": "kin.rpc.zookeeper.address",
       "type": "java.lang.String",
       "description": "zookeeper地址",
-      "sourceType": "org.kin.kinrpc.spring.ZookeeperRegistryProperties",
+      "sourceType": "org.kin.kinrpc.springboot.ZookeeperRegistryProperties",
       "defaultValue": "0.0.0.0:2181"
     },
     {
       "name": "kin.rpc.zookeeper.sessionTimeout",
       "type": "java.lang.Long",
       "description": "zookeeper client seesion timeout",
-      "sourceType": "org.kin.kinrpc.spring.ZookeeperRegistryProperties",
+      "sourceType": "org.kin.kinrpc.springboot.ZookeeperRegistryProperties",
       "defaultValue": "5000"
     },
     {
       "name": "kin.rpc.redis.address",
       "type": "java.lang.String",
       "description": "redis地址",
-      "sourceType": "org.kin.kinrpc.spring.RedisRegistryProperties",
+      "sourceType": "org.kin.kinrpc.springboot.RedisRegistryProperties",
       "defaultValue": "0.0.0.0:6379"
     },
     {
       "name": "kin.rpc.redis.watchInterval",
       "type": "java.lang.Long",
       "description": "轮询redis间隔",
-      "sourceType": "org.kin.kinrpc.spring.RedisRegistryProperties",
+      "sourceType": "org.kin.kinrpc.springboot.RedisRegistryProperties",
       "defaultValue": "30000"
     }
   ]
