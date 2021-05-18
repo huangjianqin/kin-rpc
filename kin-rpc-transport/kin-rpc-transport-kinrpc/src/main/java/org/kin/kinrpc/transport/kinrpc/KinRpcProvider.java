@@ -50,7 +50,12 @@ public class KinRpcProvider {
     private final ProviderHandler providerHandler;
     /** 服务器启动配置 */
     private final SocketTransportOption transportOption;
-    /** executorFactory */
+    /**
+     * executorFactory
+     * <p>
+     * 注意: 如果kinrpc 服务中使用reference调用其他服务, 如果使用CompletableFuture进行异步处理, 则remote service返回结果的处理的executor则是在{@link org.kin.kinrpc.rpc.RpcThreadPool#EXECUTORS}处理
+     * 而不是在{@link ExecutorFactory}选择的{@link Executor}执行, 如果想要保持在同一{@link Executor}处理业务, 则需要block
+     */
     private final ExecutorFactory executorFactory;
     /** 是否stopped */
     private volatile boolean stopped;
