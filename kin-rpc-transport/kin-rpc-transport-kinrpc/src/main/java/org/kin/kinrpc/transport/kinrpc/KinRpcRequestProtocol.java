@@ -1,7 +1,6 @@
 package org.kin.kinrpc.transport.kinrpc;
 
 import org.kin.transport.netty.socket.protocol.Protocol;
-import org.kin.transport.netty.socket.protocol.ProtocolFactory;
 import org.kin.transport.netty.socket.protocol.SocketProtocol;
 
 /**
@@ -18,7 +17,7 @@ public class KinRpcRequestProtocol extends SocketProtocol {
     private byte[] reqContent;
 
     public static KinRpcRequestProtocol create(long requestId, byte serialization, byte[] reqContent) {
-        KinRpcRequestProtocol protocol = ProtocolFactory.createProtocol(KinRpcProtocolId.RPC_REQUEST_PROTOCOL_ID);
+        KinRpcRequestProtocol protocol = new KinRpcRequestProtocol();
         protocol.requestId = requestId;
         protocol.serialization = serialization;
         protocol.reqContent = reqContent;

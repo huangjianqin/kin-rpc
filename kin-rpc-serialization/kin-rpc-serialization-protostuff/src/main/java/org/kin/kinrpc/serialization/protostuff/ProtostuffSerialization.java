@@ -15,6 +15,7 @@ public class ProtostuffSerialization implements Serialization {
     private static final LinkedBuffer BUFFER = LinkedBuffer.allocate(LinkedBuffer.DEFAULT_BUFFER_SIZE);
 
     //----------------------------------------------------------------------------------------------------------------
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public byte[] serialize(Object target) {
         Class clazz = target.getClass();
