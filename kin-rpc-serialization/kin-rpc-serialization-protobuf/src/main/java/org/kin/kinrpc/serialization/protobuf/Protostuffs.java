@@ -1,4 +1,4 @@
-package org.kin.kinrpc.serialization.protostuff;
+package org.kin.kinrpc.serialization.protobuf;
 
 import io.protostuff.Schema;
 import io.protostuff.runtime.RuntimeSchema;

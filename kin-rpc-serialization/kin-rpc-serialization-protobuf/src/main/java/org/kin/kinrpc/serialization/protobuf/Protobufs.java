@@ -1,5 +1,7 @@
 package org.kin.kinrpc.serialization.protobuf;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.protobuf.*;
 import com.google.protobuf.util.JsonFormat;
 import org.kin.kinrpc.serialization.SerializationException;
@@ -16,22 +18,22 @@ import java.util.concurrent.ConcurrentMap;
  * @author huangjianqin
  * @date 2020/11/29
  */
-public class Protobufs {
+public final class Protobufs {
     private Protobufs() {
     }
 
-    /** 缓存parser */
-    private static final ConcurrentMap<Class<? extends MessageLite>, MessageMarshaller> marshallers =
-            new ConcurrentHashMap<>();
+    /** parser缓存 */
+    private static final ConcurrentMap<Class<? extends MessageLite>, MessageMarshaller<?>> MARSHALLERS = new ConcurrentHashMap<>();
+    /** 获取{@link GeneratedMessageV3.Builder}的{@link Method}缓存 */
+    private static final Cache<Class<?>, Method> BUILDER_CACHE = CacheBuilder.newBuilder().build();
 
-    private static final ExtensionRegistryLite globalRegistry =
-            ExtensionRegistryLite.getEmptyRegistry();
+    private static final ExtensionRegistryLite GLOBAL_REGISTRY = ExtensionRegistryLite.getEmptyRegistry();
 
     /**
-     * 注册class parser
+     * !!!必须手动注册class parser
      */
     public static <T extends MessageLite> void register(T defaultInstance) {
-        marshallers.put(defaultInstance.getClass(), new MessageMarshaller<>(defaultInstance));
+        MARSHALLERS.put(defaultInstance.getClass(), new MessageMarshaller<>(defaultInstance));
     }
 
     /**
@@ -58,7 +60,7 @@ public class Protobufs {
         if (!MessageLite.class.isAssignableFrom(targetClass)) {
             throw new SerializationException(targetClass.getName().concat("is not a protobuf object"));
         }
-        MessageMarshaller<?> marshaller = marshallers.get(targetClass);
+        MessageMarshaller<?> marshaller = MARSHALLERS.get(targetClass);
         if (marshaller == null) {
             throw new SerializationException(targetClass.getName().concat("does not register"));
         }
@@ -70,7 +72,7 @@ public class Protobufs {
     /**
      * protobuf deserialize to json
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static <T> T deserializeJson(String json, Class<T> messageClass) throws InvalidProtocolBufferException {
         GeneratedMessageV3.Builder builder;
         try {
@@ -93,8 +95,9 @@ public class Protobufs {
     /**
      * 获取MessageBuilder
      */
+    @SuppressWarnings("rawtypes")
     private static GeneratedMessageV3.Builder getMessageBuilder(Class<?> requestType) throws Exception {
-        Method method = requestType.getMethod("newBuilder");
+        Method method = BUILDER_CACHE.get(requestType, () -> requestType.getMethod("newBuilder"));
         return (GeneratedMessageV3.Builder) method.invoke(null);
     }
 
@@ -125,7 +128,7 @@ public class Protobufs {
         }
 
         public T parse(InputStream stream) throws InvalidProtocolBufferException {
-            return parser.parseDelimitedFrom(stream, globalRegistry);
+            return parser.parseDelimitedFrom(stream, GLOBAL_REGISTRY);
         }
     }
 }

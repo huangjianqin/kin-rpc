@@ -1,1 +1,0 @@
-org.kin.kinrpc.serialization.Serialization=org.kin.kinrpc.serialization.protostuff.ProtostuffSerialization

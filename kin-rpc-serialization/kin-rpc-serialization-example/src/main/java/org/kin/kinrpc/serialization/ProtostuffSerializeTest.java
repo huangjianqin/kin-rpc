@@ -9,7 +9,7 @@ import java.io.IOException;
 public class ProtostuffSerializeTest {
     public static void main(String[] args) throws IOException {
         SerializeTestBase
-                .builder(SerializationType.PROTOSTUFF)
+                .builder(SerializationType.PROTOBUF)
                 .run();
 
     }

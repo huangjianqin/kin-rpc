@@ -15,7 +15,6 @@
         <module>kin-rpc-serialization-hessian2</module>
         <module>kin-rpc-serialization-json</module>
         <module>kin-rpc-serialization-gson</module>
-        <module>kin-rpc-serialization-protostuff</module>
         <module>kin-rpc-serialization-avro</module>
         <module>kin-rpc-serialization-protobuf</module>
         <module>kin-rpc-serialization-java</module>

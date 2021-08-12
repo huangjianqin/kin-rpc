@@ -21,9 +21,9 @@ public enum SerializationType {
      */
     JSON(4),
     /**
-     * protostuff, 与protobuf性能接近, 但不需要编写的.proto的protobuf工具
+     * protobuf, 如果是protobuf生成的消息则直接调用对应的方法进行序列化和反序列化, 否则使用protostuff(与protobuf性能接近, 但不需要编写的.proto的protobuf工具)
      */
-    PROTOSTUFF(5),
+    PROTOBUF(5),
     /**
      * gson, google优化过的json, 更加适合java开发
      */
