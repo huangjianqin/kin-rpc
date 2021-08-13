@@ -4,15 +4,16 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.protobuf.*;
 import com.google.protobuf.util.JsonFormat;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.serialization.SerializationException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author huangjianqin
@@ -23,17 +24,17 @@ public final class Protobufs {
     }
 
     /** parser缓存 */
-    private static final ConcurrentMap<Class<? extends MessageLite>, MessageMarshaller<?>> MARSHALLERS = new ConcurrentHashMap<>();
+    private static final Cache<Class<? extends MessageLite>, MessageMarshaller<?>> MARSHALLERS = CacheBuilder.newBuilder().build();
     /** 获取{@link GeneratedMessageV3.Builder}的{@link Method}缓存 */
     private static final Cache<Class<?>, Method> BUILDER_CACHE = CacheBuilder.newBuilder().build();
 
     private static final ExtensionRegistryLite GLOBAL_REGISTRY = ExtensionRegistryLite.getEmptyRegistry();
 
     /**
-     * !!!必须手动注册class parser
+     * 注册class parser
      */
     public static <T extends MessageLite> void register(T defaultInstance) {
-        MARSHALLERS.put(defaultInstance.getClass(), new MessageMarshaller<>(defaultInstance));
+        MARSHALLERS.put(defaultInstance.getClass(), new ParserBaseMessageMarshaller<>(defaultInstance));
     }
 
     /**
@@ -55,18 +56,23 @@ public final class Protobufs {
     /**
      * protobuf deserialize
      */
-    @SuppressWarnings("unchecked")
-    public static <T> T deserialize(byte[] bytes, Class<T> targetClass) throws InvalidProtocolBufferException {
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <T> T deserialize(byte[] bytes, Class<T> targetClass) {
         if (!MessageLite.class.isAssignableFrom(targetClass)) {
             throw new SerializationException(targetClass.getName().concat("is not a protobuf object"));
         }
-        MessageMarshaller<?> marshaller = MARSHALLERS.get(targetClass);
-        if (marshaller == null) {
+        MessageMarshaller<?> marshaller = null;
+        try {
+            marshaller = MARSHALLERS.get((Class<? extends MessageLite>) targetClass, () -> new MethodBaseMessageMarshaller(targetClass));
+        } catch (ExecutionException e) {
+            ExceptionUtils.throwExt(e);
+        }
+
+        if (Objects.isNull(marshaller)) {
             throw new SerializationException(targetClass.getName().concat("does not register"));
         }
-        ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
 
-        return (T) marshaller.parse(bais);
+        return (T) marshaller.parse(bytes);
     }
 
     /**
@@ -104,31 +110,86 @@ public final class Protobufs {
     //------------------------------------------------------------------------------------------------------------
 
     /**
-     * protobuf message 封装
+     * protobuf message 构建封装
      */
-    private static final class MessageMarshaller<T extends MessageLite> {
+    private static abstract class MessageMarshaller<T extends MessageLite> {
+        protected final Class<T> messageClass;
+
+        MessageMarshaller(Class<T> claxx) {
+            messageClass = claxx;
+        }
+
+        /**
+         * 从bytes解析构建protobuf消息
+         */
+        abstract T parse(byte[] bytes);
+
+        //getter
+        Class<T> getMessageClass() {
+            return messageClass;
+        }
+    }
+
+    /**
+     * 基于{@link Parser}
+     */
+    private static final class ParserBaseMessageMarshaller<T extends MessageLite> extends MessageMarshaller<T> {
         /** parser */
         private final Parser<T> parser;
         /** protobuf默认实例 */
         private final T defaultInstance;
 
         @SuppressWarnings("unchecked")
-        MessageMarshaller(T defaultInstance) {
+        ParserBaseMessageMarshaller(T defaultInstance) {
+            super((Class<T>) defaultInstance.getClass());
             this.defaultInstance = defaultInstance;
             parser = (Parser<T>) defaultInstance.getParserForType();
         }
 
-        @SuppressWarnings("unchecked")
-        public Class<T> getMessageClass() {
-            return (Class<T>) defaultInstance.getClass();
+        @Override
+        T parse(byte[] bytes) {
+            ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+            try {
+                return parser.parseDelimitedFrom(bais, GLOBAL_REGISTRY);
+            } catch (InvalidProtocolBufferException e) {
+                ExceptionUtils.throwExt(e);
+            }
+
+            return null;
         }
 
+        //getter
         public T getMessageProtoInstance() {
             return defaultInstance;
         }
+    }
 
-        public T parse(InputStream stream) throws InvalidProtocolBufferException {
-            return parser.parseDelimitedFrom(stream, GLOBAL_REGISTRY);
+    /**
+     * 基于protobuf message parseFrom(byte[])静态方法
+     */
+    private static final class MethodBaseMessageMarshaller<T extends MessageLite> extends MessageMarshaller<T> {
+        /** protobuf message 静态方法parseFrom */
+        private Method parseFromStaticMethod;
+
+        MethodBaseMessageMarshaller(Class<T> claxx) {
+            super(claxx);
+            try {
+                parseFromStaticMethod = claxx.getMethod("parseFrom", byte[].class);
+            } catch (NoSuchMethodException e) {
+                ExceptionUtils.throwExt(e);
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        T parse(byte[] bytes) {
+            try {
+                return (T) parseFromStaticMethod.invoke(null, bytes);
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                ExceptionUtils.throwExt(e);
+            }
+
+            return null;
         }
     }
 }

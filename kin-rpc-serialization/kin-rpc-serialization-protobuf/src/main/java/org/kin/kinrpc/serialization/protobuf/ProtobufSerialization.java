@@ -69,7 +69,7 @@ public class ProtobufSerialization implements Serialization {
     }
 
     @Override
-    public <T> T deserialize(byte[] bytes, Class<T> targetClass) throws IOException {
+    public <T> T deserialize(byte[] bytes, Class<T> targetClass) {
         if (MessageLite.class.isAssignableFrom(targetClass)) {
             //以protobuf反序列化
             return protobufDeserialize(bytes, targetClass);
@@ -82,7 +82,7 @@ public class ProtobufSerialization implements Serialization {
     /**
      * 以protobuf反序列化
      */
-    private <T> T protobufDeserialize(byte[] bytes, Class<T> targetClass) throws IOException {
+    private <T> T protobufDeserialize(byte[] bytes, Class<T> targetClass) {
         return Protobufs.deserialize(bytes, targetClass);
     }
 

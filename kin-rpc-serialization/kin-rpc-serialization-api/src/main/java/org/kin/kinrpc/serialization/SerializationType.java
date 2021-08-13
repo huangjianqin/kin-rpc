@@ -21,7 +21,9 @@ public enum SerializationType {
      */
     JSON(4),
     /**
-     * protobuf, 如果是protobuf生成的消息则直接调用对应的方法进行序列化和反序列化, 否则使用protostuff(与protobuf性能接近, 但不需要编写的.proto的protobuf工具)
+     * protobuf,
+     * 如果是protobuf生成的消息则直接调用对应的方法进行序列化和反序列化(已支持从protobuf消息中, 寻找解析构建消息的parseFrom静态方法, 然后使用反射构建消息实例, 不再需要开发者手动注册parser)
+     * 否则使用protostuff(与protobuf性能接近, 但不需要编写的.proto的protobuf工具)
      */
     PROTOBUF(5),
     /**
