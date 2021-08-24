@@ -11,9 +11,6 @@
     <artifactId>kin-rpc-registry-zookeeper</artifactId>
     <packaging>jar</packaging>
 
-    <properties>
-    </properties>
-
     <dependencies>
         <!-- 配置zookeeper-->
         <dependency>

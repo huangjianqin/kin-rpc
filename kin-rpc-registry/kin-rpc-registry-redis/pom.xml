@@ -11,9 +11,6 @@
     <artifactId>kin-rpc-registry-redis</artifactId>
     <packaging>jar</packaging>
 
-    <properties>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.kin</groupId>

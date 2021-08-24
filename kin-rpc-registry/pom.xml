@@ -17,9 +17,6 @@
     </modules>
     <packaging>pom</packaging>
 
-    <properties>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.kin</groupId>

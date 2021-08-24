@@ -11,9 +11,6 @@
     <artifactId>kin-rpc-api</artifactId>
     <packaging>jar</packaging>
 
-    <properties>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.kin</groupId>

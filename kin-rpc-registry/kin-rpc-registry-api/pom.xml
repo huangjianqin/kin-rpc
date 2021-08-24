@@ -10,8 +10,4 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>kin-rpc-registry-api</artifactId>
     <packaging>jar</packaging>
-
-    <properties>
-    </properties>
-
 </project>
