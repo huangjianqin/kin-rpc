@@ -21,7 +21,6 @@
         <dependency>
             <groupId>org.kin</groupId>
             <artifactId>kin-transport-netty</artifactId>
-            <version>${kin-transport-netty.version}</version>
         </dependency>
 
         <!-- 序列化-->
