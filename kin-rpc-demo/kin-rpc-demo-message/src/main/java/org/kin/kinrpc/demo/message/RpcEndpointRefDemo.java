@@ -30,12 +30,24 @@ public class RpcEndpointRefDemo extends RpcEndpoint {
         RpcEndpointRef endpointRef = rpcEnv.createEndpointRef("0.0.0.0", 16888, "rpcEndpointDemo");
 
         int count = 0;
-        while (count < 10000) {
+        while (count < 100) {
             try {
                 RpcEndpointRef self = rpcEnv.rpcEndpointRef(rpcEndpointRefDemo);
                 endpointRef.send(new PrintMessage(++count + "", self));
-                RpcFuture<RpcEndpointDemo.ReplyMessage> future = endpointRef.ask(new PrintMessage(++count + "", self));
-                System.out.println(future.get());
+                RpcFuture<RpcEndpointDemo.ReplyMessage> future = endpointRef.ask(new AskMessage(++count + ""));
+                System.out.println("ask with block >>>> " + future.get());
+
+                endpointRef.ask(new AskMessage(++count + ""), new RpcResponseCallback<Serializable>() {
+                    @Override
+                    public void onSuccess(Serializable message) {
+                        System.out.println("ask with timeout >>>> " + message);
+                    }
+
+                    @Override
+                    public void onFail(Throwable e) {
+                        System.err.println("ask with timeout >>>> " + e);
+                    }
+                }, 3_000);
             } catch (Exception e) {
                 System.err.println(e);
             }
@@ -58,7 +70,7 @@ public class RpcEndpointRefDemo extends RpcEndpoint {
 
     @Override
     protected void onReceiveMessage(MessagePostContext context) {
-        System.err.println(context.getMessage());
+        System.out.println("receive >>>> " + context.getMessage());
     }
 
     @Override
@@ -101,6 +113,32 @@ public class RpcEndpointRefDemo extends RpcEndpoint {
             return "PrintMessage{" +
                     "content='" + content + '\'' +
                     ", rpcEndpointRef=" + from +
+                    '}';
+        }
+    }
+
+
+    public static class AskMessage implements Serializable {
+        private static final long serialVersionUID = -6807586672826372145L;
+
+        private String content;
+
+        public AskMessage(String content) {
+            this.content = content;
+        }
+
+        public String getContent() {
+            return content;
+        }
+
+        public void setContent(String content) {
+            this.content = content;
+        }
+
+        @Override
+        public String toString() {
+            return "AskMessage{" +
+                    "content='" + content + '\'' +
                     '}';
         }
     }

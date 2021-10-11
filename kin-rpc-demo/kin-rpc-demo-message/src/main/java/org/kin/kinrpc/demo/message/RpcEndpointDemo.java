@@ -43,10 +43,13 @@ public class RpcEndpointDemo extends RpcEndpoint {
     protected void onReceiveMessage(MessagePostContext context) {
         Serializable message = context.getMessage();
         System.out.println(message);
-        context.reply(new ReplyMessage(context.getRequestId()));
         if (message instanceof RpcEndpointRefDemo.PrintMessage) {
+            //相当于创建client, send message
             RpcEndpointRefDemo.PrintMessage printMessage = (RpcEndpointRefDemo.PrintMessage) message;
             printMessage.getFrom().send(new ReplyMessage(context.getRequestId()));
+        } else if (message instanceof RpcEndpointRefDemo.AskMessage) {
+            //原路返回
+            context.reply(new ReplyMessage(context.getRequestId()));
         }
     }
 

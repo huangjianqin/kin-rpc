@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.concurrent.Future;
 
 /**
+ * outbound queue
  * 线程安全
  *
  * @author huangjianqin
@@ -95,6 +96,7 @@ final class OutBox {
             }
 
             if (!validClient()) {
+                // TODO: 2021/10/12 如果一致连接不成功, 是否需要移除整个outBox
                 return;
             }
 
@@ -158,9 +160,15 @@ final class OutBox {
                 synchronized (OutBox.this) {
                     if (!isStopped) {
                         OutBox.this.client = client;
-                        OutBox.this.client.updateConnectionInitCallback(() -> {
+                        if (OutBox.this.client.isActive()) {
+                            //很快连接上
                             rpcEnv.commonExecutors.execute(OutBox.this::drainOutbox);
-                        });
+                        } else {
+                            //很慢, 设置callback
+                            OutBox.this.client.updateConnectionInitCallback(() -> {
+                                rpcEnv.commonExecutors.execute(OutBox.this::drainOutbox);
+                            });
+                        }
                     }
                 }
             } catch (Exception e) {

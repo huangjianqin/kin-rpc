@@ -4,25 +4,38 @@ import org.kin.kinrpc.message.transport.TransportClient;
 import org.kin.kinrpc.message.transport.protocol.RpcMessage;
 
 import java.io.Serializable;
+import java.util.concurrent.TimeUnit;
 
 /**
+ * 在{@link OutBox}中等待client发送的消息
+ *
  * @author huangjianqin
  * @date 2020-06-10
  */
 @SuppressWarnings("rawtypes")
 public final class OutBoxMessage implements RpcResponseCallback<Serializable> {
     /** client 发送的消息 */
-    private RpcMessage message;
+    private final RpcMessage message;
     /** callback */
-    private RpcResponseCallback proxy = RpcResponseCallback.EMPTY;
+    private final RpcResponseCallback proxy;
+    /** 消息请求超时时间 */
+    private final long timeoutMs;
 
+    /**
+     * 同步请求调用
+     */
     public OutBoxMessage(RpcMessage message) {
-        this.message = message;
+        this(message, RpcResponseCallback.EMPTY, 0);
     }
 
-    public OutBoxMessage(RpcMessage message, RpcResponseCallback<?> proxy) {
+    /**
+     * 异步请求调用
+     */
+    public OutBoxMessage(RpcMessage message, RpcResponseCallback<?> proxy, long timeoutMs) {
         this.message = message;
         this.proxy = proxy;
+        //默认隐藏超时时间1分钟, 如果由于异常不能返回, 但也没有设置超时, 会导致程序缓存大量Future, 故设置隐藏超时时间, 以便在该场景下释放无用对象实例
+        this.timeoutMs = timeoutMs == 0 ? TimeUnit.MINUTES.toMillis(1) : timeoutMs;
     }
 
     /**
@@ -30,17 +43,6 @@ public final class OutBoxMessage implements RpcResponseCallback<Serializable> {
      */
     public void sendWith(TransportClient client) {
         client.send(this);
-    }
-
-    public RpcMessage getMessage() {
-        return message;
-    }
-
-    @Override
-    public String toString() {
-        return "OutBoxMessage{" +
-                "message=" + message +
-                '}';
     }
 
     @SuppressWarnings("unchecked")
@@ -54,5 +56,21 @@ public final class OutBoxMessage implements RpcResponseCallback<Serializable> {
     public void onFail(Throwable e) {
         //最终调用callback的地方
         proxy.onFail(e);
+    }
+
+    //getter
+    public RpcMessage getMessage() {
+        return message;
+    }
+
+    public long getTimeoutMs() {
+        return timeoutMs;
+    }
+
+    @Override
+    public String toString() {
+        return "OutBoxMessage{" +
+                "message=" + message +
+                '}';
     }
 }

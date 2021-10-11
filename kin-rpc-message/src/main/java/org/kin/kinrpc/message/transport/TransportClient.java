@@ -1,10 +1,13 @@
 package org.kin.kinrpc.message.transport;
 
 import io.netty.channel.ChannelHandlerContext;
+import org.kin.framework.concurrent.HashedWheelTimer;
+import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.message.core.OutBoxMessage;
 import org.kin.kinrpc.message.core.RpcEnv;
 import org.kin.kinrpc.message.core.RpcResponseCallback;
+import org.kin.kinrpc.message.exception.AskMessageTimeoutException;
 import org.kin.kinrpc.message.exception.ClientConnectFailException;
 import org.kin.kinrpc.message.exception.ClientStoppedException;
 import org.kin.kinrpc.message.transport.protocol.RpcMessage;
@@ -28,6 +31,7 @@ import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author huangjianqin
@@ -35,6 +39,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class TransportClient {
     private static final Logger log = LoggerFactory.getLogger(TransportClient.class);
+
     /** 序列化 */
     private final RpcEnv rpcEnv;
     /** 客户端配置 */
@@ -45,9 +50,12 @@ public final class TransportClient {
     private final RpcEndpointRefHandlerImpl rpcEndpointRefHandler;
     private volatile boolean isStopped;
     /** 请求返回回调 */
+    @SuppressWarnings("rawtypes")
     private final Map<Long, RpcResponseCallback> respCallbacks = new ConcurrentHashMap<>();
     /** 相当于OutBox发送消息逻辑, 用于重连时, 触发发送OutBox中仍然没有发送的消息 */
-    private Runnable connectionInitCallback;
+    private volatile Runnable connectionInitCallback;
+    /** 超时计时器 */
+    private HashedWheelTimer timer = new HashedWheelTimer(new SimpleThreadFactory("transportClient-send-timeout", true), 1, TimeUnit.MILLISECONDS, 2048);
 
     public TransportClient(RpcEnv rpcEnv, KinRpcAddress rpcAddress, CompressionType compressionType) {
         this.rpcEnv = rpcEnv;
@@ -77,7 +85,7 @@ public final class TransportClient {
             return;
         }
 
-        rpcEndpointRefHandler.connect(clientTransportOption, new InetSocketAddress(rpcAddress.getHost(), rpcAddress.getPort()));
+        rpcEndpointRefHandler.connect(clientTransportOption, new InetSocketAddress(rpcAddress.getHost(), rpcAddress.getPort()), false);
     }
 
     /**
@@ -87,6 +95,7 @@ public final class TransportClient {
         return !isStopped && rpcEndpointRefHandler.isActive();
     }
 
+    @SuppressWarnings("rawtypes")
     public void stop() {
         if (isStopped) {
             return;
@@ -101,6 +110,7 @@ public final class TransportClient {
     /**
      * 发送消息
      */
+    @SuppressWarnings("rawtypes")
     public void send(OutBoxMessage outBoxMessage) {
         if (isActive()) {
             RpcMessage message = outBoxMessage.getMessage();
@@ -113,6 +123,16 @@ public final class TransportClient {
             KinRpcRequestProtocol protocol = KinRpcRequestProtocol.create(requestId, (byte) rpcEnv.serialization().type(), data);
             if (rpcEndpointRefHandler.client().sendAndFlush(protocol)) {
                 respCallbacks.put(requestId, outBoxMessage);
+                long timeoutMs = outBoxMessage.getTimeoutMs();
+                if (timeoutMs > 0) {
+                    timer.newTimeout(to -> {
+                        removeInvalidRespCallback(requestId);
+                        RpcResponseCallback callback = respCallbacks.remove(message.getRequestId());
+                        if (Objects.nonNull(callback)) {
+                            callback.onFail(new AskMessageTimeoutException(outBoxMessage));
+                        }
+                    }, timeoutMs, TimeUnit.MILLISECONDS);
+                }
             }
         }
     }
@@ -157,7 +177,7 @@ public final class TransportClient {
             //callback回调
             String targetReceiver = message.getTo().getEndpointAddress().getName();
             if (StringUtils.isBlank(targetReceiver)) {
-                RpcResponseCallback callback = respCallbacks.get(message.getRequestId());
+                RpcResponseCallback callback = respCallbacks.remove(message.getRequestId());
                 if (Objects.nonNull(callback)) {
                     callback.onSuccess(message.getMessage());
                 }

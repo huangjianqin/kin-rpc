@@ -11,6 +11,8 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * 相当于server抽象
+ *
  * @author huangjianqin
  * @date 2020-06-08
  */

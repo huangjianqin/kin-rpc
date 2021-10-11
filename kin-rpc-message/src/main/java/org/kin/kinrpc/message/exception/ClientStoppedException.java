@@ -1,10 +1,10 @@
 package org.kin.kinrpc.message.exception;
 
 /**
+ * client stopped异常
+ *
  * @author huangjianqin
  * @date 2020-06-19
- * <p>
- * client stopped异常
  */
 public class ClientStoppedException extends RuntimeException {
     public ClientStoppedException(String address) {

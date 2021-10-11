@@ -157,7 +157,7 @@ public final class RpcEnv {
     /**
      * 启动rpc环境, 即绑定某端口的服务器
      */
-    public final void startServer() {
+    public void startServer() {
         if (isStopped) {
             return;
         }
@@ -201,7 +201,7 @@ public final class RpcEnv {
      * @param name        rpc服务名
      * @param rpcEndpoint rpc服务消息处理实现
      */
-    public final void register(String name, RpcEndpoint rpcEndpoint) {
+    public void register(String name, RpcEndpoint rpcEndpoint) {
         if (isStopped) {
             return;
         }
@@ -214,7 +214,7 @@ public final class RpcEnv {
     /**
      * 注销rpc服务
      */
-    public final void unregister(String name, RpcEndpoint rpcEndpoint) {
+    public void unregister(String name, RpcEndpoint rpcEndpoint) {
         if (isStopped) {
             return;
         }
@@ -226,7 +226,7 @@ public final class RpcEnv {
     /**
      * 关闭rpc环境, 即关闭绑定某端口的服务器
      */
-    public final void stop() {
+    public void stop() {
         if (isStopped) {
             return;
         }
@@ -343,25 +343,45 @@ public final class RpcEnv {
     }
 
     /**
-     * 支持future的消息发送
+     * 支持future的消息发送, 并且支持超时
      */
     public <R extends Serializable> RpcFuture<R> ask(RpcMessage message) {
+        return ask(message, 0);
+    }
+
+    /**
+     * 支持future的消息发送, 并且支持超时
+     */
+    public <R extends Serializable> RpcFuture<R> ask(RpcMessage message, long timeoutMs) {
+        return ask(message, null, timeoutMs);
+    }
+
+    /**
+     * 支持future的消息发送, 支持使用callback, 并且支持超时
+     */
+    public <R extends Serializable> RpcFuture<R> ask(RpcMessage message, RpcResponseCallback<R> customCallback, long timeoutMs) {
         if (isStopped) {
             throw new IllegalStateException("rpcEnv stopped");
         }
         RpcFuture<R> future = new RpcFuture<>(this, message.getTo().getEndpointAddress().getRpcAddress(), message.getRequestId());
-        RpcResponseCallback<R> callback = new RpcResponseCallback<R>() {
+        RpcResponseCallback<R> innerCallback = new RpcResponseCallback<R>() {
             @Override
             public void onSuccess(R message) {
                 future.done(message);
+                if (Objects.nonNull(customCallback)) {
+                    customCallback.onSuccess(message);
+                }
             }
 
             @Override
             public void onFail(Throwable e) {
                 future.fail(e);
+                if (Objects.nonNull(customCallback)) {
+                    customCallback.onFail(e);
+                }
             }
         };
-        post2OutBox(new OutBoxMessage(message, callback));
+        post2OutBox(new OutBoxMessage(message, innerCallback, timeoutMs));
         return future;
     }
 
@@ -500,12 +520,12 @@ public final class RpcEnv {
     }
 
     //------------------------------------------------------------------------------------------------------------------
-    private class RpcEndpointImpl extends KinRpcEndpointHandler {
+    private final class RpcEndpointImpl extends KinRpcEndpointHandler {
         /** client连接信息 -> 远程服务绑定的端口信息 */
         private Map<KinRpcAddress, KinRpcAddress> clientAddr2RemoteBindAddr = new ConcurrentHashMap<>();
 
         @Override
-        protected final void handleRpcRequestProtocol(Channel channel, KinRpcRequestProtocol requestProtocol) {
+        protected void handleRpcRequestProtocol(Channel channel, KinRpcRequestProtocol requestProtocol) {
             byte serializationType = requestProtocol.getSerialization();
             //反序列化内容
             byte[] data = requestProtocol.getReqContent();

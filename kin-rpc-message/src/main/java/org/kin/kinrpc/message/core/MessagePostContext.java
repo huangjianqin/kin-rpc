@@ -10,6 +10,8 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ * 消息(本地或者远程接受的)分派上下文
+ *
  * @author huangjianqin
  * @date 2020-06-08
  */
@@ -48,12 +50,12 @@ public final class MessagePostContext {
     }
 
     /**
-     * 响应客户端请求
+     * 原路返回(跟请求同一channel), 响应客户端请求
      */
     public void reply(Serializable message) {
         if (Objects.nonNull(channel)) {
             RpcMessage rpcMessage =
-                    RpcMessage.of(requestId, to.getEndpointAddress().getRpcAddress(), RpcEndpointRef.of(RpcEndpointAddress.of(fromAddress, "")), message);
+                    RpcMessage.of(requestId, Objects.isNull(to) ? rpcEnv.address() : to.getEndpointAddress().getRpcAddress(), RpcEndpointRef.of(RpcEndpointAddress.of(fromAddress, "")), message);
 
             //序列化
             byte[] data = rpcEnv.serialize(rpcMessage);

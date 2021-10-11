@@ -26,8 +26,10 @@ public abstract class KinRpcEndpointRefHandler extends SocketProtocolHandler {
 
     /**
      * 连接服务器
+     *
+     * @param reconnect 是否需要启动支持重连的client
      */
-    public final void connect(SocketTransportOption transportOption, InetSocketAddress address) {
+    public final void connect(SocketTransportOption transportOption, InetSocketAddress address, boolean reconnect) {
         if (isStopped) {
             return;
         }
@@ -40,7 +42,11 @@ public abstract class KinRpcEndpointRefHandler extends SocketProtocolHandler {
         }
         if (client == null) {
             try {
-                client = transportOption.withReconnect(address, false);
+                if (reconnect) {
+                    client = transportOption.withReconnect(address, false);
+                } else {
+                    client = transportOption.connect(address);
+                }
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }

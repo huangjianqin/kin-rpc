@@ -5,6 +5,8 @@ import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
 import java.io.Serializable;
 
 /**
+ * 内置消息, client断开连接
+ *
  * @author huangjianqin
  * @date 2020/8/2
  */
@@ -19,6 +21,7 @@ public final class ClientDisconnected implements Serializable {
         return msg;
     }
 
+    //setter && getter
     public KinRpcAddress getRpcAddress() {
         return rpcAddress;
     }

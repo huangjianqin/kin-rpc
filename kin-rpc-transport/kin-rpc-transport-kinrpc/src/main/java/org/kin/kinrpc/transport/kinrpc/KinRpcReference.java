@@ -147,7 +147,7 @@ public class KinRpcReference {
             return;
         }
         HostAndPort hostAndPort = getAddress();
-        referenceHandler.connect(clientTransportOption, new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPort()));
+        referenceHandler.connect(clientTransportOption, new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPort()), true);
     }
 
     /**

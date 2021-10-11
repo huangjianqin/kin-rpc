@@ -3,7 +3,7 @@ package org.kin.kinrpc.message.core;
 import java.io.Serializable;
 
 /**
- * 消息处理返回回调接口
+ * 消息ask后, 响应返回回调接口
  *
  * @author huangjianqin
  * @date 2020-06-14

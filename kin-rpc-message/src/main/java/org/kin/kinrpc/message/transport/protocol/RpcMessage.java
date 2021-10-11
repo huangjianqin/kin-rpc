@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * rpc请求封装的消息
+ * 包装rpc请求的消息
  *
  * @author huangjianqin
  * @date 2020-06-08
@@ -95,5 +95,14 @@ public final class RpcMessage implements Serializable {
         return Objects.hash(requestId);
     }
 
-
+    @Override
+    public String toString() {
+        return "RpcMessage{" +
+                "requestId=" + requestId +
+                ", fromAddress=" + fromAddress +
+                ", to=" + to +
+                ", message=" + message +
+                ", createTime=" + createTime +
+                '}';
+    }
 }

@@ -13,6 +13,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ * ask消息返回的future
+ *
  * @author huangjianqin
  * @date 2020-06-14
  */
@@ -24,13 +26,13 @@ public final class RpcFuture<R extends Serializable> implements Future<R> {
     /** 请求唯一id */
     private final long requestId;
     /** 锁 */
-    private OneLock sync = new OneLock();
+    private final OneLock sync = new OneLock();
     /** 消息处理返回 */
     private volatile R reply;
     /** 消息处理异常 */
     private volatile Throwable exception;
     /** 标识future的取消状态 */
-    private AtomicBoolean cancelled = new AtomicBoolean();
+    private final AtomicBoolean cancelled = new AtomicBoolean();
 
     public RpcFuture(RpcEnv rpcEnv, KinRpcAddress address, long requestId) {
         this.rpcEnv = rpcEnv;
@@ -69,7 +71,7 @@ public final class RpcFuture<R extends Serializable> implements Future<R> {
     }
 
     @Override
-    public R get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+    public R get(long timeout, TimeUnit unit) throws InterruptedException, TimeoutException {
         boolean success = sync.tryAcquireNanos(-1, unit.toNanos(timeout));
         if (success) {
             if (isDone()) {
@@ -78,6 +80,7 @@ public final class RpcFuture<R extends Serializable> implements Future<R> {
                 return null;
             }
         } else {
+            cancel(true);
             throw new TimeoutException(getTimeoutMessage());
         }
     }
