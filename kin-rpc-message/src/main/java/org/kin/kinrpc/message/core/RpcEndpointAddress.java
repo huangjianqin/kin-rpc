@@ -65,7 +65,7 @@ public final class RpcEndpointAddress implements Serializable {
     @Override
     public String toString() {
         return "RpcEndpointAddress{" +
-                "rpcAddress=" + rpcAddress +
+                "rpcAddress=" + rpcAddress.schema() +
                 ", name='" + name + '\'' +
                 '}';
     }

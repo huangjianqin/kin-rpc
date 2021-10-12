@@ -24,7 +24,6 @@ public class KinRpcAddress implements Serializable {
     public KinRpcAddress() {
     }
 
-    //------------------------------------------------------------------------------------------------------------
     public static KinRpcAddress of(String host, int port) {
         KinRpcAddress address = new KinRpcAddress();
         address.host = host;
@@ -46,8 +45,7 @@ public class KinRpcAddress implements Serializable {
         return null;
     }
 
-    //------------------------------------------------------------------------------------------------------------
-    public String address() {
+    public String schema() {
         return NetUtils.getIpPort(host, port);
     }
 

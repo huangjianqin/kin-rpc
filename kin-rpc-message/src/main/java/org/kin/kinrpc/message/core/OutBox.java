@@ -19,17 +19,18 @@ final class OutBox {
     private static final Logger log = LoggerFactory.getLogger(OutBox.class);
 
     /** 接收方地址 */
-    private KinRpcAddress address;
+    private final KinRpcAddress address;
     /** 所属rpc环境 */
-    private RpcEnv rpcEnv;
+    private final RpcEnv rpcEnv;
     /** 该OutBox邮箱绑定的client */
     private TransportClient client;
     /** 待发送队列 */
-    private LinkedList<OutBoxMessage> pendingMessages = new LinkedList<>();
+    private final LinkedList<OutBoxMessage> pendingMessages = new LinkedList<>();
     private boolean isStopped;
     /** 是否正在发送消息 */
-    private boolean draining;
+    private volatile boolean draining;
     /** 客户端连接的Future */
+    @SuppressWarnings("rawtypes")
     private Future clientConnectFuture;
 
     OutBox(KinRpcAddress address, RpcEnv rpcEnv) {
@@ -53,25 +54,13 @@ final class OutBox {
         if (dropped) {
             log.warn("drop message, because of outbox stopped >>>> {}", outBoxMessage);
         } else {
-            drainOutbox();
-        }
-    }
+            if (draining) {
+                return;
+            }
 
-    /**
-     * 校验client是否有效
-     */
-    private boolean validClient() {
-        if (Objects.isNull(client)) {
-            //没有连接好的客户端, 创建一个
-            clientConnect();
-            return false;
+            //async
+            rpcEnv.commonExecutors.execute(OutBox.this::drainOutbox);
         }
-
-        if (!client.isActive()) {
-            //client inactive
-            return false;
-        }
-        return true;
     }
 
     /**
@@ -139,7 +128,26 @@ final class OutBox {
     }
 
     /**
+     * 校验client是否有效
+     * 在对象锁内操作
+     */
+    private boolean validClient() {
+        if (Objects.isNull(client)) {
+            //没有连接好的客户端, 创建一个
+            clientConnect();
+            return false;
+        }
+
+        if (!client.isActive()) {
+            //client inactive
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * 处理消息发送中遇到的异常
+     * 在对象锁内操作
      */
     private void handleException(Exception e) {
         log.error("", e);
@@ -151,8 +159,15 @@ final class OutBox {
         }
     }
 
-    /** 获取与该OutBox绑定的client */
+    /**
+     * 获取与该OutBox绑定的client
+     * 在对象锁内操作
+     */
     private void clientConnect() {
+        if (Objects.nonNull(clientConnectFuture)) {
+            return;
+        }
+
         clientConnectFuture = rpcEnv.commonExecutors.submit(() -> {
             try {
                 TransportClient client = rpcEnv.getClient(address);
@@ -197,7 +212,7 @@ final class OutBox {
                 try {
                     wait();
                 } catch (InterruptedException e) {
-
+                    //do nothing
                 }
             }
         }

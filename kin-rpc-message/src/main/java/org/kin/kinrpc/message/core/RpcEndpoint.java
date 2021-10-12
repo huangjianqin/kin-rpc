@@ -45,9 +45,9 @@ public abstract class RpcEndpoint extends Receiver<MessagePostContext> {
         KinRpcAddress fromAddress = context.getFromAddress();
         RpcEndpointRef to = context.getTo();
         log.debug("receive message from {} to {}({}), {}-{}-{}-{}-{}",
-                fromAddress.address(),
+                fromAddress.schema(),
                 Objects.nonNull(to) ? to.getEndpointAddress().getName() : "internal",
-                Objects.nonNull(to) ? to.getEndpointAddress().getRpcAddress().address() : "internal",
+                Objects.nonNull(to) ? to.getEndpointAddress().getRpcAddress().schema() : "internal",
                 context.getRequestId(),
                 context.getCreateTime(), context.getEventTime(), context.getHandleTime(),
                 context.getMessage()

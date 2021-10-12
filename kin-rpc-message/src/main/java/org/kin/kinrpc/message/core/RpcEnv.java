@@ -80,7 +80,7 @@ public final class RpcEnv {
     private RpcEndpointImpl rpcEndpoint;
     /** 标识是否stopped */
     private volatile boolean isStopped = false;
-    /** outbound client todo 是否需要启动额外线程去关闭无效client */
+    /** outbound client */
     private final Map<KinRpcAddress, TransportClient> clients = new ConcurrentHashMap<>();
     /** outBoxs */
     private Map<KinRpcAddress, OutBox> outBoxs = new ConcurrentHashMap<>();
@@ -451,33 +451,28 @@ public final class RpcEnv {
             throw new IllegalStateException("rpcEnv stopped");
         }
 
-        //加锁处理, 保证获取一个active client
-        TransportClient transportClient;
-        synchronized (clients) {
-            transportClient = clients.get(address);
-            if (Objects.nonNull(transportClient)) {
-                if (transportClient.isActive()) {
-                    return transportClient;
-                }
-                transportClient.stop();
+        //加锁处理, 保证获取一个init or active client
+        TransportClient transportClient = clients.get(address);
+        if (Objects.nonNull(transportClient)) {
+            if (transportClient.isActive()) {
+                return transportClient;
             }
-            transportClient = new TransportClient(this, address, compressionType);
-            transportClient.connect();
-            clients.put(address, transportClient);
+            transportClient.stop();
         }
+        transportClient = new TransportClient(this, address, compressionType);
+        transportClient.connect();
+        clients.put(address, transportClient);
 
         return transportClient;
     }
 
     /**
-     * 移除启动了的客户端
+     * 移除指定client
      */
     void removeClient(KinRpcAddress address) {
-        synchronized (clients) {
-            TransportClient client = clients.remove(address);
-            if (Objects.nonNull(client)) {
-                client.stop();
-            }
+        TransportClient client = clients.remove(address);
+        if (Objects.nonNull(client)) {
+            client.stop();
         }
     }
 

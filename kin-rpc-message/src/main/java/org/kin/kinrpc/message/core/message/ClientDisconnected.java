@@ -29,4 +29,11 @@ public final class ClientDisconnected implements Serializable {
     public void setRpcAddress(KinRpcAddress rpcAddress) {
         this.rpcAddress = rpcAddress;
     }
+
+    @Override
+    public String toString() {
+        return "ClientDisconnected{" +
+                "rpcAddress=" + rpcAddress +
+                '}';
+    }
 }

@@ -41,7 +41,7 @@ final class TransportClient {
     /** 客户端配置 */
     private final SocketTransportOption clientTransportOption;
     /** 服务器地址 */
-    private final KinRpcAddress rpcAddress;
+    private final KinRpcAddress remoteAddress;
     /** client handler */
     private final RpcEndpointRefHandlerImpl rpcEndpointRefHandler;
     private volatile boolean isStopped;
@@ -51,12 +51,13 @@ final class TransportClient {
     /** 相当于OutBox发送消息逻辑, 用于重连时, 触发发送OutBox中仍然没有发送的消息 */
     private volatile Runnable connectionInitCallback;
     /** 超时计时器 */
-    private final HashedWheelTimer timer = new HashedWheelTimer(new SimpleThreadFactory("transportClient-send-timeout", true), 1, TimeUnit.MILLISECONDS, 2048);
+    private final HashedWheelTimer timer = new HashedWheelTimer(
+            new SimpleThreadFactory("transportClient-send-timeout", true), 1, TimeUnit.MILLISECONDS, 2048);
 
-    TransportClient(RpcEnv rpcEnv, KinRpcAddress rpcAddress, CompressionType compressionType) {
+    TransportClient(RpcEnv rpcEnv, KinRpcAddress remoteAddress, CompressionType compressionType) {
         this.rpcEnv = rpcEnv;
         this.rpcEndpointRefHandler = new RpcEndpointRefHandlerImpl();
-        this.rpcAddress = rpcAddress;
+        this.remoteAddress = remoteAddress;
 
         SocketTransportOption.SocketClientTransportOptionBuilder builder = Transports.socket().client()
                 .channelOptions(rpcEnv.getClientChannelOptions())
@@ -81,7 +82,7 @@ final class TransportClient {
             return;
         }
 
-        rpcEndpointRefHandler.connect(clientTransportOption, new InetSocketAddress(rpcAddress.getHost(), rpcAddress.getPort()), false);
+        rpcEndpointRefHandler.connect(clientTransportOption, new InetSocketAddress(remoteAddress.getHost(), remoteAddress.getPort()), false);
     }
 
     /**
@@ -99,8 +100,9 @@ final class TransportClient {
         isStopped = true;
         rpcEndpointRefHandler.close();
         for (RpcResponseCallback callback : respCallbacks.values()) {
-            callback.onFail(new ClientStoppedException(rpcAddress.address()));
+            callback.onFail(new ClientStoppedException(remoteAddress.schema()));
         }
+        //此处不需要让rpcEnv移除client
     }
 
     /**
@@ -190,7 +192,12 @@ final class TransportClient {
         @Override
         protected void connectionInactive() {
             for (RpcResponseCallback callback : respCallbacks.values()) {
-                callback.onFail(new ClientConnectFailException(rpcAddress.address()));
+                callback.onFail(new ClientConnectFailException(remoteAddress.schema()));
+            }
+            rpcEnv.removeClient(remoteAddress);
+            //触发outbox drain, 如果outbox还有消息未发送则需要不断尝试重连然后把剩余的消息push出去
+            if (Objects.nonNull(connectionInitCallback)) {
+                connectionInitCallback.run();
             }
         }
 

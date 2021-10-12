@@ -29,5 +29,12 @@ public final class ClientConnected implements Serializable {
     public void setRpcAddress(KinRpcAddress rpcAddress) {
         this.rpcAddress = rpcAddress;
     }
+
+    @Override
+    public String toString() {
+        return "ClientConnected{" +
+                "rpcAddress=" + rpcAddress +
+                '}';
+    }
 }
 
