@@ -1,8 +1,6 @@
 package org.kin.kinrpc.message.core;
 
 import com.google.common.base.Preconditions;
-import org.kin.kinrpc.message.transport.domain.RpcEndpointAddress;
-import org.kin.kinrpc.message.transport.protocol.RpcMessage;
 import org.kin.kinrpc.transport.kinrpc.KinRpcRequestIdGenerator;
 
 import java.io.Serializable;
@@ -63,22 +61,22 @@ public final class RpcEndpointRef implements Serializable {
     /**
      * 发送消息
      */
-    public void send(Serializable message) {
-        rpcEnv().send(rpcMessage(message));
+    public void fireAndForget(Serializable message) {
+        rpcEnv().fireAndForget(rpcMessage(message));
     }
 
     /**
      * 发送消息, 并返回Future, 支持阻塞等待待消息处理完并返回
      */
-    public <R extends Serializable> RpcFuture<R> ask(Serializable message) {
-        return rpcEnv().ask(rpcMessage(message));
+    public <R extends Serializable> RpcFuture<R> requestResponse(Serializable message) {
+        return rpcEnv().requestResponse(rpcMessage(message));
     }
 
     /**
      * 发送消息, 并返回Future, 支持阻塞等待待消息处理完并返回, 并且支持超时
      */
-    public <R extends Serializable> RpcFuture<R> ask(Serializable message, long timeoutMs) {
-        return rpcEnv().ask(rpcMessage(message), timeoutMs);
+    public <R extends Serializable> RpcFuture<R> requestResponse(Serializable message, long timeoutMs) {
+        return rpcEnv().requestResponse(rpcMessage(message), timeoutMs);
     }
 
     /**
@@ -87,9 +85,9 @@ public final class RpcEndpointRef implements Serializable {
      * @param customCallback 自定义callback
      * @param timeoutMs      超时时间
      */
-    public <R extends Serializable> void ask(Serializable message, RpcResponseCallback<R> customCallback, long timeoutMs) {
+    public <R extends Serializable> void requestResponse(Serializable message, RpcResponseCallback<R> customCallback, long timeoutMs) {
         Preconditions.checkNotNull(customCallback);
-        rpcEnv().ask(rpcMessage(message), customCallback, timeoutMs);
+        rpcEnv().requestResponse(rpcMessage(message), customCallback, timeoutMs);
     }
 
     //getter

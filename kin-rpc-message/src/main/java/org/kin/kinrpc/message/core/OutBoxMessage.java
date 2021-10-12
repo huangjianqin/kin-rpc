@@ -1,8 +1,5 @@
 package org.kin.kinrpc.message.core;
 
-import org.kin.kinrpc.message.transport.TransportClient;
-import org.kin.kinrpc.message.transport.protocol.RpcMessage;
-
 import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 
@@ -13,7 +10,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2020-06-10
  */
 @SuppressWarnings("rawtypes")
-public final class OutBoxMessage implements RpcResponseCallback<Serializable> {
+final class OutBoxMessage implements RpcResponseCallback<Serializable> {
     /** client 发送的消息 */
     private final RpcMessage message;
     /** callback */
@@ -24,14 +21,14 @@ public final class OutBoxMessage implements RpcResponseCallback<Serializable> {
     /**
      * 同步请求调用
      */
-    public OutBoxMessage(RpcMessage message) {
+    OutBoxMessage(RpcMessage message) {
         this(message, RpcResponseCallback.EMPTY, 0);
     }
 
     /**
      * 异步请求调用
      */
-    public OutBoxMessage(RpcMessage message, RpcResponseCallback<?> proxy, long timeoutMs) {
+    OutBoxMessage(RpcMessage message, RpcResponseCallback<?> proxy, long timeoutMs) {
         this.message = message;
         this.proxy = proxy;
         //默认隐藏超时时间1分钟, 如果由于异常不能返回, 但也没有设置超时, 会导致程序缓存大量Future, 故设置隐藏超时时间, 以便在该场景下释放无用对象实例
@@ -41,7 +38,7 @@ public final class OutBoxMessage implements RpcResponseCallback<Serializable> {
     /**
      * 由某个client发送消息
      */
-    public void sendWith(TransportClient client) {
+    void sendWith(TransportClient client) {
         client.send(this);
     }
 
@@ -59,11 +56,11 @@ public final class OutBoxMessage implements RpcResponseCallback<Serializable> {
     }
 
     //getter
-    public RpcMessage getMessage() {
+    RpcMessage getMessage() {
         return message;
     }
 
-    public long getTimeoutMs() {
+    long getTimeoutMs() {
         return timeoutMs;
     }
 

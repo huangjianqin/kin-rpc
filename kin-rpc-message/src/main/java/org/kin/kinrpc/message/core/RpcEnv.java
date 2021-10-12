@@ -13,9 +13,6 @@ import org.kin.framework.utils.StringUtils;
 import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.message.core.message.ClientConnected;
 import org.kin.kinrpc.message.core.message.ClientDisconnected;
-import org.kin.kinrpc.message.transport.TransportClient;
-import org.kin.kinrpc.message.transport.domain.RpcEndpointAddress;
-import org.kin.kinrpc.message.transport.protocol.RpcMessage;
 import org.kin.kinrpc.rpc.common.SslConfig;
 import org.kin.kinrpc.serialization.Serialization;
 import org.kin.kinrpc.serialization.SerializationType;
@@ -58,18 +55,18 @@ public final class RpcEnv {
     /** 线程本地RpcEnv */
     private static ThreadLocal<RpcEnv> currentRpcEnv = new ThreadLocal<>();
 
-    public static RpcEnv currentRpcEnv() {
+    static RpcEnv currentRpcEnv() {
         return currentRpcEnv.get();
     }
 
-    public static void updateCurrentRpcEnv(RpcEnv rpcEnv) {
+    static void updateCurrentRpcEnv(RpcEnv rpcEnv) {
         currentRpcEnv.set(rpcEnv);
     }
     //----------------------------------------------------------------------------------------------------------------
     /**
-     * rpc环境公用线程池, 除了dispatcher以外, 都用这个线程池
+     * 公用线程池, 除了dispatcher以外, 都用这个线程池, 会存在io/加锁操作
      */
-    public ExecutionContext commonExecutors = ExecutionContext.elastic(SysUtils.getSuitableThreadNum(), SysUtils.CPU_NUM * 10,
+    ExecutionContext commonExecutors = ExecutionContext.elastic(SysUtils.getSuitableThreadNum(), SysUtils.CPU_NUM * 10,
             "rpc-message", 2, "rpc-message-scheduler");
 
     /** 事件调度 */
@@ -83,7 +80,7 @@ public final class RpcEnv {
     private RpcEndpointImpl rpcEndpoint;
     /** 标识是否stopped */
     private volatile boolean isStopped = false;
-    /** 基于本rpc环境下的client */
+    /** outbound client todo 是否需要启动额外线程去关闭无效client */
     private final Map<KinRpcAddress, TransportClient> clients = new ConcurrentHashMap<>();
     /** outBoxs */
     private Map<KinRpcAddress, OutBox> outBoxs = new ConcurrentHashMap<>();
@@ -120,6 +117,7 @@ public final class RpcEnv {
                 Serializations.getSerialization(SerializationType.KRYO.getCode()), compressionType);
     }
 
+    @SuppressWarnings("rawtypes")
     public RpcEnv(String host, int port, int parallelism, Serialization serialization, CompressionType compressionType) {
         this.address = KinRpcAddress.of(host, port);
         this.dispatcher = new EventBasedDispatcher<>(parallelism);
@@ -224,6 +222,26 @@ public final class RpcEnv {
     }
 
     /**
+     * 创建指定receiver的ref
+     */
+    public RpcEndpointRef createEndpointRef(String host, int port, String receiverName) {
+        if (isStopped) {
+            throw new IllegalStateException("rpcEnv stopped");
+        }
+        return RpcEndpointRef.of(
+                RpcEndpointAddress.of(
+                        KinRpcAddress.of(host, port), receiverName),
+                this);
+    }
+
+    /**
+     * 创建本地receiver的ref
+     */
+    public RpcEndpointRef createLocalEndpointRef(String receiverName) {
+        return createEndpointRef(address.getHost(), address.getPort(), receiverName);
+    }
+
+    /**
      * 关闭rpc环境, 即关闭绑定某端口的服务器
      */
     public void stop() {
@@ -257,12 +275,30 @@ public final class RpcEnv {
         commonExecutors.shutdown();
     }
 
+    //setter && getter
+    public void updateServerChannelOptions(Map<ChannelOption, Object> serverChannelOptions) {
+        this.serverChannelOptions.putAll(serverChannelOptions);
+    }
+
+    public void updateClientChannelOptions(Map<ChannelOption, Object> clientChannelOptions) {
+        this.clientChannelOptions.putAll(clientChannelOptions);
+    }
+
+    /**
+     * 该rpc环境的地址
+     */
+    public KinRpcAddress address() {
+        return address;
+    }
+
+    //----------------------------------------------------------------------internal
+
     /**
      * 反序列化消息
      *
      * @param serialization 目标序列化类型
      */
-    public RpcMessage deserialize(Serialization serialization, byte[] data) {
+    RpcMessage deserialize(Serialization serialization, byte[] data) {
         //更新线程本地RpcEnv
         updateCurrentRpcEnv(this);
 
@@ -284,7 +320,7 @@ public final class RpcEnv {
     /**
      * 序列化消息
      */
-    public byte[] serialize(RpcMessage message) {
+    byte[] serialize(RpcMessage message) {
         try {
             //序列化
             byte[] data = serialization.serialize(message);
@@ -303,7 +339,7 @@ public final class RpcEnv {
     /**
      * 发送消息
      */
-    public void send(RpcMessage message) {
+    void fireAndForget(RpcMessage message) {
         if (isStopped) {
             return;
         }
@@ -338,28 +374,28 @@ public final class RpcEnv {
         if (isStopped) {
             removeOutBox(toRpcAddress);
         } else {
-            targetOutBox.sendMessage(message);
+            targetOutBox.pushMessage(message);
         }
     }
 
     /**
      * 支持future的消息发送, 并且支持超时
      */
-    public <R extends Serializable> RpcFuture<R> ask(RpcMessage message) {
-        return ask(message, 0);
+    <R extends Serializable> RpcFuture<R> requestResponse(RpcMessage message) {
+        return requestResponse(message, 0);
     }
 
     /**
      * 支持future的消息发送, 并且支持超时
      */
-    public <R extends Serializable> RpcFuture<R> ask(RpcMessage message, long timeoutMs) {
-        return ask(message, null, timeoutMs);
+    <R extends Serializable> RpcFuture<R> requestResponse(RpcMessage message, long timeoutMs) {
+        return requestResponse(message, null, timeoutMs);
     }
 
     /**
      * 支持future的消息发送, 支持使用callback, 并且支持超时
      */
-    public <R extends Serializable> RpcFuture<R> ask(RpcMessage message, RpcResponseCallback<R> customCallback, long timeoutMs) {
+    <R extends Serializable> RpcFuture<R> requestResponse(RpcMessage message, RpcResponseCallback<R> customCallback, long timeoutMs) {
         if (isStopped) {
             throw new IllegalStateException("rpcEnv stopped");
         }
@@ -388,7 +424,7 @@ public final class RpcEnv {
     /**
      * 分派并处理接受到的消息
      */
-    public void postMessage(RpcMessage message) {
+    void postMessage(RpcMessage message) {
         if (isStopped) {
             return;
         }
@@ -398,22 +434,11 @@ public final class RpcEnv {
     /**
      * 分派并处理接受到的消息
      */
-    public void postMessage(Channel channel, RpcMessage message) {
+    void postMessage(Channel channel, RpcMessage message) {
         MessagePostContext messagePostContext =
                 new MessagePostContext(this, message.getFromAddress(), channel, message.getTo(), message.getMessage(), message.getRequestId(), message.getCreateTime());
         messagePostContext.setEventTime(System.currentTimeMillis());
         dispatcher.postMessage(message.getTo().getEndpointAddress().getName(), messagePostContext);
-    }
-
-
-    public RpcEndpointRef createEndpointRef(String host, int port, String receiverName) {
-        if (isStopped) {
-            throw new IllegalStateException("rpcEnv stopped");
-        }
-        return RpcEndpointRef.of(
-                RpcEndpointAddress.of(
-                        KinRpcAddress.of(host, port), receiverName),
-                this);
     }
 
     /**
@@ -421,7 +446,7 @@ public final class RpcEnv {
      *
      * @param address remote地址
      */
-    public TransportClient getClient(KinRpcAddress address) {
+    TransportClient getClient(KinRpcAddress address) {
         if (isStopped) {
             throw new IllegalStateException("rpcEnv stopped");
         }
@@ -447,7 +472,7 @@ public final class RpcEnv {
     /**
      * 移除启动了的客户端
      */
-    public void removeClient(KinRpcAddress address) {
+    void removeClient(KinRpcAddress address) {
         synchronized (clients) {
             TransportClient client = clients.remove(address);
             if (Objects.nonNull(client)) {
@@ -459,7 +484,7 @@ public final class RpcEnv {
     /**
      * 移除outbox
      */
-    public void removeOutBox(KinRpcAddress address) {
+    void removeOutBox(KinRpcAddress address) {
         OutBox outBox = outBoxs.remove(address);
         if (Objects.nonNull(outBox)) {
             outBox.stop();
@@ -467,59 +492,26 @@ public final class RpcEnv {
         removeClient(address);
     }
 
-    //setter
-    public void updateServerChannelOptions(Map<ChannelOption, Object> serverChannelOptions) {
-        this.serverChannelOptions.putAll(serverChannelOptions);
-    }
-
-    public void updateClientChannelOptions(Map<ChannelOption, Object> clientChannelOptions) {
-        this.clientChannelOptions.putAll(clientChannelOptions);
-    }
-
-    //------------------------------------------------------------------------------------------------------------------
-
     /**
-     * 该rpc环境的地址
+     * 获取指定{@link RpcEndpoint}的ref
      */
-    public KinRpcAddress address() {
-        return address;
-    }
-
-    /**
-     * 该rpc环境的rpcEndpointRef
-     */
-    public RpcEndpointRef rpcEndpointRef(RpcEndpoint endpoint) {
+    RpcEndpointRef rpcEndpointRef(RpcEndpoint endpoint) {
         return endpoint2Ref.get(endpoint);
     }
 
-    /**
-     * rpc环境公用线程池
-     */
-    public ExecutionContext executors() {
-        return commonExecutors;
+    Map<ChannelOption, Object> getClientChannelOptions() {
+        return clientChannelOptions;
     }
 
-    /**
-     * dispatcher
-     */
-    public Dispatcher<String, MessagePostContext> dispatcher() {
-        return dispatcher;
-    }
-
-    /** serialization */
     public Serialization serialization() {
         return serialization;
     }
 
-    public Map<ChannelOption, Object> getServerChannelOptions() {
-        return serverChannelOptions;
-    }
-
-    public Map<ChannelOption, Object> getClientChannelOptions() {
-        return clientChannelOptions;
-    }
-
     //------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * server接受的rpc请求处理
+     */
     private final class RpcEndpointImpl extends KinRpcEndpointHandler {
         /** client连接信息 -> 远程服务绑定的端口信息 */
         private Map<KinRpcAddress, KinRpcAddress> clientAddr2RemoteBindAddr = new ConcurrentHashMap<>();

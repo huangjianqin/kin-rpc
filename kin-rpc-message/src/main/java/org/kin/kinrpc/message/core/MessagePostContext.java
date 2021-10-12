@@ -1,8 +1,6 @@
 package org.kin.kinrpc.message.core;
 
 import io.netty.channel.Channel;
-import org.kin.kinrpc.message.transport.domain.RpcEndpointAddress;
-import org.kin.kinrpc.message.transport.protocol.RpcMessage;
 import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
 import org.kin.kinrpc.transport.kinrpc.KinRpcResponseProtocol;
 
@@ -52,7 +50,7 @@ public final class MessagePostContext {
     /**
      * 原路返回(跟请求同一channel), 响应客户端请求
      */
-    public void reply(Serializable message) {
+    public void response(Serializable message) {
         if (Objects.nonNull(channel)) {
             RpcMessage rpcMessage =
                     RpcMessage.of(requestId, Objects.isNull(to) ? rpcEnv.address() : to.getEndpointAddress().getRpcAddress(), RpcEndpointRef.of(RpcEndpointAddress.of(fromAddress, "")), message);

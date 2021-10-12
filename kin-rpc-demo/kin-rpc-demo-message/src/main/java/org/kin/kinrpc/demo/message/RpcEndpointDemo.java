@@ -46,10 +46,10 @@ public class RpcEndpointDemo extends RpcEndpoint {
         if (message instanceof RpcEndpointRefDemo.PrintMessage) {
             //相当于创建client, send message
             RpcEndpointRefDemo.PrintMessage printMessage = (RpcEndpointRefDemo.PrintMessage) message;
-            printMessage.getFrom().send(new ReplyMessage(context.getRequestId()));
+            printMessage.getFrom().fireAndForget(new ReplyMessage(context.getRequestId()));
         } else if (message instanceof RpcEndpointRefDemo.AskMessage) {
             //原路返回
-            context.reply(new ReplyMessage(context.getRequestId()));
+            context.response(new ReplyMessage(context.getRequestId()));
         }
     }
 

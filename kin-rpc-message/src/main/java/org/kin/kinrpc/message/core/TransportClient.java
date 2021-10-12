@@ -1,16 +1,12 @@
-package org.kin.kinrpc.message.transport;
+package org.kin.kinrpc.message.core;
 
 import io.netty.channel.ChannelHandlerContext;
 import org.kin.framework.concurrent.HashedWheelTimer;
 import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.utils.StringUtils;
-import org.kin.kinrpc.message.core.OutBoxMessage;
-import org.kin.kinrpc.message.core.RpcEnv;
-import org.kin.kinrpc.message.core.RpcResponseCallback;
-import org.kin.kinrpc.message.exception.AskMessageTimeoutException;
-import org.kin.kinrpc.message.exception.ClientConnectFailException;
-import org.kin.kinrpc.message.exception.ClientStoppedException;
-import org.kin.kinrpc.message.transport.protocol.RpcMessage;
+import org.kin.kinrpc.message.core.exception.ClientConnectFailException;
+import org.kin.kinrpc.message.core.exception.ClientStoppedException;
+import org.kin.kinrpc.message.core.exception.RequestResponseTimeoutException;
 import org.kin.kinrpc.rpc.common.SslConfig;
 import org.kin.kinrpc.serialization.Serialization;
 import org.kin.kinrpc.serialization.Serializations;
@@ -37,7 +33,7 @@ import java.util.concurrent.TimeUnit;
  * @author huangjianqin
  * @date 2020-06-10
  */
-public final class TransportClient {
+final class TransportClient {
     private static final Logger log = LoggerFactory.getLogger(TransportClient.class);
 
     /** 序列化 */
@@ -55,9 +51,9 @@ public final class TransportClient {
     /** 相当于OutBox发送消息逻辑, 用于重连时, 触发发送OutBox中仍然没有发送的消息 */
     private volatile Runnable connectionInitCallback;
     /** 超时计时器 */
-    private HashedWheelTimer timer = new HashedWheelTimer(new SimpleThreadFactory("transportClient-send-timeout", true), 1, TimeUnit.MILLISECONDS, 2048);
+    private final HashedWheelTimer timer = new HashedWheelTimer(new SimpleThreadFactory("transportClient-send-timeout", true), 1, TimeUnit.MILLISECONDS, 2048);
 
-    public TransportClient(RpcEnv rpcEnv, KinRpcAddress rpcAddress, CompressionType compressionType) {
+    TransportClient(RpcEnv rpcEnv, KinRpcAddress rpcAddress, CompressionType compressionType) {
         this.rpcEnv = rpcEnv;
         this.rpcEndpointRefHandler = new RpcEndpointRefHandlerImpl();
         this.rpcAddress = rpcAddress;
@@ -80,7 +76,7 @@ public final class TransportClient {
     /**
      * 连接remote
      */
-    public void connect() {
+    void connect() {
         if (isStopped) {
             return;
         }
@@ -91,12 +87,12 @@ public final class TransportClient {
     /**
      * @return 是否有效
      */
-    public boolean isActive() {
+    boolean isActive() {
         return !isStopped && rpcEndpointRefHandler.isActive();
     }
 
     @SuppressWarnings("rawtypes")
-    public void stop() {
+    void stop() {
         if (isStopped) {
             return;
         }
@@ -111,7 +107,7 @@ public final class TransportClient {
      * 发送消息
      */
     @SuppressWarnings("rawtypes")
-    public void send(OutBoxMessage outBoxMessage) {
+    void send(OutBoxMessage outBoxMessage) {
         if (isActive()) {
             RpcMessage message = outBoxMessage.getMessage();
             byte[] data = rpcEnv.serialize(message);
@@ -129,7 +125,7 @@ public final class TransportClient {
                         removeInvalidRespCallback(requestId);
                         RpcResponseCallback callback = respCallbacks.remove(message.getRequestId());
                         if (Objects.nonNull(callback)) {
-                            callback.onFail(new AskMessageTimeoutException(outBoxMessage));
+                            callback.onFail(new RequestResponseTimeoutException(outBoxMessage.getMessage().getMessage()));
                         }
                     }, timeoutMs, TimeUnit.MILLISECONDS);
                 }
@@ -140,14 +136,14 @@ public final class TransportClient {
     /**
      * 移除无效request绑定的callback
      */
-    public void removeInvalidRespCallback(long requestId) {
+    void removeInvalidRespCallback(long requestId) {
         respCallbacks.remove(requestId);
     }
 
     /**
      * 更新client 连接成功建立callback
      */
-    public void updateConnectionInitCallback(Runnable connectionInitCallback) {
+    void updateConnectionInitCallback(Runnable connectionInitCallback) {
         this.connectionInitCallback = connectionInitCallback;
     }
 
@@ -198,7 +194,7 @@ public final class TransportClient {
             }
         }
 
-        public Client<SocketProtocol> client() {
+        Client<SocketProtocol> client() {
             return client;
         }
     }

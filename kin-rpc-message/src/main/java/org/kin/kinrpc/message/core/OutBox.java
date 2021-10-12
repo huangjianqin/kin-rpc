@@ -1,6 +1,5 @@
 package org.kin.kinrpc.message.core;
 
-import org.kin.kinrpc.message.transport.TransportClient;
 import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +40,7 @@ final class OutBox {
     /**
      * 发送消息, 本质上是消息入队, 并等待client发送
      */
-    void sendMessage(OutBoxMessage outBoxMessage) {
+    void pushMessage(OutBoxMessage outBoxMessage) {
         boolean dropped = false;
         synchronized (this) {
             if (isStopped) {

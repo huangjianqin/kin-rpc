@@ -1,4 +1,4 @@
-package org.kin.kinrpc.message.transport.domain;
+package org.kin.kinrpc.message.core;
 
 import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
 

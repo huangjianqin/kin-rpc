@@ -1,7 +1,6 @@
 package org.kin.kinrpc.message.core;
 
 import org.kin.framework.concurrent.OneLock;
-import org.kin.kinrpc.message.transport.TransportClient;
 import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
 
 import java.io.Serializable;
@@ -13,7 +12,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * ask消息返回的future
+ * request response消息返回的future
  *
  * @author huangjianqin
  * @date 2020-06-14
@@ -92,7 +91,7 @@ public final class RpcFuture<R extends Serializable> implements Future<R> {
     /**
      * 消息处理完并返回
      */
-    public void done(R reply) {
+    void done(R reply) {
         if (isDone()) {
             return;
         }
@@ -103,7 +102,7 @@ public final class RpcFuture<R extends Serializable> implements Future<R> {
     /**
      * 消息处理完并返回, 但遇到错误
      */
-    public void fail(Throwable e) {
+    void fail(Throwable e) {
         if (isDone()) {
             return;
         }
@@ -114,7 +113,7 @@ public final class RpcFuture<R extends Serializable> implements Future<R> {
     /**
      * @return 发送消息和消息处理的异常
      */
-    public Throwable getException() {
+    Throwable getException() {
         return exception;
     }
 }

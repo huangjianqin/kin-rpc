@@ -1,6 +1,5 @@
-package org.kin.kinrpc.message.transport.protocol;
+package org.kin.kinrpc.message.core;
 
-import org.kin.kinrpc.message.core.RpcEndpointRef;
 import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
 
 import java.io.Serializable;
@@ -12,7 +11,7 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2020-06-08
  */
-public final class RpcMessage implements Serializable {
+final class RpcMessage implements Serializable {
     private static final long serialVersionUID = -7580281019273609173L;
 
     /** 请求唯一id */
@@ -26,7 +25,7 @@ public final class RpcMessage implements Serializable {
     /** 消息创建时间 */
     private long createTime;
 
-    public static RpcMessage of(long requestId, KinRpcAddress fromAddress, RpcEndpointRef to, Serializable message) {
+    static RpcMessage of(long requestId, KinRpcAddress fromAddress, RpcEndpointRef to, Serializable message) {
         RpcMessage rpcMessage = new RpcMessage();
         rpcMessage.requestId = requestId;
         rpcMessage.fromAddress = fromAddress;
@@ -37,44 +36,43 @@ public final class RpcMessage implements Serializable {
     }
 
     //----------------------------------------------------------------------------------------------------------------
-
-    public long getRequestId() {
+    long getRequestId() {
         return requestId;
     }
 
-    public void setRequestId(long requestId) {
+    void setRequestId(long requestId) {
         this.requestId = requestId;
     }
 
-    public KinRpcAddress getFromAddress() {
+    KinRpcAddress getFromAddress() {
         return fromAddress;
     }
 
-    public void setFromAddress(KinRpcAddress fromAddress) {
+    void setFromAddress(KinRpcAddress fromAddress) {
         this.fromAddress = fromAddress;
     }
 
-    public RpcEndpointRef getTo() {
+    RpcEndpointRef getTo() {
         return to;
     }
 
-    public void setTo(RpcEndpointRef to) {
+    void setTo(RpcEndpointRef to) {
         this.to = to;
     }
 
-    public Serializable getMessage() {
+    Serializable getMessage() {
         return message;
     }
 
-    public void setMessage(Serializable message) {
+    void setMessage(Serializable message) {
         this.message = message;
     }
 
-    public long getCreateTime() {
+    long getCreateTime() {
         return createTime;
     }
 
-    public void setCreateTime(long createTime) {
+    void setCreateTime(long createTime) {
         this.createTime = createTime;
     }
 

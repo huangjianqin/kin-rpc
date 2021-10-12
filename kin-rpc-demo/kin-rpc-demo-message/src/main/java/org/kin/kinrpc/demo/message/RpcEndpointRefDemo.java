@@ -32,12 +32,12 @@ public class RpcEndpointRefDemo extends RpcEndpoint {
         int count = 0;
         while (count < 100) {
             try {
-                RpcEndpointRef self = rpcEnv.rpcEndpointRef(rpcEndpointRefDemo);
-                endpointRef.send(new PrintMessage(++count + "", self));
-                RpcFuture<RpcEndpointDemo.ReplyMessage> future = endpointRef.ask(new AskMessage(++count + ""));
+                RpcEndpointRef self = rpcEndpointRefDemo.ref();
+                endpointRef.fireAndForget(new PrintMessage(++count + "", self));
+                RpcFuture<RpcEndpointDemo.ReplyMessage> future = endpointRef.requestResponse(new AskMessage(++count + ""));
                 System.out.println("ask with block >>>> " + future.get());
 
-                endpointRef.ask(new AskMessage(++count + ""), new RpcResponseCallback<Serializable>() {
+                endpointRef.requestResponse(new AskMessage(++count + ""), new RpcResponseCallback<Serializable>() {
                     @Override
                     public void onSuccess(Serializable message) {
                         System.out.println("ask with timeout >>>> " + message);
