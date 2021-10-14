@@ -35,16 +35,18 @@ public class RpcEndpointRefDemo extends RpcEndpoint {
                 RpcEndpointRef self = rpcEndpointRefDemo.ref();
                 endpointRef.fireAndForget(new PrintMessage(++count + "", self));
                 RpcFuture<RpcEndpointDemo.ReplyMessage> future = endpointRef.requestResponse(new AskMessage(++count + ""));
-                System.out.println("ask with block >>>> " + future.get());
+                RpcEndpointDemo.ReplyMessage replyMessage = future.get();
+                System.out.println("ask with block >>>> " + replyMessage);
 
-                endpointRef.requestResponse(new AskMessage(++count + ""), new RpcResponseCallback<Serializable>() {
+                endpointRef.requestResponse(new AskMessage(++count + ""), new RpcResponseCallback() {
+
                     @Override
-                    public void onSuccess(Serializable message) {
-                        System.out.println("ask with timeout >>>> " + message);
+                    public <REQ extends Serializable, RESP extends Serializable> void onResponse(long requestId, REQ request, RESP response) {
+                        System.out.println("ask with timeout >>>> " + requestId + "~~~~~" + request + "~~~~~" + response);
                     }
 
                     @Override
-                    public void onFail(Throwable e) {
+                    public void onException(Throwable e) {
                         System.err.println("ask with timeout >>>> " + e);
                     }
                 }, 3_000);

@@ -23,6 +23,7 @@ import org.kin.transport.netty.socket.protocol.SocketProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Objects;
@@ -46,8 +47,7 @@ final class TransportClient {
     private final RpcEndpointRefHandlerImpl rpcEndpointRefHandler;
     private volatile boolean isStopped;
     /** 请求返回回调 */
-    @SuppressWarnings("rawtypes")
-    private final Map<Long, RpcResponseCallback> respCallbacks = new ConcurrentHashMap<>();
+    private final Map<Long, OutBoxMessage> requestId2OutBoxMessage = new ConcurrentHashMap<>();
     /** 相当于OutBox发送消息逻辑, 用于重连时, 触发发送OutBox中仍然没有发送的消息 */
     private volatile Runnable connectionInitCallback;
     /** 超时计时器 */
@@ -92,15 +92,14 @@ final class TransportClient {
         return !isStopped && rpcEndpointRefHandler.isActive();
     }
 
-    @SuppressWarnings("rawtypes")
     void stop() {
         if (isStopped) {
             return;
         }
         isStopped = true;
         rpcEndpointRefHandler.close();
-        for (RpcResponseCallback callback : respCallbacks.values()) {
-            callback.onFail(new ClientStoppedException(remoteAddress.schema()));
+        for (OutBoxMessage outBoxMessage : requestId2OutBoxMessage.values()) {
+            execCallbackWhenException(outBoxMessage, new ClientStoppedException(remoteAddress.schema()));
         }
         //此处不需要让rpcEnv移除client
     }
@@ -108,10 +107,9 @@ final class TransportClient {
     /**
      * 发送消息
      */
-    @SuppressWarnings("rawtypes")
     void send(OutBoxMessage outBoxMessage) {
         if (isActive()) {
-            RpcMessage message = outBoxMessage.getMessage();
+            RpcMessage message = outBoxMessage.getRpcMessage();
             byte[] data = rpcEnv.serialize(message);
             if (Objects.isNull(data)) {
                 return;
@@ -120,15 +118,12 @@ final class TransportClient {
             long requestId = message.getRequestId();
             KinRpcRequestProtocol protocol = KinRpcRequestProtocol.create(requestId, (byte) rpcEnv.serialization().type(), data);
             if (rpcEndpointRefHandler.client().sendAndFlush(protocol)) {
-                respCallbacks.put(requestId, outBoxMessage);
+                requestId2OutBoxMessage.put(requestId, outBoxMessage);
                 long timeoutMs = outBoxMessage.getTimeoutMs();
                 if (timeoutMs > 0) {
                     timer.newTimeout(to -> {
-                        removeInvalidRespCallback(requestId);
-                        RpcResponseCallback callback = respCallbacks.remove(message.getRequestId());
-                        if (Objects.nonNull(callback)) {
-                            callback.onFail(new RequestResponseTimeoutException(outBoxMessage.getMessage().getMessage()));
-                        }
+                        removeInvalidWaitingResponseMessage(requestId);
+                        execCallbackWhenException(requestId2OutBoxMessage.remove(message.getRequestId()), new RequestResponseTimeoutException(outBoxMessage.getRpcMessage().getMessage()));
                     }, timeoutMs, TimeUnit.MILLISECONDS);
                 }
             }
@@ -136,10 +131,10 @@ final class TransportClient {
     }
 
     /**
-     * 移除无效request绑定的callback
+     * 移除无效等待返回的request
      */
-    void removeInvalidRespCallback(long requestId) {
-        respCallbacks.remove(requestId);
+    void removeInvalidWaitingResponseMessage(long requestId) {
+        requestId2OutBoxMessage.remove(requestId);
     }
 
     /**
@@ -150,9 +145,7 @@ final class TransportClient {
     }
 
     //------------------------------------------------------------------------------------------------------------------
-    @SuppressWarnings("rawtypes")
     private class RpcEndpointRefHandlerImpl extends KinRpcEndpointRefHandler {
-        @SuppressWarnings("unchecked")
         @Override
         protected void handleRpcResponseProtocol(KinRpcResponseProtocol responseProtocol) {
             byte serializationType = responseProtocol.getSerialization();
@@ -175,10 +168,7 @@ final class TransportClient {
             //callback回调
             String targetReceiver = message.getTo().getEndpointAddress().getName();
             if (StringUtils.isBlank(targetReceiver)) {
-                RpcResponseCallback callback = respCallbacks.remove(message.getRequestId());
-                if (Objects.nonNull(callback)) {
-                    callback.onSuccess(message.getMessage());
-                }
+                execCallbackWhenResponse(requestId2OutBoxMessage.remove(message.getRequestId()), message.getMessage());
             }
         }
 
@@ -191,8 +181,8 @@ final class TransportClient {
 
         @Override
         protected void connectionInactive() {
-            for (RpcResponseCallback callback : respCallbacks.values()) {
-                callback.onFail(new ClientConnectFailException(remoteAddress.schema()));
+            for (OutBoxMessage outBoxMessage : requestId2OutBoxMessage.values()) {
+                execCallbackWhenException(outBoxMessage, new ClientConnectFailException(remoteAddress.schema()));
             }
             rpcEnv.removeClient(remoteAddress);
             //触发outbox drain, 如果outbox还有消息未发送则需要不断尝试重连然后把剩余的消息push出去
@@ -204,5 +194,30 @@ final class TransportClient {
         Client<SocketProtocol> client() {
             return client;
         }
+    }
+
+    /**
+     * 选择合适的executor触发{@link RpcResponseCallback#onResponse(Serializable, Serializable)}
+     */
+    private void execCallbackWhenResponse(OutBoxMessage outBoxMessage, Serializable response) {
+        if (Objects.isNull(outBoxMessage)) {
+            return;
+        }
+        RpcResponseCallback callback = outBoxMessage.getCallback();
+        RpcMessage rpcMessage = outBoxMessage.getRpcMessage();
+        RpcResponseCallback.executor(callback, rpcEnv).execute(() -> {
+            callback.onResponse(rpcMessage.getRequestId(), rpcMessage.getMessage(), response);
+        });
+    }
+
+    /**
+     * 选择合适的executor触发{@link RpcResponseCallback#onException(Throwable)}
+     */
+    private void execCallbackWhenException(OutBoxMessage outBoxMessage, Throwable e) {
+        if (Objects.isNull(outBoxMessage)) {
+            return;
+        }
+        RpcResponseCallback callback = outBoxMessage.getCallback();
+        RpcResponseCallback.executor(callback, rpcEnv).execute(() -> callback.onException(e));
     }
 }

@@ -1,6 +1,8 @@
 package org.kin.kinrpc.message.core;
 
 import java.io.Serializable;
+import java.util.Objects;
+import java.util.concurrent.ExecutorService;
 
 /**
  * 消息request response后, 响应返回回调接口
@@ -8,26 +10,51 @@ import java.io.Serializable;
  * @author huangjianqin
  * @date 2020-06-14
  */
-public interface RpcResponseCallback<R extends Serializable> {
-    RpcResponseCallback<Serializable> EMPTY = new RpcResponseCallback<Serializable>() {
+public interface RpcResponseCallback {
+    RpcResponseCallback EMPTY = new RpcResponseCallback() {
         @Override
-        public void onSuccess(Serializable message) {
+        public <REQ extends Serializable, RESP extends Serializable> void onResponse(long requestId, REQ request, RESP response) {
             //do nothing
         }
 
         @Override
-        public void onFail(Throwable e) {
+        public void onException(Throwable e) {
             //do nothing
         }
     };
 
     /**
      * 消息处理完并返回
+     *
+     * @param request  请求的消息
+     * @param response 返回的消息
      */
-    void onSuccess(R message);
+    <REQ extends Serializable, RESP extends Serializable> void onResponse(long requestId, REQ request, RESP response);
 
     /**
      * 消息处理完并返回, 但遇到错误
+     *
+     * @param e 异常
      */
-    void onFail(Throwable e);
+    void onException(Throwable e);
+
+    /**
+     * 执行callback操作的executor
+     *
+     * @return null则是使用 {@link RpcEnv#commonExecutors}
+     */
+    default ExecutorService executor() {
+        return null;
+    }
+
+    /**
+     * @return 执行callback操作的executor, 非null
+     */
+    static ExecutorService executor(RpcResponseCallback callback, RpcEnv rpcEnv) {
+        ExecutorService executor = callback.executor();
+        if (Objects.isNull(executor)) {
+            executor = rpcEnv.commonExecutors;
+        }
+        return executor;
+    }
 }

@@ -46,10 +46,10 @@ public class RpcEndpointDemo extends RpcEndpoint {
         if (message instanceof RpcEndpointRefDemo.PrintMessage) {
             //相当于创建client, send message
             RpcEndpointRefDemo.PrintMessage printMessage = (RpcEndpointRefDemo.PrintMessage) message;
-            printMessage.getFrom().fireAndForget(new ReplyMessage(context.getRequestId()));
+            printMessage.getFrom().fireAndForget(new ReplyMessage(context.getRequestId(), Integer.parseInt(printMessage.getContent())));
         } else if (message instanceof RpcEndpointRefDemo.AskMessage) {
             //原路返回
-            context.response(new ReplyMessage(context.getRequestId()));
+            context.response(new ReplyMessage(context.getRequestId(), -1));
         }
     }
 
@@ -61,17 +61,31 @@ public class RpcEndpointDemo extends RpcEndpoint {
     public static class ReplyMessage implements Serializable {
         private static final long serialVersionUID = -1586292592951384110L;
         private long requestId;
+        private int count;
 
-        public ReplyMessage(long requestId) {
-            this.requestId = requestId;
+        public ReplyMessage() {
         }
 
+        public ReplyMessage(long requestId, int count) {
+            this.requestId = requestId;
+            this.count = count;
+        }
+
+        //setter && getter
         public long getRequestId() {
             return requestId;
         }
 
         public void setRequestId(long requestId) {
             this.requestId = requestId;
+        }
+
+        public int getCount() {
+            return count;
+        }
+
+        public void setCount(int count) {
+            this.count = count;
         }
 
         @Override

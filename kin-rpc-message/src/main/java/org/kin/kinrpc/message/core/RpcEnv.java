@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 
 /**
  * RPC环境
@@ -53,7 +54,7 @@ public final class RpcEnv {
     }
 
     /** 线程本地RpcEnv */
-    private static ThreadLocal<RpcEnv> currentRpcEnv = new ThreadLocal<>();
+    private static final ThreadLocal<RpcEnv> currentRpcEnv = new ThreadLocal<>();
 
     static RpcEnv currentRpcEnv() {
         return currentRpcEnv.get();
@@ -70,7 +71,7 @@ public final class RpcEnv {
             "rpc-message", 2, "rpc-message-scheduler");
 
     /** 事件调度 */
-    private Dispatcher<String, MessagePostContext> dispatcher;
+    private final Dispatcher<String, MessagePostContext> dispatcher;
     private final KinRpcAddress address;
     /** 序列化方式 */
     private final Serialization serialization;
@@ -83,14 +84,16 @@ public final class RpcEnv {
     /** outbound client */
     private final Map<KinRpcAddress, TransportClient> clients = new ConcurrentHashMap<>();
     /** outBoxs */
-    private Map<KinRpcAddress, OutBox> outBoxs = new ConcurrentHashMap<>();
+    private final Map<KinRpcAddress, OutBox> outBoxs = new ConcurrentHashMap<>();
     /** key -> RpcEndpoint, value -> RpcEndpoint对应的RpcEndpointRef */
-    private Map<RpcEndpoint, RpcEndpointRef> endpoint2Ref = new ConcurrentHashMap<>();
+    private final Map<RpcEndpoint, RpcEndpointRef> endpoint2Ref = new ConcurrentHashMap<>();
 
     /** server child channel options */
-    private Map<ChannelOption, Object> serverChannelOptions = new HashMap<>();
+    @SuppressWarnings("rawtypes")
+    private final Map<ChannelOption, Object> serverChannelOptions = new HashMap<>();
     /** client channel options */
-    private Map<ChannelOption, Object> clientChannelOptions = new HashMap<>();
+    @SuppressWarnings("rawtypes")
+    private final Map<ChannelOption, Object> clientChannelOptions = new HashMap<>();
 
     public RpcEnv(String host, int port) {
         this(host, port, SysUtils.getSuitableThreadNum(),
@@ -276,10 +279,12 @@ public final class RpcEnv {
     }
 
     //setter && getter
+    @SuppressWarnings("rawtypes")
     public void updateServerChannelOptions(Map<ChannelOption, Object> serverChannelOptions) {
         this.serverChannelOptions.putAll(serverChannelOptions);
     }
 
+    @SuppressWarnings("rawtypes")
     public void updateClientChannelOptions(Map<ChannelOption, Object> clientChannelOptions) {
         this.clientChannelOptions.putAll(clientChannelOptions);
     }
@@ -356,7 +361,7 @@ public final class RpcEnv {
      * 把消息推到outbox
      */
     private void post2OutBox(OutBoxMessage message) {
-        RpcEndpointAddress endpointAddress = message.getMessage().getTo().getEndpointAddress();
+        RpcEndpointAddress endpointAddress = message.getRpcMessage().getTo().getEndpointAddress();
 
         OutBox targetOutBox;
         KinRpcAddress toRpcAddress = endpointAddress.getRpcAddress();
@@ -395,26 +400,34 @@ public final class RpcEnv {
     /**
      * 支持future的消息发送, 支持使用callback, 并且支持超时
      */
-    <R extends Serializable> RpcFuture<R> requestResponse(RpcMessage message, RpcResponseCallback<R> customCallback, long timeoutMs) {
+    <R extends Serializable> RpcFuture<R> requestResponse(RpcMessage message, RpcResponseCallback customCallback, long timeoutMs) {
         if (isStopped) {
             throw new IllegalStateException("rpcEnv stopped");
         }
         RpcFuture<R> future = new RpcFuture<>(this, message.getTo().getEndpointAddress().getRpcAddress(), message.getRequestId());
-        RpcResponseCallback<R> innerCallback = new RpcResponseCallback<R>() {
+        //除了内部逻辑, 其余继承customCallback
+        RpcResponseCallback innerCallback = new RpcResponseCallback() {
+
+            @SuppressWarnings("unchecked")
             @Override
-            public void onSuccess(R message) {
-                future.done(message);
+            public <REQ extends Serializable, RESP extends Serializable> void onResponse(long requestId, REQ request, RESP response) {
+                future.done((R) response);
                 if (Objects.nonNull(customCallback)) {
-                    customCallback.onSuccess(message);
+                    customCallback.onResponse(requestId, request, response);
                 }
             }
 
             @Override
-            public void onFail(Throwable e) {
+            public void onException(Throwable e) {
                 future.fail(e);
                 if (Objects.nonNull(customCallback)) {
-                    customCallback.onFail(e);
+                    customCallback.onException(e);
                 }
+            }
+
+            @Override
+            public ExecutorService executor() {
+                return Objects.nonNull(customCallback) ? customCallback.executor() : null;
             }
         };
         post2OutBox(new OutBoxMessage(message, innerCallback, timeoutMs));
@@ -494,6 +507,7 @@ public final class RpcEnv {
         return endpoint2Ref.get(endpoint);
     }
 
+    @SuppressWarnings("rawtypes")
     Map<ChannelOption, Object> getClientChannelOptions() {
         return clientChannelOptions;
     }
@@ -509,7 +523,7 @@ public final class RpcEnv {
      */
     private final class RpcEndpointImpl extends KinRpcEndpointHandler {
         /** client连接信息 -> 远程服务绑定的端口信息 */
-        private Map<KinRpcAddress, KinRpcAddress> clientAddr2RemoteBindAddr = new ConcurrentHashMap<>();
+        private final Map<KinRpcAddress, KinRpcAddress> clientAddr2RemoteBindAddr = new ConcurrentHashMap<>();
 
         @Override
         protected void handleRpcRequestProtocol(Channel channel, KinRpcRequestProtocol requestProtocol) {

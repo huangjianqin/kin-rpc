@@ -4,8 +4,6 @@ import org.kin.framework.concurrent.OneLock;
 import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
 
 import java.io.Serializable;
-import java.util.Objects;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -43,9 +41,7 @@ public final class RpcFuture<R extends Serializable> implements Future<R> {
     public boolean cancel(boolean mayInterruptIfRunning) {
         if (!isDone() && cancelled.compareAndSet(false, true)) {
             TransportClient client = rpcEnv.getClient(address);
-            if (Objects.nonNull(client)) {
-                client.removeInvalidRespCallback(requestId);
-            }
+            client.removeInvalidWaitingResponseMessage(requestId);
         }
         return false;
     }
@@ -61,7 +57,7 @@ public final class RpcFuture<R extends Serializable> implements Future<R> {
     }
 
     @Override
-    public R get() throws InterruptedException, ExecutionException {
+    public R get() {
         sync.acquire(-1);
         if (isDone()) {
             return reply;

@@ -1,6 +1,5 @@
 package org.kin.kinrpc.message.core;
 
-import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -9,28 +8,27 @@ import java.util.concurrent.TimeUnit;
  * @author huangjianqin
  * @date 2020-06-10
  */
-@SuppressWarnings("rawtypes")
-final class OutBoxMessage implements RpcResponseCallback<Serializable> {
+final class OutBoxMessage {
     /** client 发送的消息 */
-    private final RpcMessage message;
+    private final RpcMessage rpcMessage;
     /** callback */
-    private final RpcResponseCallback proxy;
+    private final RpcResponseCallback callback;
     /** 消息请求超时时间 */
     private final long timeoutMs;
 
     /**
      * 同步请求调用
      */
-    OutBoxMessage(RpcMessage message) {
-        this(message, RpcResponseCallback.EMPTY, 0);
+    OutBoxMessage(RpcMessage rpcMessage) {
+        this(rpcMessage, RpcResponseCallback.EMPTY, 0);
     }
 
     /**
      * 异步请求调用
      */
-    OutBoxMessage(RpcMessage message, RpcResponseCallback<?> proxy, long timeoutMs) {
-        this.message = message;
-        this.proxy = proxy;
+    OutBoxMessage(RpcMessage rpcMessage, RpcResponseCallback callback, long timeoutMs) {
+        this.rpcMessage = rpcMessage;
+        this.callback = callback;
         //默认隐藏超时时间1分钟, 如果由于异常不能返回, 但也没有设置超时, 会导致程序缓存大量Future, 故设置隐藏超时时间, 以便在该场景下释放无用对象实例
         this.timeoutMs = timeoutMs == 0 ? TimeUnit.MINUTES.toMillis(1) : timeoutMs;
     }
@@ -42,32 +40,23 @@ final class OutBoxMessage implements RpcResponseCallback<Serializable> {
         client.send(this);
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public void onSuccess(Serializable message) {
-        //最终调用callback的地方
-        proxy.onSuccess(message);
-    }
-
-    @Override
-    public void onFail(Throwable e) {
-        //最终调用callback的地方
-        proxy.onFail(e);
-    }
-
     //getter
-    RpcMessage getMessage() {
-        return message;
+    RpcMessage getRpcMessage() {
+        return rpcMessage;
     }
 
     long getTimeoutMs() {
         return timeoutMs;
     }
 
+    RpcResponseCallback getCallback() {
+        return callback;
+    }
+
     @Override
     public String toString() {
         return "OutBoxMessage{" +
-                "message=" + message +
+                "message=" + rpcMessage +
                 '}';
     }
 }

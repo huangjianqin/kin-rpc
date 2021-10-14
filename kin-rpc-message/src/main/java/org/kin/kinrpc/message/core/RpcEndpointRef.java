@@ -85,7 +85,7 @@ public final class RpcEndpointRef implements Serializable {
      * @param customCallback 自定义callback
      * @param timeoutMs      超时时间
      */
-    public <R extends Serializable> void requestResponse(Serializable message, RpcResponseCallback<R> customCallback, long timeoutMs) {
+    public <R extends Serializable> void requestResponse(Serializable message, RpcResponseCallback customCallback, long timeoutMs) {
         Preconditions.checkNotNull(customCallback);
         rpcEnv().requestResponse(rpcMessage(message), customCallback, timeoutMs);
     }
