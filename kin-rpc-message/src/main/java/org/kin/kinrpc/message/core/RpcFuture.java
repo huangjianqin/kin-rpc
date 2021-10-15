@@ -91,8 +91,10 @@ public final class RpcFuture<R extends Serializable> implements Future<R> {
         if (isDone()) {
             return;
         }
-        sync.release(1);
-        this.reply = reply;
+        synchronized (this) {
+            this.reply = reply;
+            sync.release(1);
+        }
     }
 
     /**
@@ -102,8 +104,10 @@ public final class RpcFuture<R extends Serializable> implements Future<R> {
         if (isDone()) {
             return;
         }
-        sync.release(1);
-        exception = e;
+        synchronized (this) {
+            exception = e;
+            sync.release(1);
+        }
     }
 
     /**

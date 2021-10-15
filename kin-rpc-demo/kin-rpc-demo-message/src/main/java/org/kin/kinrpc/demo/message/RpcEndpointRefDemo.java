@@ -1,5 +1,6 @@
 package org.kin.kinrpc.demo.message;
 
+import com.google.common.base.Stopwatch;
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.kinrpc.message.core.*;
 
@@ -29,14 +30,14 @@ public class RpcEndpointRefDemo extends RpcEndpoint {
 
         RpcEndpointRef endpointRef = rpcEnv.createEndpointRef("0.0.0.0", 16888, "rpcEndpointDemo");
 
+        Stopwatch watcher = Stopwatch.createStarted();
         int count = 0;
-        while (count < 100) {
+        while (count < 100000) {
             try {
                 RpcEndpointRef self = rpcEndpointRefDemo.ref();
                 endpointRef.fireAndForget(new PrintMessage(++count + "", self));
                 RpcFuture<RpcEndpointDemo.ReplyMessage> future = endpointRef.requestResponse(new AskMessage(++count + ""));
-                RpcEndpointDemo.ReplyMessage replyMessage = future.get();
-                System.out.println("ask with block >>>> " + replyMessage);
+                System.out.println("ask with block >>>> " + future.get());
 
                 endpointRef.requestResponse(new AskMessage(++count + ""), new RpcResponseCallback() {
 
@@ -53,10 +54,9 @@ public class RpcEndpointRefDemo extends RpcEndpoint {
             } catch (Exception e) {
                 System.err.println(e);
             }
-
-            TimeUnit.MILLISECONDS.sleep(300);
         }
-        System.out.println("结束");
+        watcher.stop();
+        System.out.printf("结束, 耗时%d ms%n", watcher.elapsed(TimeUnit.MILLISECONDS));
         System.exit(0);
     }
 
