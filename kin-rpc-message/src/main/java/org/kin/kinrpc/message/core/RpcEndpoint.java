@@ -10,7 +10,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * 相当于server抽象
+ * rpc message server(remote service, service provider, message receiver)抽象
  *
  * @author huangjianqin
  * @date 2020-06-08

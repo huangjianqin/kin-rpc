@@ -5,9 +5,10 @@ import org.kin.kinrpc.transport.kinrpc.KinRpcRequestIdGenerator;
 
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 /**
- * 相当于client
+ * rpc message client
  *
  * @author huangjianqin
  * @date 2020-06-08
@@ -68,15 +69,25 @@ public final class RpcEndpointRef implements Serializable {
     /**
      * 发送消息, 并返回Future, 支持阻塞等待待消息处理完并返回
      */
-    public <R extends Serializable> RpcFuture<R> requestResponse(Serializable message) {
+    public <R extends Serializable> CompletableFuture<R> requestResponse(Serializable message) {
         return rpcEnv().requestResponse(rpcMessage(message));
     }
 
     /**
      * 发送消息, 并返回Future, 支持阻塞等待待消息处理完并返回, 并且支持超时
      */
-    public <R extends Serializable> RpcFuture<R> requestResponse(Serializable message, long timeoutMs) {
+    public <R extends Serializable> CompletableFuture<R> requestResponse(Serializable message, long timeoutMs) {
         return rpcEnv().requestResponse(rpcMessage(message), timeoutMs);
+    }
+
+    /**
+     * 发送消息, 响应时触发callback, 并且支持超时
+     *
+     * @param customCallback 自定义callback
+     */
+    public void requestResponse(Serializable message, RpcResponseCallback customCallback) {
+        Preconditions.checkNotNull(customCallback);
+        rpcEnv().requestResponse(rpcMessage(message), customCallback);
     }
 
     /**
@@ -85,7 +96,7 @@ public final class RpcEndpointRef implements Serializable {
      * @param customCallback 自定义callback
      * @param timeoutMs      超时时间
      */
-    public <R extends Serializable> void requestResponse(Serializable message, RpcResponseCallback customCallback, long timeoutMs) {
+    public void requestResponse(Serializable message, RpcResponseCallback customCallback, long timeoutMs) {
         Preconditions.checkNotNull(customCallback);
         rpcEnv().requestResponse(rpcMessage(message), customCallback, timeoutMs);
     }

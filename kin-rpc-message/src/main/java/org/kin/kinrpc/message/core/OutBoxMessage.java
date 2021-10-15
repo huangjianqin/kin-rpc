@@ -1,5 +1,8 @@
 package org.kin.kinrpc.message.core;
 
+import java.io.Serializable;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -11,16 +14,29 @@ import java.util.concurrent.TimeUnit;
 final class OutBoxMessage {
     /** client 发送的消息 */
     private final RpcMessage rpcMessage;
-    /** callback */
-    private final RpcResponseCallback callback;
     /** 消息请求超时时间 */
     private final long timeoutMs;
+    /** callback */
+    private final RpcResponseCallback callback;
+    /** complete使用者future */
+    private final CompletableFuture<? extends Serializable> source;
+
+    public OutBoxMessage(RpcMessage rpcMessage) {
+        this.rpcMessage = rpcMessage;
+        this.timeoutMs = 0;
+        this.callback = null;
+        this.source = null;
+    }
 
     /**
      * 同步请求调用
      */
-    OutBoxMessage(RpcMessage rpcMessage) {
-        this(rpcMessage, RpcResponseCallback.EMPTY, 0);
+    OutBoxMessage(RpcMessage rpcMessage, CompletableFuture<? extends Serializable> source, long timeoutMs) {
+        this.rpcMessage = rpcMessage;
+        //默认隐藏超时时间1分钟, 如果由于异常不能返回, 但也没有设置超时, 会导致程序缓存大量Future, 故设置隐藏超时时间, 以便在该场景下释放无用对象实例
+        this.timeoutMs = timeoutMs == 0 ? TimeUnit.MINUTES.toMillis(1) : timeoutMs;
+        this.callback = null;
+        this.source = source;
     }
 
     /**
@@ -28,9 +44,10 @@ final class OutBoxMessage {
      */
     OutBoxMessage(RpcMessage rpcMessage, RpcResponseCallback callback, long timeoutMs) {
         this.rpcMessage = rpcMessage;
-        this.callback = callback;
         //默认隐藏超时时间1分钟, 如果由于异常不能返回, 但也没有设置超时, 会导致程序缓存大量Future, 故设置隐藏超时时间, 以便在该场景下释放无用对象实例
         this.timeoutMs = timeoutMs == 0 ? TimeUnit.MINUTES.toMillis(1) : timeoutMs;
+        this.callback = callback;
+        this.source = null;
     }
 
     /**
@@ -38,6 +55,20 @@ final class OutBoxMessage {
      */
     void sendWith(TransportClient client) {
         client.send(this);
+    }
+
+    /**
+     * 是否是触发callback
+     */
+    public boolean isExecCallback() {
+        return Objects.nonNull(callback);
+    }
+
+    /**
+     * 是否是complete future
+     */
+    public boolean isCompleteFuture() {
+        return Objects.nonNull(source);
     }
 
     //getter
@@ -51,6 +82,11 @@ final class OutBoxMessage {
 
     RpcResponseCallback getCallback() {
         return callback;
+    }
+
+    @SuppressWarnings("rawtypes")
+    CompletableFuture getSource() {
+        return source;
     }
 
     @Override

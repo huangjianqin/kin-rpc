@@ -5,6 +5,7 @@ import org.kin.framework.JvmCloseCleaner;
 import org.kin.kinrpc.message.core.*;
 
 import java.io.Serializable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -36,7 +37,7 @@ public class RpcEndpointRefDemo extends RpcEndpoint {
             try {
                 RpcEndpointRef self = rpcEndpointRefDemo.ref();
                 endpointRef.fireAndForget(new PrintMessage(++count + "", self));
-                RpcFuture<RpcEndpointDemo.ReplyMessage> future = endpointRef.requestResponse(new AskMessage(++count + ""));
+                CompletableFuture<RpcEndpointDemo.ReplyMessage> future = endpointRef.requestResponse(new AskMessage(++count + ""));
                 System.out.println("ask with block >>>> " + future.get());
 
                 endpointRef.requestResponse(new AskMessage(++count + ""), new RpcResponseCallback() {

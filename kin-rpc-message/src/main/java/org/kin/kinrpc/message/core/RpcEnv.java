@@ -35,8 +35,9 @@ import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 
 /**
  * RPC环境
@@ -386,52 +387,46 @@ public final class RpcEnv {
     /**
      * 支持future的消息发送, 并且支持超时
      */
-    <R extends Serializable> RpcFuture<R> requestResponse(RpcMessage message) {
+    <R extends Serializable> CompletableFuture<R> requestResponse(RpcMessage message) {
         return requestResponse(message, 0);
     }
 
     /**
      * 支持future的消息发送, 并且支持超时
      */
-    <R extends Serializable> RpcFuture<R> requestResponse(RpcMessage message, long timeoutMs) {
-        return requestResponse(message, null, timeoutMs);
+    <R extends Serializable> CompletableFuture<R> requestResponse(RpcMessage message, long timeoutMs) {
+        //源头future
+        CompletableFuture<R> source = new CompletableFuture<>();
+        //暴露给使用者的future, 并使用commonExecutors异步执行逻辑
+        CompletableFuture<R> consumer = source.thenApplyAsync(r -> r, commonExecutors);
+        //处理异常
+        consumer.exceptionally(t -> {
+            if (t instanceof CancellationException) {
+                TransportClient client = getClient(message.getTo().getEndpointAddress().getRpcAddress());
+                client.removeInvalidWaitingResponseMessage(message.getRequestId());
+            }
+            return null;
+        });
+        post2OutBox(new OutBoxMessage(message, source, timeoutMs));
+        return consumer;
     }
 
     /**
-     * 支持future的消息发送, 支持使用callback, 并且支持超时
+     * 支持callback的消息发送, 并且支持超时
      */
-    <R extends Serializable> RpcFuture<R> requestResponse(RpcMessage message, RpcResponseCallback customCallback, long timeoutMs) {
+    void requestResponse(RpcMessage message, RpcResponseCallback customCallback) {
+        requestResponse(message, customCallback, 0);
+    }
+
+
+    /**
+     * 支持callback的消息发送, 并且支持超时
+     */
+    void requestResponse(RpcMessage message, RpcResponseCallback customCallback, long timeoutMs) {
         if (isStopped) {
             throw new IllegalStateException("rpcEnv stopped");
         }
-        RpcFuture<R> future = new RpcFuture<>(this, message.getTo().getEndpointAddress().getRpcAddress(), message.getRequestId());
-        //除了内部逻辑, 其余继承customCallback
-        RpcResponseCallback innerCallback = new RpcResponseCallback() {
-
-            @SuppressWarnings("unchecked")
-            @Override
-            public <REQ extends Serializable, RESP extends Serializable> void onResponse(long requestId, REQ request, RESP response) {
-                future.done((R) response);
-                if (Objects.nonNull(customCallback)) {
-                    customCallback.onResponse(requestId, request, response);
-                }
-            }
-
-            @Override
-            public void onException(Throwable e) {
-                future.fail(e);
-                if (Objects.nonNull(customCallback)) {
-                    customCallback.onException(e);
-                }
-            }
-
-            @Override
-            public ExecutorService executor() {
-                return Objects.nonNull(customCallback) ? customCallback.executor() : null;
-            }
-        };
-        post2OutBox(new OutBoxMessage(message, innerCallback, timeoutMs));
-        return future;
+        post2OutBox(new OutBoxMessage(message, customCallback, timeoutMs));
     }
 
     /**
@@ -519,7 +514,7 @@ public final class RpcEnv {
     //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * server接受的rpc请求处理
+     * rpc message server接受的rpc请求处理
      */
     private final class RpcEndpointImpl extends KinRpcEndpointHandler {
         /** client连接信息 -> 远程服务绑定的端口信息 */

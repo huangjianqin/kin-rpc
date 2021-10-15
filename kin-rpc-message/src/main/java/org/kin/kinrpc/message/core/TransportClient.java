@@ -99,7 +99,7 @@ final class TransportClient {
         isStopped = true;
         rpcEndpointRefHandler.close();
         for (OutBoxMessage outBoxMessage : requestId2OutBoxMessage.values()) {
-            execCallbackWhenException(outBoxMessage, new ClientStoppedException(remoteAddress.schema()));
+            handleOutBoxMessageWhenException(outBoxMessage, new ClientStoppedException(remoteAddress.schema()));
         }
         //此处不需要让rpcEnv移除client
     }
@@ -123,7 +123,7 @@ final class TransportClient {
                 if (timeoutMs > 0) {
                     timer.newTimeout(to -> {
                         removeInvalidWaitingResponseMessage(requestId);
-                        execCallbackWhenException(requestId2OutBoxMessage.remove(message.getRequestId()), new RequestResponseTimeoutException(outBoxMessage.getRpcMessage().getMessage()));
+                        handleOutBoxMessageWhenException(requestId2OutBoxMessage.remove(message.getRequestId()), new RequestResponseTimeoutException(outBoxMessage.getRpcMessage().getMessage()));
                     }, timeoutMs, TimeUnit.MILLISECONDS);
                 }
             }
@@ -168,7 +168,7 @@ final class TransportClient {
             //callback回调
             String targetReceiver = message.getTo().getEndpointAddress().getName();
             if (StringUtils.isBlank(targetReceiver)) {
-                execCallbackWhenResponse(requestId2OutBoxMessage.remove(message.getRequestId()), message.getMessage());
+                handleOutBoxMessageWhenResponse(requestId2OutBoxMessage.remove(message.getRequestId()), message.getMessage());
             }
         }
 
@@ -182,7 +182,7 @@ final class TransportClient {
         @Override
         protected void connectionInactive() {
             for (OutBoxMessage outBoxMessage : requestId2OutBoxMessage.values()) {
-                execCallbackWhenException(outBoxMessage, new ClientConnectFailException(remoteAddress.schema()));
+                handleOutBoxMessageWhenException(outBoxMessage, new ClientConnectFailException(remoteAddress.schema()));
             }
             rpcEnv.removeClient(remoteAddress);
             //触发outbox drain, 如果outbox还有消息未发送则需要不断尝试重连然后把剩余的消息push出去
@@ -197,27 +197,42 @@ final class TransportClient {
     }
 
     /**
-     * 选择合适的executor触发{@link RpcResponseCallback#onResponse(Serializable, Serializable)}
+     * 选择合适的executor触发{@link RpcResponseCallback#onResponse(long, Serializable, Serializable)}
      */
-    private void execCallbackWhenResponse(OutBoxMessage outBoxMessage, Serializable response) {
+    @SuppressWarnings("unchecked")
+    private void handleOutBoxMessageWhenResponse(OutBoxMessage outBoxMessage, Serializable response) {
         if (Objects.isNull(outBoxMessage)) {
             return;
         }
-        RpcResponseCallback callback = outBoxMessage.getCallback();
-        RpcMessage rpcMessage = outBoxMessage.getRpcMessage();
-        RpcResponseCallback.executor(callback, rpcEnv).execute(() -> {
-            callback.onResponse(rpcMessage.getRequestId(), rpcMessage.getMessage(), response);
-        });
+        if (outBoxMessage.isExecCallback()) {
+            //callback
+            RpcResponseCallback callback = outBoxMessage.getCallback();
+            RpcMessage rpcMessage = outBoxMessage.getRpcMessage();
+            RpcResponseCallback.executor(callback, rpcEnv).execute(() -> {
+                callback.onResponse(rpcMessage.getRequestId(), rpcMessage.getMessage(), response);
+            });
+        }
+        if (outBoxMessage.isCompleteFuture()) {
+            //future
+            outBoxMessage.getSource().complete(response);
+        }
     }
 
     /**
      * 选择合适的executor触发{@link RpcResponseCallback#onException(Throwable)}
      */
-    private void execCallbackWhenException(OutBoxMessage outBoxMessage, Throwable e) {
+    private void handleOutBoxMessageWhenException(OutBoxMessage outBoxMessage, Throwable e) {
         if (Objects.isNull(outBoxMessage)) {
             return;
         }
-        RpcResponseCallback callback = outBoxMessage.getCallback();
-        RpcResponseCallback.executor(callback, rpcEnv).execute(() -> callback.onException(e));
+        if (outBoxMessage.isExecCallback()) {
+            //callback
+            RpcResponseCallback callback = outBoxMessage.getCallback();
+            RpcResponseCallback.executor(callback, rpcEnv).execute(() -> callback.onException(e));
+        }
+        if (outBoxMessage.isCompleteFuture()) {
+            //future
+            outBoxMessage.getSource().completeExceptionally(e);
+        }
     }
 }
