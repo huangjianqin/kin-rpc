@@ -10,8 +10,8 @@ import java.util.concurrent.ExecutorService;
  * @author huangjianqin
  * @date 2020-06-14
  */
-public interface RpcResponseCallback {
-    RpcResponseCallback EMPTY = new RpcResponseCallback() {
+public interface RpcCallback {
+    RpcCallback EMPTY = new RpcCallback() {
         @Override
         public <REQ extends Serializable, RESP extends Serializable> void onResponse(long requestId, REQ request, RESP response) {
             //do nothing
@@ -50,7 +50,7 @@ public interface RpcResponseCallback {
     /**
      * @return 执行callback操作的executor, 非null
      */
-    static ExecutorService executor(RpcResponseCallback callback, RpcEnv rpcEnv) {
+    static ExecutorService executor(RpcCallback callback, RpcEnv rpcEnv) {
         ExecutorService executor = callback.executor();
         if (Objects.isNull(executor)) {
             executor = rpcEnv.commonExecutors;

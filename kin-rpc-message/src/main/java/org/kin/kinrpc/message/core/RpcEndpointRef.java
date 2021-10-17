@@ -6,6 +6,7 @@ import org.kin.kinrpc.transport.kinrpc.KinRpcRequestIdGenerator;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * rpc message client
@@ -81,24 +82,41 @@ public final class RpcEndpointRef implements Serializable {
     }
 
     /**
-     * 发送消息, 响应时触发callback, 并且支持超时
-     *
-     * @param customCallback 自定义callback
+     * 发送消息, 并返回Future, 支持阻塞等待待消息处理完并返回, 并且支持超时
      */
-    public void requestResponse(Serializable message, RpcResponseCallback customCallback) {
-        Preconditions.checkNotNull(customCallback);
-        rpcEnv().requestResponse(rpcMessage(message), customCallback);
+    public <R extends Serializable> CompletableFuture<R> requestResponse(Serializable message, long timeout, TimeUnit unit) {
+        return requestResponse(message, unit.toMillis(timeout));
     }
 
     /**
      * 发送消息, 响应时触发callback, 并且支持超时
      *
-     * @param customCallback 自定义callback
-     * @param timeoutMs      超时时间
+     * @param callback 自定义callback
      */
-    public void requestResponse(Serializable message, RpcResponseCallback customCallback, long timeoutMs) {
-        Preconditions.checkNotNull(customCallback);
-        rpcEnv().requestResponse(rpcMessage(message), customCallback, timeoutMs);
+    public void requestResponse(Serializable message, RpcCallback callback) {
+        Preconditions.checkNotNull(callback);
+        rpcEnv().requestResponse(rpcMessage(message), callback);
+    }
+
+    /**
+     * 发送消息, 响应时触发callback, 并且支持超时
+     *
+     * @param callback  自定义callback
+     * @param timeoutMs 超时时间
+     */
+    public void requestResponse(Serializable message, RpcCallback callback, long timeoutMs) {
+        Preconditions.checkNotNull(callback);
+        rpcEnv().requestResponse(rpcMessage(message), callback, timeoutMs);
+    }
+
+    /**
+     * 发送消息, 响应时触发callback, 并且支持超时
+     *
+     * @param callback  自定义callback
+     * @param timeoutMs 超时时间
+     */
+    public void requestResponse(Serializable message, RpcCallback callback, long timeoutMs, TimeUnit unit) {
+        requestResponse(message, callback, unit.toMillis(timeoutMs));
     }
 
     //getter

@@ -40,7 +40,7 @@ public class RpcEndpointRefDemo extends RpcEndpoint {
                 CompletableFuture<RpcEndpointDemo.ReplyMessage> future = endpointRef.requestResponse(new AskMessage(++count + ""));
                 System.out.println("ask with block >>>> " + future.get());
 
-                endpointRef.requestResponse(new AskMessage(++count + ""), new RpcResponseCallback() {
+                endpointRef.requestResponse(new AskMessage(++count + ""), new RpcCallback() {
 
                     @Override
                     public <REQ extends Serializable, RESP extends Serializable> void onResponse(long requestId, REQ request, RESP response) {

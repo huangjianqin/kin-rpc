@@ -414,19 +414,19 @@ public final class RpcEnv {
     /**
      * 支持callback的消息发送, 并且支持超时
      */
-    void requestResponse(RpcMessage message, RpcResponseCallback customCallback) {
-        requestResponse(message, customCallback, 0);
+    void requestResponse(RpcMessage message, RpcCallback callback) {
+        requestResponse(message, callback, 0);
     }
 
 
     /**
      * 支持callback的消息发送, 并且支持超时
      */
-    void requestResponse(RpcMessage message, RpcResponseCallback customCallback, long timeoutMs) {
+    void requestResponse(RpcMessage message, RpcCallback callback, long timeoutMs) {
         if (isStopped) {
             throw new IllegalStateException("rpcEnv stopped");
         }
-        post2OutBox(new OutBoxMessage(message, customCallback, timeoutMs));
+        post2OutBox(new OutBoxMessage(message, callback, timeoutMs));
     }
 
     /**

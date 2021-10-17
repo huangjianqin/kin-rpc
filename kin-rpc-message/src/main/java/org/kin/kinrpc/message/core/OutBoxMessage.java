@@ -3,7 +3,6 @@ package org.kin.kinrpc.message.core;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 在{@link OutBox}中等待client发送的消息
@@ -17,7 +16,7 @@ final class OutBoxMessage {
     /** 消息请求超时时间 */
     private final long timeoutMs;
     /** callback */
-    private final RpcResponseCallback callback;
+    private final RpcCallback callback;
     /** complete使用者future */
     private final CompletableFuture<? extends Serializable> source;
 
@@ -29,23 +28,21 @@ final class OutBoxMessage {
     }
 
     /**
-     * 同步请求调用
+     * 异步请求调用, 返回future
      */
     OutBoxMessage(RpcMessage rpcMessage, CompletableFuture<? extends Serializable> source, long timeoutMs) {
         this.rpcMessage = rpcMessage;
-        //默认隐藏超时时间1分钟, 如果由于异常不能返回, 但也没有设置超时, 会导致程序缓存大量Future, 故设置隐藏超时时间, 以便在该场景下释放无用对象实例
-        this.timeoutMs = timeoutMs == 0 ? TimeUnit.MINUTES.toMillis(1) : timeoutMs;
+        this.timeoutMs = timeoutMs;
         this.callback = null;
         this.source = source;
     }
 
     /**
-     * 异步请求调用
+     * 异步请求调用, 触发callback
      */
-    OutBoxMessage(RpcMessage rpcMessage, RpcResponseCallback callback, long timeoutMs) {
+    OutBoxMessage(RpcMessage rpcMessage, RpcCallback callback, long timeoutMs) {
         this.rpcMessage = rpcMessage;
-        //默认隐藏超时时间1分钟, 如果由于异常不能返回, 但也没有设置超时, 会导致程序缓存大量Future, 故设置隐藏超时时间, 以便在该场景下释放无用对象实例
-        this.timeoutMs = timeoutMs == 0 ? TimeUnit.MINUTES.toMillis(1) : timeoutMs;
+        this.timeoutMs = timeoutMs;
         this.callback = callback;
         this.source = null;
     }
@@ -80,7 +77,7 @@ final class OutBoxMessage {
         return timeoutMs;
     }
 
-    RpcResponseCallback getCallback() {
+    RpcCallback getCallback() {
         return callback;
     }
 
