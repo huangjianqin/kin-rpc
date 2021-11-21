@@ -17,7 +17,7 @@ public interface Cluster<T> {
      * @param excludes 需排除的invokers address
      * @return 过滤后的invoker
      */
-    AsyncInvoker<T> get(Collection<HostAndPort> excludes);
+    AsyncInvoker<T> get(String method, Object[] params, Collection<HostAndPort> excludes);
 
     /**
      * 关闭reference

@@ -100,6 +100,7 @@ public class Clusters {
     /**
      * 引用服务
      */
+    @SuppressWarnings("unchecked")
     public static synchronized <T> T reference(Url url, Class<T> interfaceClass, List<Notifier<?>> notifiers) {
         Registry registry = Registries.getRegistry(url);
         Preconditions.checkNotNull(registry);
@@ -113,7 +114,7 @@ public class Clusters {
         Preconditions.checkNotNull(loadBalance, "unvalid loadbalance type: [" + loadBalanceType + "]");
         Preconditions.checkNotNull(router, "unvalid router type: [" + routerType + "]");
 
-        Cluster<T> cluster = new ClusterImpl<>(registry, url.getServiceKey(), router, loadBalance);
+        Cluster<T> cluster = new ClusterImpl<>(registry, url, router, loadBalance);
 
         T proxy;
 

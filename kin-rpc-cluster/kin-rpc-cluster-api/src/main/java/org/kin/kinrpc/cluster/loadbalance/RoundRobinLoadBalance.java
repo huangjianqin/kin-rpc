@@ -14,7 +14,7 @@ public class RoundRobinLoadBalance implements LoadBalance {
     private AtomicInteger round = new AtomicInteger(0);
 
     @Override
-    public AsyncInvoker loadBalance(List<AsyncInvoker> invokers) {
+    public AsyncInvoker loadBalance(String serviceKey, String method, Object[] params, List<AsyncInvoker> invokers) {
         if (CollectionUtils.isNonEmpty(invokers)) {
             return invokers.get(next(invokers.size()));
         }

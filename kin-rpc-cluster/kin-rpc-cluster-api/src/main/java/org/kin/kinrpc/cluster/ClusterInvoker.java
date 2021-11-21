@@ -105,7 +105,7 @@ abstract class ClusterInvoker<T> implements Closeable {
      * rpc call
      */
     protected void invoke1(ClusterInvocation clusterInvocation, String methodName, Object[] params) {
-        AsyncInvoker<T> invoker = cluster.get(clusterInvocation.failureHostAndPorts);
+        AsyncInvoker<T> invoker = cluster.get(methodName, params, clusterInvocation.failureHostAndPorts);
         if (invoker != null) {
             //rpc call 返回结果 provier future
             //provider需要保证CompletableFuture stage已经在RpcThreadPool.executors()上执行

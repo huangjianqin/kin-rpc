@@ -15,7 +15,7 @@ public class HashLoadBalance implements LoadBalance {
     private static final int LIMIT = 9;
 
     @Override
-    public AsyncInvoker loadBalance(List<AsyncInvoker> invokers) {
+    public AsyncInvoker loadBalance(String serviceKey, String method, Object[] params, List<AsyncInvoker> invokers) {
         TreeMap<Integer, AsyncInvoker> map = new TreeMap<>();
         for (AsyncInvoker AsyncInvoker : invokers) {
             map.put(HashUtils.efficientHash(AsyncInvoker, LIMIT), AsyncInvoker);

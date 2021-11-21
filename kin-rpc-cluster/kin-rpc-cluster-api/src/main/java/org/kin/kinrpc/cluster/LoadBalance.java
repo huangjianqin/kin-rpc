@@ -17,5 +17,5 @@ public interface LoadBalance {
      * @param invokers 可用invokers
      * @return 过滤后的invoker
      */
-    AsyncInvoker loadBalance(List<AsyncInvoker> invokers);
+    AsyncInvoker loadBalance(String serviceKey, String method, Object[] params, List<AsyncInvoker> invokers);
 }

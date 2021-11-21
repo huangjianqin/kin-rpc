@@ -12,7 +12,7 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class RandomLoadBalance implements LoadBalance {
     @Override
-    public AsyncInvoker loadBalance(List<AsyncInvoker> invokers) {
+    public AsyncInvoker loadBalance(String serviceKey, String method, Object[] params, List<AsyncInvoker> invokers) {
         if (CollectionUtils.isNonEmpty(invokers)) {
             if (invokers.size() == 1) {
                 return invokers.get(0);

@@ -21,7 +21,7 @@ public class LFULoadBalance implements LoadBalance {
     private int monitorTime;
 
     @Override
-    public AsyncInvoker loadBalance(List<AsyncInvoker> invokers) {
+    public AsyncInvoker loadBalance(String serviceKey, String method, Object[] params, List<AsyncInvoker> invokers) {
         synchronized (lfuMap) {
             int now = TimeUtils.timestamp();
             if (now >= monitorTime + EXPIRE_TIME) {
