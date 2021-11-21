@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
+ * 基于random的负载均衡实现
  * Created by 健勤 on 2017/2/15.
  */
 public class RandomLoadBalance implements LoadBalance {

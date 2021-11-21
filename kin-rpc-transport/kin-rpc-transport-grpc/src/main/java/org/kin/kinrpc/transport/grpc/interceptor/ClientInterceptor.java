@@ -21,6 +21,6 @@ import org.kin.framework.utils.SPI;
 /**
  * 开发者定义{@link ClientInterceptor}
  */
-@SPI
+@SPI(key = "grpc.clientInterceptor")
 public interface ClientInterceptor extends io.grpc.ClientInterceptor {
 }

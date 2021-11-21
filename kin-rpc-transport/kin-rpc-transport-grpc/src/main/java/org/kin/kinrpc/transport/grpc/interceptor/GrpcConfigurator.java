@@ -25,7 +25,7 @@ import org.kin.kinrpc.rpc.common.Url;
 /**
  * 开发者自定义{@link NettyServerBuilder}, {@link NettyChannelBuilder},{@link CallOptions}
  */
-@SPI
+@SPI(key = "grpc.configurator")
 public interface GrpcConfigurator {
     /**
      * grpc server 配置

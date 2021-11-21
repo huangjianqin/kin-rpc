@@ -21,7 +21,7 @@ import org.kin.framework.utils.SPI;
 /**
  * 开发者定义{@link ServerTransportFilter}
  */
-@SPI
+@SPI(key = "grpc.serverTransportFilter")
 public interface ServerTransportFilter {
     io.grpc.ServerTransportFilter grpcTransportFilter();
 }

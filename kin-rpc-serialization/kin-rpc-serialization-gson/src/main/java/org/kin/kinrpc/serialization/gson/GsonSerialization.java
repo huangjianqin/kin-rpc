@@ -9,7 +9,7 @@ import org.kin.kinrpc.serialization.SerializationType;
  * @date 2020/11/27
  */
 public class GsonSerialization implements Serialization {
-    private Gson gson = new Gson();
+    private final Gson gson = new Gson();
 
     @Override
     public byte[] serialize(Object target) {

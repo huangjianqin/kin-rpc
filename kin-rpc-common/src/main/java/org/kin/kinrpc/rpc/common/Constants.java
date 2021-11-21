@@ -55,6 +55,8 @@ public interface Constants {
     String CALL_TIMEOUT_KEY = "callTimeout";
     /** 是否允许开启ssl */
     String SSL_ENABLED_KEY = "ssl";
+    /** invoker weight todo 赋值 */
+    String WEIGHT = "weight";
 
     //<<<netty相关>>> 可用于kinrpc协议和grpc协议
     /** 连接超时 */
@@ -131,6 +133,9 @@ public interface Constants {
 
     /** rpc call等待时间(ms) */
     int RPC_CALL_TIMEOUT = 500;
+
+    /** 默认权重 */
+    int DEFAULT_WEIGHT = 1;
 
     //<<<kinrpc相关>>>
     /** 默认netty server业务线程池核心线程数 */

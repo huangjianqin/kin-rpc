@@ -5,7 +5,6 @@ import org.kin.framework.concurrent.EventLoop;
 import org.kin.framework.concurrent.EventLoopGroup;
 import org.kin.framework.concurrent.SingleThreadEventLoop;
 import org.kin.framework.concurrent.SingleThreadEventLoopGroup;
-import org.kin.framework.utils.CollectionUtils;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 
@@ -34,7 +33,7 @@ final class ActorExecutorFactory extends AbstractExecutorFactory {
     @Override
     public Executor executor(RpcRequest rpcRequest, Channel channel) {
         String serviceKey = rpcRequest.getServiceKey();
-        return CollectionUtils.putIfAbsent(service2EventLoop, serviceKey, eventLoopGroup.next());
+        return service2EventLoop.computeIfAbsent(serviceKey, k -> eventLoopGroup.next());
     }
 
     @Override

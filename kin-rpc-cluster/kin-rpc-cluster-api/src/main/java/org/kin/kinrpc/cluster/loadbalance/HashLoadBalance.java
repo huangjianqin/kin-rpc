@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.TreeMap;
 
 /**
+ * 基于hash的负载均衡实现
+ *
  * @author huangjianqin
  * @date 2019/7/29
  */
