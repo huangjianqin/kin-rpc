@@ -8,6 +8,6 @@ import org.custom.serialization.MySerialization;
  */
 public class SerializationSpiTest {
     public static void main(String[] args) {
-        System.out.println(Serializations.getSerializationType(MySerialization.class));
+        System.out.println(Serializations.INSTANCE.getSerializationType(MySerialization.class));
     }
 }

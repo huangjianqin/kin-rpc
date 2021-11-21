@@ -244,7 +244,7 @@ public class ServiceConfig<T> extends AbstractConfig {
 
     public ServiceConfig<T> serialization(Class<? extends Serialization> serializationClass) {
         if (!isExport) {
-            this.serializationCode = Serializations.getSerializationType(serializationClass);
+            this.serializationCode = Serializations.INSTANCE.getSerializationType(serializationClass);
         }
         return this;
     }

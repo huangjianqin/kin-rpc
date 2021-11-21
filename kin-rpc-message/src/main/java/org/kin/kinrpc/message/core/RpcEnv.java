@@ -98,12 +98,12 @@ public final class RpcEnv {
 
     public RpcEnv(String host, int port) {
         this(host, port, SysUtils.getSuitableThreadNum(),
-                Serializations.getSerialization(SerializationType.KRYO.getCode()), CompressionType.NONE);
+                Serializations.INSTANCE.getExtension(SerializationType.KRYO.getCode()), CompressionType.NONE);
     }
 
     public RpcEnv(String host, int port, int parallelism) {
         this(host, port, parallelism,
-                Serializations.getSerialization(SerializationType.KRYO.getCode()), CompressionType.NONE);
+                Serializations.INSTANCE.getExtension(SerializationType.KRYO.getCode()), CompressionType.NONE);
     }
 
     public RpcEnv(String host, int port, Serialization serialization) {
@@ -118,7 +118,7 @@ public final class RpcEnv {
 
     public RpcEnv(String host, int port, int parallelism, CompressionType compressionType) {
         this(host, port, parallelism,
-                Serializations.getSerialization(SerializationType.KRYO.getCode()), compressionType);
+                Serializations.INSTANCE.getExtension(SerializationType.KRYO.getCode()), compressionType);
     }
 
     @SuppressWarnings("rawtypes")
@@ -526,7 +526,7 @@ public final class RpcEnv {
             //反序列化内容
             byte[] data = requestProtocol.getReqContent();
 
-            Serialization serialization = Serializations.getSerialization(serializationType);
+            Serialization serialization = Serializations.INSTANCE.getExtension((int) serializationType);
             if (Objects.isNull(serialization)) {
                 throw new UnknownSerializationException(serializationType);
             }

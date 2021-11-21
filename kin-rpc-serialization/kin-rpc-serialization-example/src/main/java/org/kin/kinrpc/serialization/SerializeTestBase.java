@@ -41,7 +41,7 @@ public class SerializeTestBase {
         private BiFunction<Message, Message, Void> afterDeserialize;
 
         public Builder(SerializationType type) {
-            this(Serializations.getSerialization(type.getCode()));
+            this(Serializations.INSTANCE.getExtension(type.getCode()));
         }
 
         public Builder(Serialization serialization) {

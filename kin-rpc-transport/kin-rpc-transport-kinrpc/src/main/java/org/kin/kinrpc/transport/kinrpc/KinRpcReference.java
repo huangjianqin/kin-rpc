@@ -53,13 +53,13 @@ public class KinRpcReference {
             //未指定序列化类型, 默认kyro
             serializationType = SerializationType.KRYO.getCode();
         }
-        //先校验, 顺便初始化
-        Preconditions.checkNotNull(Serializations.getSerialization(serializationType), "unvalid serialization type: [" + serializationType + "]");
+
+        this.serialization = Serializations.INSTANCE.getExtension(serializationType);
+        Preconditions.checkNotNull(this.serialization, "unvalid serialization type: [" + serializationType + "]");
 
         CompressionType compressionType = CompressionType.getById(compression);
         Preconditions.checkNotNull(compressionType, "unvalid compression type: id=" + compression + "");
 
-        this.serialization = Serializations.getSerialization(serializationType);
         this.referenceHandler = new ReferenceHandler();
 
         SocketTransportOption.SocketClientTransportOptionBuilder builder = Transports.socket().client()
@@ -218,7 +218,7 @@ public class KinRpcReference {
                 RpcResponse rpcResponse;
                 byte[] respContent = responseProtocol.getRespContent();
                 try {
-                    Serialization serialization = Serializations.getSerialization(serializationType);
+                    Serialization serialization = Serializations.INSTANCE.getExtension((int) serializationType);
                     if (Objects.isNull(serialization)) {
                         //未知序列化类型
                         throw new UnknownSerializationException(serializationType);

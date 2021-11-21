@@ -149,7 +149,7 @@ final class TransportClient {
         @Override
         protected void handleRpcResponseProtocol(KinRpcResponseProtocol responseProtocol) {
             byte serializationType = responseProtocol.getSerialization();
-            Serialization serialization = Serializations.getSerialization(serializationType);
+            Serialization serialization = Serializations.INSTANCE.getExtension((int) serializationType);
             if (Objects.isNull(serialization)) {
                 throw new UnknownSerializationException(serializationType);
             }

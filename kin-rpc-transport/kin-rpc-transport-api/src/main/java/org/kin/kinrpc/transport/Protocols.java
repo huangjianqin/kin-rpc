@@ -1,36 +1,24 @@
 package org.kin.kinrpc.transport;
 
-import org.kin.framework.utils.StringUtils;
+import org.kin.framework.utils.AbstractExtensionCache;
+import org.kin.framework.utils.ClassUtils;
 import org.kin.kinrpc.rpc.common.RpcServiceLoader;
-
-import java.util.List;
 
 /**
  * @author huangjianqin
  * @date 2020/11/4
  */
-public class Protocols {
-    private Protocols() {
+public final class Protocols extends AbstractExtensionCache<String, Protocol> {
+    //单例
+    public static final Protocols INSTANCE = new Protocols();
+
+    public Protocols() {
+        super(RpcServiceLoader.LOADER);
     }
 
-    /**
-     * 根据Protocol name 获取Protocol instance
-     */
-    public static Protocol getProtocol(String type) {
-        if (StringUtils.isBlank(type)) {
-            throw new IllegalArgumentException("Protocol type is blank");
-        }
-        List<Protocol> protocols = RpcServiceLoader.LOADER.getExtensions(Protocol.class);
-        for (Protocol protocol : protocols) {
-            String simpleName = protocol.getClass().getSimpleName();
-            if (type.equals(protocol.getClass().getName()) ||
-                    type.equalsIgnoreCase(simpleName) ||
-                    type.concat(Protocol.class.getSimpleName()).equalsIgnoreCase(simpleName)) {
-                //扩展service class name | service simple class name | 前缀 + service simple class name
-                return protocol;
-            }
-        }
-
-        throw new IllegalArgumentException(String.format("unknown Protocol or unable to load Protocol '%s'", type));
+    @Override
+    protected String[] keys(Protocol protocol) {
+        Class<? extends Protocol> claxx = protocol.getClass();
+        return new String[]{ClassUtils.getPrefixName(claxx, Protocol.class), claxx.getName(), claxx.getSimpleName()};
     }
 }

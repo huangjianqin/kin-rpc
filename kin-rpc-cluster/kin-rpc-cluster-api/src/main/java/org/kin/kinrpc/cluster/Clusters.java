@@ -39,7 +39,7 @@ public class Clusters {
      */
     public static synchronized <T> void export(Url url, Class<T> interfaceClass, T instance) {
         String protocolName = url.getProtocol();
-        Protocol protocol = Protocols.getProtocol(protocolName);
+        Protocol protocol = Protocols.INSTANCE.getExtension(protocolName);
 
         Preconditions.checkNotNull(protocol, String.format("unknown protocol: %s", protocolName));
 
@@ -84,7 +84,7 @@ public class Clusters {
      */
     public static synchronized void disableService(Url url) {
         String protocolName = url.getProtocol();
-        Protocol protocol = Protocols.getProtocol(protocolName);
+        Protocol protocol = Protocols.INSTANCE.getExtension(protocolName);
 
         Preconditions.checkNotNull(protocol, String.format("unknown protocol: %s", protocolName));
 
@@ -107,9 +107,9 @@ public class Clusters {
 
         //构建Cluster类
         String loadBalanceType = url.getParam(Constants.LOADBALANCE_KEY);
-        LoadBalance loadBalance = LoadBalances.getLoadBalance(loadBalanceType);
+        LoadBalance loadBalance = LoadBalances.INSTANCE.getExtension(loadBalanceType);
         String routerType = url.getParam(Constants.ROUTER_KEY);
-        Router router = Routers.getRouter(routerType);
+        Router router = Routers.INSTANCE.getExtension(routerType);
 
         Preconditions.checkNotNull(loadBalance, "unvalid loadbalance type: [" + loadBalanceType + "]");
         Preconditions.checkNotNull(router, "unvalid router type: [" + routerType + "]");

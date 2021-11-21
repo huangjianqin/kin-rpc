@@ -381,7 +381,7 @@ public class KinRpcProvider {
             RpcRequest rpcRequest;
             try {
                 //request的序列化类型
-                Serialization serialization = Serializations.getSerialization(serializationType);
+                Serialization serialization = Serializations.INSTANCE.getExtension((int) serializationType);
                 if (Objects.isNull(serialization)) {
                     //未知序列化类型
                     throw new UnknownSerializationException(serializationType);

@@ -107,7 +107,7 @@ public final class Directory {
             //new ReferenceInvokers
             for (Url url : urls) {
                 String protocolName = url.getProtocol();
-                Protocol protocol = Protocols.getProtocol(protocolName);
+                Protocol protocol = Protocols.INSTANCE.getExtension(protocolName);
 
                 Preconditions.checkNotNull(protocol, String.format("unknown protocol: %s", protocolName));
 
