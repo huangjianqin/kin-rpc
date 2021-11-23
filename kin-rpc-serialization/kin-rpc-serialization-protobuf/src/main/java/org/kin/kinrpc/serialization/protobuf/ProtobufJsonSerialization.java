@@ -1,5 +1,6 @@
 package org.kin.kinrpc.serialization.protobuf;
 
+import org.kin.framework.utils.Extension;
 import org.kin.kinrpc.serialization.Serialization;
 
 import java.io.IOException;
@@ -8,6 +9,7 @@ import java.io.IOException;
  * @author huangjianqin
  * @date 2020/11/29
  */
+@Extension(value = "protobufJson", code = -1)
 public class ProtobufJsonSerialization implements Serialization {
     @Override
     public byte[] serialize(Object target) throws IOException {

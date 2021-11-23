@@ -1,6 +1,6 @@
 package org.kin.kinrpc.serialization;
 
-import org.custom.serialization.MySerialization;
+import org.kin.kinrpc.rpc.common.RpcExtensionLoader;
 
 /**
  * @author huangjianqin
@@ -8,6 +8,6 @@ import org.custom.serialization.MySerialization;
  */
 public class SerializationSpiTest {
     public static void main(String[] args) {
-        System.out.println(Serializations.INSTANCE.getSerializationType(MySerialization.class));
+        System.out.println(RpcExtensionLoader.LOADER.getExtension(Serialization.class, "my"));
     }
 }

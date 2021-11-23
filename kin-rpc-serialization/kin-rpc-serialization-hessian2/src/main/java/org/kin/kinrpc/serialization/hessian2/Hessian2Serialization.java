@@ -2,6 +2,7 @@ package org.kin.kinrpc.serialization.hessian2;
 
 import com.caucho.hessian.io.Hessian2Input;
 import com.caucho.hessian.io.Hessian2Output;
+import org.kin.framework.utils.Extension;
 import org.kin.kinrpc.serialization.Serialization;
 import org.kin.kinrpc.serialization.SerializationType;
 
@@ -13,6 +14,7 @@ import java.io.Serializable;
 /**
  * Created by 健勤 on 2017/2/9.
  */
+@Extension(value = "hessian2", code = 3)
 public class Hessian2Serialization implements Serialization {
     @Override
     public byte[] serialize(Object target) throws IOException {

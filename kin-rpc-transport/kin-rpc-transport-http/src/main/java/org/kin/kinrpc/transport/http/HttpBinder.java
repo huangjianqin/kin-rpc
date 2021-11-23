@@ -9,7 +9,7 @@ import org.kin.kinrpc.rpc.common.Url;
  * @author huangjianqin
  * @date 2020/11/16
  */
-@SPI(value = "tomcat", key = "httpBinder")
+@SPI(value = "tomcat", alias = "httpBinder")
 public interface HttpBinder {
     /**
      * bind the server.

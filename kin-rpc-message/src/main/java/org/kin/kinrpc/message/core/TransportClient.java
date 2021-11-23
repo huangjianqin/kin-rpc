@@ -7,9 +7,9 @@ import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.message.core.exception.ClientConnectFailException;
 import org.kin.kinrpc.message.core.exception.ClientStoppedException;
 import org.kin.kinrpc.message.core.exception.RequestResponseTimeoutException;
+import org.kin.kinrpc.rpc.common.RpcExtensionLoader;
 import org.kin.kinrpc.rpc.common.SslConfig;
 import org.kin.kinrpc.serialization.Serialization;
-import org.kin.kinrpc.serialization.Serializations;
 import org.kin.kinrpc.serialization.UnknownSerializationException;
 import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
 import org.kin.kinrpc.transport.kinrpc.KinRpcEndpointRefHandler;
@@ -149,7 +149,7 @@ final class TransportClient {
         @Override
         protected void handleRpcResponseProtocol(KinRpcResponseProtocol responseProtocol) {
             byte serializationType = responseProtocol.getSerialization();
-            Serialization serialization = Serializations.INSTANCE.getExtension((int) serializationType);
+            Serialization serialization = RpcExtensionLoader.LOADER.getExtension(Serialization.class, serializationType);
             if (Objects.isNull(serialization)) {
                 throw new UnknownSerializationException(serializationType);
             }

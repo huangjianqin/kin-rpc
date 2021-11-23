@@ -11,7 +11,7 @@ import java.util.concurrent.CompletableFuture;
  * @author huangjianqin
  * @date 2021/2/6
  */
-@SPI(key = "resultAdapter")
+@SPI(alias = "resultAdapter")
 public interface RpcCallReturnAdapter {
     /**
      * @param returnType   服务接口返回类型

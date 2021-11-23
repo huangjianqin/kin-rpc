@@ -4,6 +4,7 @@ import com.google.protobuf.MessageLite;
 import io.protostuff.LinkedBuffer;
 import io.protostuff.ProtostuffIOUtil;
 import io.protostuff.Schema;
+import org.kin.framework.utils.Extension;
 import org.kin.kinrpc.serialization.Serialization;
 import org.kin.kinrpc.serialization.SerializationType;
 
@@ -14,6 +15,7 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2020/11/29
  */
+@Extension(value = "protobuf", code = 5)
 public class ProtobufSerialization implements Serialization {
     /** 避免每次序列化都重新申请Buffer空间 */
     private static final ThreadLocal<LinkedBuffer> BUFFER_THREAD_LOCAL = new ThreadLocal<>();

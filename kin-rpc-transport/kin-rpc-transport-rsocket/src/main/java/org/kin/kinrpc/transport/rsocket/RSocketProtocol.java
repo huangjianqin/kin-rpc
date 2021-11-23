@@ -11,6 +11,7 @@ import io.rsocket.rpc.AbstractRSocketService;
 import io.rsocket.transport.netty.client.TcpClientTransport;
 import io.rsocket.transport.netty.server.CloseableChannel;
 import io.rsocket.transport.netty.server.TcpServerTransport;
+import org.kin.framework.utils.Extension;
 import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
@@ -26,6 +27,7 @@ import java.util.concurrent.ExecutionException;
  * @author huangjianqin
  * @date 2021/1/30
  */
+@Extension("rsocket")
 public class RSocketProtocol extends AbstractProxyProtocol {
     private static final Cache<String, RSocketServer> SERVERS =
             CacheBuilder.newBuilder()

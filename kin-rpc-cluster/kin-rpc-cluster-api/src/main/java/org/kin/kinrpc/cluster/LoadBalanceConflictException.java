@@ -1,5 +1,7 @@
 package org.kin.kinrpc.cluster;
 
+import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
+
 /**
  * LoadBalance冲突异常
  *

@@ -7,7 +7,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 基于一致性hash的负载均衡实现
+ * 基于一致性hash的负载均衡实现(有状态服务场景)
  *
  * @author huangjianqin
  * @date 2021/11/21

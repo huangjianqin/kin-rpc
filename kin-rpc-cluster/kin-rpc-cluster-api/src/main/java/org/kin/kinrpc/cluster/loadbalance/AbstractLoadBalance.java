@@ -1,6 +1,5 @@
 package org.kin.kinrpc.cluster.loadbalance;
 
-import org.kin.kinrpc.cluster.LoadBalance;
 import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.kin.kinrpc.rpc.common.Constants;
 

@@ -13,10 +13,10 @@ import org.kin.framework.utils.StringUtils;
 import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.message.core.message.ClientConnected;
 import org.kin.kinrpc.message.core.message.ClientDisconnected;
+import org.kin.kinrpc.rpc.common.RpcExtensionLoader;
 import org.kin.kinrpc.rpc.common.SslConfig;
 import org.kin.kinrpc.serialization.Serialization;
 import org.kin.kinrpc.serialization.SerializationType;
-import org.kin.kinrpc.serialization.Serializations;
 import org.kin.kinrpc.serialization.UnknownSerializationException;
 import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
 import org.kin.kinrpc.transport.kinrpc.KinRpcEndpointHandler;
@@ -98,12 +98,12 @@ public final class RpcEnv {
 
     public RpcEnv(String host, int port) {
         this(host, port, SysUtils.getSuitableThreadNum(),
-                Serializations.INSTANCE.getExtension(SerializationType.KRYO.getCode()), CompressionType.NONE);
+                RpcExtensionLoader.LOADER.getExtension(Serialization.class, SerializationType.KRYO.getCode()), CompressionType.NONE);
     }
 
     public RpcEnv(String host, int port, int parallelism) {
         this(host, port, parallelism,
-                Serializations.INSTANCE.getExtension(SerializationType.KRYO.getCode()), CompressionType.NONE);
+                RpcExtensionLoader.LOADER.getExtension(Serialization.class, SerializationType.KRYO.getCode()), CompressionType.NONE);
     }
 
     public RpcEnv(String host, int port, Serialization serialization) {
@@ -118,7 +118,7 @@ public final class RpcEnv {
 
     public RpcEnv(String host, int port, int parallelism, CompressionType compressionType) {
         this(host, port, parallelism,
-                Serializations.INSTANCE.getExtension(SerializationType.KRYO.getCode()), compressionType);
+                RpcExtensionLoader.LOADER.getExtension(Serialization.class, SerializationType.KRYO.getCode()), compressionType);
     }
 
     @SuppressWarnings("rawtypes")
@@ -526,7 +526,7 @@ public final class RpcEnv {
             //反序列化内容
             byte[] data = requestProtocol.getReqContent();
 
-            Serialization serialization = Serializations.INSTANCE.getExtension((int) serializationType);
+            Serialization serialization = RpcExtensionLoader.LOADER.getExtension(Serialization.class, serializationType);
             if (Objects.isNull(serialization)) {
                 throw new UnknownSerializationException(serializationType);
             }

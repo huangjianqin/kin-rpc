@@ -12,7 +12,7 @@ import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
  * @author huangjianqin
  * @date 2020/11/3
  */
-@SPI(value = "kinrpc", key = "protocol")
+@SPI(value = "kinrpc", alias = "protocol")
 public interface Protocol {
 
     /**

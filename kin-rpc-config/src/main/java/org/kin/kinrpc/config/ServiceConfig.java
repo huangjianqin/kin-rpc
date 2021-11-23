@@ -6,9 +6,7 @@ import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.cluster.Clusters;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
-import org.kin.kinrpc.serialization.Serialization;
 import org.kin.kinrpc.serialization.SerializationType;
-import org.kin.kinrpc.serialization.Serializations;
 import org.kin.kinrpc.transport.ProtocolType;
 import org.kin.transport.netty.CompressionType;
 
@@ -238,13 +236,6 @@ public class ServiceConfig<T> extends AbstractConfig {
         }
         if (!isExport) {
             this.registryConfig = registryConfig;
-        }
-        return this;
-    }
-
-    public ServiceConfig<T> serialization(Class<? extends Serialization> serializationClass) {
-        if (!isExport) {
-            this.serializationCode = Serializations.INSTANCE.getSerializationType(serializationClass);
         }
         return this;
     }

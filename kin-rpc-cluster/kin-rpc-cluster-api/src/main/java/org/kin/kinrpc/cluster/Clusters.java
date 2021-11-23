@@ -4,17 +4,19 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.kin.framework.utils.ExceptionUtils;
+import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
+import org.kin.kinrpc.cluster.router.Router;
 import org.kin.kinrpc.registry.Registries;
 import org.kin.kinrpc.registry.Registry;
 import org.kin.kinrpc.rpc.Exporter;
 import org.kin.kinrpc.rpc.Notifier;
 import org.kin.kinrpc.rpc.common.Constants;
+import org.kin.kinrpc.rpc.common.RpcExtensionLoader;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.invoker.JavassistProviderInvoker;
 import org.kin.kinrpc.rpc.invoker.JdkProxyProviderInvoker;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
 import org.kin.kinrpc.transport.Protocol;
-import org.kin.kinrpc.transport.Protocols;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +41,7 @@ public class Clusters {
      */
     public static synchronized <T> void export(Url url, Class<T> interfaceClass, T instance) {
         String protocolName = url.getProtocol();
-        Protocol protocol = Protocols.INSTANCE.getExtension(protocolName);
+        Protocol protocol = RpcExtensionLoader.LOADER.getExtension(Protocol.class, protocolName);
 
         Preconditions.checkNotNull(protocol, String.format("unknown protocol: %s", protocolName));
 
@@ -84,7 +86,7 @@ public class Clusters {
      */
     public static synchronized void disableService(Url url) {
         String protocolName = url.getProtocol();
-        Protocol protocol = Protocols.INSTANCE.getExtension(protocolName);
+        Protocol protocol = RpcExtensionLoader.LOADER.getExtension(Protocol.class, protocolName);
 
         Preconditions.checkNotNull(protocol, String.format("unknown protocol: %s", protocolName));
 
@@ -107,9 +109,9 @@ public class Clusters {
 
         //构建Cluster类
         String loadBalanceType = url.getParam(Constants.LOADBALANCE_KEY);
-        LoadBalance loadBalance = LoadBalances.INSTANCE.getExtension(loadBalanceType);
+        LoadBalance loadBalance = RpcExtensionLoader.LOADER.getExtension(LoadBalance.class, loadBalanceType);
         String routerType = url.getParam(Constants.ROUTER_KEY);
-        Router router = Routers.INSTANCE.getExtension(routerType);
+        Router router = RpcExtensionLoader.LOADER.getExtension(Router.class, routerType);
 
         Preconditions.checkNotNull(loadBalance, "unvalid loadbalance type: [" + loadBalanceType + "]");
         Preconditions.checkNotNull(router, "unvalid router type: [" + routerType + "]");

@@ -3,6 +3,7 @@ package org.kin.kinrpc.transport.jvm;
 import com.google.common.base.Preconditions;
 import org.kin.framework.log.LoggerOprs;
 import org.kin.framework.utils.ExceptionUtils;
+import org.kin.framework.utils.Extension;
 import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.kin.kinrpc.rpc.Exporter;
 import org.kin.kinrpc.rpc.Invoker;
@@ -21,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author huangjianqin
  * @date 2020/12/13
  */
+@Extension("jvm")
 public class JvmProtocol implements Protocol, LoggerOprs {
     /** key -> service id, value -> service provider invoker */
     private final Map<Integer, ProviderInvoker<?>> providers = new ConcurrentHashMap<>();

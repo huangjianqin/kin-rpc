@@ -5,16 +5,17 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.kin.framework.log.LoggerOprs;
 import org.kin.framework.utils.ExceptionUtils;
+import org.kin.framework.utils.Extension;
 import org.kin.framework.utils.NetUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.kin.kinrpc.rpc.Exporter;
 import org.kin.kinrpc.rpc.Invoker;
 import org.kin.kinrpc.rpc.common.Constants;
+import org.kin.kinrpc.rpc.common.RpcExtensionLoader;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
 import org.kin.kinrpc.serialization.Serialization;
-import org.kin.kinrpc.serialization.Serializations;
 import org.kin.kinrpc.transport.NettyUtils;
 import org.kin.kinrpc.transport.Protocol;
 import org.kin.transport.netty.CompressionType;
@@ -26,6 +27,7 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2020/11/4
  */
+@Extension("kinrpc")
 public final class KinRpcProtocol implements Protocol, LoggerOprs {
     static {
         ProtocolFactory.init(KinRpcRequestProtocol.class.getPackage().getName());
@@ -41,7 +43,7 @@ public final class KinRpcProtocol implements Protocol, LoggerOprs {
         int port = url.getPort();
         int serializationType = url.getIntParam(Constants.SERIALIZATION_KEY);
 
-        Serialization serialization = Serializations.INSTANCE.getExtension(serializationType);
+        Serialization serialization = RpcExtensionLoader.LOADER.getExtension(Serialization.class, serializationType);
         Preconditions.checkNotNull(serialization, "unvalid serialization type: [" + serializationType + "]");
 
         int compression = url.getIntParam(Constants.COMPRESSION_KEY);

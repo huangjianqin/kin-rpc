@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import org.kin.framework.utils.ExceptionUtils;
+import org.kin.framework.utils.Extension;
 import org.kin.kinrpc.serialization.Serialization;
 import org.kin.kinrpc.serialization.SerializationType;
 
@@ -18,6 +19,7 @@ import java.io.IOException;
  * @author huangjianqin
  * @date 2019/7/29
  */
+@Extension(value = "json", code = 4)
 public class JsonSerialization implements Serialization {
     private final ObjectMapper mapper = new ObjectMapper();
 

@@ -8,12 +8,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.googlecode.jsonrpc4j.JsonRpcServer;
 import com.googlecode.jsonrpc4j.spring.JsonProxyFactoryBean;
+import org.kin.framework.utils.Extension;
 import org.kin.kinrpc.rpc.GenericRpcService;
 import org.kin.kinrpc.rpc.common.Constants;
-import org.kin.kinrpc.rpc.common.RpcServiceLoader;
+import org.kin.kinrpc.rpc.common.RpcExtensionLoader;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.transport.AbstractProxyProtocol;
-import org.kin.kinrpc.transport.http.tomcat.TomcatHttpBinder;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author huangjianqin
  * @date 2020/11/16
  */
+@Extension("http")
 public final class HttpProtocol extends AbstractProxyProtocol {
     private static final ObjectMapper PARSER = new ObjectMapper();
     static {
@@ -51,10 +52,8 @@ public final class HttpProtocol extends AbstractProxyProtocol {
     private HttpBinder httpBinder;
 
     public HttpProtocol() {
-        httpBinder = RpcServiceLoader.LOADER.getAdaptiveExtension(HttpBinder.class);
-        if (Objects.isNull(httpBinder)) {
-            httpBinder = new TomcatHttpBinder();
-        }
+        //取优先级最高的binder
+        httpBinder = RpcExtensionLoader.LOADER.getExtensions(HttpBinder.class).get(0);
     }
 
     @Override

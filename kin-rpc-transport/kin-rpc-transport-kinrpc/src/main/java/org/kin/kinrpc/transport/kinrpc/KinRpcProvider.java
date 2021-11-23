@@ -6,12 +6,12 @@ import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.rpc.Invoker;
 import org.kin.kinrpc.rpc.RpcServiceContext;
+import org.kin.kinrpc.rpc.common.RpcExtensionLoader;
 import org.kin.kinrpc.rpc.common.SslConfig;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.TpsLimitException;
 import org.kin.kinrpc.rpc.invoker.TpsLimitInvoker;
 import org.kin.kinrpc.serialization.Serialization;
-import org.kin.kinrpc.serialization.Serializations;
 import org.kin.kinrpc.serialization.UnknownSerializationException;
 import org.kin.transport.netty.CompressionType;
 import org.kin.transport.netty.Transports;
@@ -381,7 +381,7 @@ public class KinRpcProvider {
             RpcRequest rpcRequest;
             try {
                 //request的序列化类型
-                Serialization serialization = Serializations.INSTANCE.getExtension((int) serializationType);
+                Serialization serialization = RpcExtensionLoader.LOADER.getExtension(Serialization.class, serializationType);
                 if (Objects.isNull(serialization)) {
                     //未知序列化类型
                     throw new UnknownSerializationException(serializationType);

@@ -1,27 +1,52 @@
 package org.kin.kinrpc.cluster.loadbalance;
 
-import org.kin.framework.utils.CollectionUtils;
-import org.kin.kinrpc.cluster.LoadBalance;
 import org.kin.kinrpc.rpc.AsyncInvoker;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * 基于random的负载均衡实现
+ * 基于加权random的负载均衡实现(二分法，不要遍历)
  * Created by 健勤 on 2017/2/15.
  */
-public class RandomLoadBalance implements LoadBalance {
+public class RandomLoadBalance extends AbstractLoadBalance {
+    @SuppressWarnings("rawtypes")
     @Override
     public AsyncInvoker loadBalance(String serviceKey, String method, Object[] params, List<AsyncInvoker> invokers) {
-        if (CollectionUtils.isNonEmpty(invokers)) {
-            if (invokers.size() == 1) {
-                return invokers.get(0);
-            }
-
-            return invokers.get(ThreadLocalRandom.current().nextInt(invokers.size()));
+        //invoker数量
+        int length = invokers.size();
+        if (length == 0) {
+            return null;
         }
-
-        return null;
+        //是否所有invoker相同权重
+        boolean sameWeight = true;
+        //每个invoker的权重
+        int[] weights = new int[length];
+        //第一个invoker的权重
+        int firstWeight = weight(invokers.get(0));
+        weights[0] = firstWeight;
+        //总权重
+        int totalWeight = firstWeight;
+        for (int i = 1; i < length; i++) {
+            int weight = weight(invokers.get(i));
+            weights[i] = weight;
+            //计算总权重
+            totalWeight += weight;
+            if (sameWeight && weight != firstWeight) {
+                sameWeight = false;
+            }
+        }
+        if (totalWeight > 0 && !sameWeight) {
+            //权重不完全一样 & 至少一个invoker权重>0
+            int offset = ThreadLocalRandom.current().nextInt(totalWeight);
+            for (int i = 0; i < length; i++) {
+                offset -= weights[i];
+                if (offset < 0) {
+                    return invokers.get(i);
+                }
+            }
+        }
+        //纯随机
+        return invokers.get(ThreadLocalRandom.current().nextInt(length));
     }
 }

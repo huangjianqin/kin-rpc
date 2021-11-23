@@ -8,7 +8,7 @@ import java.io.IOException;
 /**
  * Created by 健勤 on 2017/2/10.
  */
-@SPI(value = "kryo", key = "serialization")
+@SPI(value = "kryo", alias = "serialization", coded = true)
 public interface Serialization {
     /**
      * 序列化

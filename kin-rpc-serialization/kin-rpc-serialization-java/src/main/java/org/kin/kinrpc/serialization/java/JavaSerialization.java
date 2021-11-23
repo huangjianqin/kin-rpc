@@ -1,5 +1,6 @@
 package org.kin.kinrpc.serialization.java;
 
+import org.kin.framework.utils.Extension;
 import org.kin.kinrpc.serialization.Serialization;
 import org.kin.kinrpc.serialization.SerializationType;
 
@@ -9,6 +10,7 @@ import java.io.*;
  * @author 健勤
  * @date 2017/2/9
  */
+@Extension(value = "java", code = 1)
 public class JavaSerialization implements Serialization {
     @Override
     public byte[] serialize(Object target) throws IOException {

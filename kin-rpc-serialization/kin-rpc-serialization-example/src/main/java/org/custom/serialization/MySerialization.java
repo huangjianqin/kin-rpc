@@ -1,5 +1,6 @@
 package org.custom.serialization;
 
+import org.kin.framework.utils.Extension;
 import org.kin.kinrpc.serialization.Serialization;
 
 import java.io.IOException;
@@ -10,6 +11,7 @@ import java.io.IOException;
  * @author huangjianqin
  * @date 2020/9/27
  */
+@Extension(value = "my", code = 100)
 public class MySerialization implements Serialization {
     @Override
     public byte[] serialize(Object target) throws IOException {

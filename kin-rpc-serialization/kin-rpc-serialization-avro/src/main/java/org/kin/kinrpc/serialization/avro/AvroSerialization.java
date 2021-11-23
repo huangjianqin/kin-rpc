@@ -6,6 +6,7 @@ import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.reflect.ReflectDatumReader;
 import org.apache.avro.reflect.ReflectDatumWriter;
+import org.kin.framework.utils.Extension;
 import org.kin.kinrpc.serialization.Serialization;
 import org.kin.kinrpc.serialization.SerializationType;
 
@@ -16,6 +17,7 @@ import java.io.IOException;
  * @author huangjianqin
  * @date 2020/11/27
  */
+@Extension(value = "avro", code = 7)
 public class AvroSerialization implements Serialization {
     /** encoder */
     private final EncoderFactory encoderFactory = EncoderFactory.get();

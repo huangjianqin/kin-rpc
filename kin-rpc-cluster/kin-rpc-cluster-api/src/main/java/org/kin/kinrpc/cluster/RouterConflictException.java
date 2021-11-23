@@ -1,5 +1,7 @@
 package org.kin.kinrpc.cluster;
 
+import org.kin.kinrpc.cluster.router.Router;
+
 /**
  * Router冲突异常
  *

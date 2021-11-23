@@ -7,13 +7,13 @@ import io.netty.channel.ChannelFutureListener;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.rpc.common.Constants;
+import org.kin.kinrpc.rpc.common.RpcExtensionLoader;
 import org.kin.kinrpc.rpc.common.SslConfig;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 import org.kin.kinrpc.rpc.exception.RpcCallRetryException;
 import org.kin.kinrpc.serialization.Serialization;
 import org.kin.kinrpc.serialization.SerializationType;
-import org.kin.kinrpc.serialization.Serializations;
 import org.kin.kinrpc.serialization.UnknownSerializationException;
 import org.kin.kinrpc.transport.NettyUtils;
 import org.kin.transport.netty.CompressionType;
@@ -54,7 +54,7 @@ public class KinRpcReference {
             serializationType = SerializationType.KRYO.getCode();
         }
 
-        this.serialization = Serializations.INSTANCE.getExtension(serializationType);
+        this.serialization = RpcExtensionLoader.LOADER.getExtension(Serialization.class, serializationType);
         Preconditions.checkNotNull(this.serialization, "unvalid serialization type: [" + serializationType + "]");
 
         CompressionType compressionType = CompressionType.getById(compression);
@@ -218,7 +218,7 @@ public class KinRpcReference {
                 RpcResponse rpcResponse;
                 byte[] respContent = responseProtocol.getRespContent();
                 try {
-                    Serialization serialization = Serializations.INSTANCE.getExtension((int) serializationType);
+                    Serialization serialization = RpcExtensionLoader.LOADER.getExtension(Serialization.class, serializationType);
                     if (Objects.isNull(serialization)) {
                         //未知序列化类型
                         throw new UnknownSerializationException(serializationType);

@@ -1,9 +1,9 @@
 package org.kin.kinrpc.spring;
 
-import org.kin.kinrpc.cluster.LoadBalance;
-import org.kin.kinrpc.cluster.Router;
+import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
 import org.kin.kinrpc.cluster.loadbalance.RoundRobinLoadBalance;
 import org.kin.kinrpc.cluster.router.NoneRouter;
+import org.kin.kinrpc.cluster.router.Router;
 import org.kin.kinrpc.rpc.Notifier;
 import org.kin.kinrpc.rpc.common.Constants;
 

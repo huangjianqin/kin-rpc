@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * 加权顺滑的RoundRobin的负载均衡实现
+ * 加权顺滑的RoundRobin的负载均衡实现(最大公约数)
  * Created by 健勤 on 2017/2/15.
  */
 public class RoundRobinLoadBalance extends AbstractLoadBalance {

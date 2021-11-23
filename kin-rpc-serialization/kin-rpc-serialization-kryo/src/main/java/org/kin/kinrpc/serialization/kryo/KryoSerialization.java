@@ -4,6 +4,7 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.pool.KryoPool;
+import org.kin.framework.utils.Extension;
 import org.kin.kinrpc.serialization.Serialization;
 import org.kin.kinrpc.serialization.SerializationType;
 import org.objenesis.strategy.StdInstantiatorStrategy;
@@ -14,6 +15,7 @@ import java.io.ByteArrayOutputStream;
 /**
  * Created by huangjianqin on 2019/5/29.
  */
+@Extension(value = "kryo", code = 2)
 public class KryoSerialization implements Serialization {
     /**
      * 解决多线程访问问题

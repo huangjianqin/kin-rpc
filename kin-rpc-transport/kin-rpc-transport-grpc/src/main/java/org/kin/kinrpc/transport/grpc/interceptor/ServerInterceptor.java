@@ -21,6 +21,6 @@ import org.kin.framework.utils.SPI;
 /**
  * 开发者定义{@link ServerInterceptor}
  */
-@SPI(key = "grpc.serverInterceptor")
+@SPI(alias = "grpc.serverInterceptor")
 public interface ServerInterceptor extends io.grpc.ServerInterceptor {
 }
