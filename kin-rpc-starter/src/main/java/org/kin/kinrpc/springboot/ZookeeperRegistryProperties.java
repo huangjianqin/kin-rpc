@@ -10,7 +10,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @ConfigurationProperties("kin.rpc.zookeeper")
 public class ZookeeperRegistryProperties {
+    /** zk集群地址 */
     private String address;
+    /** zk client session time out */
     private long sessionTimeout;
 
     //setter && getter

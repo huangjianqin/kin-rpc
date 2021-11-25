@@ -8,7 +8,7 @@ import org.kin.kinrpc.rpc.common.Constants;
  * @date 2020/8/13
  */
 public class RedisRegistryConfig extends AbstractRegistryConfig {
-    /** 观察服务变化间隔, 目前仅用于redis */
+    /** 监控服务变化间隔, 目前仅用于redis */
     private long watchInterval;
 
     RedisRegistryConfig(String adress) {
