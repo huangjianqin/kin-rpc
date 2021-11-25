@@ -23,7 +23,7 @@
         <javassist.version>3.25.0-GA</javassist.version>
         <lettuce.version>5.3.3.RELEASE</lettuce.version>
         <jsonrpc4j.version>1.5.3</jsonrpc4j.version>
-        <tomcat.version>8.5.31</tomcat.version>
+        <tomcat.version>8.5.63</tomcat.version>
         <spring.version>5.3.7</spring.version>
         <portlet_version>2.0</portlet_version>
         <protostuff.version>1.7.2</protostuff.version>
