@@ -31,9 +31,6 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <!-- kin-rpc-bom版本 -->
         <revision>0.2.0.0</revision>
-
-        <grpc.version>1.33.1</grpc.version>
-        <rsocket-rpc.version>0.3.0</rsocket-rpc.version>
     </properties>
 
     <dependencyManagement>
