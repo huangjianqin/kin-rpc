@@ -7,5 +7,5 @@ import org.kin.framework.utils.ExtensionLoader;
  * @date 2020/9/28
  */
 public interface RpcExtensionLoader {
-    ExtensionLoader LOADER = ExtensionLoader.load();
+    ExtensionLoader LOADER = ExtensionLoader.common();
 }
