@@ -3,8 +3,8 @@ package org.kin.kinrpc.transport.kinrpc;
 import io.netty.channel.Channel;
 import org.kin.framework.concurrent.EventLoop;
 import org.kin.framework.concurrent.EventLoopGroup;
+import org.kin.framework.concurrent.MultiThreadEventLoopGroup;
 import org.kin.framework.concurrent.SingleThreadEventLoop;
-import org.kin.framework.concurrent.SingleThreadEventLoopGroup;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 
@@ -27,7 +27,7 @@ final class ActorExecutorFactory extends AbstractExecutorFactory {
         super(url, port);
         int cores = url.getIntParam(Constants.CORES_KEY, Constants.CORES);
 
-        eventLoopGroup = new SingleThreadEventLoopGroup(cores, "rpc-provider-" + port);
+        eventLoopGroup = new MultiThreadEventLoopGroup(cores, "rpc-provider-" + port);
     }
 
     @Override
