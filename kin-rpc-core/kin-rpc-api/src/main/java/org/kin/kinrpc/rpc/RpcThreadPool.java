@@ -28,8 +28,8 @@ public class RpcThreadPool {
         //200ms tick
         WHEEL_TIMER = new HashedWheelTimer(200, TimeUnit.MILLISECONDS);
 
-        JvmCloseCleaner.DEFAULT().add(EXECUTORS::shutdown);
-        JvmCloseCleaner.DEFAULT().add(WHEEL_TIMER::stop);
+        JvmCloseCleaner.instance().add(EXECUTORS::shutdown);
+        JvmCloseCleaner.instance().add(WHEEL_TIMER::stop);
     }
 
     /**

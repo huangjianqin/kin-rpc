@@ -18,6 +18,6 @@ public class RSocketServiceProvider {
         serviceConfig.protocol(ProtocolType.RSOCKET);
         serviceConfig.exportSync();
 
-        JvmCloseCleaner.DEFAULT().add(serviceConfig::disable);
+        JvmCloseCleaner.instance().add(serviceConfig::disable);
     }
 }

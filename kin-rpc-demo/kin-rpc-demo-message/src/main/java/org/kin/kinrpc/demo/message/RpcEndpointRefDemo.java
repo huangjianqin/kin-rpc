@@ -24,7 +24,7 @@ public class RpcEndpointRefDemo extends RpcEndpoint {
         RpcEndpointRefDemo rpcEndpointRefDemo = new RpcEndpointRefDemo(rpcEnv);
         rpcEnv.register(name, rpcEndpointRefDemo);
 
-        JvmCloseCleaner.DEFAULT().add(() -> {
+        JvmCloseCleaner.instance().add(() -> {
             rpcEnv.unregister(name, rpcEndpointRefDemo);
             rpcEnv.stop();
         });

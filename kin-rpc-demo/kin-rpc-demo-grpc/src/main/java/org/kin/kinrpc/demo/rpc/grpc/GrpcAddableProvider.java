@@ -18,6 +18,6 @@ public class GrpcAddableProvider {
         serviceConfig.protocol(ProtocolType.GRPC);
         serviceConfig.exportSync();
 
-        JvmCloseCleaner.DEFAULT().add(serviceConfig::disable);
+        JvmCloseCleaner.instance().add(serviceConfig::disable);
     }
 }

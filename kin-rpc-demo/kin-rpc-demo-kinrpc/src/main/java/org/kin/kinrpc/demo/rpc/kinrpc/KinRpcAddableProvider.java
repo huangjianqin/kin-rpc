@@ -13,6 +13,6 @@ public class KinRpcAddableProvider {
         ServiceConfig<Addable> serviceConfig = AddableProvider.config();
         serviceConfig.exportSync();
 
-        JvmCloseCleaner.DEFAULT().add(serviceConfig::disable);
+        JvmCloseCleaner.instance().add(serviceConfig::disable);
     }
 }

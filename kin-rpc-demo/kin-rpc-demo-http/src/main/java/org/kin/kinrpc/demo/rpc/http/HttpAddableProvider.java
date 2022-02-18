@@ -16,6 +16,6 @@ public class HttpAddableProvider {
         serviceConfig.protocol(ProtocolType.HTTP);
         serviceConfig.exportSync();
 
-        JvmCloseCleaner.DEFAULT().add(serviceConfig::disable);
+        JvmCloseCleaner.instance().add(serviceConfig::disable);
     }
 }
