@@ -7,13 +7,9 @@ import io.netty.channel.ChannelOption;
 import org.kin.framework.concurrent.Dispatcher;
 import org.kin.framework.concurrent.EventBasedDispatcher;
 import org.kin.framework.concurrent.ExecutionContext;
-import org.kin.framework.utils.CollectionUtils;
-import org.kin.framework.utils.ExceptionUtils;
-import org.kin.framework.utils.StringUtils;
-import org.kin.framework.utils.SysUtils;
+import org.kin.framework.utils.*;
 import org.kin.kinrpc.message.core.message.ClientConnected;
 import org.kin.kinrpc.message.core.message.ClientDisconnected;
-import org.kin.kinrpc.rpc.common.RpcExtensionLoader;
 import org.kin.kinrpc.rpc.common.SslConfig;
 import org.kin.kinrpc.serialization.Serialization;
 import org.kin.kinrpc.serialization.SerializationType;
@@ -98,12 +94,12 @@ public final class RpcEnv {
 
     public RpcEnv(String host, int port) {
         this(host, port, SysUtils.getSuitableThreadNum(),
-                RpcExtensionLoader.LOADER.getExtension(Serialization.class, SerializationType.KRYO.getCode()), CompressionType.NONE);
+                ExtensionLoader.getExtension(Serialization.class, SerializationType.KRYO.getCode()), CompressionType.NONE);
     }
 
     public RpcEnv(String host, int port, int parallelism) {
         this(host, port, parallelism,
-                RpcExtensionLoader.LOADER.getExtension(Serialization.class, SerializationType.KRYO.getCode()), CompressionType.NONE);
+                ExtensionLoader.getExtension(Serialization.class, SerializationType.KRYO.getCode()), CompressionType.NONE);
     }
 
     public RpcEnv(String host, int port, Serialization serialization) {
@@ -118,7 +114,7 @@ public final class RpcEnv {
 
     public RpcEnv(String host, int port, int parallelism, CompressionType compressionType) {
         this(host, port, parallelism,
-                RpcExtensionLoader.LOADER.getExtension(Serialization.class, SerializationType.KRYO.getCode()), compressionType);
+                ExtensionLoader.getExtension(Serialization.class, SerializationType.KRYO.getCode()), compressionType);
     }
 
     @SuppressWarnings("rawtypes")
@@ -526,7 +522,7 @@ public final class RpcEnv {
             //反序列化内容
             byte[] data = requestProtocol.getReqContent();
 
-            Serialization serialization = RpcExtensionLoader.LOADER.getExtension(Serialization.class, serializationType);
+            Serialization serialization = ExtensionLoader.getExtension(Serialization.class, serializationType);
             if (Objects.isNull(serialization)) {
                 throw new UnknownSerializationException(serializationType);
             }

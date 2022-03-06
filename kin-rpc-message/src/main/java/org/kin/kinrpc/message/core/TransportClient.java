@@ -3,11 +3,11 @@ package org.kin.kinrpc.message.core;
 import io.netty.channel.ChannelHandlerContext;
 import org.kin.framework.concurrent.HashedWheelTimer;
 import org.kin.framework.concurrent.SimpleThreadFactory;
+import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.message.core.exception.ClientConnectFailException;
 import org.kin.kinrpc.message.core.exception.ClientStoppedException;
 import org.kin.kinrpc.message.core.exception.RequestResponseTimeoutException;
-import org.kin.kinrpc.rpc.common.RpcExtensionLoader;
 import org.kin.kinrpc.rpc.common.SslConfig;
 import org.kin.kinrpc.serialization.Serialization;
 import org.kin.kinrpc.serialization.UnknownSerializationException;
@@ -149,7 +149,7 @@ final class TransportClient {
         @Override
         protected void handleRpcResponseProtocol(KinRpcResponseProtocol responseProtocol) {
             byte serializationType = responseProtocol.getSerialization();
-            Serialization serialization = RpcExtensionLoader.LOADER.getExtension(Serialization.class, serializationType);
+            Serialization serialization = ExtensionLoader.getExtension(Serialization.class, serializationType);
             if (Objects.isNull(serialization)) {
                 throw new UnknownSerializationException(serializationType);
             }

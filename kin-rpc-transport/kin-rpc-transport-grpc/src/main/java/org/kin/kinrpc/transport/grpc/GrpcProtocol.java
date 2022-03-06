@@ -13,11 +13,11 @@ import io.netty.handler.ssl.SslContextBuilder;
 import org.kin.framework.proxy.Javassists;
 import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.Extension;
+import org.kin.framework.utils.ExtensionLoader;
 import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.kin.kinrpc.rpc.Exporter;
 import org.kin.kinrpc.rpc.Invoker;
 import org.kin.kinrpc.rpc.common.Constants;
-import org.kin.kinrpc.rpc.common.RpcExtensionLoader;
 import org.kin.kinrpc.rpc.common.SslConfig;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
@@ -135,7 +135,7 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
      */
     private static Optional<GrpcConfigurator> getConfigurator() {
         // Give users the chance to customize ServerBuilder
-        List<GrpcConfigurator> configurators = RpcExtensionLoader.LOADER.getExtensions(GrpcConfigurator.class);
+        List<GrpcConfigurator> configurators = ExtensionLoader.getExtensions(GrpcConfigurator.class);
         if (CollectionUtils.isNonEmpty(configurators)) {
             return Optional.of(configurators.iterator().next());
         }
@@ -182,13 +182,13 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
         }
 
         // server interceptors
-        List<ServerInterceptor> serverInterceptors = RpcExtensionLoader.LOADER.getExtensions(ServerInterceptor.class);
+        List<ServerInterceptor> serverInterceptors = ExtensionLoader.getExtensions(ServerInterceptor.class);
         for (ServerInterceptor serverInterceptor : serverInterceptors) {
             builder.intercept(serverInterceptor);
         }
 
         // server filters
-        List<ServerTransportFilter> transportFilters = RpcExtensionLoader.LOADER.getExtensions(ServerTransportFilter.class);
+        List<ServerTransportFilter> transportFilters = ExtensionLoader.getExtensions(ServerTransportFilter.class);
         for (ServerTransportFilter transportFilter : transportFilters) {
             builder.addTransportFilter(transportFilter.grpcTransportFilter());
         }
@@ -319,7 +319,7 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
         }
 
         // client interceptors
-        List<io.grpc.ClientInterceptor> interceptors = new ArrayList<>(RpcExtensionLoader.LOADER.getExtensions(ClientInterceptor.class));
+        List<io.grpc.ClientInterceptor> interceptors = new ArrayList<>(ExtensionLoader.getExtensions(ClientInterceptor.class));
         builder.intercept(interceptors);
 
         return getConfigurator()

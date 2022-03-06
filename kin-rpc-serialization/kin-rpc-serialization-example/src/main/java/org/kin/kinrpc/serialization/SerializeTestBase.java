@@ -1,6 +1,6 @@
 package org.kin.kinrpc.serialization;
 
-import org.kin.kinrpc.rpc.common.RpcExtensionLoader;
+import org.kin.framework.utils.ExtensionLoader;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -43,7 +43,7 @@ public class SerializeTestBase {
         private BiFunction<Message, Message, Void> afterDeserialize;
 
         public Builder(SerializationType type) {
-            this(RpcExtensionLoader.LOADER.getExtension(Serialization.class, type.getCode()));
+            this(ExtensionLoader.getExtension(Serialization.class, type.getCode()));
         }
 
         public Builder(Serialization serialization) {
@@ -63,9 +63,7 @@ public class SerializeTestBase {
         public void run() {
             try {
                 test(serialization, afterSerialize, afterDeserialize);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
+            } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
         }

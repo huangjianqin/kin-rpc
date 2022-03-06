@@ -3,9 +3,9 @@ package org.kin.kinrpc.registry;
 import com.google.common.base.Preconditions;
 import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.ExceptionUtils;
+import org.kin.framework.utils.ExtensionLoader;
 import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.kin.kinrpc.rpc.Invoker;
-import org.kin.kinrpc.rpc.common.RpcExtensionLoader;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.transport.Protocol;
 import org.slf4j.Logger;
@@ -107,7 +107,7 @@ public final class Directory {
             //new ReferenceInvokers
             for (Url url : urls) {
                 String protocolName = url.getProtocol();
-                Protocol protocol = RpcExtensionLoader.LOADER.getExtension(Protocol.class, protocolName);
+                Protocol protocol = ExtensionLoader.getExtension(Protocol.class, protocolName);
 
                 Preconditions.checkNotNull(protocol, String.format("unknown protocol: %s", protocolName));
 

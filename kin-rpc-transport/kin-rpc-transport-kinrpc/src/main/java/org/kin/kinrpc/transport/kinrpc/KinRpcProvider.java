@@ -3,10 +3,10 @@ package org.kin.kinrpc.transport.kinrpc;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import org.kin.framework.utils.ExceptionUtils;
+import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.rpc.Invoker;
 import org.kin.kinrpc.rpc.RpcServiceContext;
-import org.kin.kinrpc.rpc.common.RpcExtensionLoader;
 import org.kin.kinrpc.rpc.common.SslConfig;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.TpsLimitException;
@@ -381,7 +381,7 @@ public class KinRpcProvider {
             RpcRequest rpcRequest;
             try {
                 //request的序列化类型
-                Serialization serialization = RpcExtensionLoader.LOADER.getExtension(Serialization.class, serializationType);
+                Serialization serialization = ExtensionLoader.getExtension(Serialization.class, serializationType);
                 if (Objects.isNull(serialization)) {
                     //未知序列化类型
                     throw new UnknownSerializationException(serializationType);

@@ -1,8 +1,8 @@
 package org.kin.kinrpc.cluster;
 
 import org.kin.framework.log.LoggerOprs;
+import org.kin.framework.utils.ExtensionLoader;
 import org.kin.kinrpc.rpc.RpcCallReturnAdapter;
-import org.kin.kinrpc.rpc.common.RpcExtensionLoader;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -59,7 +59,7 @@ class RpcCallReturnAdapters implements RpcCallReturnAdapter, LoggerOprs {
      * 通过spi机制加载并返回已注册的{@link RpcCallReturnAdapter}
      */
     private List<RpcCallReturnAdapter> getResultAdapter() {
-        return RpcExtensionLoader.LOADER.getExtensions(RpcCallReturnAdapter.class);
+        return ExtensionLoader.getExtensions(RpcCallReturnAdapter.class);
     }
 
     @Override

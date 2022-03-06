@@ -9,9 +9,9 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.googlecode.jsonrpc4j.JsonRpcServer;
 import com.googlecode.jsonrpc4j.spring.JsonProxyFactoryBean;
 import org.kin.framework.utils.Extension;
+import org.kin.framework.utils.ExtensionLoader;
 import org.kin.kinrpc.rpc.GenericRpcService;
 import org.kin.kinrpc.rpc.common.Constants;
-import org.kin.kinrpc.rpc.common.RpcExtensionLoader;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.transport.AbstractProxyProtocol;
 
@@ -29,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Extension("http")
 public final class HttpProtocol extends AbstractProxyProtocol {
     private static final ObjectMapper PARSER = new ObjectMapper();
+
     static {
         PARSER.findAndRegisterModules();
         //允许json中含有指定对象未包含的字段
@@ -53,7 +54,7 @@ public final class HttpProtocol extends AbstractProxyProtocol {
 
     public HttpProtocol() {
         //取优先级最高的binder
-        httpBinder = RpcExtensionLoader.LOADER.getExtensions(HttpBinder.class).get(0);
+        httpBinder = ExtensionLoader.getExtensions(HttpBinder.class).get(0);
     }
 
     @Override
