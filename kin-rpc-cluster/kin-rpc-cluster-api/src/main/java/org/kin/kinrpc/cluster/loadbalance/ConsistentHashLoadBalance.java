@@ -4,6 +4,7 @@ import org.kin.kinrpc.rpc.AsyncInvoker;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.SortedMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -50,32 +51,22 @@ public class ConsistentHashLoadBalance extends AbstractLoadBalance {
         }
 
         @Override
-        public void add(AsyncInvoker obj, int weight) {
+        protected void applySlot(SortedMap<Long, AsyncInvoker> circle, String s, AsyncInvoker node) {
             if (hashCode == 0) {
                 //初始化
-                super.add(obj, weight);
+                super.applySlot(circle, s, node);
                 return;
             }
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public void remove(AsyncInvoker obj, int weight) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void add(AsyncInvoker obj) {
+        protected void removeSlot(SortedMap<Long, AsyncInvoker> circle, String s) {
             if (hashCode == 0) {
                 //初始化
-                super.add(obj);
+                super.removeSlot(circle, s);
                 return;
             }
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void remove(AsyncInvoker obj) {
             throw new UnsupportedOperationException();
         }
     }
