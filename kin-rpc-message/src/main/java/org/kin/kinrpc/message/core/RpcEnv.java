@@ -242,6 +242,14 @@ public final class RpcEnv {
     }
 
     /**
+     * 移除{@link RpcEndpointRef}
+     */
+    public void destroyEndpointRef(RpcEndpointRef rpcEndpointRef) {
+        KinRpcAddress rpcAddress = rpcEndpointRef.getEndpointAddress().getRpcAddress();
+        removeOutBox(rpcAddress);
+    }
+
+    /**
      * 关闭rpc环境, 即关闭绑定某端口的服务器
      */
     public void stop() {
@@ -293,6 +301,9 @@ public final class RpcEnv {
         return address;
     }
 
+    public Serialization serialization() {
+        return serialization;
+    }
     //----------------------------------------------------------------------internal
 
     /**
@@ -501,10 +512,6 @@ public final class RpcEnv {
     @SuppressWarnings("rawtypes")
     Map<ChannelOption, Object> getClientChannelOptions() {
         return clientChannelOptions;
-    }
-
-    public Serialization serialization() {
-        return serialization;
     }
 
     //------------------------------------------------------------------------------------------------------------------
