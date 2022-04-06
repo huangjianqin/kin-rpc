@@ -35,7 +35,7 @@
         <grpc-contrib.version>0.8.1</grpc-contrib.version>
         <jprotoc.version>0.9.1</jprotoc.version>
         <springboot.version>2.5.0</springboot.version>
-        <netty.version>4.1.54.Final</netty.version>
+        <netty.version>4.1.75.Final</netty.version>
         <rsocket-rpc.version>0.3.0</rsocket-rpc.version>
         <reactor.version>Dysprosium-SR9</reactor.version>
         <rsocket.version>1.1.0</rsocket.version>
