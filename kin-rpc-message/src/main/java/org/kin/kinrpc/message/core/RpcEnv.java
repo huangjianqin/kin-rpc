@@ -65,7 +65,7 @@ public final class RpcEnv {
      * 公用线程池, 除了dispatcher以外, 都用这个线程池, 会存在io/加锁操作
      */
     ExecutionContext commonExecutors = ExecutionContext.elastic(SysUtils.getSuitableThreadNum(), SysUtils.CPU_NUM * 10,
-            "rpc-message", 2, "rpc-message-scheduler");
+            "rpc-message", 2);
 
     /** 事件调度 */
     private final Dispatcher<String, MessagePostContext> dispatcher;

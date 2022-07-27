@@ -23,7 +23,7 @@ public class RpcThreadPool {
     static {
         //lazy init EXECUTORS
         EXECUTORS = ExecutionContext.elastic(SysUtils.getSuitableThreadNum(), SysUtils.CPU_NUM * 5,
-                "rpc-reference", 2, "rpc-reference-scheduler");
+                "rpc-reference", 2);
 
         //200ms tick
         WHEEL_TIMER = new HashedWheelTimer(200, TimeUnit.MILLISECONDS);
