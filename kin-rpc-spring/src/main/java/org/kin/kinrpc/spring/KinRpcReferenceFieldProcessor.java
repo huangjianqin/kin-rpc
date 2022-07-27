@@ -1,7 +1,7 @@
 package org.kin.kinrpc.spring;
 
 import org.kin.framework.log.LoggerOprs;
-import org.kin.framework.spring.AbstractAnnotationBeanPostProcessor;
+import org.kin.framework.spring.beans.AbstractAnnotationBeanPostProcessor;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.springframework.beans.BeansException;

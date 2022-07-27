@@ -39,6 +39,7 @@
         <rsocket-rpc.version>0.3.0</rsocket-rpc.version>
         <reactor.version>Dysprosium-SR9</reactor.version>
         <rsocket.version>1.1.0</rsocket.version>
+        <kin-framework-spring.version>0.1.0.0</kin-framework-spring.version>
     </properties>
 
     <dependencyManagement>
@@ -268,6 +269,13 @@
                 <groupId>io.protostuff</groupId>
                 <artifactId>protostuff-runtime</artifactId>
                 <version>${protostuff.version}</version>
+            </dependency>
+
+            <!-- spring工具类 -->
+            <dependency>
+                <groupId>org.kin</groupId>
+                <artifactId>kin-framework-spring</artifactId>
+                <version>${kin-framework-spring.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
