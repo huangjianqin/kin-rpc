@@ -20,7 +20,7 @@
         <zookeeper.version>3.5.8</zookeeper.version>
         <curator.version>5.1.0</curator.version>
         <jmh.version>1.21</jmh.version>
-        <jackson.version>2.10.1</jackson.version>
+        <jackson.version>2.12.7.1</jackson.version>
         <javassist.version>3.25.0-GA</javassist.version>
         <lettuce.version>5.3.3.RELEASE</lettuce.version>
         <jsonrpc4j.version>1.5.3</jsonrpc4j.version>
