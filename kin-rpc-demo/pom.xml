@@ -12,7 +12,6 @@
     <modules>
         <module>kin-rpc-demo-kinrpc</module>
         <module>kin-rpc-demo-jvm</module>
-        <module>kin-rpc-demo-http</module>
         <module>kin-rpc-demo-grpc</module>
         <module>kin-rpc-demo-spring</module>
         <module>kin-rpc-demo-api</module>

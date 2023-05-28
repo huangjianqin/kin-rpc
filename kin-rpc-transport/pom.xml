@@ -12,7 +12,6 @@
     <modules>
         <module>kin-rpc-transport-kinrpc</module>
         <module>kin-rpc-transport-api</module>
-        <module>kin-rpc-transport-http</module>
         <module>kin-rpc-transport-grpc</module>
         <module>kin-rpc-transport-jvm</module>
         <module>kin-rpc-transport-rsocket</module>

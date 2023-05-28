@@ -5,8 +5,9 @@ import io.netty.channel.ChannelOption;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.StringUtils;
+import org.kin.kinrpc.rpc.AsyncContext;
+import org.kin.kinrpc.rpc.executor.ExecutorFactory;
 import org.kin.kinrpc.rpc.Invoker;
-import org.kin.kinrpc.rpc.RpcServiceContext;
 import org.kin.kinrpc.rpc.common.SslConfig;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.TpsLimitException;
@@ -234,10 +235,10 @@ public class KinRpcProvider {
         } else {
             try {
                 result = invoker.invoke(methodName, params);
-                if (RpcServiceContext.asyncReturn()) {
+                if (AsyncContext.asyncReturn()) {
                     //provider service利用RpcServiceContext实现异步返回结果
-                    handlerServiceAsyncReturn(executor, RpcServiceContext.future(), channel, rpcRequest, rpcResponse);
-                    RpcServiceContext.reset();
+                    handlerServiceAsyncReturn(executor, AsyncContext.future(), channel, rpcRequest, rpcResponse);
+                    AsyncContext.reset();
                     return;
                 }
                 if (result instanceof Future) {

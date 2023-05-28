@@ -1,6 +1,6 @@
 package org.kin.kinrpc.demo.rpc;
 
-import org.kin.kinrpc.rpc.RpcServiceContext;
+import org.kin.kinrpc.rpc.AsyncContext;
 import org.kin.kinrpc.rpc.RpcThreadPool;
 
 import java.util.concurrent.CompletableFuture;
@@ -45,7 +45,7 @@ public class Adder implements Addable {
     @Override
     public Return2 asyncReturn() {
         ScheduledFuture<Return2> future = RpcThreadPool.executors().schedule(Return2::new, 1, TimeUnit.SECONDS);
-        RpcServiceContext.updateFuture(future);
+        AsyncContext.updateFuture(future);
         return null;
     }
 

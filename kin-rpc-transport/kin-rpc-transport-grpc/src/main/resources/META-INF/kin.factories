@@ -1,1 +1,1 @@
-org.kin.kinrpc.transport.Protocol=org.kin.kinrpc.transport.grpc.GrpcProtocol
+org.kin.kinrpc.rpc.Protocol=org.kin.kinrpc.transport.grpc.GrpcProtocol

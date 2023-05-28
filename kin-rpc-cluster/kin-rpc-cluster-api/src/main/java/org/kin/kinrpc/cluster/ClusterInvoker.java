@@ -80,7 +80,7 @@ abstract class ClusterInvoker<T> implements Closeable {
                     Class<?> rpcCallResultType = obj.getClass();
                     if (Throwable.class.isAssignableFrom(rpcCallResultType)) {
                         //异常
-                        notifier.handlerException((Throwable) obj);
+                        notifier.handleException((Throwable) obj);
                     } else {
                         notifier.onRpcCallSuc(obj);
                     }

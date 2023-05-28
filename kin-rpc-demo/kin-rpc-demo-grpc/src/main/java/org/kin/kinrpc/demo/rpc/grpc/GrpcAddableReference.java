@@ -50,7 +50,7 @@ public class GrpcAddableReference {
         }
 
         @Override
-        public void handlerException(Throwable throwable) {
+        public void handleException(Throwable throwable) {
             throwable.printStackTrace();
         }
     }

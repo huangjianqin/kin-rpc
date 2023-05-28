@@ -5,17 +5,16 @@ package org.kin.kinrpc.rpc;
  */
 public interface Invoker<T> extends Node {
     /**
-     * rpc调用方法
+     * invoke
      *
-     * @param methodName 方法名
-     * @param params     方法参数
-     * @return 返回方法结果(rpc调用)
-     * @throws Throwable 异常
+     * @param invocation  相关元数据
+     * @return invoke结果
      */
-    Object invoke(String methodName, Object[] params) throws Throwable;
+    Result invoke(Invocation invocation);
 
     /**
      * 获取代理的接口类
+     * @return 代理接口类
      */
     Class<T> getInterface();
 }

@@ -2,7 +2,7 @@ package org.kin.kinrpc.spring;
 
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.serialization.SerializationType;
-import org.kin.kinrpc.transport.ProtocolType;
+import org.kin.kinrpc.config.ProtocolType;
 import org.kin.transport.netty.CompressionType;
 import org.springframework.stereotype.Service;
 

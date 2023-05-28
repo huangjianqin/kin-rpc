@@ -3,7 +3,6 @@ package org.kin.kinrpc.config;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
-import org.kin.kinrpc.transport.ProtocolType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -98,10 +98,10 @@ public class RSocketProtocol extends AbstractProxyProtocol {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> AsyncInvoker<T> reference(Url url) throws Throwable {
+    public <T> AsyncInvoker<T> refer(Url url) throws Throwable {
         Class<T> interfaceC;
         try {
-            interfaceC = (Class<T>) Class.forName(url.getInterfaceN());
+            interfaceC = (Class<T>) Class.forName(url.getInterfaceName());
         } catch (ClassNotFoundException e) {
             throw e;
         }

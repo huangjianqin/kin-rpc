@@ -19,5 +19,5 @@ public interface Notifier<T> {
     /**
      * 处理rpc call期间的异常
      */
-    void handlerException(Throwable throwable);
+    void handleException(Throwable throwable);
 }

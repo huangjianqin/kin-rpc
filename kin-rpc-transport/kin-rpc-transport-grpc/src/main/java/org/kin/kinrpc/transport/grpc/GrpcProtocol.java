@@ -86,7 +86,7 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
                     return new GrpcServer(address, builderServer(url, registry), registry);
                 });
             } catch (ExecutionException e) {
-                throw new RpcCallErrorException(e);
+                throw new RpcCallErrorExceptqion(e);
             }
 
             //获取服务实例
@@ -233,10 +233,10 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> AsyncInvoker<T> reference(Url url) throws Throwable {
+    public <T> AsyncInvoker<T> refer(Url url) throws Throwable {
         Class<T> interfaceC;
         try {
-            interfaceC = (Class<T>) Class.forName(url.getInterfaceN());
+            interfaceC = (Class<T>) Class.forName(url.getInterfaceName());
         } catch (ClassNotFoundException e) {
             throw e;
         }

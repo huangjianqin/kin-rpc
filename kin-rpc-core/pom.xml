@@ -3,8 +3,8 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>kin-rpc-parent</artifactId>
         <groupId>org.kin</groupId>
+        <artifactId>kin-rpc-parent</artifactId>
         <version>${revision}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -13,13 +13,9 @@
     <packaging>pom</packaging>
     <modules>
         <module>kin-rpc-api</module>
+        <module>kin-rpc-grpc</module>
+        <module>kin-rpc-jvm</module>
+        <module>kin-rpc-kinrpc</module>
+        <module>kin-rpc-rsocket</module>
     </modules>
-
-    <dependencies>
-        <!-- 字节码技术 -->
-        <dependency>
-            <groupId>org.javassist</groupId>
-            <artifactId>javassist</artifactId>
-        </dependency>
-    </dependencies>
 </project>

@@ -49,7 +49,7 @@ class ClusterImpl<T> implements Cluster<T> {
         availableInvokers = availableInvokers.stream().filter(invoker -> !excludes.contains(HostAndPort.fromString(invoker.url().getAddress())))
                 .collect(Collectors.toList());
         //2. route
-        List<AsyncInvoker> routeredInvokers = router.router(availableInvokers);
+        List<AsyncInvoker> routeredInvokers = router. router(availableInvokers);
         //3. load balance
         AsyncInvoker loadbalancedInvoker = loadBalance.loadBalance(url.getServiceKey(), method, params, routeredInvokers);
 

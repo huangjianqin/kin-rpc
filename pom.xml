@@ -16,7 +16,6 @@
         <module>kin-rpc-registry</module>
         <module>kin-rpc-message</module>
         <module>kin-rpc-common</module>
-        <module>kin-rpc-serialization</module>
         <module>kin-rpc-spring</module>
         <module>kin-rpc-starter</module>
         <module>kin-rpc-bom</module>
@@ -29,7 +28,8 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <!-- kin-rpc-bom版本 -->
+
+        <!-- kin-rpc版本 -->
         <revision>0.2.0.0</revision>
     </properties>
 

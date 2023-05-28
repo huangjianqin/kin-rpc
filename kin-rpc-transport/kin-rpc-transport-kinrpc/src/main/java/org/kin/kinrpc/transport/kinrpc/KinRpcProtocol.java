@@ -5,15 +5,15 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.kin.framework.log.LoggerOprs;
 import org.kin.framework.utils.*;
+import org.kin.kinrpc.rpc.*;
 import org.kin.kinrpc.rpc.AsyncInvoker;
-import org.kin.kinrpc.rpc.Exporter;
-import org.kin.kinrpc.rpc.Invoker;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
+import org.kin.kinrpc.rpc.executor.ExecutorFactory;
+import org.kin.kinrpc.rpc.config.ExecutorType;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
 import org.kin.kinrpc.serialization.Serialization;
 import org.kin.kinrpc.transport.NettyUtils;
-import org.kin.kinrpc.transport.Protocol;
 import org.kin.transport.netty.CompressionType;
 import org.kin.transport.netty.socket.protocol.ProtocolFactory;
 
@@ -52,10 +52,10 @@ public final class KinRpcProtocol implements Protocol, LoggerOprs {
                 String executorFactoryType = url.getParam(Constants.EXECUTOR_KEY);
                 ExecutorFactory executorFactory;
                 if (StringUtils.isNotBlank(executorFactoryType)) {
-                    executorFactory = ExecutorFactoryType.getByName(executorFactoryType).create(url, port);
+                    executorFactory = ExecutorType.getByName(executorFactoryType).create(url, port);
                 } else {
                     //default
-                    executorFactory = ExecutorFactoryType.EAGER.create(url, port);
+                    executorFactory = ExecutorType.EAGER.create(url, port);
                 }
 
                 KinRpcProvider provider0 = new KinRpcProvider(host, port, executorFactory, serialization, compressionType, NettyUtils.convert(url));
@@ -101,7 +101,7 @@ public final class KinRpcProtocol implements Protocol, LoggerOprs {
     }
 
     @Override
-    public <T> AsyncInvoker<T> reference(Url url) {
+    public <T> AsyncInvoker<T> refer(Url url) {
         info("kinrpc reference '{}' refer address '{}'", url.getAddress());
         return new KinRpcReferenceInvoker<>(url);
     }

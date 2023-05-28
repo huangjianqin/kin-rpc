@@ -5,7 +5,7 @@ import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.demo.rpc.Addable;
 import org.kin.kinrpc.demo.rpc.AddableProvider;
 import org.kin.kinrpc.demo.rpc.AddableReference;
-import org.kin.kinrpc.transport.ProtocolType;
+import org.kin.kinrpc.config.ProtocolType;
 
 /**
  * @author huangjianqin

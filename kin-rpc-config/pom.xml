@@ -26,13 +26,6 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- 默认序列化-->
-        <dependency>
-            <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-serialization-kryo</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <!-- 默认支持直连和zookeeper注册中心 -->
         <dependency>
             <groupId>org.kin</groupId>

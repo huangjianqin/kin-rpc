@@ -75,54 +75,6 @@
 
             <dependency>
                 <groupId>org.kin</groupId>
-                <artifactId>kin-rpc-serialization-api</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.kin</groupId>
-                <artifactId>kin-rpc-serialization-avro</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.kin</groupId>
-                <artifactId>kin-rpc-serialization-gson</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.kin</groupId>
-                <artifactId>kin-rpc-serialization-hessian2</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.kin</groupId>
-                <artifactId>kin-rpc-serialization-java</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.kin</groupId>
-                <artifactId>kin-rpc-serialization-json</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.kin</groupId>
-                <artifactId>kin-rpc-serialization-kryo</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.kin</groupId>
-                <artifactId>kin-rpc-serialization-protobuf</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.kin</groupId>
                 <artifactId>kin-rpc-spring</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -147,15 +99,10 @@
 
             <dependency>
                 <groupId>org.kin</groupId>
-                <artifactId>kin-rpc-transport-http</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.kin</groupId>
                 <artifactId>kin-rpc-transport-jvm</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>org.kin</groupId>
                 <artifactId>kin-rpc-transport-kinrpc</artifactId>
@@ -165,12 +112,6 @@
             <dependency>
                 <groupId>org.kin</groupId>
                 <artifactId>kin-rpc-transport-rsocket</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.kin</groupId>
-                <artifactId>kin-rpc-transport-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>

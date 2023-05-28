@@ -15,7 +15,7 @@ public class Return1Notifier implements Notifier<Return1> {
     }
 
     @Override
-    public void handlerException(Throwable throwable) {
+    public void handleException(Throwable throwable) {
         throwable.printStackTrace();
     }
 }

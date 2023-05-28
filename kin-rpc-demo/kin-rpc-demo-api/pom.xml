@@ -23,43 +23,6 @@
             <artifactId>kin-rpc-registry-zookeeper</artifactId>
             <version>${project.version}</version>
         </dependency>
-
-        <!-- 序列化 -->
-        <dependency>
-            <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-serialization-avro</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-serialization-gson</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-serialization-hessian2</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-serialization-java</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-serialization-json</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-serialization-protobuf</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 
 </project>

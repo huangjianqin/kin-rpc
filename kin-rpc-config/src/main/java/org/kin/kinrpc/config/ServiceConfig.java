@@ -7,7 +7,6 @@ import org.kin.kinrpc.cluster.Clusters;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.serialization.SerializationType;
-import org.kin.kinrpc.transport.ProtocolType;
 import org.kin.transport.netty.CompressionType;
 
 import java.io.Serializable;

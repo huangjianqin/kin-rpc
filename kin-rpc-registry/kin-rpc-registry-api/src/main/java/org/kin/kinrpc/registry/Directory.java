@@ -7,7 +7,7 @@ import org.kin.framework.utils.ExtensionLoader;
 import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.kin.kinrpc.rpc.Invoker;
 import org.kin.kinrpc.rpc.common.Url;
-import org.kin.kinrpc.transport.Protocol;
+import org.kin.kinrpc.rpc.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,7 +113,7 @@ public final class Directory {
 
                 AsyncInvoker referenceInvoker = null;
                 try {
-                    referenceInvoker = protocol.reference(url);
+                    referenceInvoker = protocol.refer(url);
                 } catch (Throwable throwable) {
                     ExceptionUtils.throwExt(throwable);
                 }

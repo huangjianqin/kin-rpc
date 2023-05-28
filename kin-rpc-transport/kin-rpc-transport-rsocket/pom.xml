@@ -18,24 +18,6 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- protobuf -->
-        <dependency>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
-        </dependency>
-
-        <!-- rsocket rpc -->
-        <dependency>
-            <groupId>io.rsocket.rpc</groupId>
-            <artifactId>rsocket-rpc-core</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>io.rsocket.rpc</groupId>
-                    <artifactId>rsocket-rpc-protobuf</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
         <dependency>
             <groupId>io.projectreactor.netty</groupId>
             <artifactId>reactor-netty</artifactId>

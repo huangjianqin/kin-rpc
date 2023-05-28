@@ -10,7 +10,7 @@ import org.kin.kinrpc.rpc.Invoker;
 import org.kin.kinrpc.rpc.RpcThreadPool;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
-import org.kin.kinrpc.transport.Protocol;
+import org.kin.kinrpc.rpc.Protocol;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -49,7 +49,7 @@ public class JvmProtocol implements Protocol, LoggerOprs {
     }
 
     @Override
-    public <T> AsyncInvoker<T> reference(Url url) {
+    public <T> AsyncInvoker<T> refer(Url url) {
         info("jvm reference '{}' refer address '{}'", url.getService(), url.getAddress());
 
         return new AsyncInvoker<T>() {
@@ -81,7 +81,7 @@ public class JvmProtocol implements Protocol, LoggerOprs {
             @Override
             public Class<T> getInterface() {
                 try {
-                    return (Class<T>) Class.forName(url.getInterfaceN());
+                    return (Class<T>) Class.forName(url.getInterfaceName());
                 } catch (ClassNotFoundException e) {
                     ExceptionUtils.throwExt(e);
                 }
