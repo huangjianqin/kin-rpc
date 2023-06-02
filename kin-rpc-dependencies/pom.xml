@@ -19,7 +19,7 @@
         <curator.version>5.1.0</curator.version>
         <jackson.version>2.10.1</jackson.version>
         <spring.version>5.3.7</spring.version>
-        <grpc.version>1.45.1</grpc.version>
+        <grpc.version>1.53.0</grpc.version>
         <grpc-contrib.version>0.8.1</grpc-contrib.version>
         <jprotoc.version>0.9.1</jprotoc.version>
         <springboot.version>2.5.12</springboot.version>

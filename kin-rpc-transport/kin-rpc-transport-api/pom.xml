@@ -14,15 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <!-- 配置netty-->
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
-            <scope>provided</scope>
+            <artifactId>kin-serialization-api</artifactId>
         </dependency>
     </dependencies>
 </project>

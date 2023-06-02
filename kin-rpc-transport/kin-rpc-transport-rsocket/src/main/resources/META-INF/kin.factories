@@ -1,2 +1,0 @@
-protocol=org.kin.kinrpc.transport.rsocket.RSocketProtocol
-resultAdapter=org.kin.kinrpc.transport.rsocket.ReactiveReturnAdapter
