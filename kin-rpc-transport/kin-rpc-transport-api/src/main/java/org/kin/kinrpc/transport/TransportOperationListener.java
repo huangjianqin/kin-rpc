@@ -11,8 +11,12 @@ public interface TransportOperationListener {
 
     }
 
-    /** transport操作失败触发 */
-    default void onFailure(Throwable t){
+    /**
+     * transport操作失败触发
+     *
+     * @param cause 抛出的异常
+     */
+    default void onFailure(Throwable cause) {
 
     }
 }

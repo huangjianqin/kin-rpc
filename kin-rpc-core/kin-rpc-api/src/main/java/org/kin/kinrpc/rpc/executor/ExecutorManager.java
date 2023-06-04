@@ -28,7 +28,7 @@ public class ExecutorManager implements Closeable {
      * @return  服务线程池
      */
     public Executor executor(Url url) {
-        String executorKey = getExecu¬torKey(url);
+        String executorKey = getExecutorKey(url);
         if(executorMap.containsKey(executorKey)){
             return executorMap.get(executorKey);
         }

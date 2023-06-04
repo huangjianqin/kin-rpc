@@ -1,7 +1,7 @@
 package org.kin.kinrpc.message.core;
 
 import com.google.common.base.Preconditions;
-import org.kin.kinrpc.transport.kinrpc.KinRpcRequestIdGenerator;
+import org.kin.kinrpc.transport.RequestIdGenerator;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -57,7 +57,7 @@ public final class RpcEndpointRef implements Serializable {
      * 封装成RpcMessage
      */
     private RpcMessage rpcMessage(Serializable message) {
-        return RpcMessage.of(KinRpcRequestIdGenerator.next(), rpcEnv().address(), this, message);
+        return RpcMessage.of(RequestIdGenerator.next(), rpcEnv().address(), this, message);
     }
 
     /**

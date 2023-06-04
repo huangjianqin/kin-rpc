@@ -2,9 +2,7 @@ package org.kin.kinrpc.transport.cmd;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.util.ReferenceCountUtil;
-import org.kin.kinrpc.transport.TransportException;
-
-import java.nio.charset.StandardCharsets;
+import org.kin.kinrpc.transport.RequestIdGenerator;
 
 /**
  * @author huangjianqin
@@ -26,9 +24,9 @@ public class RpcRequestCommand extends RequestCommand {
     public RpcRequestCommand() {
     }
 
-    public RpcRequestCommand(short version, long id, byte serializationCode,
+    public RpcRequestCommand(short version, byte serializationCode,
                              String gsv, String method, Object[] params) {
-        super(CommandCodes.RPC_REQUEST, version, id, serializationCode);
+        super(CommandCodes.RPC_REQUEST, version, RequestIdGenerator.next(), serializationCode);
         this.gsv = gsv;
         this.method = method;
         this.params = params;
@@ -44,37 +42,22 @@ public class RpcRequestCommand extends RequestCommand {
          * bytes(method len): method content
          * bytes(other): params payload
          */
-        byte[] gsvBytes = gsv.getBytes(StandardCharsets.UTF_8);
-        out.writeShort(gsvBytes.length);
-        out.writeBytes(gsvBytes);
-        byte[] methodBytes = method.getBytes(StandardCharsets.UTF_8);
-        out.writeShort(methodBytes.length);
-        out.writeBytes(methodBytes);
+        BytebufUtils.writeShortString(out, gsv);
+        BytebufUtils.writeShortString(out, method);
         getSerialization().serialize(out, params);
     }
 
     @Override
-    public void deserialize0(ByteBuf payload) {
+    public void deserialize0(ByteBuf in) {
         super.deserialize();
         //gsv
-        short gsvLen = payload.readShort();
-        if(gsvLen < 0){
-            throw new TransportException("invalid message command, due to miss gsv");
-        }
-
-        byte[] gsvBytes = new byte[gsvLen];
-        gsv = new String(gsvBytes, StandardCharsets.UTF_8);
+        BytebufUtils.writeShortString(in, gsv);
 
         //method
-        short methodLen = payload.readShort();
-        if(methodLen < 0){
-            throw new TransportException("invalid message command, due to miss method");
-        }
+        BytebufUtils.writeShortString(in, method);
 
-        byte[] methodBytes = new byte[methodLen];
-        method = new String(methodBytes, StandardCharsets.UTF_8);
         //slice
-        paramsPayload = payload.retainedSlice();
+        paramsPayload = in.retainedSlice();
     }
 
     /**

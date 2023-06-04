@@ -1,12 +1,15 @@
-package org.kin.kinrpc.transport.kinrpc;
+package org.kin.kinrpc.transport;
 
 import java.util.UUID;
 
 /**
- * Created by 健勤 on 2017/2/15.
+ * request id generator
+ *
+ * @author huangjianqin
+ * @date 2023/6/1
  */
-public final class KinRpcRequestIdGenerator {
-    private KinRpcRequestIdGenerator() {
+public final class RequestIdGenerator {
+    private RequestIdGenerator() {
     }
 
     /**

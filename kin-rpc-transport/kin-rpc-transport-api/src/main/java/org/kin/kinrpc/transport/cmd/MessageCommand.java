@@ -2,9 +2,7 @@ package org.kin.kinrpc.transport.cmd;
 
 import io.netty.buffer.ByteBuf;
 import org.kin.framework.utils.ClassUtils;
-import org.kin.kinrpc.transport.TransportException;
-
-import java.nio.charset.StandardCharsets;
+import org.kin.kinrpc.transport.RequestIdGenerator;
 
 /**
  * @author huangjianqin
@@ -13,8 +11,8 @@ import java.nio.charset.StandardCharsets;
 @CommandCode(CommandCodes.MESSAGE)
 public final class MessageCommand extends RequestCommand {
     private static final long serialVersionUID = 2678295231039867756L;
-    /** receiver name */
-    private String name;
+    /** receiver identity */
+    private String identity;
     /**
      * interest, 用于寻找唯一的{@link org.kin.kinrpc.transport.RequestProcessor}实例
      * 往往是全限定类名
@@ -24,6 +22,7 @@ public final class MessageCommand extends RequestCommand {
     private Class<?> dataClass;
     /**
      * data payload反序列化后的对象
+     *
      * @see RemotingCommand#getPayload()
      */
     private Object data;
@@ -31,9 +30,9 @@ public final class MessageCommand extends RequestCommand {
     public MessageCommand() {
     }
 
-    public MessageCommand(short version, long id, byte serializationCode, String name, Object data) {
-        super(CommandCodes.MESSAGE, version, id, serializationCode);
-        this.name = name;
+    public MessageCommand(short version, byte serializationCode, String identity, Object data) {
+        super(CommandCodes.MESSAGE, version, RequestIdGenerator.next(), serializationCode);
+        this.identity = identity;
         this.interest = data.getClass().getName();
         this.dataClass = data.getClass();
         this.data = data;
@@ -43,51 +42,37 @@ public final class MessageCommand extends RequestCommand {
     public void serialize(ByteBuf out) {
         super.serialize(out);
         /*
-         * short(2): name len
-         * bytes(name len): name content
+         * short(2): receiver identity len
+         * bytes(identity len): receiver identity content
          * short(2): interest len
          * bytes(interest len): interest content
          * bytes(other): data payload
          */
-        //name
-        byte[] nameBytes = name.getBytes(StandardCharsets.UTF_8);
-        out.writeShort(nameBytes.length);
-        out.writeBytes(nameBytes);
+        //receiver identity
+        BytebufUtils.writeShortString(out, identity);
         //interest
-        byte[] interestBytes = interest.getBytes(StandardCharsets.UTF_8);
-        out.writeShort(interestBytes.length);
-        out.writeBytes(interestBytes);
+        BytebufUtils.writeShortString(out, interest);
 
         getSerialization().serialize(out, data);
     }
 
     @Override
-    public void deserialize0(ByteBuf payload) {
+    public void deserialize0(ByteBuf in) {
         super.deserialize();
 
-        //name
-        short nameLen = payload.readShort();
-        if(nameLen < 0){
-            throw new TransportException("invalid message command, due to miss receiver name");
-        }
-        byte[] nameBytes = new byte[nameLen];
-        name = new String(nameBytes, StandardCharsets.UTF_8);
+        //receiver identity
+        identity = BytebufUtils.readShortString(in);
 
         //interest
-        short interestLen = payload.readShort();
-        if(interestLen < 0){
-            throw new TransportException("invalid message command, due to miss interest");
-        }
-        byte[] interestBytes = new byte[interestLen];
-        interest = new String(interestBytes, StandardCharsets.UTF_8);
+        interest = BytebufUtils.readShortString(in);
 
         dataClass = ClassUtils.getClass(interest);
-        data = getSerialization().deserialize(payload, dataClass);
+        data = getSerialization().deserialize(in, dataClass);
     }
 
     //setter && getter
-    public String getName() {
-        return name;
+    public String getIdentity() {
+        return identity;
     }
 
     public String getInterest() {

@@ -25,9 +25,9 @@ public interface RemotingClient {
         try {
             return (T) requestResponse().get(timeout, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
-            throw new TransportException("request fail", e);
+            throw new TransportException("request response fail", e);
         }
     }
 
-    CompletableFuture<Void> fireAndForget();
+    void fireAndForget();
 }

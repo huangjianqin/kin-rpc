@@ -9,7 +9,6 @@ import org.kin.kinrpc.transport.TransportException;
 import org.kin.transport.netty.AdaptiveOutputByteBufAllocator;
 import org.kin.transport.netty.utils.VarIntUtils;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -67,14 +66,8 @@ public class RemotingCodec {
                     String key = entry.getKey();
                     String value = entry.getValue();
 
-                    byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
-                    byte[] valueBytes = value.getBytes(StandardCharsets.UTF_8);
-
-                    VarIntUtils.writeRawVarInt32(headersOut, keyBytes.length);
-                    headersOut.writeBytes(keyBytes);
-
-                    VarIntUtils.writeRawVarInt32(headersOut, valueBytes.length);
-                    headersOut.writeBytes(valueBytes);
+                    BytebufUtils.writeVarInt32String(headersOut, key);
+                    BytebufUtils.writeVarInt32String(headersOut, value);
                 }
             }
 
@@ -130,16 +123,11 @@ public class RemotingCodec {
             Map<String, String> headers = Collections.emptyMap();
             if(headersLen > 0){
                 headers = new HashMap<>();
-                while(in.readableBytes() > 0){
-                    int keyLen = VarIntUtils.readRawVarInt32(in);
-                    byte[] keyBytes = new byte[keyLen];
-                    in.readBytes(keyBytes);
+                while(in.readableBytes() > 0) {
+                    String key = BytebufUtils.readVarInt32String(in);
+                    String value = BytebufUtils.readVarInt32String(in);
 
-                    int valueLen = VarIntUtils.readRawVarInt32(in);
-                    byte[] valueBytes = new byte[valueLen];
-                    in.readBytes(valueBytes);
-
-                    headers.put(new String(keyBytes, StandardCharsets.UTF_8), new String(valueBytes, StandardCharsets.UTF_8));
+                    headers.put(key, value);
                 }
             }
             command.setHeaders(headers);

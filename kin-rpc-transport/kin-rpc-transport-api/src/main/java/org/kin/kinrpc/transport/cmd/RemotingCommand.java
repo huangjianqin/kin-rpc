@@ -6,7 +6,6 @@ import org.kin.serialization.Serialization;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
@@ -18,7 +17,10 @@ import java.util.Objects;
 public abstract class RemotingCommand implements Serializable {
     private static final long serialVersionUID = -4285886763714528091L;
 
+    /** serialization标识mask */
     private static final int FLAG_SERIALIZATION_MASK = 0xF000;
+    /** serialization标识位移 */
+    private static final int FLAG_SERIALIZATION_SHIFT = 12;
 
     /** command code */
     private short cmdCode;
@@ -124,12 +126,12 @@ public abstract class RemotingCommand implements Serializable {
 
     public void setFlag(short flag) {
         this.flag = flag;
-        this.serializationCode = (byte) (flag & FLAG_SERIALIZATION_MASK >>> 12);
+        this.serializationCode = (byte) (flag & FLAG_SERIALIZATION_MASK >>> FLAG_SERIALIZATION_SHIFT);
     }
 
     public void setSerializationCode(byte serializationCode) {
         this.serializationCode = serializationCode;
-        this.flag = (short) (flag | (serializationCode << 12));
+        this.flag = (short) (flag | (serializationCode << FLAG_SERIALIZATION_SHIFT));
     }
 
     public void setPayload(ByteBuf payload) {

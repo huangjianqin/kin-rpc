@@ -89,7 +89,7 @@ public class RemotingContext implements ChannelContext{
             }
 
             @Override
-            public void onFailure(Throwable t) {
+            public void onFailure(Throwable cause) {
                 log.debug("send rpc response fail, id={} from {}", command.getId(), address());
             }
         });

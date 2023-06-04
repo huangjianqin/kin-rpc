@@ -8,12 +8,12 @@ public interface RemotingServer {
     /**
      * start the server
      */
-    boolean start();
+    void start();
 
     /**
      * shutdown the server
      */
-    boolean shutdown();
+    void shutdown();
 
     /**
      * 获取server的host
@@ -29,7 +29,8 @@ public interface RemotingServer {
 
     /**
      * 注册request processor
+     *
      * @param processor request processor
      */
-    void registerUserProcessor(RequestProcessor<?> processor);
+    void registerRequestProcessor(RequestProcessor<?> processor);
 }

@@ -80,4 +80,9 @@ public class RemotingProcessor {
             processor.process(new RemotingContext(codec, requestProcessorManager, channelContext), command);
         }
     }
+
+    //getter
+    public RequestProcessorManager getRequestProcessorManager() {
+        return requestProcessorManager;
+    }
 }

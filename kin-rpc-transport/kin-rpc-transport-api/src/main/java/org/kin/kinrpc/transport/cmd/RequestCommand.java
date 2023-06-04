@@ -35,8 +35,8 @@ public abstract class RequestCommand extends RemotingCommand {
     }
 
     @Override
-    public void deserialize0(ByteBuf payload) {
-        timeout = VarIntUtils.readRawVarInt32(payload);
+    public void deserialize0(ByteBuf in) {
+        timeout = VarIntUtils.readRawVarInt32(in);
     }
 
     //setter && getter

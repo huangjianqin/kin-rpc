@@ -38,8 +38,8 @@ public class HeartbeatCommandProcessor implements CommandProcessor<HeartbeatComm
                 }
 
                 @Override
-                public void onFailure(Throwable t) {
-                    if(log.isDebugEnabled()){
+                public void onFailure(Throwable cause) {
+                    if (log.isDebugEnabled()) {
                         log.debug("send heart beat ack fail, id={} from {}", requestId, context.address());
                     }
                 }
