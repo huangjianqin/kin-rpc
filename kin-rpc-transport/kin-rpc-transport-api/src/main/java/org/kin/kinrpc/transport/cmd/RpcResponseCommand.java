@@ -74,7 +74,11 @@ public class RpcResponseCommand extends RemotingCommand {
      */
     public void deserializeResult(Class<?> resultType) {
         try{
-            result = getSerialization().deserialize(resultPayload, resultType);
+            if (resultPayload.readableBytes() > 0) {
+                result = getSerialization().deserialize(resultPayload, resultType);
+            } else {
+                result = null;
+            }
         }finally {
             ReferenceCountUtil.safeRelease(resultPayload);
             resultPayload = null;
