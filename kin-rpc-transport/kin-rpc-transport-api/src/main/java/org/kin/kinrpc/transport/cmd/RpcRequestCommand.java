@@ -3,6 +3,7 @@ package org.kin.kinrpc.transport.cmd;
 import io.netty.buffer.ByteBuf;
 import io.netty.util.ReferenceCountUtil;
 import org.kin.kinrpc.transport.RequestIdGenerator;
+import org.kin.kinrpc.transport.TransportConstants;
 
 /**
  * @author huangjianqin
@@ -22,6 +23,11 @@ public class RpcRequestCommand extends RequestCommand {
     private ByteBuf paramsPayload;
 
     public RpcRequestCommand() {
+    }
+
+    public RpcRequestCommand(byte serializationCode,
+                             String gsv, String method, Object[] params) {
+        this(TransportConstants.VERSION, serializationCode, gsv, method, params);
     }
 
     public RpcRequestCommand(short version, byte serializationCode,
@@ -49,12 +55,12 @@ public class RpcRequestCommand extends RequestCommand {
 
     @Override
     public void deserialize0(ByteBuf in) {
-        super.deserialize();
+        super.deserialize0(in);
         //gsv
-        BytebufUtils.writeShortString(in, gsv);
+        gsv = BytebufUtils.readShortString(in);
 
         //method
-        BytebufUtils.writeShortString(in, method);
+        method = BytebufUtils.readShortString(in);
 
         //slice
         paramsPayload = in.retainedSlice();

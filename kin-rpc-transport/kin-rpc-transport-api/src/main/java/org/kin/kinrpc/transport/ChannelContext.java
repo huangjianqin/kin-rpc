@@ -2,6 +2,7 @@ package org.kin.kinrpc.transport;
 
 import javax.annotation.Nullable;
 import java.net.SocketAddress;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 抽象不同transport的操作
@@ -29,4 +30,15 @@ public interface ChannelContext {
      * @return  client address
      */
     SocketAddress address();
+
+    /**
+     * 移除并返回request future
+     * server侧永远返回null
+     * @param requestId request id
+     * @return  request future
+     */
+    @Nullable
+    default CompletableFuture<Object> removeRequestFuture(long requestId){
+        return null;
+    }
 }

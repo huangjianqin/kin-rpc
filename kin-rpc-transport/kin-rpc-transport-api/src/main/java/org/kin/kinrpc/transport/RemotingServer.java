@@ -32,5 +32,5 @@ public interface RemotingServer {
      *
      * @param processor request processor
      */
-    void registerRequestProcessor(RequestProcessor<?> processor);
+    <RS extends RemotingServer> RS registerRequestProcessor(RequestProcessor<?> processor);
 }

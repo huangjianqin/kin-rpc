@@ -2,6 +2,7 @@ package org.kin.kinrpc.transport.cmd;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.util.ReferenceCountUtil;
 import org.kin.serialization.Serialization;
 
 import javax.annotation.Nullable;
@@ -64,6 +65,7 @@ public abstract class RemotingCommand implements Serializable {
         try {
             deserialize0(payload);
         }finally {
+            ReferenceCountUtil.safeRelease(payload);
             setPayload(null);
         }
     }
@@ -126,12 +128,12 @@ public abstract class RemotingCommand implements Serializable {
 
     public void setFlag(short flag) {
         this.flag = flag;
-        this.serializationCode = (byte) (flag & FLAG_SERIALIZATION_MASK >>> FLAG_SERIALIZATION_SHIFT);
+        this.serializationCode = (byte) ((flag & FLAG_SERIALIZATION_MASK) >>> FLAG_SERIALIZATION_SHIFT);
     }
 
     public void setSerializationCode(byte serializationCode) {
         this.serializationCode = serializationCode;
-        this.flag = (short) (flag | (serializationCode << FLAG_SERIALIZATION_SHIFT));
+        this.flag = (short) (flag | (((short)serializationCode) << FLAG_SERIALIZATION_SHIFT));
     }
 
     public void setPayload(ByteBuf payload) {

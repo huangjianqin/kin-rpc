@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.io.Serializable;
 import java.net.SocketAddress;
 import java.util.concurrent.CompletableFuture;
 
@@ -40,6 +41,14 @@ public class RequestContext{
      * @param t   request process exception
      */
     public void writeResponseIfError(Throwable t){
-        remotingContext.writeResponse(RpcResponseCommand.error(command, t.getMessage()));
+        remotingContext.writeError(command, t.getMessage());
+    }
+
+    /**
+     * write message response
+     * @param message   message response result
+     */
+    public void writeMessageResponse(Serializable message){
+        remotingContext.writeResponse(new MessageCommand((MessageCommand) command, message));
     }
 }

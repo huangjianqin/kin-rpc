@@ -7,6 +7,7 @@ import org.kin.kinrpc.transport.cmd.RpcResponseCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 
@@ -23,11 +24,11 @@ public class RequestProcessorTask implements Runnable{
     /** request command */
     private final RequestCommand command;
     /** request obj */
-    private final Object request;
+    private final Serializable request;
     /** request processor */
     private final RequestProcessor requestProcessor;
 
-    public RequestProcessorTask(RemotingContext context, RequestCommand command, String interest, Object request) {
+    public RequestProcessorTask(RemotingContext context, RequestCommand command, String interest, Serializable request) {
         this.context = context;
         this.command = command;
         this.request = request;

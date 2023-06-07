@@ -7,6 +7,8 @@ import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.transport.cmd.RemotingCodec;
 import org.kin.kinrpc.transport.cmd.RemotingCommand;
 import org.kin.kinrpc.transport.cmd.processor.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -17,6 +19,8 @@ import java.util.*;
  * @date 2023/5/31
  */
 public class RemotingProcessor {
+    private static final Logger log = LoggerFactory.getLogger(RemotingProcessor.class);
+
     /** key -> command code, value -> {@link CommandProcessor}实例 */
     private final Map<Short, CommandProcessor<RemotingCommand>> cmdProcessorMap = new HashMap<>();
     /** command processor线程池 */
@@ -70,14 +74,19 @@ public class RemotingProcessor {
 
         @Override
         public void run() {
-            RemotingCommand command = codec.decode(in);
-            short cmdCode = command.getCmdCode();
-            CommandProcessor<RemotingCommand> processor = cmdProcessorMap.get(cmdCode);
-            if (Objects.isNull(processor)) {
-                throw new TransportException("can not find command processor with command code " + cmdCode);
-            }
+            try {
+                RemotingCommand command = codec.decode(in);
+                short cmdCode = command.getCmdCode();
+                CommandProcessor<RemotingCommand> processor = cmdProcessorMap.get(cmdCode);
+                if (Objects.isNull(processor)) {
+                    throw new TransportException("can not find command processor with command code " + cmdCode);
+                }
 
-            processor.process(new RemotingContext(codec, requestProcessorManager, channelContext), command);
+                processor.process(new RemotingContext(codec, requestProcessorManager, channelContext), command);
+            }catch (Exception e){
+                log.error("process remoting command fail", e);
+                // TODO: 2023/6/7 是否需要回包
+            }
         }
     }
 

@@ -1,6 +1,7 @@
 package org.kin.kinrpc.transport.cmd;
 
 import org.kin.framework.utils.ExtensionLoader;
+import org.kin.kinrpc.transport.SerializationNotFoundException;
 import org.kin.kinrpc.transport.TransportException;
 import org.kin.serialization.Serialization;
 
@@ -23,7 +24,7 @@ public final class Serializations {
     public static Serialization getByCode(int code){
         Serialization serialization = ExtensionLoader.getExtension(Serialization.class, code);
         if (Objects.isNull(serialization)) {
-            throw new TransportException("can not find Serialization with code " + code);
+            throw new SerializationNotFoundException("can not find Serialization with code " + code);
         }
 
         return serialization;

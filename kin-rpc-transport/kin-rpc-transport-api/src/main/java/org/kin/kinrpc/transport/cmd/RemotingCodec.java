@@ -4,10 +4,13 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.util.ReferenceCountUtil;
 import org.kin.framework.utils.CollectionUtils;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.transport.CommandHelper;
 import org.kin.kinrpc.transport.TransportException;
 import org.kin.transport.netty.AdaptiveOutputByteBufAllocator;
 import org.kin.transport.netty.utils.VarIntUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -20,6 +23,8 @@ import java.util.Objects;
  * @date 2023/6/1
  */
 public class RemotingCodec {
+    private static final Logger log = LoggerFactory.getLogger(RemotingCodec.class);
+
     /** 自适应分配{@link io.netty.buffer.ByteBuf}实例 */
     private final AdaptiveOutputByteBufAllocator.Handle adaptiveHandle = AdaptiveOutputByteBufAllocator.DEFAULT.newHandle();
     private ByteBufAllocator allocator = ByteBufAllocator.DEFAULT;
@@ -83,6 +88,7 @@ public class RemotingCodec {
             }
         } catch (Exception e) {
             ReferenceCountUtil.safeRelease(out);
+            throw new TransportException("remoting codec encode fail", e);
         } finally {
             if (Objects.nonNull(dataOut)) {
                 ReferenceCountUtil.safeRelease(dataOut);
@@ -115,7 +121,9 @@ public class RemotingCodec {
 
             int dataLen = VarIntUtils.readRawVarInt32(in);
             int headersLen = VarIntUtils.readRawVarInt32(in);
-            command.setPayload(in.retainedSlice(in.readerIndex(), in.readerIndex() + dataLen));
+            command.setPayload(in.retainedSlice(in.readerIndex(), dataLen));
+
+            command.deserialize();
 
             //skip data payload
             in.readerIndex(in.readerIndex() + dataLen);
@@ -133,7 +141,9 @@ public class RemotingCodec {
             command.setHeaders(headers);
 
             return command;
-        }finally {
+        }catch (Exception e) {
+            throw new TransportException("remoting codec decode fail", e);
+        } finally {
             ReferenceCountUtil.safeRelease(in);
         }
     }

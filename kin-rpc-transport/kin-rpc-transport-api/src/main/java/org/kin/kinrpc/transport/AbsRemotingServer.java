@@ -12,8 +12,10 @@ public abstract class AbsRemotingServer implements RemotingServer {
     /** remoting processor */
     protected final RemotingProcessor remotingProcessor = new RemotingProcessor(codec);
 
+    @SuppressWarnings("unchecked")
     @Override
-    public final void registerRequestProcessor(RequestProcessor<?> processor) {
+    public final <RS extends RemotingServer> RS registerRequestProcessor(RequestProcessor<?> processor) {
         remotingProcessor.getRequestProcessorManager().register(processor);
+        return (RS) this;
     }
 }

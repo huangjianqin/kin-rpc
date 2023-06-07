@@ -63,7 +63,7 @@ public class RpcResponseCommand extends RemotingCommand {
 
     @Override
     public void deserialize0(ByteBuf payload) {
-        status = Status.getByCode(payload.readShort());
+        status = Status.getByCode(payload.readByte());
         //slice
         resultPayload = payload.retainedSlice();
     }
@@ -118,5 +118,14 @@ public class RpcResponseCommand extends RemotingCommand {
 
             throw new TransportException("can not find response status with code " + code);
         }
+    }
+
+    //getter
+    public Status getStatus() {
+        return status;
+    }
+
+    public Object getResult() {
+        return result;
     }
 }

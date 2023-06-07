@@ -36,6 +36,7 @@ public final class BytebufUtils {
     public static String readShortString(ByteBuf byteBuf) {
         short len = byteBuf.readShort();
         byte[] bytes = new byte[len];
+        byteBuf.readBytes(bytes);
         return new String(bytes, StandardCharsets.UTF_8);
     }
 
@@ -60,6 +61,7 @@ public final class BytebufUtils {
     public static String readVarInt32String(ByteBuf byteBuf) {
         int len = VarIntUtils.readRawVarInt32(byteBuf);
         byte[] bytes = new byte[len];
+        byteBuf.readBytes(bytes);
         return new String(bytes, StandardCharsets.UTF_8);
     }
 }

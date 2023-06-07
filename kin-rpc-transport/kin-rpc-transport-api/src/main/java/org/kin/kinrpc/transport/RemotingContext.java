@@ -1,5 +1,6 @@
 package org.kin.kinrpc.transport;
 
+import org.kin.kinrpc.transport.cmd.MessageCommand;
 import org.kin.kinrpc.transport.cmd.RemotingCodec;
 import org.kin.kinrpc.transport.cmd.RemotingCommand;
 import org.kin.kinrpc.transport.cmd.RpcResponseCommand;
@@ -33,7 +34,7 @@ public class RemotingContext implements ChannelContext{
 
     @Override
     public void writeAndFlush(Object msg, @Nullable TransportOperationListener listener) {
-        if(!(msg instanceof RemotingCommand)){
+        if(!(msg instanceof RpcResponseCommand) && !(msg instanceof MessageCommand)){
             throw new TransportException("can not write message which type is" + msg.getClass().getName());
         }
 
@@ -41,11 +42,66 @@ public class RemotingContext implements ChannelContext{
         try {
             channelContext.writeAndFlush(codec.encode(remotingCommand), listener);
         } catch (Exception e) {
-            String errorMsg = String.format("serialize RemotingCommand fail, id=%d", remotingCommand.getId());
+            String errorMsg = String.format("serialize RemotingCommand fail, id=%d, due to %s", remotingCommand.getId(), e.getMessage());
             log.error(errorMsg, e);
-            if(msg instanceof RpcResponseCommand){
-                writeAndFlush(RpcResponseCommand.error(remotingCommand, errorMsg), listener);
+            if(e instanceof TransportException){
+                writeError(remotingCommand, errorMsg, listener);
             }
+        }
+    }
+
+    /**
+     * write response with error message
+     * todo 方法重命名
+     * @param command   remoting command
+     * @param errorMsg  error message
+     */
+    public void writeError(RemotingCommand command, String errorMsg){
+        // TODO: 2023/6/7 response transport operation listner是否可以统一
+        if(command instanceof RpcResponseCommand){
+            writeAndFlush(RpcResponseCommand.error(command, errorMsg), new TransportOperationListener() {
+                @Override
+                public void onComplete() {
+                    if(log.isDebugEnabled()){
+                        log.debug("send rpc complete, id={} from {}", command.getId(),  address());
+                    }
+                }
+
+                @Override
+                public void onFailure(Throwable cause) {
+                    log.debug("send rpc fail, id={} from {}", command.getId(), address());
+                }
+            });
+        }
+        else if(command instanceof MessageCommand){
+            writeAndFlush(new MessageCommand((MessageCommand) command, new Error(errorMsg)),new TransportOperationListener() {
+                @Override
+                public void onComplete() {
+                    if(log.isDebugEnabled()){
+                        log.debug("send response complete, id={} from {}", command.getId(),  address());
+                    }
+                }
+
+                @Override
+                public void onFailure(Throwable cause) {
+                    log.debug("send response fail, id={} from {}", command.getId(), address());
+                }
+            });
+        }
+    }
+
+    /**
+     * write response with error message
+     * todo 方法重命名
+     * @param command   remoting command
+     * @param errorMsg  error message
+     */
+    private void writeError(RemotingCommand command, String errorMsg,  @Nullable TransportOperationListener listener){
+        if(command instanceof RpcResponseCommand){
+            writeAndFlush(RpcResponseCommand.error(command, errorMsg), listener);
+        }
+        else if(command instanceof MessageCommand){
+            writeAndFlush(new MessageCommand((MessageCommand) command, new Error(errorMsg)), listener);
         }
     }
 
@@ -62,8 +118,7 @@ public class RemotingContext implements ChannelContext{
      */
     @Nullable
     public CompletableFuture<Object> removeRequestFuture(long requestId){
-        // TODO: 2023/6/2
-        return null;
+        return channelContext.removeRequestFuture(requestId);
     }
 
     /**
@@ -79,18 +134,18 @@ public class RemotingContext implements ChannelContext{
      * write response
      * @param command   response command
      */
-    public void writeResponse(RpcResponseCommand command){
+    public void writeResponse(RemotingCommand command){
         writeAndFlush(command, new TransportOperationListener() {
             @Override
             public void onComplete() {
                 if(log.isDebugEnabled()){
-                    log.debug("send rpc response complete, id={} from {}", command.getId(),  address());
+                    log.debug("send response complete, id={} from {}", command.getId(),  address());
                 }
             }
 
             @Override
             public void onFailure(Throwable cause) {
-                log.debug("send rpc response fail, id={} from {}", command.getId(), address());
+                log.debug("send response fail, id={} from {}", command.getId(), address());
             }
         });
     }

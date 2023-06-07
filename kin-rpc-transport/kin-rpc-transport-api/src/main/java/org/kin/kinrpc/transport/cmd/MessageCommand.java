@@ -3,6 +3,9 @@ package org.kin.kinrpc.transport.cmd;
 import io.netty.buffer.ByteBuf;
 import org.kin.framework.utils.ClassUtils;
 import org.kin.kinrpc.transport.RequestIdGenerator;
+import org.kin.kinrpc.transport.TransportConstants;
+
+import java.io.Serializable;
 
 /**
  * @author huangjianqin
@@ -19,23 +22,36 @@ public final class MessageCommand extends RequestCommand {
      */
     private String interest;
     /** 通过{@link #interest}解析出的data class */
-    private Class<?> dataClass;
+    private Class<? extends Serializable> dataClass;
     /**
      * data payload反序列化后的对象
      *
      * @see RemotingCommand#getPayload()
      */
-    private Object data;
+    private Serializable data;
 
     public MessageCommand() {
     }
 
-    public MessageCommand(short version, byte serializationCode, String identity, Object data) {
-        super(CommandCodes.MESSAGE, version, RequestIdGenerator.next(), serializationCode);
+    public MessageCommand(byte serializationCode, String identity, Serializable data) {
+        this(TransportConstants.VERSION, serializationCode, identity, data);
+    }
+
+    public MessageCommand(short version, byte serializationCode, String identity, Serializable data) {
+        this(version, RequestIdGenerator.next(), serializationCode, identity, data);
+    }
+
+    private MessageCommand(short version, long id, byte serializationCode, String identity, Serializable data) {
+        super(CommandCodes.MESSAGE, version, id, serializationCode);
         this.identity = identity;
         this.interest = data.getClass().getName();
         this.dataClass = data.getClass();
         this.data = data;
+    }
+
+    public MessageCommand(MessageCommand command, Serializable data) {
+        // TODO: 2023/6/7 identity是否需要修改
+        this(TransportConstants.VERSION, command.getId(), command.getSerializationCode(), command.identity, data);
     }
 
     @Override
@@ -58,7 +74,7 @@ public final class MessageCommand extends RequestCommand {
 
     @Override
     public void deserialize0(ByteBuf in) {
-        super.deserialize();
+        super.deserialize0(in);
 
         //receiver identity
         identity = BytebufUtils.readShortString(in);
@@ -84,7 +100,7 @@ public final class MessageCommand extends RequestCommand {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T getData() {
+    public <T extends Serializable> T getData() {
         return (T) data;
     }
 }

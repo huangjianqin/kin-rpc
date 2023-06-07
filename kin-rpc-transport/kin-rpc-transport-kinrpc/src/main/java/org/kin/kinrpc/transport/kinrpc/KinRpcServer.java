@@ -1,6 +1,7 @@
 package org.kin.kinrpc.transport.kinrpc;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.util.NetUtil;
 import org.kin.kinrpc.transport.AbsRemotingServer;
 import org.kin.kinrpc.transport.ChannelContext;
 import org.kin.kinrpc.transport.TransportException;
@@ -28,6 +29,10 @@ public class KinRpcServer extends AbsRemotingServer {
     private final int port;
     private final TcpServerTransport transport;
     private volatile TcpServer server;
+
+    public KinRpcServer(int port) {
+        this(NetUtil.LOCALHOST.getHostAddress(), port);
+    }
 
     public KinRpcServer(String host, int port) {
         this.host = host;
@@ -65,7 +70,7 @@ public class KinRpcServer extends AbsRemotingServer {
                         public SocketAddress address() {
                             return s.remoteAddress();
                         }
-                    }, bp.data());
+                    }, bp.data().retain());
                 }));
     }
 
@@ -83,6 +88,8 @@ public class KinRpcServer extends AbsRemotingServer {
             return;
         }
         server.dispose();
+        // TODO: 2023/6/7 整合dispose
+        remotingProcessor.shutdown();
     }
 
     @Override

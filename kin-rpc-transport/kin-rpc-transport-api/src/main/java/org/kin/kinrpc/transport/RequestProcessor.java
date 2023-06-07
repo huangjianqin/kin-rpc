@@ -1,11 +1,13 @@
 package org.kin.kinrpc.transport;
 
+import java.io.Serializable;
+
 /**
  * user defined request processor
  * @author huangjianqin
  * @date 2023/6/1
  */
-public interface RequestProcessor<R> {
+public interface RequestProcessor<R extends Serializable> {
     /** 内置, 定义rpc request processor interest */
     String RPC_REQUEST_INTEREST = "$rpc";
 
@@ -24,8 +26,10 @@ public interface RequestProcessor<R> {
     String interest();
 
     /**
-     * 返回user defined request process executor selector
+     * 返回user defined request process executor selector, default null
      * @return executor selector
      */
-    ExecutorSelector getExecutorSelector();
+    default ExecutorSelector getExecutorSelector(){
+        return null;
+    }
 }
