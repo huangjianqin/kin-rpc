@@ -64,6 +64,7 @@ public class GrpcServer extends AbsRemotingServer {
     @Override
     public void shutdown() {
         server.shutdown();
+        remotingProcessor.shutdown();
         log.info("grpc server({}:{}) shutdown", host, port);
     }
 

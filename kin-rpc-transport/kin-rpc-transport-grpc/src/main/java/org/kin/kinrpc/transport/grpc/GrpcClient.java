@@ -1,14 +1,13 @@
 package org.kin.kinrpc.transport.grpc;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import io.grpc.*;
 import io.grpc.netty.NettyChannelBuilder;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import org.kin.framework.collection.CopyOnWriteMap;
 import org.kin.framework.utils.NetUtils;
-import org.kin.kinrpc.transport.*;
+import org.kin.kinrpc.transport.AbsRemotingClient;
+import org.kin.kinrpc.transport.ChannelContext;
+import org.kin.kinrpc.transport.TransportOperationListener;
 import org.kin.kinrpc.transport.cmd.MessageCommand;
 import org.kin.kinrpc.transport.cmd.RequestCommand;
 import org.kin.kinrpc.transport.cmd.RpcRequestCommand;
@@ -18,8 +17,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.SocketAddress;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -48,24 +45,32 @@ public class GrpcClient extends AbsRemotingClient {
     @Override
     public void start() {
         if (Objects.nonNull(channel)) {
-            throw new IllegalStateException(String.format("grpc client has been started on %s:%d", host, port));
+            throw new IllegalStateException(String.format("grpc client has been connect to %s:%d", host, port));
         }
 
         this.channel = NettyChannelBuilder.forAddress(host, port)
                 .usePlaintext()
                 .build();
 
-        log.info("grpc client started on {}:{}", host, port);
+        log.info("grpc client connect to {}:{} success", host, port);
     }
 
     @Override
     public void shutdown() {
-        if (Objects.isNull(channel)) {
-            throw new IllegalStateException(String.format("grpc client does not start on %s:%d", host, port));
-        }
+        checkStarted();
 
         channel.shutdown();
+        remotingProcessor.shutdown();
         log.info("grpc client({}:{}) shutdown", host, port);
+    }
+
+    /**
+     * 检查client是否started
+     */
+    private void checkStarted() {
+        if (Objects.isNull(channel)) {
+            throw new IllegalStateException(String.format("grpc client does not start to connect to %s:%d", host, port));
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -74,6 +79,8 @@ public class GrpcClient extends AbsRemotingClient {
         if (Objects.isNull(command)) {
             throw new IllegalArgumentException("request command is null");
         }
+
+        checkStarted();
 
         CompletableFuture<Object> requestFuture = createRequestFuture(command.getId());
         if (command instanceof RpcRequestCommand) {
@@ -100,7 +107,7 @@ public class GrpcClient extends AbsRemotingClient {
             methodDescriptor = GrpcConstants.GENERIC_METHOD_DESCRIPTOR;
         }
 
-        return call(methodDescriptor, codec.encode(command), requestFuture);
+        return call(methodDescriptor, command, codec.encode(command), requestFuture);
     }
 
     /**
@@ -110,7 +117,7 @@ public class GrpcClient extends AbsRemotingClient {
      */
     private CompletableFuture<Object> messageCall(@Nonnull MessageCommand command,
                                                   CompletableFuture<Object> requestFuture) {
-        return call(GrpcMessages.METHOD_DESCRIPTOR, codec.encode(command), requestFuture);
+        return call(GrpcMessages.METHOD_DESCRIPTOR, command, codec.encode(command), requestFuture);
     }
 
     /**
@@ -120,6 +127,7 @@ public class GrpcClient extends AbsRemotingClient {
      * @param payload          call payload
      */
     private CompletableFuture<Object> call(MethodDescriptor<ByteBuf, ByteBuf> methodDescriptor,
+                                           RequestCommand command,
                                            ByteBuf payload,
                                            CompletableFuture<Object> requestFuture) {
         ClientCall<ByteBuf, ByteBuf> clientCall = channel.newCall(methodDescriptor, CallOptions.DEFAULT);
@@ -150,7 +158,8 @@ public class GrpcClient extends AbsRemotingClient {
 
             @Override
             public void onClose(Status status, Metadata trailers) {
-                if(!status.isOk()){
+                if (!status.isOk()) {
+                    removeRequestFuture(command.getId());
                     requestFuture.completeExceptionally(status.getCause());
                 }
             }
@@ -165,11 +174,12 @@ public class GrpcClient extends AbsRemotingClient {
 
     /**
      * 获取method descriptor cache key
-     * @param serviceName   服务名
-     * @param method    服务方法名
-     * @return  method descriptor cache key
+     *
+     * @param serviceName 服务名
+     * @param method      服务方法名
+     * @return method descriptor cache key
      */
-    private String getMethodDescriptorCacheKey(String serviceName, String method){
+    private String getMethodDescriptorCacheKey(String serviceName, String method) {
         return serviceName + "." + method;
     }
 

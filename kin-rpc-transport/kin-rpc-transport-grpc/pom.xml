@@ -37,6 +37,7 @@
         <dependency>
             <groupId>org.kin</groupId>
             <artifactId>kin-serialization-json</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

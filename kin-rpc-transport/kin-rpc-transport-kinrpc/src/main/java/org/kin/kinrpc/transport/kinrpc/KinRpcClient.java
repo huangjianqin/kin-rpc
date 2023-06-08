@@ -82,13 +82,15 @@ public class KinRpcClient extends AbsRemotingClient {
     @Override
     public void start() {
         if (client != null) {
-            return;
+            throw new IllegalStateException(String.format("kinrpc client has been connect to %s:%d", host, port));
         }
         client = transport.connect(host, port);
     }
 
     @Override
     public void shutdown() {
+        checkStarted();
+
         if (client.isDisposed()) {
             return;
         }
@@ -97,12 +99,24 @@ public class KinRpcClient extends AbsRemotingClient {
         remotingProcessor.shutdown();
     }
 
+    /**
+     * 检查client是否started
+     */
+    private void checkStarted(){
+        if (Objects.isNull(client)) {
+            throw new IllegalStateException(String.format("kinrpc client does not start to connect to %s:%d", host, port));
+        }
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public <T> CompletableFuture<T> requestResponse(RequestCommand command) {
         if (Objects.isNull(command)) {
             throw new IllegalArgumentException("request command is null");
         }
+
+        checkStarted();
+
         CompletableFuture<Object> requestFuture = createRequestFuture(command.getId());
         client.send(codec.encode(command), new ChannelOperationListener() {
             @Override
