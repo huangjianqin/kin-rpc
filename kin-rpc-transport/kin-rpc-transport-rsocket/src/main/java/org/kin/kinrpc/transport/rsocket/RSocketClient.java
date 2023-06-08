@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
+import reactor.netty.ReactorNetty;
 
 import javax.annotation.Nullable;
 import java.net.SocketAddress;
@@ -97,7 +98,13 @@ public class RSocketClient extends AbsRemotingClient {
                             removeRequestFuture(command.getId());
                             requestFuture.completeExceptionally(t);
                         })
-                        .doOnNext(p -> onResponse(rsocket, p.data())))
+                        .doOnNext(p -> {
+                            try {
+                                onResponse(rsocket, p.data().retain());
+                            } finally {
+                                ReactorNetty.safeRelease(p);
+                            }
+                        }))
                 .subscribe();
 
         return (CompletableFuture<T>) requestFuture;
