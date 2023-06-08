@@ -27,5 +27,6 @@ public class KinRpcClientTest {
         System.in.read();
 
         client.shutdown();
+//        System.exit(0);
     }
 }

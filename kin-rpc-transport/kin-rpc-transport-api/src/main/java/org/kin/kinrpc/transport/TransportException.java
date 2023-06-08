@@ -2,10 +2,13 @@ package org.kin.kinrpc.transport;
 
 /**
  * transport相关异常
+ *
  * @author huangjianqin
  * @date 2023/6/1
  */
-public class TransportException extends RuntimeException{
+public class TransportException extends RuntimeException {
+    private static final long serialVersionUID = -4704870950427891414L;
+
     public TransportException() {
     }
 

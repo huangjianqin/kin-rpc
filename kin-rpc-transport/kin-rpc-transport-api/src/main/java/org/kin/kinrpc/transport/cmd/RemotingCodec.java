@@ -4,9 +4,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.util.ReferenceCountUtil;
 import org.kin.framework.utils.CollectionUtils;
-import org.kin.framework.utils.ExceptionUtils;
+import org.kin.kinrpc.transport.CodecException;
 import org.kin.kinrpc.transport.CommandHelper;
-import org.kin.kinrpc.transport.TransportException;
 import org.kin.transport.netty.AdaptiveOutputByteBufAllocator;
 import org.kin.transport.netty.utils.VarIntUtils;
 import org.slf4j.Logger;
@@ -88,7 +87,7 @@ public class RemotingCodec {
             }
         } catch (Exception e) {
             ReferenceCountUtil.safeRelease(out);
-            throw new TransportException("remoting codec encode fail", e);
+            throw new CodecException("remoting codec encode fail", e);
         } finally {
             if (Objects.nonNull(dataOut)) {
                 ReferenceCountUtil.safeRelease(dataOut);
@@ -109,7 +108,7 @@ public class RemotingCodec {
      */
     public RemotingCommand decode(ByteBuf in){
         if(in.readableBytes() < 1){
-            throw new TransportException("input byte buffer is empty");
+            throw new CodecException("input byte buffer is empty");
         }
 
         try{
@@ -142,7 +141,7 @@ public class RemotingCodec {
 
             return command;
         }catch (Exception e) {
-            throw new TransportException("remoting codec decode fail", e);
+            throw new CodecException("remoting codec decode fail", e);
         } finally {
             ReferenceCountUtil.safeRelease(in);
         }

@@ -12,6 +12,7 @@ import org.kin.kinrpc.transport.TransportConstants;
 @CommandCode(CommandCodes.RPC_REQUEST)
 public class RpcRequestCommand extends RequestCommand {
     private static final long serialVersionUID = 5549418324792160032L;
+    private static final Object[] EMPTY_PARAMS = new Object[0];
 
     /** 服务唯一标识 */
     private String gsv;
@@ -71,8 +72,12 @@ public class RpcRequestCommand extends RequestCommand {
      * @param paramTypes    服务方法param类型
      */
     public void deserializeParams(Class<?>... paramTypes) {
-        try{
-            params = getSerialization().deserialize(paramsPayload, paramTypes);
+        try {
+            if (paramsPayload.readableBytes() > 1) {
+                params = getSerialization().deserialize(paramsPayload, paramTypes);
+            } else {
+                params = EMPTY_PARAMS;
+            }
         }finally {
             ReferenceCountUtil.safeRelease(paramsPayload);
             paramsPayload = null;
