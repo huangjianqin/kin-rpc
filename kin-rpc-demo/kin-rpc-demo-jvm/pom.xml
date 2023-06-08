@@ -17,12 +17,6 @@
             <artifactId>kin-rpc-demo-api</artifactId>
             <version>${project.version}</version>
         </dependency>
-
-        <dependency>
-            <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-transport-jvm</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 
 </project>

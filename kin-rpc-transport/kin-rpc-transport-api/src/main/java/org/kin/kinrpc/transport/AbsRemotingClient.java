@@ -20,6 +20,15 @@ public abstract class AbsRemotingClient implements RemotingClient {
     protected final RemotingProcessor remotingProcessor = new RemotingProcessor(codec);
     /** key -> request id, value -> request future */
     protected final Map<Long, CompletableFuture<Object>> requestFutureMap = new NonBlockingHashMap<>();
+    /** listen host */
+    protected final String host;
+    /** listen port */
+    protected final int port;
+
+    protected AbsRemotingClient(String host, int port) {
+        this.host = host;
+        this.port = port;
+    }
 
     /**
      * 根据{@code requestId}创建request future

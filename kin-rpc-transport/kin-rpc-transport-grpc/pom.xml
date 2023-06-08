@@ -28,5 +28,15 @@
             <groupId>io.grpc</groupId>
             <artifactId>grpc-core</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-stub</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-serialization-json</artifactId>
+        </dependency>
     </dependencies>
 </project>

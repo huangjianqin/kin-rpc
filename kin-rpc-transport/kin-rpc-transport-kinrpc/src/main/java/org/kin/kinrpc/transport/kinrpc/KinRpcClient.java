@@ -13,6 +13,7 @@ import org.kin.transport.netty.tcp.client.TcpClient;
 import org.kin.transport.netty.tcp.client.TcpClientTransport;
 import reactor.core.publisher.Mono;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.SocketAddress;
 import java.util.Objects;
@@ -23,9 +24,10 @@ import java.util.concurrent.CompletableFuture;
  * @date 2023/6/3
  */
 public class KinRpcClient extends AbsRemotingClient {
-    private final String host;
-    private final int port;
+
+    /** tcp client transport config */
     private final TcpClientTransport transport;
+    /** tcp client */
     private volatile TcpClient client;
 
     public KinRpcClient(int port) {
@@ -33,8 +35,7 @@ public class KinRpcClient extends AbsRemotingClient {
     }
 
     public KinRpcClient(String host, int port) {
-        this.host = host;
-        this.port = port;
+        super(host, port);
         transport = TcpClientTransport.create()
                 .payloadProcessor((s, bp) -> Mono.fromRunnable(() -> {
                     remotingProcessor.process(new ChannelContext() {
@@ -99,6 +100,9 @@ public class KinRpcClient extends AbsRemotingClient {
     @SuppressWarnings("unchecked")
     @Override
     public <T> CompletableFuture<T> requestResponse(RequestCommand command) {
+        if (Objects.isNull(command)) {
+            throw new IllegalArgumentException("request command is null");
+        }
         CompletableFuture<Object> requestFuture = createRequestFuture(command.getId());
         client.send(codec.encode(command), new ChannelOperationListener() {
             @Override

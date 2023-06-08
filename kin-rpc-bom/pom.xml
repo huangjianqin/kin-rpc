@@ -99,12 +99,6 @@
 
             <dependency>
                 <groupId>org.kin</groupId>
-                <artifactId>kin-rpc-transport-jvm</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.kin</groupId>
                 <artifactId>kin-rpc-transport-kinrpc</artifactId>
                 <version>${project.version}</version>
             </dependency>

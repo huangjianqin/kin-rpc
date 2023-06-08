@@ -48,6 +48,7 @@ public class RemotingProcessor {
 
     /**
      * process protocol byte buffer
+     * 会对{@code in}进行{@link ByteBuf#release()}操作, 需保证{@link ByteBuf#refCnt()}大于0
      *
      * @param context channel context
      * @param in      protocol byte buffer
@@ -56,6 +57,9 @@ public class RemotingProcessor {
         executor.execute(new CommandProcessTask(context, in));
     }
 
+    /**
+     * release resource
+     */
     public void shutdown() {
         executor.shutdown();
     }

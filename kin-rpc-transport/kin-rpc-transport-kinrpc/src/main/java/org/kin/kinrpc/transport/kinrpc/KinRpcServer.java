@@ -25,9 +25,9 @@ import java.util.Objects;
 public class KinRpcServer extends AbsRemotingServer {
     private static final Logger log = LoggerFactory.getLogger(KinRpcServer.class);
 
-    private final String host;
-    private final int port;
+    /** tcp server transport config */
     private final TcpServerTransport transport;
+    /** tcp server */
     private volatile TcpServer server;
 
     public KinRpcServer(int port) {
@@ -35,8 +35,7 @@ public class KinRpcServer extends AbsRemotingServer {
     }
 
     public KinRpcServer(String host, int port) {
-        this.host = host;
-        this.port = port;
+        super(host, port);
         transport = TcpServerTransport.create()
                 .payloadProcessor((s, bp) -> Mono.fromRunnable(() -> {
                     remotingProcessor.process(new ChannelContext() {
@@ -90,15 +89,5 @@ public class KinRpcServer extends AbsRemotingServer {
         server.dispose();
         // TODO: 2023/6/7 整合dispose
         remotingProcessor.shutdown();
-    }
-
-    @Override
-    public String host() {
-        return host;
-    }
-
-    @Override
-    public int port() {
-        return port;
     }
 }

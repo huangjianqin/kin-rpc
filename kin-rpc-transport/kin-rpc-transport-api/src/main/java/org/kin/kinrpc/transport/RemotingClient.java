@@ -2,6 +2,7 @@ package org.kin.kinrpc.transport;
 
 import org.kin.kinrpc.transport.cmd.RequestCommand;
 
+import javax.annotation.Nonnull;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -33,7 +34,7 @@ public interface RemotingClient {
      * @param command request command
      */
     @SuppressWarnings("unchecked")
-    default <T> T bRequestResponse(RequestCommand command) {
+    default <T> T bRequestResponse(@Nonnull RequestCommand command) {
         try {
             return (T) requestResponse(command).get();
         } catch (Exception e) {
@@ -47,7 +48,7 @@ public interface RemotingClient {
      * @param command request command
      */
     @SuppressWarnings("unchecked")
-    default <T> T bRequestResponse(RequestCommand command, long timeout) {
+    default <T> T bRequestResponse(@Nonnull RequestCommand command, long timeout) {
         try {
             return (T) requestResponse(command).get(timeout, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
@@ -60,7 +61,7 @@ public interface RemotingClient {
      *
      * @param command request command
      */
-    default void fireAndForget(RequestCommand command) {
+    default void fireAndForget(@Nonnull RequestCommand command) {
         requestResponse(command);
     }
 }
