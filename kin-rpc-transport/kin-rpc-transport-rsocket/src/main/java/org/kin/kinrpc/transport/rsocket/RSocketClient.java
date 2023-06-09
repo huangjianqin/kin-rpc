@@ -101,7 +101,7 @@ public class RSocketClient extends AbsRemotingClient {
                         })
                         .doOnNext(p -> {
                             try {
-                                onResponse(rsocket, p.data().retain());
+                                onResponse(p.data().retain());
                             } finally {
                                 ReactorNetty.safeRelease(p);
                             }
@@ -111,37 +111,7 @@ public class RSocketClient extends AbsRemotingClient {
         return (CompletableFuture<T>) requestFuture;
     }
 
-    private void onResponse(RSocket rsocket, ByteBuf in) {
-        remotingProcessor.process(new ChannelContext() {
-            @Override
-            public void writeAndFlush(Object msg, @Nonnull TransportOperationListener listener) {
-                if (!(msg instanceof ByteBuf)) {
-                    throw new TransportException(String.format("illegal outbound message type '%s'", msg.getClass()));
-                }
-
-                rsocket.requestResponse(ByteBufPayload.create((ByteBuf) msg))
-                        .doOnError(t -> {
-                            listener.onFailure(t);
-                        })
-                        // TODO: 2023/6/8 success已经是拿到response了
-//                        .doOnSuccess(p -> {
-//                            listener.onComplete();
-//                        })
-                        .doOnNext(p -> onResponse(rsocket, p.data()))
-                        .subscribe();
-            }
-
-            @Override
-            public SocketAddress address() {
-                // TODO: 2023/6/8 无法获取地址
-                return null;
-            }
-
-            @Nullable
-            @Override
-            public CompletableFuture<Object> removeRequestFuture(long requestId) {
-                return RSocketClient.this.removeRequestFuture(requestId);
-            }
-        }, in);
+    private void onResponse(ByteBuf in) {
+        remotingProcessor.process(clientChannelContext, in);
     }
 }

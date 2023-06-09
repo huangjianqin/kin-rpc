@@ -4,6 +4,8 @@ import org.jctools.maps.NonBlockingHashMap;
 import org.kin.kinrpc.transport.cmd.RemotingCodec;
 
 import javax.annotation.Nullable;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -20,14 +22,30 @@ public abstract class AbsRemotingClient implements RemotingClient {
     protected final RemotingProcessor remotingProcessor = new RemotingProcessor(codec);
     /** key -> request id, value -> request future */
     protected final Map<Long, CompletableFuture<Object>> requestFutureMap = new NonBlockingHashMap<>();
-    /** listen host */
+    /** remote host */
     protected final String host;
-    /** listen port */
+    /** remote port */
     protected final int port;
+    /** remote address */
+    protected final InetSocketAddress remoteAddress;
+    /** client端默认{@link ChannelContext}实现 */
+    protected final ChannelContext clientChannelContext = new ChannelContext() {
+        @Override
+        public SocketAddress address() {
+            return remoteAddress;
+        }
+
+        @Nullable
+        @Override
+        public CompletableFuture<Object> removeRequestFuture(long requestId) {
+            return AbsRemotingClient.this.removeRequestFuture(requestId);
+        }
+    };
 
     protected AbsRemotingClient(String host, int port) {
         this.host = host;
         this.port = port;
+        this.remoteAddress =new InetSocketAddress(host, port);
     }
 
     /**

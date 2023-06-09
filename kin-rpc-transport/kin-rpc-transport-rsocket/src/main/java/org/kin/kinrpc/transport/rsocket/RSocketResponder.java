@@ -81,6 +81,7 @@ public class RSocketResponder implements RSocket {
 
                     sink.emitValue(ByteBufPayload.create((ByteBuf) msg), RetryNonSerializedEmitFailureHandler.RETRY_NON_SERIALIZED);
                     // TODO: 2023/6/8 无法监听error
+                    listener.onComplete();
                 }
 
                 @Override

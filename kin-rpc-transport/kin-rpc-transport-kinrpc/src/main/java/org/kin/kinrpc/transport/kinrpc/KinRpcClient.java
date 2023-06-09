@@ -43,38 +43,7 @@ public class KinRpcClient extends AbsRemotingClient {
         super(host, port);
         transport = TcpClientTransport.create()
                 .payloadProcessor((s, bp) ->
-                        Mono.fromRunnable(() -> remotingProcessor.process(new ChannelContext() {
-                            @Override
-                            public void writeAndFlush(Object msg, @Nonnull TransportOperationListener listener) {
-                                if (!(msg instanceof ByteBuf)) {
-                                    throw new TransportException(String.format("illegal outbound message type '%s'", msg.getClass()));
-                                }
-
-                                s.send((ByteBuf) msg, new ChannelOperationListener() {
-                                            @Override
-                                            public void onSuccess(Session session) {
-                                                listener.onComplete();
-                                            }
-
-                                            @Override
-                                            public void onFailure(Session session, Throwable cause) {
-                                                listener.onFailure(cause);
-                                            }
-                                        })
-                                        .subscribe();
-                            }
-
-                            @Override
-                            public SocketAddress address() {
-                                return s.remoteAddress();
-                            }
-
-                            @Nullable
-                            @Override
-                            public CompletableFuture<Object> removeRequestFuture(long requestId) {
-                                return KinRpcClient.this.removeRequestFuture(requestId);
-                            }
-                        }, bp.data().retain())))
+                        Mono.fromRunnable(() -> remotingProcessor.process(clientChannelContext, bp.data().retain())))
                 .observer(new ClientObserver<TcpClient>() {
                     @Override
                     public void onConnected(TcpClient client, Session session) {
