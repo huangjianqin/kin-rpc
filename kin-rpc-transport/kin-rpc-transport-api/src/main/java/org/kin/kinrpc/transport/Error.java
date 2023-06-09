@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 /**
  * 特殊message, 包含message处理异常信息
+ * 请不要使用该message进行消息通信
  * @author huangjianqin
  * @date 2023/6/7
  */

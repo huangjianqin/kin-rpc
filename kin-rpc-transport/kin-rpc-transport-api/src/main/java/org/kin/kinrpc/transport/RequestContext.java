@@ -16,7 +16,7 @@ public class RequestContext{
 
     /** remoting context */
     private final RemotingContext remotingContext;
-    /** cmd */
+    /** request cmd */
     private final RequestCommand command;
 
     public RequestContext(RemotingContext remotingContext, RequestCommand command) {

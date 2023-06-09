@@ -24,7 +24,7 @@ public class MessageCommandProcessor implements CommandProcessor<MessageCommand>
         int timeout = command.getTimeout();
         long requestId = command.getId();
         if(timeout > 0 && System.currentTimeMillis() > timeout){
-            String errorMsg = String.format("rpc request is timeout(%d), id=%d, from=%s", timeout, requestId, context.address());
+            String errorMsg = String.format("message request is timeout(%d), id=%d, from=%s", timeout, requestId, context.address());
             log.error(errorMsg);
             return;
         }
@@ -33,16 +33,22 @@ public class MessageCommandProcessor implements CommandProcessor<MessageCommand>
         Serializable data = command.getData();
         if (Objects.isNull(future)) {
             //received message
-            RequestProcessorTask processorTask = new RequestProcessorTask(context, command, command.getInterest(), data);
-            processorTask.run();
+            if(data instanceof Error){
+                log.warn("receive Error message, just ignore");
+            }
+            else{
+                RequestProcessorTask processorTask = new RequestProcessorTask(context, command, command.getInterest(), data);
+                processorTask.run();
+            }
         }
         else{
             //message response
-            if(!(data instanceof Error)){
-                future.complete(data);
+            if(data instanceof Error){
+                //error response
+                future.completeExceptionally(new RemotingException(((Error) data).getMessage()));
             }
             else{
-                future.completeExceptionally(new RemotingException(((Error) data).getMessage()));
+                future.complete(data);
             }
         }
     }
