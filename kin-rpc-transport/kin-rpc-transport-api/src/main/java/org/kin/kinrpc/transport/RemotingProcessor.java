@@ -78,18 +78,26 @@ public class RemotingProcessor {
 
         @Override
         public void run() {
+            RemotingCommand command;
             try {
-                RemotingCommand command = codec.decode(in);
+                command = codec.decode(in);
+            }catch (Exception e){
+                log.error("decode command fail", e);
+                throw new TransportException("decode command fail", e);
+            }
+
+            RemotingContext remotingContext = new RemotingContext(codec, requestProcessorManager, channelContext);
+            try {
                 short cmdCode = command.getCmdCode();
                 CommandProcessor<RemotingCommand> processor = cmdProcessorMap.get(cmdCode);
                 if (Objects.isNull(processor)) {
                     throw new TransportException("can not find command processor with command code " + cmdCode);
                 }
 
-                processor.process(new RemotingContext(codec, requestProcessorManager, channelContext), command);
-            }catch (Exception e){
-                log.error("process remoting command fail", e);
-                // TODO: 2023/6/7 是否需要回包
+                processor.process(remotingContext, command);
+            } catch (Exception e) {
+                //command process fail, response error
+                remotingContext.writeResponseIfError(command, e.getMessage());
             }
         }
     }

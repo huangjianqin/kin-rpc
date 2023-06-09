@@ -1,14 +1,10 @@
 package org.kin.kinrpc.transport;
 
-import io.netty.buffer.ByteBuf;
 import org.kin.kinrpc.transport.cmd.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
-import java.net.SocketAddress;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * request process context
@@ -41,7 +37,7 @@ public class RequestContext{
      * @param t   request process exception
      */
     public void writeResponseIfError(Throwable t){
-        remotingContext.writeError(command, t.getMessage());
+        remotingContext.writeResponseIfError(command, t.getMessage());
     }
 
     /**

@@ -45,31 +45,29 @@ public class RemotingContext implements ChannelContext{
             String errorMsg = String.format("serialize RemotingCommand fail, id=%d, due to %s", remotingCommand.getId(), e.getMessage());
             log.error(errorMsg, e);
             if(e instanceof TransportException){
-                writeError(remotingCommand, errorMsg, listener);
+                writeResponseIfError(remotingCommand, errorMsg, listener);
             }
         }
     }
 
     /**
      * write response with error message
-     * todo 方法重命名
      * @param command   remoting command
      * @param errorMsg  error message
      */
-    public void writeError(RemotingCommand command, String errorMsg){
-        // TODO: 2023/6/7 response transport operation listner是否可以统一
+    public void writeResponseIfError(RemotingCommand command, String errorMsg){
         if(command instanceof RpcResponseCommand){
             writeAndFlush(RpcResponseCommand.error(command, errorMsg), new TransportOperationListener() {
                 @Override
                 public void onComplete() {
                     if(log.isDebugEnabled()){
-                        log.debug("send rpc complete, id={} from {}", command.getId(),  address());
+                        log.debug("send rpc response complete, id={} from {}", command.getId(),  address());
                     }
                 }
 
                 @Override
                 public void onFailure(Throwable cause) {
-                    log.debug("send rpc fail, id={} from {}", command.getId(), address());
+                    log.debug("send rpc response fail, id={} from {}", command.getId(), address());
                 }
             });
         }
@@ -92,11 +90,10 @@ public class RemotingContext implements ChannelContext{
 
     /**
      * write response with error message
-     * todo 方法重命名
      * @param command   remoting command
      * @param errorMsg  error message
      */
-    private void writeError(RemotingCommand command, String errorMsg,  @Nullable TransportOperationListener listener){
+    private void writeResponseIfError(RemotingCommand command, String errorMsg, @Nullable TransportOperationListener listener){
         if(command instanceof RpcResponseCommand){
             writeAndFlush(RpcResponseCommand.error(command, errorMsg), listener);
         }
