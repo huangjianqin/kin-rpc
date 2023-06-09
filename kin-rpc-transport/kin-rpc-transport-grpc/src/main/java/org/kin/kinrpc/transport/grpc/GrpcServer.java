@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
+ * 仍然需要注册服务方法, 是因为需要充分利用http2 stream(一个服务方法对应一个stream), 实现server端多线程处理rpc请求
  * @author huangjianqin
  * @date 2023/6/8
  */
@@ -52,7 +53,9 @@ public class GrpcServer extends AbsRemotingServer {
     public void start() {
         try {
             server.start();
+            //注册message服务
             addService(GrpcMessages.SERVICE_NAME, GrpcMessages.METHOD_NAME);
+            //注册generic服务
             addService(GrpcConstants.GENERIC_SERVICE_NAME, GrpcConstants.GENERIC_METHOD_NAME);
             log.info("grpc server started on {}:{}", host, port);
         } catch (IOException e) {

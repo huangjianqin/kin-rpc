@@ -30,26 +30,16 @@ import java.util.function.Function;
  * @date 2023/6/8
  */
 public class RSocketResponder implements RSocket {
-    /** 默认获取request future方法 */
-    private static final Function<Long, CompletableFuture<Object>> DEFAULT_REQUEST_FUTURE_FUNC = id -> null;
-
     /** rsocket requester */
     private final RSocket requester;
     /** remoting command processor */
     private final RemotingProcessor remotingProcessor;
-    /** 获取request future方法 */
-    private final Function<Long, CompletableFuture<Object>> requestFutureFunc;
     /** remote address */
     private SocketAddress remoteAddress;
 
     public RSocketResponder(RSocket requester, RemotingProcessor remotingProcessor) {
-        this(requester, remotingProcessor, DEFAULT_REQUEST_FUTURE_FUNC);
-    }
-
-    public RSocketResponder(RSocket requester, RemotingProcessor remotingProcessor, Function<Long, CompletableFuture<Object>> requestFutureFunc) {
         this.requester = requester;
         this.remotingProcessor = remotingProcessor;
-        this.requestFutureFunc = requestFutureFunc;
 
         //通过反射获取remote address
         try {
@@ -75,8 +65,8 @@ public class RSocketResponder implements RSocket {
             remotingProcessor.process(new ChannelContext() {
                 @Override
                 public void writeAndFlush(ByteBuf byteBuf, @Nonnull TransportOperationListener listener) {
+                    //!!!无法监听transport error
                     sink.emitValue(ByteBufPayload.create(byteBuf), RetryNonSerializedEmitFailureHandler.RETRY_NON_SERIALIZED);
-                    // TODO: 2023/6/8 无法监听error
                     listener.onComplete();
                 }
 
@@ -85,8 +75,6 @@ public class RSocketResponder implements RSocket {
                     return remoteAddress;
                 }
             }, payload.data().retain());
-        }catch (Exception e){
-            sink.emitError(e, RetryNonSerializedEmitFailureHandler.RETRY_NON_SERIALIZED);
         }finally {
             ReactorNetty.safeRelease(payload);
         }

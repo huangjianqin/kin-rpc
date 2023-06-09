@@ -101,7 +101,7 @@ public class RSocketClient extends AbsRemotingClient {
                         })
                         .doOnNext(p -> {
                             try {
-                                onResponse(p.data().retain());
+                                remotingProcessor.process(clientChannelContext, p.data().retain());
                             } finally {
                                 ReactorNetty.safeRelease(p);
                             }
@@ -109,9 +109,5 @@ public class RSocketClient extends AbsRemotingClient {
                 .subscribe();
 
         return (CompletableFuture<T>) requestFuture;
-    }
-
-    private void onResponse(ByteBuf in) {
-        remotingProcessor.process(clientChannelContext, in);
     }
 }

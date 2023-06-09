@@ -102,6 +102,7 @@ public class GrpcClient extends AbsRemotingClient {
         String cacheKey = getMethodDescriptorCacheKey(gsv, method);
         MethodDescriptor<ByteBuf, ByteBuf> methodDescriptor = methodDescriptorCache.get(cacheKey);
         if (Objects.isNull(methodDescriptor)) {
+            //fallback
             log.warn("does not find method descriptor fallback to generic method descriptor, service name = {}, method name = {}", gsv, method);
             methodDescriptor = GrpcConstants.GENERIC_METHOD_DESCRIPTOR;
         }
