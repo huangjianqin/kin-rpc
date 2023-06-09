@@ -29,21 +29,7 @@ public class HeartbeatCommandProcessor implements CommandProcessor<HeartbeatComm
             }
 
             HeartbeatCommand ack = new HeartbeatCommand(command.getVersion(), requestId);
-            context.writeAndFlush(ack, new TransportOperationListener() {
-                @Override
-                public void onComplete() {
-                    if(log.isDebugEnabled()){
-                        log.debug("send heart beat ack complete, id={} to {}", requestId, context.address());
-                    }
-                }
-
-                @Override
-                public void onFailure(Throwable cause) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("send heart beat ack fail, id={} to {}", requestId, context.address());
-                    }
-                }
-            });
+            context.writeResponse(ack);
         }
         else{
             //client receive heart beat ack

@@ -24,7 +24,7 @@ public class RpcRequestCommandProcessor implements CommandProcessor<RpcRequestCo
         if(timeout > 0 && System.currentTimeMillis() > timeout){
             String errorMsg = String.format("rpc request is timeout(%d), id=%d, from=%s", timeout, requestId, context.address());
             log.error(errorMsg);
-            context.writeResponse(RpcResponseCommand.error(command, errorMsg));
+            context.writeResponseIfError(command, errorMsg);
             return;
         }
 

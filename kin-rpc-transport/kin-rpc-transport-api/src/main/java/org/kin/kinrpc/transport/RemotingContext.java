@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.SocketAddress;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -17,7 +18,7 @@ import java.util.concurrent.CompletableFuture;
  * @author huangjianqin
  * @date 2023/5/30
  */
-public class RemotingContext implements ChannelContext{
+public class RemotingContext{
     private static final Logger log = LoggerFactory.getLogger(RemotingContext.class);
 
     /** 协议codec */
@@ -33,20 +34,23 @@ public class RemotingContext implements ChannelContext{
         this.channelContext = channelContext;
     }
 
-    @Override
-    public void writeAndFlush(Object msg, @Nonnull TransportOperationListener listener) {
-        if(!(msg instanceof RpcResponseCommand) && !(msg instanceof MessageCommand)){
-            throw new TransportException("can not write message which type is" + msg.getClass().getName());
+    /**
+     * write response command
+     * @param command  response command
+     * @param listener  transport operation listener
+     */
+    private void writeAndFlush(RemotingCommand command, @Nonnull TransportOperationListener listener) {
+        if(!(command instanceof RpcResponseCommand) && !(command instanceof MessageCommand)){
+            throw new TransportException("can not write message which type is" + command.getClass().getName());
         }
 
-        RemotingCommand remotingCommand = (RemotingCommand) msg;
         try {
-            channelContext.writeAndFlush(codec.encode(remotingCommand), listener);
+            channelContext.writeAndFlush(codec.encode(command), listener);
         } catch (Exception e) {
-            String errorMsg = String.format("serialize RemotingCommand fail, id=%d, due to %s", remotingCommand.getId(), e.getMessage());
+            String errorMsg = String.format("serialize RemotingCommand fail, id=%d, due to %s", command.getId(), e.getMessage());
             log.error(errorMsg, e);
             if(e instanceof TransportException){
-                writeResponseIfError(remotingCommand, errorMsg, listener);
+                writeResponseIfError(command, errorMsg, listener);
             }
         }
     }
@@ -57,39 +61,16 @@ public class RemotingContext implements ChannelContext{
      * @param errorMsg  error message
      */
     public void writeResponseIfError(RemotingCommand command, String errorMsg){
+        RemotingCommand respondCommand = null;
         if(command instanceof RpcResponseCommand){
-            writeAndFlush(RpcResponseCommand.error(command, errorMsg), new TransportOperationListener() {
-                @Override
-                public void onComplete() {
-                    if(log.isDebugEnabled()){
-                        log.debug("send rpc response complete, id={} to {}", command.getId(),  address());
-                    }
-                }
-
-                @Override
-                public void onFailure(Throwable cause) {
-                    if(log.isDebugEnabled()){
-                        log.debug("send rpc response fail, id={} to {}", command.getId(), address());
-                    }
-                }
-            });
+            respondCommand = RpcResponseCommand.error(command, errorMsg);
         }
         else if(command instanceof MessageCommand){
-            writeAndFlush(new MessageCommand((MessageCommand) command, new Error(errorMsg)),new TransportOperationListener() {
-                @Override
-                public void onComplete() {
-                    if(log.isDebugEnabled()){
-                        log.debug("send response complete, id={} to {}", command.getId(),  address());
-                    }
-                }
+            respondCommand = new MessageCommand((MessageCommand) command, new Error(errorMsg));
+        }
 
-                @Override
-                public void onFailure(Throwable cause) {
-                    if(log.isDebugEnabled()){
-                        log.debug("send response fail, id={} to {}", command.getId(), address());
-                    }
-                }
-            });
+        if (Objects.nonNull(respondCommand)) {
+            writeResponse(respondCommand);
         }
     }
 
@@ -97,17 +78,26 @@ public class RemotingContext implements ChannelContext{
      * write response with error message
      * @param command   remoting command
      * @param errorMsg  error message
+     * @param listener transport operation listener
      */
-    private void writeResponseIfError(RemotingCommand command, String errorMsg, @Nullable TransportOperationListener listener){
+    private void writeResponseIfError(RemotingCommand command, String errorMsg, @Nonnull TransportOperationListener listener){
+        RemotingCommand respondCommand = null;
         if(command instanceof RpcResponseCommand){
-            writeAndFlush(RpcResponseCommand.error(command, errorMsg), listener);
+            respondCommand = RpcResponseCommand.error(command, errorMsg);
         }
         else if(command instanceof MessageCommand){
-            writeAndFlush(new MessageCommand((MessageCommand) command, new Error(errorMsg)), listener);
+            respondCommand = new MessageCommand((MessageCommand) command, new Error(errorMsg));
+        }
+
+        if (Objects.nonNull(respondCommand)) {
+            writeAndFlush(respondCommand, listener);
         }
     }
 
-    @Override
+    /**
+     * 返回client address
+     * @return  client address
+     */
     public SocketAddress address() {
         return channelContext.address();
     }

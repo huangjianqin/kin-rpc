@@ -54,7 +54,7 @@ public class RequestProcessorTask implements Runnable{
             requestProcessor.process(new RequestContext(context, command), request);
         } catch (Exception e) {
             log.error("processor remoting request fail, id={}, from={}", command.getId(), context.address(), e);
-            context.writeResponse(RpcResponseCommand.error(command, "processor remoting request fail due to " + e.getMessage()));
+            context.writeResponseIfError(command, "processor remoting request fail due to " + e.getMessage());
         }
     }
 }
