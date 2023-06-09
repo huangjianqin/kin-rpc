@@ -1,6 +1,7 @@
 package org.kin.kinrpc.transport;
 
 /**
+ * 编解码相关异常
  * @author huangjianqin
  * @date 2023/6/7
  */

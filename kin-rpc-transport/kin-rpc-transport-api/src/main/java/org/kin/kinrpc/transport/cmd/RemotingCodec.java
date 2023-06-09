@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * protocol byte buffer统一编解码
+ * outbound command编码或者inbound byte buffer解码入口
  * @author huangjianqin
  * @date 2023/6/1
  */
@@ -26,9 +26,10 @@ public class RemotingCodec {
 
     /** 自适应分配{@link io.netty.buffer.ByteBuf}实例 */
     private final AdaptiveOutputByteBufAllocator.Handle adaptiveHandle = AdaptiveOutputByteBufAllocator.DEFAULT.newHandle();
-    private ByteBufAllocator allocator = ByteBufAllocator.DEFAULT;
+    private final ByteBufAllocator allocator;
 
     public RemotingCodec() {
+        this(ByteBufAllocator.DEFAULT);
     }
 
     public RemotingCodec(ByteBufAllocator allocator) {

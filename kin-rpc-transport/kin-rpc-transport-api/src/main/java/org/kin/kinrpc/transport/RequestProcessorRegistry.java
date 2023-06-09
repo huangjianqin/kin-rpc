@@ -6,11 +6,11 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * {@link RequestProcessor}实例管理
+ * {@link RequestProcessor}注册中心
  * @author huangjianqin
  * @date 2023/6/1
  */
-public class RequestProcessorManager {
+public class RequestProcessorRegistry {
     /** key -> interest, value -> {@link RequestProcessor}实例 */
     private final Map<String, RequestProcessor<?>> processorMap = new CopyOnWriteMap<>();
 

@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
+ * command工具类
  * @author huangjianqin
  * @date 2023/5/31
  */

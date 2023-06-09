@@ -24,13 +24,13 @@ public class RemotingContext{
     /** 协议codec */
     private final RemotingCodec codec;
     /** {@link RequestProcessor}实例管理 */
-    private final RequestProcessorManager requestProcessorManager;
+    private final RequestProcessorRegistry requestProcessorRegistry;
     /** channel context */
     private final ChannelContext channelContext;
 
-    public RemotingContext(RemotingCodec codec, RequestProcessorManager requestProcessorManager, ChannelContext channelContext) {
+    public RemotingContext(RemotingCodec codec, RequestProcessorRegistry requestProcessorRegistry, ChannelContext channelContext) {
         this.codec = codec;
-        this.requestProcessorManager = requestProcessorManager;
+        this.requestProcessorRegistry = requestProcessorRegistry;
         this.channelContext = channelContext;
     }
 
@@ -119,7 +119,7 @@ public class RemotingContext{
      * @return  {@link RequestProcessor}实例
      */
     public RequestProcessor<?> getByInterest(String interest){
-        return requestProcessorManager.getByInterest(interest);
+        return requestProcessorRegistry.getByInterest(interest);
     }
 
     /**

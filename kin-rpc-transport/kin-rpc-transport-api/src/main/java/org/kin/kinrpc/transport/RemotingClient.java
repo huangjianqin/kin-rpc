@@ -7,6 +7,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * client抽象
  * @author huangjianqin
  * @date 2023/6/1
  */

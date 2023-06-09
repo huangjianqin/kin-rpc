@@ -1,6 +1,7 @@
 package org.kin.kinrpc.transport;
 
 /**
+ * server抽象
  * @author huangjianqin
  * @date 2023/6/1
  */

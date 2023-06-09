@@ -1,6 +1,7 @@
 package org.kin.kinrpc.transport.cmd;
 
 /**
+ * command code定义
  * @author huangjianqin
  * @date 2023/5/31
  */

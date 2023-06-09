@@ -28,7 +28,7 @@ public class RemotingProcessor {
     /** 协议codec */
     private final RemotingCodec codec;
     /** {@link RequestProcessor}实例管理 */
-    private final RequestProcessorManager requestProcessorManager = new RequestProcessorManager();
+    private final RequestProcessorRegistry requestProcessorRegistry = new RequestProcessorRegistry();
 
     @SuppressWarnings("unchecked")
     public RemotingProcessor(RemotingCodec codec) {
@@ -86,7 +86,7 @@ public class RemotingProcessor {
                 throw new TransportException("decode command fail", e);
             }
 
-            RemotingContext remotingContext = new RemotingContext(codec, requestProcessorManager, channelContext);
+            RemotingContext remotingContext = new RemotingContext(codec, requestProcessorRegistry, channelContext);
             try {
                 short cmdCode = command.getCmdCode();
                 CommandProcessor<RemotingCommand> processor = cmdProcessorMap.get(cmdCode);
@@ -103,7 +103,7 @@ public class RemotingProcessor {
     }
 
     //getter
-    public RequestProcessorManager getRequestProcessorManager() {
-        return requestProcessorManager;
+    public RequestProcessorRegistry getRequestProcessorManager() {
+        return requestProcessorRegistry;
     }
 }
