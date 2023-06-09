@@ -7,6 +7,7 @@ import org.kin.kinrpc.transport.cmd.RpcResponseCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.SocketAddress;
 import java.util.concurrent.CompletableFuture;
@@ -33,7 +34,7 @@ public class RemotingContext implements ChannelContext{
     }
 
     @Override
-    public void writeAndFlush(Object msg, @Nullable TransportOperationListener listener) {
+    public void writeAndFlush(Object msg, @Nonnull TransportOperationListener listener) {
         if(!(msg instanceof RpcResponseCommand) && !(msg instanceof MessageCommand)){
             throw new TransportException("can not write message which type is" + msg.getClass().getName());
         }

@@ -1,5 +1,6 @@
 package org.kin.kinrpc.transport;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.SocketAddress;
 import java.util.concurrent.CompletableFuture;
@@ -15,7 +16,7 @@ public interface ChannelContext {
      * @param msg  message
      */
     default void writeAndFlush(Object msg){
-        writeAndFlush(msg, null);
+        writeAndFlush(msg, TransportOperationListener.DEFAULT);
     }
 
     /**
@@ -23,7 +24,7 @@ public interface ChannelContext {
      * @param msg  message
      * @param listener  transport operation listener
      */
-    void writeAndFlush(Object msg, @Nullable TransportOperationListener listener);
+    void writeAndFlush(Object msg, @Nonnull TransportOperationListener listener);
 
     /**
      * 返回client address

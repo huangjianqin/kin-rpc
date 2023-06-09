@@ -6,6 +6,9 @@ package org.kin.kinrpc.transport;
  * @date 2023/5/30
  */
 public interface TransportOperationListener {
+    /** 默认do nothing实现 */
+    TransportOperationListener DEFAULT = new TransportOperationListener() {
+    };
     /** transport操作成功触发 */
     default void onComplete() {
 

@@ -19,6 +19,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.netty.ReactorNetty;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.SocketAddress;
 import java.util.Objects;
@@ -113,23 +114,17 @@ public class RSocketClient extends AbsRemotingClient {
     private void onResponse(RSocket rsocket, ByteBuf in) {
         remotingProcessor.process(new ChannelContext() {
             @Override
-            public void writeAndFlush(Object msg, @Nullable TransportOperationListener listener) {
+            public void writeAndFlush(Object msg, @Nonnull TransportOperationListener listener) {
                 if (!(msg instanceof ByteBuf)) {
                     throw new TransportException(String.format("illegal outbound message type '%s'", msg.getClass()));
                 }
 
                 rsocket.requestResponse(ByteBufPayload.create((ByteBuf) msg))
                         .doOnError(t -> {
-                            if (Objects.isNull(listener)) {
-                                return;
-                            }
                             listener.onFailure(t);
                         })
                         // TODO: 2023/6/8 success已经是拿到response了
 //                        .doOnSuccess(p -> {
-//                            if (Objects.isNull(listener)) {
-//                                return;
-//                            }
 //                            listener.onComplete();
 //                        })
                         .doOnNext(p -> onResponse(rsocket, p.data()))

@@ -16,6 +16,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.netty.ReactorNetty;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -73,15 +74,12 @@ public class RSocketResponder implements RSocket {
         try{
             remotingProcessor.process(new ChannelContext() {
                 @Override
-                public void writeAndFlush(Object msg, @Nullable TransportOperationListener listener) {
+                public void writeAndFlush(Object msg, @Nonnull TransportOperationListener listener) {
                     if (!(msg instanceof ByteBuf)) {
                         throw new TransportException(String.format("illegal outbound message type '%s'", msg.getClass()));
                     }
 
                     sink.emitValue(ByteBufPayload.create((ByteBuf) msg), RetryNonSerializedEmitFailureHandler.RETRY_NON_SERIALIZED);
-                    if (Objects.nonNull(listener)) {
-                        listener.onComplete();
-                    }
                     // TODO: 2023/6/8 无法监听error
                 }
 

@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.SocketAddress;
 import java.util.Objects;
@@ -44,7 +45,7 @@ public class KinRpcClient extends AbsRemotingClient {
                 .payloadProcessor((s, bp) ->
                         Mono.fromRunnable(() -> remotingProcessor.process(new ChannelContext() {
                             @Override
-                            public void writeAndFlush(Object msg, @Nullable TransportOperationListener listener) {
+                            public void writeAndFlush(Object msg, @Nonnull TransportOperationListener listener) {
                                 if (!(msg instanceof ByteBuf)) {
                                     throw new TransportException(String.format("illegal outbound message type '%s'", msg.getClass()));
                                 }
@@ -52,17 +53,11 @@ public class KinRpcClient extends AbsRemotingClient {
                                 s.send((ByteBuf) msg, new ChannelOperationListener() {
                                             @Override
                                             public void onSuccess(Session session) {
-                                                if (Objects.isNull(listener)) {
-                                                    return;
-                                                }
                                                 listener.onComplete();
                                             }
 
                                             @Override
                                             public void onFailure(Session session, Throwable cause) {
-                                                if (Objects.isNull(listener)) {
-                                                    return;
-                                                }
                                                 listener.onFailure(cause);
                                             }
                                         })

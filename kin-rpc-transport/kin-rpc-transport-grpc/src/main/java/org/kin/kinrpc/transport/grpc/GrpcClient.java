@@ -138,7 +138,7 @@ public class GrpcClient extends AbsRemotingClient {
                 // TODO: 2023/6/8 如果是stream请求还得缓存methodDescriptor, clientCall
                 remotingProcessor.process(new ChannelContext() {
                     @Override
-                    public void writeAndFlush(Object msg, @Nullable TransportOperationListener listener) {
+                    public void writeAndFlush(Object msg, @Nonnull TransportOperationListener listener) {
                         // TODO: 2023/6/8 grpc client请求必须依赖MethodDescriptor, 这里没办法仅靠bytebuf来发command
                     }
 

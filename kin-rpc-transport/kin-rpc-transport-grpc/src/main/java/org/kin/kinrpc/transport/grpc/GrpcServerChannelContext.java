@@ -8,6 +8,7 @@ import org.kin.kinrpc.transport.ChannelContext;
 import org.kin.kinrpc.transport.TransportException;
 import org.kin.kinrpc.transport.TransportOperationListener;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.SocketAddress;
 import java.util.Objects;
@@ -25,7 +26,7 @@ public class GrpcServerChannelContext implements ChannelContext {
     }
 
     @Override
-    public void writeAndFlush(Object msg, @Nullable TransportOperationListener listener) {
+    public void writeAndFlush(Object msg, @Nonnull TransportOperationListener listener) {
         if (!(msg instanceof ByteBuf)) {
             throw new TransportException(String.format("illegal outbound message type '%s'", msg.getClass()));
         }
