@@ -1,5 +1,7 @@
 package org.kin.kinrpc.transport;
 
+import io.netty.buffer.ByteBuf;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.SocketAddress;
@@ -15,8 +17,8 @@ public interface ChannelContext {
      * write out message
      * @param msg  message
      */
-    default void writeAndFlush(Object msg){
-        writeAndFlush(msg, TransportOperationListener.DEFAULT);
+    default void writeAndFlush(ByteBuf byteBuf){
+        writeAndFlush(byteBuf, TransportOperationListener.DEFAULT);
     }
 
     /**
@@ -24,7 +26,7 @@ public interface ChannelContext {
      * @param msg  message
      * @param listener  transport operation listener
      */
-    default void writeAndFlush(Object msg, @Nonnull TransportOperationListener listener){
+    default void writeAndFlush(ByteBuf byteBuf, @Nonnull TransportOperationListener listener){
         //目前仅有server端需要write response
         // TODO: 2023/6/9 如果后续需要扩展流协议请求, 则client端也要支持write
         throw new UnsupportedOperationException();

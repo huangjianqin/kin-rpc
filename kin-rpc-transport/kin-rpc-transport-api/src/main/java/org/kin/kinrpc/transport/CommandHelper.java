@@ -40,7 +40,7 @@ public final class CommandHelper {
     public static <RC extends RemotingCommand> void registerFactory(Class<RC> type, Supplier<RC> factory){
         short code = getCommandCode(type);
         if(COMMAND_FACTORIES.containsKey(code)){
-            throw new TransportException(String.format("command type '%s' has been registered", type.getName()));
+            throw new RemotingException(String.format("command type '%s' has been registered", type.getName()));
         }
 
         COMMAND_FACTORIES.put(code, (Supplier<RemotingCommand>) factory);
@@ -54,7 +54,7 @@ public final class CommandHelper {
     public static <RC extends RemotingCommand> short getCommandCode(Class<RC> type){
         CommandCode commandCode = type.getAnnotation(CommandCode.class);
         if (Objects.isNull(commandCode)) {
-            throw new TransportException(String.format("command type '%s' miss @%s", type.getName(), CommandCode.class.getSimpleName()));
+            throw new RemotingException(String.format("command type '%s' miss @%s", type.getName(), CommandCode.class.getSimpleName()));
         }
 
         return commandCode.value();
@@ -69,7 +69,7 @@ public final class CommandHelper {
     public static <RC extends RemotingCommand> RC createCommandByCode(short cmdCode) {
         Supplier<RemotingCommand> factory = COMMAND_FACTORIES.get(cmdCode);
         if (Objects.isNull(factory)) {
-            throw new TransportException("can not find command factory with command code " + cmdCode);
+            throw new RemotingException("can not find command factory with command code " + cmdCode);
         }
 
         RC rc = (RC) factory.get();

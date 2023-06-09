@@ -85,6 +85,23 @@ public class RpcResponseCommand extends RemotingCommand {
         }
     }
 
+    /**
+     * rpc request是否调用成功
+     * @return  true表示rpc request调用成功
+     */
+    public boolean isOk(){
+        return Status.SUCCESS.equals(status);
+    }
+
+    //getter
+    public Status getStatus() {
+        return status;
+    }
+
+    public Object getResult() {
+        return result;
+    }
+
     //------------------------------------------------------------------------------------------------------------------------------------------------
     public enum Status {
         /**
@@ -122,14 +139,5 @@ public class RpcResponseCommand extends RemotingCommand {
 
             throw new TransportException("can not find response status with code " + code);
         }
-    }
-
-    //getter
-    public Status getStatus() {
-        return status;
-    }
-
-    public Object getResult() {
-        return result;
     }
 }

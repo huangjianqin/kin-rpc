@@ -74,12 +74,8 @@ public class RSocketResponder implements RSocket {
         try{
             remotingProcessor.process(new ChannelContext() {
                 @Override
-                public void writeAndFlush(Object msg, @Nonnull TransportOperationListener listener) {
-                    if (!(msg instanceof ByteBuf)) {
-                        throw new TransportException(String.format("illegal outbound message type '%s'", msg.getClass()));
-                    }
-
-                    sink.emitValue(ByteBufPayload.create((ByteBuf) msg), RetryNonSerializedEmitFailureHandler.RETRY_NON_SERIALIZED);
+                public void writeAndFlush(ByteBuf byteBuf, @Nonnull TransportOperationListener listener) {
+                    sink.emitValue(ByteBufPayload.create(byteBuf), RetryNonSerializedEmitFailureHandler.RETRY_NON_SERIALIZED);
                     // TODO: 2023/6/8 无法监听error
                     listener.onComplete();
                 }

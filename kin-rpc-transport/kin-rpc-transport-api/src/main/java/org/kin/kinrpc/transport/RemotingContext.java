@@ -47,9 +47,9 @@ public class RemotingContext{
         try {
             channelContext.writeAndFlush(codec.encode(command), listener);
         } catch (Exception e) {
-            String errorMsg = String.format("serialize RemotingCommand fail, id=%d, due to %s", command.getId(), e.getMessage());
-            log.error(errorMsg, e);
-            if(e instanceof TransportException){
+            String errorMsg = String.format("write response command fail, id=%d, due to %s", command.getId(), e.getMessage());
+            log.error("write response command fail, id={}", command.getId(), e);
+            if(!(e instanceof CodecException)){
                 writeResponseIfError(command, errorMsg, listener);
             }
         }

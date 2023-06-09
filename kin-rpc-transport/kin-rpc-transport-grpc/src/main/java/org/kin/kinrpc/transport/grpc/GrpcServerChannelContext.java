@@ -26,13 +26,9 @@ public class GrpcServerChannelContext implements ChannelContext {
     }
 
     @Override
-    public void writeAndFlush(Object msg, @Nonnull TransportOperationListener listener) {
-        if (!(msg instanceof ByteBuf)) {
-            throw new TransportException(String.format("illegal outbound message type '%s'", msg.getClass()));
-        }
-
+    public void writeAndFlush(ByteBuf byteBuf, @Nonnull TransportOperationListener listener) {
         try {
-            observer.onNext((ByteBuf) msg);
+            observer.onNext(byteBuf);
             observer.onCompleted();
             listener.onComplete();
         } catch (Exception e) {

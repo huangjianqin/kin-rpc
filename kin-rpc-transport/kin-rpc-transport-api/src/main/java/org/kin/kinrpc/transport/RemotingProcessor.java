@@ -82,8 +82,8 @@ public class RemotingProcessor {
             try {
                 command = codec.decode(in);
             }catch (Exception e){
-                log.error("decode command fail", e);
-                throw new TransportException("decode command fail", e);
+                log.error("command decode fail", e);
+                throw new TransportException("command decode fail", e);
             }
 
             RemotingContext remotingContext = new RemotingContext(codec, requestProcessorRegistry, channelContext);
@@ -91,11 +91,12 @@ public class RemotingProcessor {
                 short cmdCode = command.getCmdCode();
                 CommandProcessor<RemotingCommand> processor = cmdProcessorMap.get(cmdCode);
                 if (Objects.isNull(processor)) {
-                    throw new TransportException("can not find command processor with command code " + cmdCode);
+                    throw new RemotingException("can not find command processor with command code " + cmdCode);
                 }
 
                 processor.process(remotingContext, command);
             } catch (Exception e) {
+                log.error("process command fail, {}", command, e);
                 //command process fail, response error
                 remotingContext.writeResponseIfError(command, e.getMessage());
             }

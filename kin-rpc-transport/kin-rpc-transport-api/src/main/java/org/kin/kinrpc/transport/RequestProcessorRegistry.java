@@ -21,7 +21,7 @@ public class RequestProcessorRegistry {
     public void register(RequestProcessor<?> processor){
         String interest = processor.interest();
         if (processorMap.containsKey(interest)) {
-            throw new TransportException(String.format("processor with interest '%s' has been registered", interest));
+            throw new RemotingException(String.format("processor with interest '%s' has been registered", interest));
         }
 
         processorMap.put(interest, processor);
@@ -35,7 +35,7 @@ public class RequestProcessorRegistry {
     public RequestProcessor<?> getByInterest(String interest){
         RequestProcessor<?> processor = processorMap.get(interest);
         if (Objects.isNull(processor)) {
-            throw new TransportException(String.format("processor with interest '%s' is not exists", interest));
+            throw new RemotingException(String.format("processor with interest '%s' is not exists", interest));
         }
 
         return processor;

@@ -42,12 +42,8 @@ public class KinRpcServer extends AbsRemotingServer {
                 .payloadProcessor((s, bp) ->
                         Mono.fromRunnable(() -> remotingProcessor.process(new ChannelContext() {
                             @Override
-                            public void writeAndFlush(Object msg, @Nonnull TransportOperationListener listener) {
-                                if (!(msg instanceof ByteBuf)) {
-                                    throw new TransportException(String.format("illegal outbound message type '%s'", msg.getClass()));
-                                }
-
-                                s.send((ByteBuf) msg, new ChannelOperationListener() {
+                            public void writeAndFlush(ByteBuf byteBuf, @Nonnull TransportOperationListener listener) {
+                                s.send(byteBuf, new ChannelOperationListener() {
                                             @Override
                                             public void onSuccess(Session session) {
                                                 listener.onComplete();
