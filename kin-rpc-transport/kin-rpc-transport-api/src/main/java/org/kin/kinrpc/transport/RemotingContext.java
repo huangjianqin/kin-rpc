@@ -61,13 +61,15 @@ public class RemotingContext implements ChannelContext{
                 @Override
                 public void onComplete() {
                     if(log.isDebugEnabled()){
-                        log.debug("send rpc response complete, id={} from {}", command.getId(),  address());
+                        log.debug("send rpc response complete, id={} to {}", command.getId(),  address());
                     }
                 }
 
                 @Override
                 public void onFailure(Throwable cause) {
-                    log.debug("send rpc response fail, id={} from {}", command.getId(), address());
+                    if(log.isDebugEnabled()){
+                        log.debug("send rpc response fail, id={} to {}", command.getId(), address());
+                    }
                 }
             });
         }
@@ -76,13 +78,15 @@ public class RemotingContext implements ChannelContext{
                 @Override
                 public void onComplete() {
                     if(log.isDebugEnabled()){
-                        log.debug("send response complete, id={} from {}", command.getId(),  address());
+                        log.debug("send response complete, id={} to {}", command.getId(),  address());
                     }
                 }
 
                 @Override
                 public void onFailure(Throwable cause) {
-                    log.debug("send response fail, id={} from {}", command.getId(), address());
+                    if(log.isDebugEnabled()){
+                        log.debug("send response fail, id={} to {}", command.getId(), address());
+                    }
                 }
             });
         }
@@ -136,13 +140,15 @@ public class RemotingContext implements ChannelContext{
             @Override
             public void onComplete() {
                 if(log.isDebugEnabled()){
-                    log.debug("send response complete, id={} from {}", command.getId(),  address());
+                    log.debug("send response complete, id={} to {}", command.getId(),  address());
                 }
             }
 
             @Override
             public void onFailure(Throwable cause) {
-                log.debug("send response fail, id={} from {}", command.getId(), address());
+                if(log.isDebugEnabled()){
+                    log.debug("send response fail, id={} to {}", command.getId(), address());
+                }
             }
         });
     }

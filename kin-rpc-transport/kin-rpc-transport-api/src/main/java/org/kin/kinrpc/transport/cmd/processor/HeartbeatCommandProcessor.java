@@ -33,14 +33,14 @@ public class HeartbeatCommandProcessor implements CommandProcessor<HeartbeatComm
                 @Override
                 public void onComplete() {
                     if(log.isDebugEnabled()){
-                        log.debug("send heart beat ack complete, id={} from {}", requestId, context.address());
+                        log.debug("send heart beat ack complete, id={} to {}", requestId, context.address());
                     }
                 }
 
                 @Override
                 public void onFailure(Throwable cause) {
                     if (log.isDebugEnabled()) {
-                        log.debug("send heart beat ack fail, id={} from {}", requestId, context.address());
+                        log.debug("send heart beat ack fail, id={} to {}", requestId, context.address());
                     }
                 }
             });
