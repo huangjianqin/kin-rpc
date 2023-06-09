@@ -7,6 +7,7 @@ import org.kin.kinrpc.transport.ChannelContext;
 import org.kin.kinrpc.transport.TransportException;
 import org.kin.kinrpc.transport.TransportOperationListener;
 import org.kin.transport.netty.ChannelOperationListener;
+import org.kin.transport.netty.ServerObserver;
 import org.kin.transport.netty.Session;
 import org.kin.transport.netty.tcp.server.TcpServer;
 import org.kin.transport.netty.tcp.server.TcpServerTransport;
@@ -37,40 +38,50 @@ public class KinRpcServer extends AbsRemotingServer {
     public KinRpcServer(String host, int port) {
         super(host, port);
         transport = TcpServerTransport.create()
-                .payloadProcessor((s, bp) -> Mono.fromRunnable(() -> {
-                    remotingProcessor.process(new ChannelContext() {
-                        @Override
-                        public void writeAndFlush(Object msg, @Nullable TransportOperationListener listener) {
-                            if (!(msg instanceof ByteBuf)) {
-                                throw new TransportException(String.format("illegal outbound message type '%s'", msg.getClass()));
+                .payloadProcessor((s, bp) ->
+                        Mono.fromRunnable(() -> remotingProcessor.process(new ChannelContext() {
+                            @Override
+                            public void writeAndFlush(Object msg, @Nullable TransportOperationListener listener) {
+                                if (!(msg instanceof ByteBuf)) {
+                                    throw new TransportException(String.format("illegal outbound message type '%s'", msg.getClass()));
+                                }
+
+                                s.send((ByteBuf) msg, new ChannelOperationListener() {
+                                            @Override
+                                            public void onSuccess(Session session) {
+                                                if (Objects.isNull(listener)) {
+                                                    return;
+                                                }
+                                                listener.onComplete();
+                                            }
+
+                                            @Override
+                                            public void onFailure(Session session, Throwable cause) {
+                                                if (Objects.isNull(listener)) {
+                                                    return;
+                                                }
+                                                listener.onFailure(cause);
+                                            }
+                                        })
+                                        .subscribe();
                             }
 
-                            s.send((ByteBuf) msg, new ChannelOperationListener() {
-                                        @Override
-                                        public void onSuccess(Session session) {
-                                            if (Objects.isNull(listener)) {
-                                                return;
-                                            }
-                                            listener.onComplete();
-                                        }
+                            @Override
+                            public SocketAddress address() {
+                                return s.remoteAddress();
+                            }
+                        }, bp.data().retain())))
+                .observer(new ServerObserver<TcpServer>() {
+                    @Override
+                    public void onBound(TcpServer server) {
+                        log.info("kinrpc server started on {}:{}", host, port);
+                    }
 
-                                        @Override
-                                        public void onFailure(Session session, Throwable cause) {
-                                            if (Objects.isNull(listener)) {
-                                                return;
-                                            }
-                                            listener.onFailure(cause);
-                                        }
-                                    })
-                                    .subscribe();
-                        }
-
-                        @Override
-                        public SocketAddress address() {
-                            return s.remoteAddress();
-                        }
-                    }, bp.data().retain());
-                }));
+                    @Override
+                    public void onUnbound(TcpServer server) {
+                        log.info("kinrpc server({}:{}) terminated", host, port);
+                    }
+                });
     }
 
     @Override
@@ -86,8 +97,7 @@ public class KinRpcServer extends AbsRemotingServer {
         if (server.isDisposed()) {
             return;
         }
-        server.dispose();
-        // TODO: 2023/6/7 整合dispose
         remotingProcessor.shutdown();
+        server.dispose();
     }
 }

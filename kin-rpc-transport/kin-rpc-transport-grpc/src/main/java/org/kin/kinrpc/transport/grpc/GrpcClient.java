@@ -61,7 +61,7 @@ public class GrpcClient extends AbsRemotingClient {
 
         channel.shutdown();
         remotingProcessor.shutdown();
-        log.info("grpc client({}:{}) shutdown", host, port);
+        log.info("grpc client(- R:{}:{}) terminated", host, port);
     }
 
     /**

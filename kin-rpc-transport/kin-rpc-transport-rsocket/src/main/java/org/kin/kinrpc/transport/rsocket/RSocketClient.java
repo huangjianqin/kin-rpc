@@ -83,7 +83,7 @@ public class RSocketClient extends AbsRemotingClient {
                     rsocket.dispose();
                     remotingProcessor.shutdown();
                     return rsocket.onClose()
-                            .doOnNext(v -> log.info("rsocket client({}:{}) shutdown", host, port));
+                            .doOnNext(v -> log.info("rsocket client(- R:{}:{}) terminated", host, port));
                 })
                 .subscribe();
     }

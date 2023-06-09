@@ -66,7 +66,7 @@ public class RSocketServer extends AbsRemotingServer {
             cc.dispose();
             remotingProcessor.shutdown();
             return cc.onClose()
-                    .doOnNext(v -> log.info("rsocket server({}:{}) shutdown", host, port));
+                    .doOnNext(v -> log.info("rsocket server({}:{}) terminated", host, port));
         }).subscribe();
     }
 }
