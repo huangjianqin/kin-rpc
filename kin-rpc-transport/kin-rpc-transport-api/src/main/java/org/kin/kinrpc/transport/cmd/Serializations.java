@@ -1,7 +1,6 @@
 package org.kin.kinrpc.transport.cmd;
 
 import org.kin.framework.utils.ExtensionLoader;
-import org.kin.kinrpc.transport.CodecException;
 import org.kin.serialization.Serialization;
 
 import java.util.Objects;

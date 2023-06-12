@@ -12,7 +12,7 @@ import java.util.Objects;
 import java.util.concurrent.Executor;
 
 /**
- * {@link RequestProcessor#process(RequestContext, Serializable)}调用task
+ * {@link RequestProcessor#process(RequestContext, Serializable)} task
  * @author huangjianqin
  * @date 2023/6/2
  */

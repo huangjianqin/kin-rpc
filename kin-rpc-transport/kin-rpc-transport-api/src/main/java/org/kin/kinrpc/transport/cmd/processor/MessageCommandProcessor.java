@@ -1,10 +1,8 @@
 package org.kin.kinrpc.transport.cmd.processor;
 
 import org.kin.kinrpc.transport.*;
-import org.kin.kinrpc.transport.Error;
-import org.kin.kinrpc.transport.cmd.HeartbeatCommand;
+import org.kin.kinrpc.transport.message.Error;
 import org.kin.kinrpc.transport.cmd.MessageCommand;
-import org.kin.kinrpc.transport.cmd.RpcResponseCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -4,7 +4,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.util.ReferenceCountUtil;
 import org.kin.framework.utils.CollectionUtils;
-import org.kin.kinrpc.transport.CodecException;
 import org.kin.kinrpc.transport.CommandHelper;
 import org.kin.transport.netty.AdaptiveOutputByteBufAllocator;
 import org.kin.transport.netty.utils.VarIntUtils;

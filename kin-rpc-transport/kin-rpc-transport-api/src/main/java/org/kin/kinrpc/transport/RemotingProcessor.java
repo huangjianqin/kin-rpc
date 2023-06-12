@@ -2,6 +2,7 @@ package org.kin.kinrpc.transport;
 
 import io.netty.buffer.ByteBuf;
 import org.kin.framework.concurrent.ExecutionContext;
+import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.transport.cmd.RemotingCodec;
@@ -10,6 +11,7 @@ import org.kin.kinrpc.transport.cmd.processor.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -24,7 +26,9 @@ public class RemotingProcessor {
     /** key -> command code, value -> {@link CommandProcessor}实例 */
     private final Map<Short, CommandProcessor<RemotingCommand>> cmdProcessorMap = new HashMap<>();
     /** command processor线程池 */
-    private final ExecutionContext executor = ExecutionContext.elastic(SysUtils.CPU_NUM, SysUtils.DOUBLE_CPU, "command-processor");
+    private final ExecutionContext executor =
+            ExecutionContext.elastic(SysUtils.CPU_NUM, SysUtils.DOUBLE_CPU,
+                    new SimpleThreadFactory("command-processor", true));
     /** 协议codec */
     private final RemotingCodec codec;
     /** {@link RequestProcessor}实例管理 */
@@ -65,6 +69,10 @@ public class RemotingProcessor {
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * {@link CommandProcessor#process(RemotingContext, RemotingCommand)} task
+     */
     private class CommandProcessTask implements Runnable {
         /** channel context */
         private final ChannelContext channelContext;

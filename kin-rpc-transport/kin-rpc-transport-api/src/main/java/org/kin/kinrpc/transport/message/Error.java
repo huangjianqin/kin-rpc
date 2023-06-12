@@ -1,4 +1,4 @@
-package org.kin.kinrpc.transport;
+package org.kin.kinrpc.transport.message;
 
 import java.io.Serializable;
 

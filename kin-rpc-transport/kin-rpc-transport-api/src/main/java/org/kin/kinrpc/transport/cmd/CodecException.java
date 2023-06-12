@@ -1,4 +1,4 @@
-package org.kin.kinrpc.transport;
+package org.kin.kinrpc.transport.cmd;
 
 /**
  * 编解码相关异常
