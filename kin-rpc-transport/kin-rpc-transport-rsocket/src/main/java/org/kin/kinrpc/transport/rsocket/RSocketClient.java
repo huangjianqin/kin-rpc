@@ -7,6 +7,7 @@ import io.rsocket.core.RSocketConnector;
 import io.rsocket.frame.decoder.PayloadDecoder;
 import io.rsocket.transport.netty.client.TcpClientTransport;
 import io.rsocket.util.ByteBufPayload;
+import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.transport.AbsRemotingClient;
 import org.kin.kinrpc.transport.ChannelContext;
@@ -52,8 +53,13 @@ public class RSocketClient extends AbsRemotingClient {
         Sinks.One<RSocket> sink = Sinks.one();
         this.requesterMono = sink.asMono();
 
-        RSocketConnector.create()
-                .setupPayload(ByteBufPayload.create(Unpooled.EMPTY_BUFFER))
+        RSocketConnector rsocketConnector = RSocketConnector.create();
+        //user custom
+        for (RSocketClientCustomizer customizer : ExtensionLoader.getExtensions(RSocketClientCustomizer.class)) {
+            customizer.custom(rsocketConnector);
+        }
+        //internal, user can not modify
+        rsocketConnector.setupPayload(ByteBufPayload.create(Unpooled.EMPTY_BUFFER))
                 //zero copy
                 .payloadDecoder(PayloadDecoder.ZERO_COPY)
                 .connect(TcpClientTransport.create(host, port))

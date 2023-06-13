@@ -4,6 +4,7 @@ import io.grpc.*;
 import io.grpc.netty.NettyChannelBuilder;
 import io.netty.buffer.ByteBuf;
 import org.kin.framework.collection.CopyOnWriteMap;
+import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.transport.AbsRemotingClient;
 import org.kin.kinrpc.transport.ChannelContext;
@@ -48,9 +49,14 @@ public class GrpcClient extends AbsRemotingClient {
             throw new IllegalStateException(String.format("grpc client has been connect to %s:%d", host, port));
         }
 
-        this.channel = NettyChannelBuilder.forAddress(host, port)
-                .usePlaintext()
-                .build();
+        NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(host, port);
+        //user custom
+        for (GrpcClientCustomizer customizer : ExtensionLoader.getExtensions(GrpcClientCustomizer.class)) {
+            customizer.custom(channelBuilder);
+        }
+        //internal, user can not modify
+        channelBuilder.usePlaintext();
+        this.channel = channelBuilder.build();
         log.info("grpc client connect to {}:{} success", host, port);
     }
 

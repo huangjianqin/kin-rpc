@@ -3,6 +3,7 @@ package org.kin.kinrpc.transport.rsocket;
 import io.rsocket.frame.decoder.PayloadDecoder;
 import io.rsocket.transport.netty.server.CloseableChannel;
 import io.rsocket.transport.netty.server.TcpServerTransport;
+import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.transport.AbsRemotingServer;
 import org.slf4j.Logger;
@@ -40,8 +41,13 @@ public class RSocketServer extends AbsRemotingServer {
         closeableChannelMono = sink.asMono();
 
         TcpServerTransport transport = TcpServerTransport.create(host, port);
-        io.rsocket.core.RSocketServer.create()
-                .acceptor((setup, requester) -> Mono.just(new RSocketResponder(requester, remotingProcessor)))
+        io.rsocket.core.RSocketServer rsocketServer = io.rsocket.core.RSocketServer.create();
+        //user custom
+        for (RSocketServerCustomizer customizer : ExtensionLoader.getExtensions(RSocketServerCustomizer.class)) {
+            customizer.custom(rsocketServer);
+        }
+        //internal, user can not modify
+        rsocketServer.acceptor((setup, requester) -> Mono.just(new RSocketResponder(requester, remotingProcessor)))
                 //zero copy
                 .payloadDecoder(PayloadDecoder.ZERO_COPY)
                 .bind(transport)

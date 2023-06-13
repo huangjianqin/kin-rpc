@@ -7,6 +7,7 @@ import io.grpc.ServerServiceDefinition;
 import io.grpc.netty.NettyServerBuilder;
 import io.grpc.stub.ServerCalls;
 import io.netty.buffer.ByteBuf;
+import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.transport.AbsRemotingServer;
 import org.kin.kinrpc.transport.TransportException;
@@ -43,8 +44,13 @@ public class GrpcServer extends AbsRemotingServer {
     public GrpcServer(String host, int port) {
         super(host, port);
         NettyServerBuilder serverBuilder = NettyServerBuilder
-                .forAddress(new InetSocketAddress(host, port))
-                .intercept(DefaultServerInterceptor.INSTANCE)
+                .forAddress(new InetSocketAddress(host, port));
+        //user custom, user can not modify
+        for (GrpcServerCustomizer customizer : ExtensionLoader.getExtensions(GrpcServerCustomizer.class)) {
+            customizer.custom(serverBuilder);
+        }
+        //internal
+        serverBuilder.intercept(DefaultServerInterceptor.INSTANCE)
                 .fallbackHandlerRegistry(handlerRegistry);
         this.server = serverBuilder.build();
     }
