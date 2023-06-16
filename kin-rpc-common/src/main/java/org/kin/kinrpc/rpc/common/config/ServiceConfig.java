@@ -4,8 +4,9 @@ package org.kin.kinrpc.config;
 import com.google.common.base.Preconditions;
 import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.cluster.Clusters;
-import org.kin.kinrpc.rpc.common.Constants;
+import org.kin.kinrpc.rpc.common.constants.Constants;
 import org.kin.kinrpc.rpc.common.Url;
+import org.kin.kinrpc.rpc.common.config1.ProtocolType;
 import org.kin.kinrpc.serialization.SerializationType;
 import org.kin.transport.netty.CompressionType;
 

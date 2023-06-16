@@ -1,6 +1,7 @@
-package org.kin.kinrpc.rpc.config;
+package org.kin.kinrpc.rpc.common.config;
 
 import org.kin.framework.utils.SysUtils;
+import org.kin.kinrpc.rpc.common.config1.ExecutorType;
 
 import java.util.concurrent.TimeUnit;
 

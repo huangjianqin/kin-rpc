@@ -1,14 +1,14 @@
 package org.kin.kinrpc.config;
 
 import com.google.common.base.Preconditions;
-import org.kin.kinrpc.rpc.common.Constants;
+import org.kin.kinrpc.rpc.common.constants.Constants;
 
 /**
  * Created by 健勤 on 2017/2/12.
  */
 public class ServerConfig extends AbstractConfig {
     private static final int MAX_PORT = Short.MAX_VALUE - Short.MIN_VALUE;
-    public static final ServerConfig DEFAULT = new ServerConfig(Constants.SERVER_DEFAULT_PORT);
+    public static final ServerConfig DEFAULT = new ServerConfig(Constants.DEFAULT_SERVER_PORT);
 
     private String host;
     private int port;

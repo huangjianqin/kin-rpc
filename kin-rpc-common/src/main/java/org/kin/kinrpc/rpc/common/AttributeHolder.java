@@ -3,6 +3,7 @@ package org.kin.kinrpc.rpc.common;
 import org.kin.framework.utils.CollectionUtils;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -13,9 +14,10 @@ import java.util.Objects;
  */
 public class AttributeHolder<AH extends AttributeHolder> {
     /** 属性Map */
-    protected Map<String, Object> attributes;
+    private Map<String, Object> attributes;
 
     public AttributeHolder() {
+        this(Collections.emptyMap());
     }
 
     public AttributeHolder(Map<String, Object> attributes) {

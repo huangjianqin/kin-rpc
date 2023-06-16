@@ -7,7 +7,7 @@ import org.kin.framework.log.LoggerOprs;
 import org.kin.framework.utils.*;
 import org.kin.kinrpc.rpc.*;
 import org.kin.kinrpc.rpc.AsyncInvoker;
-import org.kin.kinrpc.rpc.common.Constants;
+import org.kin.kinrpc.rpc.common.constants.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.executor.ExecutorFactory;
 import org.kin.kinrpc.rpc.config.ExecutorType;

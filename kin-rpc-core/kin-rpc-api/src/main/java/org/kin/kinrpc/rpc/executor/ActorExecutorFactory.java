@@ -5,7 +5,7 @@ import org.kin.framework.concurrent.EventLoop;
 import org.kin.framework.concurrent.EventLoopGroup;
 import org.kin.framework.concurrent.MultiThreadEventLoopGroup;
 import org.kin.framework.concurrent.SingleThreadEventLoop;
-import org.kin.kinrpc.rpc.common.Constants;
+import org.kin.kinrpc.rpc.common.constants.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 
 import java.util.concurrent.ConcurrentHashMap;

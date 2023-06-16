@@ -13,7 +13,7 @@ import io.rsocket.transport.netty.server.CloseableChannel;
 import io.rsocket.transport.netty.server.TcpServerTransport;
 import org.kin.framework.utils.Extension;
 import org.kin.kinrpc.rpc.AsyncInvoker;
-import org.kin.kinrpc.rpc.common.Constants;
+import org.kin.kinrpc.rpc.common.constants.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.RpcCallErrorException;
 import org.kin.kinrpc.transport.AbstractProxyProtocol;

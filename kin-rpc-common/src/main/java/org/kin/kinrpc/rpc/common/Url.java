@@ -221,13 +221,13 @@ public class Url extends AttributeHolder<Url> implements Serializable {
      * 获取query参数
      */
     public String getParam(String k) {
-        return getParamOrDefault(k, "");
+        return getParam(k, "");
     }
 
     /**
-     * 获取query参数
+     * 获取query参数, 如果不存在, 则取{@code defaultValue}
      */
-    public String getParamOrDefault(String k, String defaultValue) {
+    public String getParam(String k, String defaultValue) {
         return params.getOrDefault(k, defaultValue);
     }
 
@@ -247,7 +247,7 @@ public class Url extends AttributeHolder<Url> implements Serializable {
     }
 
     /**
-     * 获取query参数(boolean类型)
+     * 获取query参数(boolean类型), 如果不存在, 则取{@code defaultValue}
      */
     public boolean getBooleanParam(String k, boolean defaultValue) {
         String param = getParam(k);
@@ -262,7 +262,7 @@ public class Url extends AttributeHolder<Url> implements Serializable {
     }
 
     /**
-     * 获取query参数(short类型, 默认返回{@code defaultValue})
+     * 获取query参数(short类型), 如果不存在, 则取{@code defaultValue}
      */
     public short getShortParam(String k, short defaultValue) {
         String value = getParam(k);
@@ -281,7 +281,7 @@ public class Url extends AttributeHolder<Url> implements Serializable {
     }
 
     /**
-     * 获取query参数(int类型, 默认返回{@code defaultValue})
+     * 获取query参数(int类型), 如果不存在, 则取{@code defaultValue}
      */
     public int getIntParam(String k, int defaultValue) {
         String value = getParam(k);
@@ -300,7 +300,7 @@ public class Url extends AttributeHolder<Url> implements Serializable {
     }
 
     /**
-     * 获取query参数(long类型, 默认返回{@code defaultValue})
+     * 获取query参数(long类型), 如果不存在, 则取{@code defaultValue}
      */
     public long getLongParam(String k, long defaultValue) {
         String value = getParam(k);
@@ -319,7 +319,7 @@ public class Url extends AttributeHolder<Url> implements Serializable {
     }
 
     /**
-     * 获取url参数(double类型, 默认返回{@code defaultValue})
+     * 获取url参数(double类型), 如果不存在, 则取{@code defaultValue}
      */
     public double getDoubleParam(String k, double defaultValue) {
         String value = getParam(k);
@@ -328,6 +328,20 @@ public class Url extends AttributeHolder<Url> implements Serializable {
         } else {
             return Double.parseDouble(value);
         }
+    }
+
+    /**
+     * 获取query参数, 最后进行decode
+     */
+    public String getDecodedParam(String k) {
+        return decode(getParam(k));
+    }
+
+    /**
+     * 获取query参数, 如果不存在, 则取{@code defaultValue}, 最后进行decode
+     */
+    public String getDecodedParam(String k, String defaultValue) {
+        return decode(getParam(k, defaultValue));
     }
 
     /**
@@ -349,7 +363,7 @@ public class Url extends AttributeHolder<Url> implements Serializable {
      * @param value url encoded value
      * @return this
      */
-    public Url putParamAndEncoded(String key, String value) {
+    public Url encodeAndPutParam(String key, String value) {
         return putParam(key, encode(value));
     }
 
@@ -512,7 +526,7 @@ public class Url extends AttributeHolder<Url> implements Serializable {
     }
 
     /**
-     * 获取query参数
+     * 获取query参数, 如果不存在, 则取{@link UrlParamKey#getDefaultValue()}
      */
     public String getParamOrDefault(UrlParamKey k) {
         return params.getOrDefault(k.getName(), k.getDefaultValue().toString());
@@ -527,99 +541,97 @@ public class Url extends AttributeHolder<Url> implements Serializable {
     }
 
     /**
-     * 获取query参数(boolean类型)
+     * 获取query参数(数字类型), 如果不存在, 则取{@link UrlParamKey#getDefaultValue()}
      */
-    public boolean getBooleanParam(UrlParamKey k) {
-        boolean defaultValue = Objects.nonNull(k.getDefaultValue()) ? (Boolean) k.getDefaultValue() : false;
-        return getBooleanParam(k, defaultValue);
+    private String getNumberParamOrDefault(UrlParamKey k) {
+        String param = getParamOrDefault(k);
+        return StringUtils.isNotBlank(param) ? param : "0";
     }
 
     /**
      * 获取query参数(boolean类型)
      */
-    public boolean getBooleanParam(UrlParamKey k, boolean defaultValue) {
-        String value = getParam(k);
-        return StringUtils.isNotBlank(value) ? Boolean.parseBoolean(value) : defaultValue;
+    public boolean getBooleanParam(UrlParamKey k) {
+        String param = getParam(k);
+        return !StringUtils.isBlank(param) && Boolean.parseBoolean(param);
+    }
+
+    /**
+     * 获取query参数(boolean类型), 如果不存在, 则取{@link UrlParamKey#getDefaultValue()}
+     */
+    public boolean getBooleanParamOrDefault(UrlParamKey k) {
+        String param = getParamOrDefault(k);
+        return !StringUtils.isBlank(param) && Boolean.parseBoolean(param);
     }
 
     /**
      * 获取query参数(short类型, 默认返回0)
      */
     public short getShortParam(UrlParamKey k) {
-        short defaultValue = Objects.nonNull(k.getDefaultValue()) ? (Short) k.getDefaultValue() : 0;
-        return getShortParam(k, defaultValue);
+        return Short.parseShort(getParam(k));
     }
 
     /**
-     * 获取query参数(short类型, 默认返回{@code defaultValue})
+     * 获取query参数(short类型), 如果不存在, 则取{@link UrlParamKey#getDefaultValue()}
      */
-    public short getShortParam(UrlParamKey k, short defaultValue) {
-        String value = getParam(k);
-        if (StringUtils.isBlank(value)) {
-            return defaultValue;
-        } else {
-            return Short.parseShort(value);
-        }
+    public short getShortParamOrDefault(UrlParamKey k) {
+        return Short.parseShort(getParamOrDefault(k));
     }
 
     /**
      * 获取query参数(int类型, 默认返回0)
      */
     public int getIntParam(UrlParamKey k) {
-        int defaultValue = Objects.nonNull(k.getDefaultValue()) ? (Integer) k.getDefaultValue() : 0;
-        return getIntParam(k, defaultValue);
+        return Integer.parseInt(getParam(k));
     }
 
     /**
-     * 获取query参数(int类型, 默认返回{@code defaultValue})
+     * 获取query参数(int类型), 如果不存在, 则取{@link UrlParamKey#getDefaultValue()}
      */
-    public int getIntParam(UrlParamKey k, int defaultValue) {
-        String value = getParam(k);
-        if (StringUtils.isBlank(value)) {
-            return defaultValue;
-        } else {
-            return Integer.parseInt(value);
-        }
+    public int getIntParamOrDefault(UrlParamKey k) {
+        return Integer.parseInt(getParamOrDefault(k));
     }
 
     /**
      * 获取query参数(long类型, 默认返回0)
      */
     public long getLongParam(UrlParamKey k) {
-        long defaultValue = Objects.nonNull(k.getDefaultValue()) ? (Long) k.getDefaultValue() : 0L;
-        return getLongParam(k, defaultValue);
+        return Long.parseLong(getParam(k));
     }
 
     /**
-     * 获取query参数(long类型, 默认返回{@code defaultValue})
+     * 获取query参数(long类型), 如果不存在, 则取{@link UrlParamKey#getDefaultValue()}
      */
-    public long getLongParam(UrlParamKey k, long defaultValue) {
-        String value = getParam(k);
-        if (StringUtils.isBlank(value)) {
-            return defaultValue;
-        } else {
-            return Long.parseLong(value);
-        }
+    public long getLongParamOrDefault(UrlParamKey k) {
+        return Long.parseLong(getParamOrDefault(k));
     }
 
     /**
      * 获取query参数(double类型, 默认返回0)
      */
     public double getDoubleParam(UrlParamKey k) {
-        double defaultValue = Objects.nonNull(k.getDefaultValue()) ? (Double) k.getDefaultValue() : 0D;
-        return getDoubleParam(k, defaultValue);
+        return Double.parseDouble(getParam(k));
     }
 
     /**
-     * 获取url参数(double类型, 默认返回{@code defaultValue})
+     * 获取url参数(double类型), 如果不存在, 则取{@link UrlParamKey#getDefaultValue()}
      */
-    public double getDoubleParam(UrlParamKey k, double defaultValue) {
-        String value = getParam(k);
-        if (StringUtils.isBlank(value)) {
-            return defaultValue;
-        } else {
-            return Double.parseDouble(value);
-        }
+    public double getDoubleParamOrDefault(UrlParamKey k) {
+        return Double.parseDouble(getParamOrDefault(k));
+    }
+
+    /**
+     * 获取query参数, 最后进行decode
+     */
+    public String getDecodedParam(UrlParamKey k) {
+        return decode(getParam(k));
+    }
+
+    /**
+     * 获取query参数, 如果不存在, 则取{@link UrlParamKey#getDefaultValue()}, 最后进行decode
+     */
+    public String getDecodedParamOrDefault(UrlParamKey k) {
+        return decode(getParamOrDefault(k));
     }
 
     /**
@@ -635,13 +647,13 @@ public class Url extends AttributeHolder<Url> implements Serializable {
     }
 
     /**
-     * 添加query param
+     * 对{@code value}进行encode, 然后添加query param
      *
      * @param key   param key
      * @param value url encoded value
      * @return this
      */
-    public Url putParamAndEncoded(UrlParamKey key, String value) {
+    public Url encodeAndPutParam(UrlParamKey key, String value) {
         return putParam(key, encode(value));
     }
 
@@ -869,9 +881,6 @@ public class Url extends AttributeHolder<Url> implements Serializable {
         return Objects.hash(protocol, username, password, host, port, path);
     }
 
-    /**
-     * @return 网络地址
-     */
     public String getAddress() {
         return NetUtils.getIpPort(getHost(), getPort());
     }

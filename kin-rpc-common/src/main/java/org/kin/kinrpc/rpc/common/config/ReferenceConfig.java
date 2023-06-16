@@ -9,8 +9,10 @@ import org.kin.kinrpc.cluster.Clusters;
 import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
 import org.kin.kinrpc.cluster.router.Router;
 import org.kin.kinrpc.rpc.Notifier;
-import org.kin.kinrpc.rpc.common.Constants;
+import org.kin.kinrpc.rpc.common.constants.Constants;
 import org.kin.kinrpc.rpc.common.Url;
+import org.kin.kinrpc.rpc.common.config1.LoadBalanceType;
+import org.kin.kinrpc.rpc.common.config1.RouterType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,6 +1,6 @@
 package org.kin.kinrpc.config;
 
-import org.kin.kinrpc.rpc.common.Constants;
+import org.kin.kinrpc.rpc.common.constants.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 
 /**

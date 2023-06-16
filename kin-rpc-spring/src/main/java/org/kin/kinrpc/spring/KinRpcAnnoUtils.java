@@ -37,14 +37,6 @@ final class KinRpcAnnoUtils {
     }
 
     /**
-     * 将redis注册中心注解转换成注册中心配置
-     */
-    private static RedisRegistryConfig convert2RegistryCfg(@Nonnull RedisRegistry redisRegistryAnno) {
-        return RedisRegistryConfig.create(redisRegistryAnno.address())
-                .watchInterval(redisRegistryAnno.watchInterval()).build();
-    }
-
-    /**
      * 根据{@link Attachment}解析出注册中心配置
      */
     public static Map<String, Object> parseAttachment(Attachment[] attachmentAnnos) {
@@ -71,11 +63,6 @@ final class KinRpcAnnoUtils {
             return convert2RegistryCfg(zookeeperRegistryAnno);
         }
 
-        RedisRegistry redisRegistryAnno = AnnotationUtils.getAnnotation(beanClass, RedisRegistry.class);
-        if (Objects.nonNull(redisRegistryAnno)) {
-            return convert2RegistryCfg(redisRegistryAnno);
-        }
-
         //2. 都没有
         //寻找应用统一注册中心配置, springboot配置或者@Bean注入
         if (Objects.nonNull(applicationContext)) {
@@ -98,11 +85,6 @@ final class KinRpcAnnoUtils {
         ZookeeperRegistry zookeeperRegistryAnno = AnnotationUtils.getAnnotation(field, ZookeeperRegistry.class);
         if (Objects.nonNull(zookeeperRegistryAnno)) {
             return convert2RegistryCfg(zookeeperRegistryAnno);
-        }
-
-        RedisRegistry redisRegistryAnno = AnnotationUtils.getAnnotation(field, RedisRegistry.class);
-        if (Objects.nonNull(redisRegistryAnno)) {
-            return convert2RegistryCfg(redisRegistryAnno);
         }
 
         //2. 查看当前是否有注册中心注解
@@ -154,7 +136,6 @@ final class KinRpcAnnoUtils {
      * @see RedisRegistry
      * @see ZookeeperRegistry
      * @see KinRpcReference
-     * @see RedisRegistry
      */
     @SuppressWarnings("unchecked")
     public static <T> ReferenceConfig<T> convert2ReferenceCfg(ApplicationContext applicationContext,

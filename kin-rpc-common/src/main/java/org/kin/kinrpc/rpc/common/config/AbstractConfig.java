@@ -1,8 +1,10 @@
 package org.kin.kinrpc.config;
 
 import org.kin.framework.utils.ExceptionUtils;
-import org.kin.kinrpc.rpc.common.Constants;
+import org.kin.kinrpc.rpc.common.constants.Constants;
 import org.kin.kinrpc.rpc.common.Url;
+import org.kin.kinrpc.rpc.common.config1.ProtocolType;
+import org.kin.kinrpc.rpc.common.config1.RegistryType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,17 +55,12 @@ abstract class AbstractConfig {
                 params.put(Constants.REGISTRY_KEY, RegistryType.DIRECTURLS.getType());
             } else if (registryConfig instanceof ZookeeperRegistryConfig) {
                 params.put(Constants.REGISTRY_KEY, RegistryType.ZOOKEEPER.getType());
-            } else if (registryConfig instanceof RedisRegistryConfig) {
-                params.put(Constants.REGISTRY_KEY, RegistryType.REDIS.getType());
             } else {
                 throw new IllegalStateException("unknown registry");
             }
             params.put(Constants.REGISTRY_URL_KEY, registryConfig.getAddress());
             if (registryConfig instanceof ZookeeperRegistryConfig) {
                 params.put(Constants.SESSION_TIMEOUT_KEY, ((ZookeeperRegistryConfig) registryConfig).getSessionTimeout() + "");
-            }
-            if (registryConfig instanceof RedisRegistryConfig) {
-                params.put(Constants.WATCH_INTERVAL_KEY, ((RedisRegistryConfig) registryConfig).getWatchInterval() + "");
             }
         }
 

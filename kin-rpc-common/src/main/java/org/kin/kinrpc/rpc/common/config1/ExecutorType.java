@@ -7,7 +7,7 @@ import org.kin.kinrpc.rpc.common.Url;
  * @author huangjianqin
  * @date 2021/4/20
  */
-public enum ExecutorType {
+public enum ExecutorType{
     CACHE("cache"),
     DIRECT("direct"),
     EAGER("eager"),

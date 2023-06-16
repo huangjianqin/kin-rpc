@@ -1,15 +1,20 @@
-package org.kin.kinrpc.rpc.common;
+package org.kin.kinrpc.rpc.common.constants;
 
-
-import org.kin.framework.utils.SysUtils;
 
 /**
- * Created by 健勤 on 2016/10/9.
+ * 通用常量
+ * @author huangjianqin
+ * @date 2023/6/16
  */
-@Deprecated
-public interface Constants {
+public final class Constants {
+    /** server默认端口 */
+    public static final int DEFAULT_SERVER_PORT = 16888;
 
-//    //-------------------------------------------------配置key--------------------------------------------------------
+    private Constants() {
+    }
+
+
+    //    //-------------------------------------------------配置key--------------------------------------------------------
 //    /** url参数 */
 //    int URL_PARAM_NUM = 6;
 //    /** 应用名 */

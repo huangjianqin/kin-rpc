@@ -1,6 +1,6 @@
 package org.kin.kinrpc.config;
 
-import org.kin.kinrpc.rpc.common.Constants;
+import org.kin.kinrpc.rpc.common.constants.Constants;
 
 /**
  * Created by 健勤 on 2017/2/13.
