@@ -13,21 +13,16 @@
         <kin-framework-java.version>0.1.0.0</kin-framework-java.version>
         <kin-framework-dependencies.version>0.1.0.0</kin-framework-dependencies.version>
         <kin-transport-netty.version>0.2.0.0</kin-transport-netty.version>
-        <protobuf.version>3.19.4</protobuf.version>
         <junit.version>4.11</junit.version>
         <zookeeper.version>3.5.8</zookeeper.version>
         <curator.version>5.1.0</curator.version>
-        <jackson.version>2.10.1</jackson.version>
-        <spring.version>5.3.7</spring.version>
         <grpc.version>1.53.0</grpc.version>
-        <grpc-contrib.version>0.8.1</grpc-contrib.version>
-        <jprotoc.version>0.9.1</jprotoc.version>
+        <springcloud.version>2020.0.4</springcloud.version>
         <springboot.version>2.5.12</springboot.version>
         <netty.version>4.1.75.Final</netty.version>
         <reactor.version>2020.0.24</reactor.version>
         <rsocket.version>1.1.2</rsocket.version>
         <kin-framework-spring.version>0.1.0.0</kin-framework-spring.version>
-        <springcloud.version>2020.0.4</springcloud.version>
         <kin-serialization.version>0.1.0.0</kin-serialization.version>
     </properties>
 
@@ -47,20 +42,33 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- 配置netty-->
+            <dependency>
+                <groupId>org.kin</groupId>
+                <artifactId>kin-transport-netty</artifactId>
+                <version>${kin-transport-netty.version}</version>
+            </dependency>
+
+            <!-- spring工具类 -->
+            <dependency>
+                <groupId>org.kin</groupId>
+                <artifactId>kin-framework-spring</artifactId>
+                <version>${kin-framework-spring.version}</version>
+            </dependency>
+
+            <!-- 现流行序列化技术封装 -->
+            <dependency>
+                <groupId>org.kin</groupId>
+                <artifactId>kin-serialization-bom</artifactId>
+                <version>${kin-serialization.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+
+            <!-- netty-->
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-all</artifactId>
                 <version>${netty.version}</version>
-            </dependency>
-
-            <!-- protobuf -->
-            <dependency>
-                <groupId>com.google.protobuf</groupId>
-                <artifactId>protobuf-bom</artifactId>
-                <version>${protobuf.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
             </dependency>
 
             <!-- grpc -->
@@ -72,51 +80,7 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- grpc代码生成-->
-            <dependency>
-                <groupId>com.salesforce.servicelibs</groupId>
-                <artifactId>grpc-contrib</artifactId>
-                <version>${grpc-contrib.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.salesforce.servicelibs</groupId>
-                <artifactId>jprotoc</artifactId>
-                <version>${grpc-contrib.version}</version>
-            </dependency>
-
-            <!-- jackson-->
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-core</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-annotations</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-
-            <!-- spring -->
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-context</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.kin</groupId>
-                <artifactId>kin-transport-netty</artifactId>
-                <version>${kin-transport-netty.version}</version>
-            </dependency>
-
+            <!-- reactor -->
             <dependency>
                 <groupId>io.projectreactor</groupId>
                 <!-- bom, maven的一个特性, 用于解决依赖冲突, 由依赖提供者维护版本依赖, 使用者不需要再指定版本-->
@@ -126,6 +90,7 @@
                 <scope>import</scope>
             </dependency>
 
+            <!-- rsocket -->
             <dependency>
                 <groupId>io.rsocket</groupId>
                 <!-- bom, maven的一个特性, 用于解决依赖冲突, 由依赖提供者维护版本依赖, 使用者不需要再指定版本-->
@@ -135,33 +100,18 @@
                 <scope>import</scope>
             </dependency>
 
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-dependencies</artifactId>
-                <version>${springboot.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-
-            <!-- 配置zookeeper-->
+            <!-- zookeeper -->
             <dependency>
                 <groupId>org.apache.zookeeper</groupId>
                 <artifactId>zookeeper</artifactId>
                 <version>${zookeeper.version}</version>
             </dependency>
 
-            <!--配置curator-->
+            <!-- curator, zk client -->
             <dependency>
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-framework</artifactId>
                 <version>${curator.version}</version>
-            </dependency>
-
-            <!-- spring工具类 -->
-            <dependency>
-                <groupId>org.kin</groupId>
-                <artifactId>kin-framework-spring</artifactId>
-                <version>${kin-framework-spring.version}</version>
             </dependency>
 
             <!-- spring cloud -->
@@ -173,13 +123,13 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- 现流行序列化技术封装 -->
+            <!-- spring boot -->
             <dependency>
-                <groupId>org.kin</groupId>
-                <artifactId>kin-serialization-bom</artifactId>
-                <version>${kin-serialization.version}</version>
-                <scope>import</scope>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${springboot.version}</version>
                 <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

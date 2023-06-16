@@ -1,4 +1,4 @@
-package org.kin.kinrpc.rpc.util;
+package org.kin.kinrpc.rpc.common.util;
 
 import io.micrometer.core.instrument.util.StringUtils;
 

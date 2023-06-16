@@ -9,10 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>kin-rpc-cluster</artifactId>
-    <modules>
-        <module>kin-rpc-cluster-api</module>
-    </modules>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
 
     <dependencies>
         <dependency>

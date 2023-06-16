@@ -1,4 +1,4 @@
-package org.kin.kinrpc.config;
+package org.kin.kinrpc.rpc.common.config;
 
 import com.google.common.base.Preconditions;
 import org.kin.framework.utils.StringUtils;

@@ -2,8 +2,7 @@ package org.kin.kinrpc.demo.rpc.kinrpc;
 
 import org.kin.framework.JvmCloseCleaner;
 import org.kin.kinrpc.config.ServiceConfig;
-import org.kin.kinrpc.config.Services;
-import org.kin.kinrpc.config.ZookeeperRegistryConfig;
+import org.kin.kinrpc.config.ZKRegistryConfig;
 import org.kin.kinrpc.demo.rpc.Addable;
 import org.kin.kinrpc.demo.rpc.Adder;
 
@@ -16,7 +15,7 @@ public class KinRpcZookeeperAddableProvider {
         ServiceConfig serviceConfig =
                 Services.service(new Adder(), Addable.class)
                         .service("test/Add")
-                        .registry(ZookeeperRegistryConfig.create("127.0.0.1:2181").build());
+                        .registry(ZKRegistryConfig.create("127.0.0.1:2181").build());
         serviceConfig.exportSync();
 
         JvmCloseCleaner.instance().add(serviceConfig::disable);

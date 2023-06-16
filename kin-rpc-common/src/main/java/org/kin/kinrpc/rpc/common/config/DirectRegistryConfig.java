@@ -1,4 +1,4 @@
-package org.kin.kinrpc.config;
+package org.kin.kinrpc.rpc.common.config;
 
 import org.kin.kinrpc.rpc.common.constants.Constants;
 import org.kin.kinrpc.rpc.common.Url;
@@ -6,8 +6,8 @@ import org.kin.kinrpc.rpc.common.Url;
 /**
  * Created by huangjianqin on 2019/6/20.
  */
-public class DirectURLsRegistryConfig extends AbstractRegistryConfig {
-    public DirectURLsRegistryConfig(String adress) {
+public class DirectRegistryConfig extends AbstractRegistryConfig {
+    public DirectRegistryConfig(String adress) {
         super(adress);
     }
 

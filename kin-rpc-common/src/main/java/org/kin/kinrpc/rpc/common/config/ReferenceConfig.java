@@ -1,4 +1,4 @@
-package org.kin.kinrpc.config;
+package org.kin.kinrpc.rpc.common.config;
 
 import com.google.common.base.Preconditions;
 import org.kin.framework.utils.ClassUtils;
@@ -180,14 +180,14 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
     public ReferenceConfig<T> urls(String... urls) {
         if (!isReference) {
-            this.registryConfig = new DirectURLsRegistryConfig(StringUtils.mkString(";", urls));
+            this.registryConfig = new DirectRegistryConfig(StringUtils.mkString(";", urls));
         }
         return this;
     }
 
     public ReferenceConfig<T> jvm() {
         if (!isReference) {
-            this.registryConfig = new DirectURLsRegistryConfig("jvm://0.0.0.0");
+            this.registryConfig = new DirectRegistryConfig("jvm://0.0.0.0");
         }
         return this;
     }

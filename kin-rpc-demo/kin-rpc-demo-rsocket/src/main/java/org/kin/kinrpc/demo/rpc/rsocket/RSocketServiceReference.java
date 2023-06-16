@@ -2,7 +2,6 @@ package org.kin.kinrpc.demo.rpc.rsocket;
 
 import io.netty.buffer.Unpooled;
 import org.kin.kinrpc.config.ReferenceConfig;
-import org.kin.kinrpc.config.References;
 import reactor.core.publisher.Flux;
 
 /**

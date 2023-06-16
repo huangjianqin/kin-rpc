@@ -25,6 +25,7 @@ public class RemotingProcessor {
 
     /** key -> command code, value -> {@link CommandProcessor}实例 */
     private final Map<Short, CommandProcessor<RemotingCommand>> cmdProcessorMap = new HashMap<>();
+    // TODO: 2023/6/12 支持配置
     /** command processor线程池 */
     private final ExecutionContext executor =
             ExecutionContext.elastic(SysUtils.CPU_NUM, SysUtils.DOUBLE_CPU,

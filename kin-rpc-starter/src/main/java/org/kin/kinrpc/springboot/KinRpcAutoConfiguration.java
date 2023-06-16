@@ -1,7 +1,6 @@
 package org.kin.kinrpc.springboot;
 
-import org.kin.kinrpc.config.RedisRegistryConfig;
-import org.kin.kinrpc.config.ZookeeperRegistryConfig;
+import org.kin.kinrpc.config.ZKRegistryConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -20,8 +19,8 @@ public class KinRpcAutoConfiguration {
 
     @Bean
     @ConditionalOnProperty("kin.rpc.zookeeper.address")
-    public ZookeeperRegistryConfig zookeeperRegistryConfig() {
-        return ZookeeperRegistryConfig.create(zookeeperRegistryProperties.getAddress())
+    public ZKRegistryConfig zookeeperRegistryConfig() {
+        return ZKRegistryConfig.create(zookeeperRegistryProperties.getAddress())
                 .sessionTimeout(zookeeperRegistryProperties.getSessionTimeout())
                 .build();
     }

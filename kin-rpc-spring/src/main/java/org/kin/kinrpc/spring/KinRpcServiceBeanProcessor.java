@@ -5,7 +5,6 @@ import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.config.AbstractRegistryConfig;
 import org.kin.kinrpc.config.ServiceConfig;
-import org.kin.kinrpc.config.Services;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;

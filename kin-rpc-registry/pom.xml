@@ -13,7 +13,6 @@
         <module>kin-rpc-registry-zookeeper</module>
         <module>kin-rpc-registry-api</module>
         <module>kin-rpc-registry-directurls</module>
-        <module>kin-rpc-registry-redis</module>
     </modules>
     <packaging>pom</packaging>
 

@@ -1,9 +1,10 @@
 package org.kin.kinrpc.springboot;
 
+import org.kin.kinrpc.config.ZKRegistryConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * 配置详情, 请看{@link org.kin.kinrpc.config.ZookeeperRegistryConfig}
+ * 配置详情, 请看{@link ZKRegistryConfig}
  *
  * @author huangjianqin
  * @date 2020/12/13

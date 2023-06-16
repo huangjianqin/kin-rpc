@@ -1,4 +1,4 @@
-package org.kin.kinrpc.config;
+package org.kin.kinrpc.rpc.common.config;
 
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.rpc.common.constants.Constants;
@@ -51,16 +51,16 @@ abstract class AbstractConfig {
         Map<String, String> params = new HashMap<>(Constants.URL_PARAM_NUM);
         params.put(Constants.APP_KEY, applicationConfig.getApp());
         if (registryConfig != null) {
-            if (registryConfig instanceof DirectURLsRegistryConfig) {
+            if (registryConfig instanceof DirectRegistryConfig) {
                 params.put(Constants.REGISTRY_KEY, RegistryType.DIRECTURLS.getType());
-            } else if (registryConfig instanceof ZookeeperRegistryConfig) {
+            } else if (registryConfig instanceof ZKRegistryConfig) {
                 params.put(Constants.REGISTRY_KEY, RegistryType.ZOOKEEPER.getType());
             } else {
                 throw new IllegalStateException("unknown registry");
             }
             params.put(Constants.REGISTRY_URL_KEY, registryConfig.getAddress());
-            if (registryConfig instanceof ZookeeperRegistryConfig) {
-                params.put(Constants.SESSION_TIMEOUT_KEY, ((ZookeeperRegistryConfig) registryConfig).getSessionTimeout() + "");
+            if (registryConfig instanceof ZKRegistryConfig) {
+                params.put(Constants.SESSION_TIMEOUT_KEY, ((ZKRegistryConfig) registryConfig).getSessionTimeout() + "");
             }
         }
 

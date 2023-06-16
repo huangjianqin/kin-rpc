@@ -4,7 +4,7 @@ import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.NetUtils;
 import org.kin.framework.utils.StringUtils;
-import org.kin.kinrpc.rpc.util.GsvUtils;
+import org.kin.kinrpc.rpc.common.util.GsvUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

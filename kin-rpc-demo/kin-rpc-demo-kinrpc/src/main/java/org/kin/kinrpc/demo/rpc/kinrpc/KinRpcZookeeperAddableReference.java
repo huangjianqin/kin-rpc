@@ -2,8 +2,7 @@ package org.kin.kinrpc.demo.rpc.kinrpc;
 
 import org.kin.kinrpc.cluster.RpcCallContext;
 import org.kin.kinrpc.config.ReferenceConfig;
-import org.kin.kinrpc.config.References;
-import org.kin.kinrpc.config.ZookeeperRegistryConfig;
+import org.kin.kinrpc.config.ZKRegistryConfig;
 import org.kin.kinrpc.demo.rpc.Addable;
 
 import java.util.concurrent.CompletableFuture;
@@ -19,7 +18,7 @@ public class KinRpcZookeeperAddableReference {
         ReferenceConfig<Addable> referenceConfig =
                 References.reference(Addable.class)
                         .async()
-                        .registry(ZookeeperRegistryConfig.create("127.0.0.1:2181").sessionTimeout(1000).build());
+                        .registry(ZKRegistryConfig.create("127.0.0.1:2181").sessionTimeout(1000).build());
 
         Addable service = referenceConfig.get();
         int count = 0;

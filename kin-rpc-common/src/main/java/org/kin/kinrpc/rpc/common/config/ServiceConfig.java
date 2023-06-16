@@ -1,4 +1,4 @@
-package org.kin.kinrpc.config;
+package org.kin.kinrpc.rpc.common.config;
 
 
 import com.google.common.base.Preconditions;
@@ -231,7 +231,7 @@ public class ServiceConfig<T> extends AbstractConfig {
     }
 
     public ServiceConfig<T> registry(AbstractRegistryConfig registryConfig) {
-        if (registryConfig instanceof DirectURLsRegistryConfig) {
+        if (registryConfig instanceof DirectRegistryConfig) {
             throw new IllegalArgumentException("kinrpc service does not support direct url registry");
         }
         if (!isExport) {

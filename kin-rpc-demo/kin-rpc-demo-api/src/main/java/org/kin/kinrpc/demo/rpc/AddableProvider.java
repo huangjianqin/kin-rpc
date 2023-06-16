@@ -1,7 +1,6 @@
 package org.kin.kinrpc.demo.rpc;
 
 import org.kin.kinrpc.config.ServiceConfig;
-import org.kin.kinrpc.config.Services;
 import org.kin.kinrpc.serialization.SerializationType;
 
 /**

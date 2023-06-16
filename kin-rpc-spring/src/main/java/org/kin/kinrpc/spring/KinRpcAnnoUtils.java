@@ -2,7 +2,6 @@ package org.kin.kinrpc.spring;
 
 import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.StringUtils;
-import org.kin.kinrpc.config.*;
 import org.kin.kinrpc.rpc.Notifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,8 +30,8 @@ final class KinRpcAnnoUtils {
     /**
      * 将zookeeper注册中心注解转换成注册中心配置
      */
-    private static ZookeeperRegistryConfig convert2RegistryCfg(@Nonnull ZookeeperRegistry zookeeperRegistryAnno) {
-        return ZookeeperRegistryConfig.create(zookeeperRegistryAnno.address())
+    private static ZKRegistryConfig convert2RegistryCfg(@Nonnull ZookeeperRegistry zookeeperRegistryAnno) {
+        return ZKRegistryConfig.create(zookeeperRegistryAnno.address())
                 .sessionTimeout(zookeeperRegistryAnno.sessionTimeout()).build();
     }
 
@@ -131,9 +130,7 @@ final class KinRpcAnnoUtils {
      * @param defaultAppName     默认的spring application name
      * @return 服务引用配置
      * @see ReferenceConfig
-     * @see RedisRegistryConfig
-     * @see ZookeeperRegistryConfig
-     * @see RedisRegistry
+     * @see ZKRegistryConfig
      * @see ZookeeperRegistry
      * @see KinRpcReference
      */
