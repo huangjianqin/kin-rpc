@@ -3,6 +3,7 @@ package org.kin.kinrpc.rpc.common.constants;
 
 /**
  * 通用常量
+ *
  * @author huangjianqin
  * @date 2023/6/16
  */
@@ -14,6 +15,7 @@ public final class Constants {
     }
 
 
+    // TODO: 2023/6/18 移除'
     //    //-------------------------------------------------配置key--------------------------------------------------------
 //    /** url参数 */
 //    int URL_PARAM_NUM = 6;

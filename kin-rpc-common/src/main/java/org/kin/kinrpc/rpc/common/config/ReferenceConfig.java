@@ -1,389 +1,149 @@
 package org.kin.kinrpc.rpc.common.config;
 
-import com.google.common.base.Preconditions;
-import org.kin.framework.utils.ClassUtils;
-import org.kin.framework.utils.ExceptionUtils;
-import org.kin.framework.utils.NetUtils;
-import org.kin.framework.utils.StringUtils;
-import org.kin.kinrpc.cluster.Clusters;
-import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
-import org.kin.kinrpc.cluster.router.Router;
-import org.kin.kinrpc.rpc.Notifier;
-import org.kin.kinrpc.rpc.common.constants.Constants;
-import org.kin.kinrpc.rpc.common.Url;
-import org.kin.kinrpc.rpc.common.config1.LoadBalanceType;
-import org.kin.kinrpc.rpc.common.config1.RouterType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.kin.kinrpc.rpc.common.constants.ReferenceConstants;
 
-import java.util.*;
+import javax.annotation.Nullable;
 
 /**
- * Created by 健勤 on 2017/2/15.
+ * 服务引用配置
+ *
+ * @author huangjianqin
+ * @date 2023/6/16
  */
-public class ReferenceConfig<T> extends AbstractConfig {
-    private static final Logger log = LoggerFactory.getLogger(ReferenceConfig.class);
-
-    /** 应用配置 */
-    private ApplicationConfig applicationConfig = new ApplicationConfig();
-    /** 注册中心配置 */
-    private AbstractRegistryConfig registryConfig;
-    /** 服务接口 */
-    private Class<T> interfaceClass;
-    /** 服务所属组 */
-    private String group = "";
-    /** 服务名 */
-    private String serviceName;
-    /** 版本号 */
-    private String version = "0.1.0.0";
-    /** 重试次数 */
-    private int retryTimes;
-    /** 重试等待时间(即两次重试间隔时间)(ms) */
-    private long retryInterval = Constants.RETRY_INTERVAL;
-    /** 负载均衡类型 */
-    private String loadBalanceType = LoadBalanceType.ROUNDROBIN.getType();
-    /** 路由类型 */
-    private String routerType = RouterType.NONE.getType();
-    /** 客户端服务invoker调用类型 */
-    private ProxyType proxyType = ProxyType.JAVASSIST;
-    /** 服务限流, 每秒发送多少个 */
-    private int tps = Constants.REFERENCE_DEFAULT_TPS;
-    /** 是否支持异步rpc call */
-    private boolean async;
+public class ReferenceConfig<T> extends AbstractInterfaceConfig<T, ReferenceConfig<T>> {
+    /** 集群处理, 默认是failover */
+    // TODO: 待实现
+    private String cluster;
+    /** 负载均衡类型, 默认round robin */
+    private String loadBalance = LoadBalanceType.ROUND_ROBIN.getName();
+    /** 路由类型, 默认none */
+    private String router = RouterType.NONE.getName();
     /** async rpc call 事件通知 */
-    private List<Notifier<?>> notifiers = new ArrayList<>();
+    // TODO: 待实现
+//    private final List<Notifier<?>> notifiers = new ArrayList<>();
     /** 兼容协议(非kinrpc)是否使用Generic通用接口服务 */
-    private boolean useGeneric;
-    /** rpc call超时 */
-    private long callTimeout = Constants.RPC_CALL_TIMEOUT;
-    /** 是否允许ssl */
-    private boolean ssl;
-    /** 额外参数, 主要用于支持不同协议层的额外配置 */
-    private Map<String, Object> attachment = new HashMap<>();
+    // TODO: 待实现
+    private boolean generic;
+    /** 服务connection ssl配置 */
+    private SslConfig ssl;
 
-    /** 唯一url */
-    private Url url;
+
+    //----------------------------------------------------------------方法级配置, 如果方法没有特殊配置, 则取这个
+    /**
+     * rpc call timeout
+     * todo 对于service端, 如果调用超时, 那么仅仅会打印log
+     */
+    private int callTimeout = ReferenceConstants.DEFAULT_RPC_CALL_TIMEOUT;
+    /** 失败后重试次数 */
+    private int retries = ReferenceConstants.DEFAULT_RETRY_TIMES;
+    /** 是否异步调用 */
+    private boolean async;
+    /** 是否服务调用粘黏 */
+    private boolean sticky;
+
+
     /** 服务引用, 也就是客户端服务invoker */
     private volatile T reference;
-    /** 是否已暴露引用 */
-    private boolean isReference;
 
-    ReferenceConfig(Class<T> interfaceClass) {
-        this.interfaceClass = interfaceClass;
-        this.serviceName = interfaceClass.getName();
-
-        //默认netty channel options
-        Map<String, Object> nettyOptions = new HashMap<>(4);
-        nettyOptions.put(Constants.NETTY_NODELAY_KEY, true);
-        nettyOptions.put(Constants.NETTY_CONNECT_TIMEOUT_KEY, Constants.DEFAULT_CONNECT_TIMEOUT);
-        //receive窗口缓存8mb
-        nettyOptions.put(Constants.NETTY_RCVBUF_KEY, 8 * 1024 * 1024);
-        //send窗口缓存64kb
-        nettyOptions.put(Constants.NETTY_SNDBUF_KEY, 64 * 1024);
-        attach(nettyOptions);
+    public static <T> ReferenceConfig<T> create(Class<T> interfaceClass) {
+        return new ReferenceConfig<T>().interfaceClass(interfaceClass);
     }
 
-    //---------------------------------------------------------------------------------------------------------
-
-    @Override
-    void check() {
-        Preconditions.checkNotNull(this.applicationConfig, "reference must need to configure application");
-        this.applicationConfig.check();
-        Preconditions.checkNotNull(this.registryConfig, "reference must need to configure register");
-        this.registryConfig.check();
-        Preconditions.checkNotNull(this.interfaceClass, "reference subscribed interface must be not null");
-        Preconditions.checkArgument(this.retryInterval > 0, "retryTimeout must greater than 0");
-        Preconditions.checkArgument(this.tps > 0, "tps must be greater than 0");
-        Preconditions.checkArgument(this.callTimeout > 0, "callTimeout must greater than 0");
+    private ReferenceConfig() {
     }
 
-    public synchronized T get() {
-        if (!isReference) {
-            check();
-
-            Map<String, String> params = new HashMap<>(50);
-            params.put(Constants.SERVICE_KEY, serviceName);
-            params.put(Constants.GROUP_KEY, group);
-            params.put(Constants.VERSION_KEY, version);
-            params.put(Constants.RETRY_TIMES_KEY, retryTimes + "");
-            params.put(Constants.RETRY_INTERVAL_KEY, retryInterval + "");
-            params.put(Constants.LOADBALANCE_KEY, loadBalanceType);
-            params.put(Constants.ROUTER_KEY, routerType);
-            params.put(Constants.BYTE_CODE_INVOKE_KEY, Boolean.toString(ProxyType.JAVASSIST.equals(proxyType)));
-            params.put(Constants.TPS_KEY, tps + "");
-            params.put(Constants.ASYNC_KEY, Boolean.toString(async));
-            params.put(Constants.GENERIC_KEY, Boolean.toString(useGeneric));
-            params.put(Constants.CALL_TIMEOUT_KEY, callTimeout + "");
-            params.put(Constants.INTERFACE_KEY, interfaceClass.getName());
-            params.put(Constants.SSL_ENABLED_KEY, Boolean.toString(ssl));
-
-            url = createURL(
-                    applicationConfig,
-                    NetUtils.getIp(),
-                    registryConfig,
-                    params,
-                    null);
-            Preconditions.checkNotNull(url);
-
-            //关联
-            url.attach(attachment);
-
-            reference = Clusters.reference(url, interfaceClass, notifiers);
-
-            isReference = true;
-        }
-
-        return reference;
+    /**
+     * 创建服务引用
+     *
+     * @return 服务引用
+     */
+    public T refer() {
+        // TODO: 2023/6/16
     }
 
-    public void disable() {
-        if (isReference) {
-            reference = null;
-
-            try {
-                Clusters.disableReference(url);
-            } catch (Exception e) {
-                ExceptionUtils.throwExt(e);
-            }
-        }
+    //setter && getter
+    public String getCluster() {
+        return cluster;
     }
 
-    //---------------------------------------builder------------------------------------------------------------
-
-    public ReferenceConfig<T> app(String app) {
-        if (!isReference) {
-            this.applicationConfig = new ApplicationConfig(app);
-        }
+    public ReferenceConfig<T> cluster(String cluster) {
+        this.cluster = cluster;
         return this;
     }
 
-    public ReferenceConfig<T> group(String group) {
-        if (!isReference) {
-            this.group = group;
-        }
+    public String getLoadBalance() {
+        return loadBalance;
+    }
+
+    public ReferenceConfig<T> loadBalance(String loadBalance) {
+        this.loadBalance = loadBalance;
         return this;
     }
 
-    public ReferenceConfig<T> service(String service) {
-        if (!isReference) {
-            this.serviceName = service;
-        }
-        return this;
+    public ReferenceConfig<T> loadBalance(LoadBalanceType loadBalanceType) {
+        return loadBalance(loadBalanceType.getName());
     }
 
-    public ReferenceConfig<T> version(String version) {
-        if (!isReference) {
-            this.version = version;
-        }
-        return this;
-    }
-
-    public ReferenceConfig<T> urls(String... urls) {
-        if (!isReference) {
-            this.registryConfig = new DirectRegistryConfig(StringUtils.mkString(";", urls));
-        }
-        return this;
-    }
-
-    public ReferenceConfig<T> jvm() {
-        if (!isReference) {
-            this.registryConfig = new DirectRegistryConfig("jvm://0.0.0.0");
-        }
-        return this;
-    }
-
-    public ReferenceConfig<T> registry(AbstractRegistryConfig registryConfig) {
-        if (!isReference) {
-            this.registryConfig = registryConfig;
-        }
-        return this;
-    }
-
-    public ReferenceConfig<T> retry(int retryTimes) {
-        if (!isReference) {
-            this.retryTimes = retryTimes;
-        }
-        return this;
-    }
-
-    public ReferenceConfig<T> retryTimeout(long retryTimeout) {
-        if (!isReference) {
-            this.retryInterval = retryTimeout;
-        }
-        return this;
-    }
-
-    public ReferenceConfig<T> loadbalance(String loadbalance) {
-        if (!isReference) {
-            this.loadBalanceType = loadbalance;
-        }
-        return this;
-    }
-
-    public ReferenceConfig<T> loadbalance(LoadBalanceType loadBalanceType) {
-        if (!isReference) {
-            this.loadBalanceType = loadBalanceType.getType();
-        }
-        return this;
-    }
-
-    public ReferenceConfig<T> loadbalance(Class<? extends LoadBalance> loadBalanceClass) {
-        if (!isReference) {
-            this.loadBalanceType = loadBalanceClass.getName();
-        }
-        return this;
+    public String getRouter() {
+        return router;
     }
 
     public ReferenceConfig<T> router(String router) {
-        if (!isReference) {
-            this.routerType = router;
-        }
+        this.router = router;
         return this;
     }
 
     public ReferenceConfig<T> router(RouterType routerType) {
-        if (!isReference) {
-            this.routerType = routerType.getType();
-        }
+        return router(routerType.getName());
+    }
+
+    public boolean isGeneric() {
+        return generic;
+    }
+
+    public ReferenceConfig<T> generic() {
+        this.generic = true;
         return this;
     }
 
-    public ReferenceConfig<T> router(Class<? extends Router> routerClass) {
-        if (!isReference) {
-            this.routerType = routerClass.getName();
-        }
+    public int getCallTimeout() {
+        return callTimeout;
+    }
+
+    public ReferenceConfig<T> callTimeout(int callTimeout) {
+        this.callTimeout = callTimeout;
         return this;
     }
 
-    public ReferenceConfig<T> javaProxy() {
-        if (!isReference) {
-            this.proxyType = ProxyType.JAVA;
-        }
+    public int getRetries() {
+        return retries;
+    }
+
+    public ReferenceConfig<T> retries(int retries) {
+        this.retries = retries;
         return this;
-    }
-
-    public ReferenceConfig<T> javassistProxy() {
-        if (!isReference) {
-            this.proxyType = ProxyType.JAVASSIST;
-        }
-        return this;
-    }
-
-    public ReferenceConfig<T> tps(int tps) {
-        if (!isReference) {
-            this.tps = tps;
-        }
-        return this;
-    }
-
-    public ReferenceConfig<T> async() {
-        if (!isReference) {
-            this.async = true;
-        }
-        return this;
-    }
-
-    public ReferenceConfig<T> notify(Class<? extends Notifier<?>>... notifierClasses) {
-        if (!isReference) {
-            for (Class<? extends Notifier<?>> notifierClass : notifierClasses) {
-                notify(ClassUtils.instance(notifierClass));
-            }
-        }
-        return this;
-    }
-
-    public ReferenceConfig<T> notify(Notifier<?>... notifiers) {
-        if (!isReference) {
-            this.notifiers.addAll(Arrays.asList(notifiers));
-        }
-        return this;
-    }
-
-    public ReferenceConfig<T> useGeneric() {
-        if (!isReference) {
-            this.useGeneric = true;
-        }
-        return this;
-    }
-
-    public ReferenceConfig<T> callTimeout(long callTimeout) {
-        if (!isReference) {
-            this.callTimeout = callTimeout;
-        }
-        return this;
-    }
-
-    public ReferenceConfig<T> enableSsl() {
-        if (!isReference) {
-            this.ssl = true;
-        }
-        return this;
-    }
-
-    public ReferenceConfig<T> attach(String key, Object value) {
-        if (!isReference) {
-            this.attachment.put(key, value);
-        }
-        return this;
-    }
-
-    public ReferenceConfig<T> attach(Map<String, Object> attachment) {
-        if (!isReference) {
-            this.attachment.putAll(attachment);
-        }
-        return this;
-    }
-
-    //getter
-    public ApplicationConfig getApplicationConfig() {
-        return applicationConfig;
-    }
-
-    public AbstractRegistryConfig getRegistryConfig() {
-        return registryConfig;
-    }
-
-    public Class<T> getInterfaceClass() {
-        return interfaceClass;
-    }
-
-    public int getRetryTimes() {
-        return retryTimes;
-    }
-
-    public long getRetryInterval() {
-        return retryInterval;
-    }
-
-    public String getLoadBalanceType() {
-        return loadBalanceType;
-    }
-
-    public String getRouterType() {
-        return routerType;
-    }
-
-    public ProxyType getProxyType() {
-        return proxyType;
-    }
-
-    public int getTps() {
-        return tps;
     }
 
     public boolean isAsync() {
         return async;
     }
 
-    public boolean isUseGeneric() {
-        return useGeneric;
+    public ReferenceConfig<T> async() {
+        this.async = true;
+        return this;
     }
 
-    public boolean isSsl() {
-        return ssl;
+    public boolean isSticky() {
+        return sticky;
     }
 
-    public Map<String, Object> getAttachment() {
-        return attachment;
+    public ReferenceConfig<T> sticky() {
+        this.sticky = true;
+        return this;
+    }
+
+    @Nullable
+    public T getReference() {
+        return reference;
     }
 }

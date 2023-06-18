@@ -1,6 +1,4 @@
-package org.kin.kinrpc.rpc.common.config1;
-
-import org.kin.kinrpc.rpc.common.config.ApplicationConfig;
+package org.kin.kinrpc.rpc.common.config;
 
 import java.util.*;
 
@@ -12,11 +10,11 @@ import java.util.*;
  */
 public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceConfig<T, IC>> extends AbstractConfig {
     /** 应用配置 */
-    private ApplicationConfig applicationConfig;
+    private ApplicationConfig app;
     /** 注册中心配置 */
-    private final List<RegistryConfig> registryConfigs = new ArrayList<>();
+    private final List<RegistryConfig> registries = new ArrayList<>();
     /** 服务方法配置 */
-    private final Map<String, MethodConfig> methodConfigMap = new HashMap<>();
+    private final Map<String, MethodConfig> methodMap = new HashMap<>();
     /** 接口 */
     private Class<T> interfaceClass;
     /** 服务所属组 */
@@ -37,39 +35,39 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
     }
 
     //setter && getter
-    public ApplicationConfig getApplicationConfig() {
-        return applicationConfig;
+    public ApplicationConfig getApp() {
+        return app;
     }
 
-    public IC app(ApplicationConfig applicationConfig) {
-        this.applicationConfig = applicationConfig;
+    public IC app(ApplicationConfig app) {
+        this.app = app;
         return castThis();
     }
 
-    public List<RegistryConfig> getRegistryConfigs() {
-        return registryConfigs;
+    public List<RegistryConfig> getRegistries() {
+        return registries;
     }
 
-    public IC registries(RegistryConfig... registryConfigs) {
-        return registries(Arrays.asList(registryConfigs));
+    public IC registries(RegistryConfig... registries) {
+        return registries(Arrays.asList(registries));
     }
 
-    public IC registries(List<RegistryConfig> registryConfigs) {
-        this.registryConfigs.addAll(registryConfigs);
+    public IC registries(List<RegistryConfig> registries) {
+        this.registries.addAll(registries);
         return castThis();
     }
 
-    public Map<String, MethodConfig> getMethodConfigMap() {
-        return methodConfigMap;
+    public Map<String, MethodConfig> getMethodMap() {
+        return methodMap;
     }
 
-    public IC method(String method, MethodConfig methodConfig) {
-        this.methodConfigMap.put(method, methodConfig);
+    public IC method(String method, MethodConfig method) {
+        this.methodMap.put(method, method);
         return castThis();
     }
 
-    public IC methods(Map<String, MethodConfig> methodConfigMap) {
-        this.methodConfigMap.putAll(methodConfigMap);
+    public IC methods(Map<String, MethodConfig> methodMap) {
+        this.methodMap.putAll(methodMap);
         return castThis();
     }
 

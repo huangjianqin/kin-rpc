@@ -1,9 +1,11 @@
 package org.kin.kinrpc.rpc.common;
 
+import org.kin.framework.collection.AttachmentMap;
 import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.NetUtils;
 import org.kin.framework.utils.StringUtils;
+import org.kin.kinrpc.rpc.common.constants.UrlParamConstants;
 import org.kin.kinrpc.rpc.common.util.GsvUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +20,7 @@ import java.util.*;
 /**
  * Created by huangjianqin on 2019/6/18.
  */
-public class Url extends AttributeHolder<Url> implements Serializable {
+public class Url extends AttachmentMap implements Serializable {
     private static final long serialVersionUID = -6466196897378391517L;
     private static final Logger log = LoggerFactory.getLogger(Url.class);
 
@@ -47,16 +49,16 @@ public class Url extends AttributeHolder<Url> implements Serializable {
         this(protocol, username, password, host, port, path, params, null);
     }
 
-    public Url(Url url, @Nullable Map<String, Object> attributes) {
-        this(url.protocol, url.username, url.password, url.host, url.port, url.path, url.params, attributes);
+    public Url(Url url, @Nullable Map<String, Object> attachmentMap) {
+        this(url.protocol, url.username, url.password, url.host, url.port, url.path, url.params, attachmentMap);
     }
 
-    public Url(Url url, @Nullable Map<String, String> params, @Nullable Map<String, Object> attributes) {
-        this(url.protocol, url.username, url.password, url.host, url.port, url.path, params, attributes);
+    public Url(Url url, @Nullable Map<String, String> params, @Nullable Map<String, Object> attachmentMap) {
+        this(url.protocol, url.username, url.password, url.host, url.port, url.path, params, attachmentMap);
     }
 
     private Url(String protocol, String username, String password, String host, int port, String path,
-                @Nullable Map<String, String> params, @Nullable Map<String, Object> attributes) {
+                @Nullable Map<String, String> params, @Nullable Map<String, Object> attachmentMap) {
         this.protocol = protocol;
         this.username = username;
         this.password = password;
@@ -68,13 +70,10 @@ public class Url extends AttributeHolder<Url> implements Serializable {
         } else {
             this.params = new HashMap<>();
         }
-        if (Objects.nonNull(attributes)) {
-            this.attributes = new HashMap<>(attributes);
-        }
 
         this.serviceKey = GsvUtils.serviceKey(getGroup(), getService(), getVersion());
         this.serviceId = GsvUtils.serviceId(serviceKey);
-        this.interfaceName = getParam(UrlParamKey.INTERFACE);
+        this.interfaceName = getParam(UrlParamConstants.INTERFACE);
     }
 
     /**
@@ -159,17 +158,17 @@ public class Url extends AttributeHolder<Url> implements Serializable {
     }
 
     /**
-     * 基于当前应用{@link #attributes}创建新的{@link Url}
+     * 基于其他{@link Url}和新的{@code attachmentMap}创建新的{@link Url}
      */
-    public static Url newUrl(Url url, @Nullable Map<String, Object> attributes) {
-        return new Url(url, url.params, attributes);
+    public static Url newUrl(Url url, @Nullable Map<String, Object> attachmentMap) {
+        return new Url(url, url.params, attachmentMap);
     }
 
     /**
-     * 基于当前应用{@link #attributes}创建新的{@link Url}
+     * 基于其他{@link Url},附加新的参数{@code params}和新的{@code attachmentMap}创建新的{@link Url}
      */
-    public static Url newUrl(Url url, @Nullable Map<String, String> params, @Nullable Map<String, Object> attributes) {
-        return new Url(url, params, attributes);
+    public static Url newUrl(Url url, @Nullable Map<String, String> params, @Nullable Map<String, Object> attachmentMap) {
+        return new Url(url, params, attachmentMap);
     }
 
     /**
@@ -511,282 +510,6 @@ public class Url extends AttributeHolder<Url> implements Serializable {
         return this;
     }
 
-    /**
-     * @return 是否包含指定query参数
-     */
-    public boolean containsParam(UrlParamKey k) {
-        return params.containsKey(k.getName());
-    }
-
-    /**
-     * 获取query参数
-     */
-    public String getParam(UrlParamKey k) {
-        return getParam(k.getName());
-    }
-
-    /**
-     * 获取query参数, 如果不存在, 则取{@link UrlParamKey#getDefaultValue()}
-     */
-    public String getParamOrDefault(UrlParamKey k) {
-        return params.getOrDefault(k.getName(), k.getDefaultValue().toString());
-    }
-
-    /**
-     * 获取query参数(数字类型, 默认返回0)
-     */
-    private String getNumberParam(UrlParamKey k) {
-        String param = getParam(k);
-        return StringUtils.isNotBlank(param) ? param : "0";
-    }
-
-    /**
-     * 获取query参数(数字类型), 如果不存在, 则取{@link UrlParamKey#getDefaultValue()}
-     */
-    private String getNumberParamOrDefault(UrlParamKey k) {
-        String param = getParamOrDefault(k);
-        return StringUtils.isNotBlank(param) ? param : "0";
-    }
-
-    /**
-     * 获取query参数(boolean类型)
-     */
-    public boolean getBooleanParam(UrlParamKey k) {
-        String param = getParam(k);
-        return !StringUtils.isBlank(param) && Boolean.parseBoolean(param);
-    }
-
-    /**
-     * 获取query参数(boolean类型), 如果不存在, 则取{@link UrlParamKey#getDefaultValue()}
-     */
-    public boolean getBooleanParamOrDefault(UrlParamKey k) {
-        String param = getParamOrDefault(k);
-        return !StringUtils.isBlank(param) && Boolean.parseBoolean(param);
-    }
-
-    /**
-     * 获取query参数(short类型, 默认返回0)
-     */
-    public short getShortParam(UrlParamKey k) {
-        return Short.parseShort(getParam(k));
-    }
-
-    /**
-     * 获取query参数(short类型), 如果不存在, 则取{@link UrlParamKey#getDefaultValue()}
-     */
-    public short getShortParamOrDefault(UrlParamKey k) {
-        return Short.parseShort(getParamOrDefault(k));
-    }
-
-    /**
-     * 获取query参数(int类型, 默认返回0)
-     */
-    public int getIntParam(UrlParamKey k) {
-        return Integer.parseInt(getParam(k));
-    }
-
-    /**
-     * 获取query参数(int类型), 如果不存在, 则取{@link UrlParamKey#getDefaultValue()}
-     */
-    public int getIntParamOrDefault(UrlParamKey k) {
-        return Integer.parseInt(getParamOrDefault(k));
-    }
-
-    /**
-     * 获取query参数(long类型, 默认返回0)
-     */
-    public long getLongParam(UrlParamKey k) {
-        return Long.parseLong(getParam(k));
-    }
-
-    /**
-     * 获取query参数(long类型), 如果不存在, 则取{@link UrlParamKey#getDefaultValue()}
-     */
-    public long getLongParamOrDefault(UrlParamKey k) {
-        return Long.parseLong(getParamOrDefault(k));
-    }
-
-    /**
-     * 获取query参数(double类型, 默认返回0)
-     */
-    public double getDoubleParam(UrlParamKey k) {
-        return Double.parseDouble(getParam(k));
-    }
-
-    /**
-     * 获取url参数(double类型), 如果不存在, 则取{@link UrlParamKey#getDefaultValue()}
-     */
-    public double getDoubleParamOrDefault(UrlParamKey k) {
-        return Double.parseDouble(getParamOrDefault(k));
-    }
-
-    /**
-     * 获取query参数, 最后进行decode
-     */
-    public String getDecodedParam(UrlParamKey k) {
-        return decode(getParam(k));
-    }
-
-    /**
-     * 获取query参数, 如果不存在, 则取{@link UrlParamKey#getDefaultValue()}, 最后进行decode
-     */
-    public String getDecodedParamOrDefault(UrlParamKey k) {
-        return decode(getParamOrDefault(k));
-    }
-
-    /**
-     * 添加query param
-     *
-     * @param key   param key
-     * @param value param value
-     * @return this
-     */
-    public Url putParam(UrlParamKey key, String value) {
-        params.put(key.getName(), value);
-        return this;
-    }
-
-    /**
-     * 对{@code value}进行encode, 然后添加query param
-     *
-     * @param key   param key
-     * @param value url encoded value
-     * @return this
-     */
-    public Url encodeAndPutParam(UrlParamKey key, String value) {
-        return putParam(key, encode(value));
-    }
-
-    /**
-     * 添加query param
-     *
-     * @param key   param key
-     * @param value boolean value
-     * @return this
-     */
-    public Url putParam(UrlParamKey key, boolean value) {
-        return putParam(key, String.valueOf(value));
-    }
-
-    /**
-     * 添加query param
-     *
-     * @param key   param key
-     * @param value byte value
-     * @return this
-     */
-    public Url putParam(UrlParamKey key, byte value) {
-        return putParam(key, String.valueOf(value));
-    }
-
-    /**
-     * 添加query param
-     *
-     * @param key   param key
-     * @param value char value
-     * @return this
-     */
-    public Url putParam(UrlParamKey key, char value) {
-        return putParam(key, String.valueOf(value));
-    }
-
-    /**
-     * 添加query param
-     *
-     * @param key   param key
-     * @param value short value
-     * @return this
-     */
-    public Url putParam(UrlParamKey key, short value) {
-        return putParam(key, String.valueOf(value));
-    }
-
-    /**
-     * 添加query param
-     *
-     * @param key   param key
-     * @param value int value
-     * @return this
-     */
-    public Url putParam(UrlParamKey key, int value) {
-        return putParam(key, String.valueOf(value));
-    }
-
-    /**
-     * 添加query param
-     *
-     * @param key   param key
-     * @param value float value
-     * @return this
-     */
-    public Url putParam(UrlParamKey key, float value) {
-        return putParam(key, String.valueOf(value));
-    }
-
-    /**
-     * 添加query param
-     *
-     * @param key   param key
-     * @param value long value
-     * @return this
-     */
-    public Url putParam(UrlParamKey key, long value) {
-        return putParam(key, String.valueOf(value));
-    }
-
-    /**
-     * 添加query param
-     *
-     * @param key   param key
-     * @param value double value
-     * @return this
-     */
-    public Url putParam(UrlParamKey key, double value) {
-        return putParam(key, String.valueOf(value));
-    }
-
-    /**
-     * 添加query param
-     *
-     * @param key   param key
-     * @param value {@link Number} value
-     * @return this
-     */
-    public Url putParam(UrlParamKey key, Number value) {
-        if (value == null) {
-            return this;
-        }
-        return putParam(key, String.valueOf(value));
-    }
-
-    /**
-     * 添加query param
-     *
-     * @param key   param key
-     * @param value {@link CharSequence} value
-     * @return this
-     */
-    public Url putParam(UrlParamKey key, CharSequence value) {
-        if (value == null || value.length() == 0) {
-            return this;
-        }
-        return putParam(key, String.valueOf(value));
-    }
-
-    /**
-     * 添加query param
-     *
-     * @param key   param key
-     * @param value {@link Enum} value
-     * @return this
-     */
-    public Url putParam(UrlParamKey key, Enum<?> value) {
-        if (value == null) {
-            return this;
-        }
-        return putParam(key, String.valueOf(value));
-    }
-
     //----------------------------------------------------------------------------------------------------------------
 
     /**
@@ -918,15 +641,15 @@ public class Url extends AttributeHolder<Url> implements Serializable {
     }
 
     public String getGroup() {
-        return getParam(UrlParamKey.GROUP);
+        return getParam(UrlParamConstants.GROUP);
     }
 
     public String getService() {
-        return getParam(UrlParamKey.SERVICE);
+        return getParam(UrlParamConstants.SERVICE);
     }
 
     public String getVersion() {
-        return getParam(UrlParamKey.VERSION);
+        return getParam(UrlParamConstants.VERSION);
     }
 
     public String getInterfaceName() {

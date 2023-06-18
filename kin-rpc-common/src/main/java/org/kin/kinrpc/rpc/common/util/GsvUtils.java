@@ -12,7 +12,8 @@ public final class GsvUtils {
     }
 
     /**
-     * group/service:version, 兼容URL定义
+     * group/service:version
+     *
      * @return 服务唯一标识
      */
     public static String serviceKey(String group, String service, String version) {
@@ -32,6 +33,7 @@ public final class GsvUtils {
     }
 
     /**
+     * 返回服务唯一id
      * @return hash(服务唯一id)
      */
     public static Integer serviceId(String group, String service, String version) {
@@ -39,6 +41,7 @@ public final class GsvUtils {
     }
 
     /**
+     * 返回服务唯一id
      * @param serviceKey 服务gsv
      * @return hash(服务唯一id)
      */

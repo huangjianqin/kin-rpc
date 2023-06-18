@@ -1,4 +1,4 @@
-package org.kin.kinrpc.rpc.common.config1;
+package org.kin.kinrpc.rpc.common.config;
 
 /**
  * @author huangjianqin

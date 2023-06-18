@@ -1,4 +1,4 @@
-package org.kin.kinrpc.rpc.common.config1;
+package org.kin.kinrpc.rpc.common.config;
 
 /**
  * todo增加基于性能监控动态计算权重的负载均衡算法

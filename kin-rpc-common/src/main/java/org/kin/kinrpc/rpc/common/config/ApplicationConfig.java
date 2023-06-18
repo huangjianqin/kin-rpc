@@ -1,36 +1,29 @@
 package org.kin.kinrpc.rpc.common.config;
 
-import com.google.common.base.Preconditions;
-import org.kin.framework.utils.StringUtils;
-
 /**
- * Created by 健勤 on 2017/2/12.
+ * 应用配置
+ *
+ * @author huangjianqin
+ * @date 2023/6/16
  */
-public class ApplicationConfig extends AbstractConfig {
+public class ApplicationConfig implements Config {
     /** 应用名 */
-    private String app;
+    private String appName;
 
-    ApplicationConfig() {
-        //获取最外层调用的class name
-        StackTraceElement[] elements = Thread.currentThread().getStackTrace();
-        String className = elements[elements.length - 1].getClassName();
-        int last = className.lastIndexOf(".");
-        //默认是main方法的simple class name
-        app = className.substring(last + 1);
+    public static ApplicationConfig create(String appName) {
+        return new ApplicationConfig().appName(appName);
     }
 
-    ApplicationConfig(String app) {
-        this.app = app;
-    }
-
-    @Override
-    void check() {
-        Preconditions.checkArgument(StringUtils.isNotBlank(app));
+    private ApplicationConfig() {
     }
 
     //setter && getter
+    public String getAppName() {
+        return appName;
+    }
 
-    public String getApp() {
-        return app;
+    public ApplicationConfig appName(String appName) {
+        this.appName = appName;
+        return this;
     }
 }

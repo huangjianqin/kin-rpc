@@ -1,6 +1,4 @@
-package org.kin.kinrpc.rpc.common.config1;
-
-import org.kin.kinrpc.rpc.common.Url;
+package org.kin.kinrpc.rpc.common.config;
 
 /**
  * 注意{@link #name}要与executor factory extension name一致
