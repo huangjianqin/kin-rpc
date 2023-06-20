@@ -1,7 +1,7 @@
 package org.kin.kinrpc.demo.rpc.grpc;
 
 import org.kin.kinrpc.cluster.RpcCallContext;
-import org.kin.kinrpc.config.ReferenceConfig;
+import org.kin.kinrpc.conf.ReferenceConfig;
 import org.kin.kinrpc.rpc.Notifier;
 
 import java.util.concurrent.CompletableFuture;

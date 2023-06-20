@@ -10,7 +10,6 @@
         <module>kin-rpc</module>
         <module>kin-rpc-transport</module>
         <module>kin-rpc-cluster</module>
-        <module>kin-rpc-config</module>
         <module>kin-rpc-core</module>
         <module>kin-rpc-demo</module>
         <module>kin-rpc-registry</module>

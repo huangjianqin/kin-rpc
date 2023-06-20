@@ -1,11 +1,11 @@
 package org.kin.kinrpc.demo.rpc.jvm;
 
-import org.kin.kinrpc.config.ReferenceConfig;
-import org.kin.kinrpc.config.ServiceConfig;
+import org.kin.kinrpc.conf.ProtocolType;
+import org.kin.kinrpc.conf.ReferenceConfig;
+import org.kin.kinrpc.conf.ServiceConfig;
 import org.kin.kinrpc.demo.rpc.Addable;
 import org.kin.kinrpc.demo.rpc.AddableProvider;
 import org.kin.kinrpc.demo.rpc.AddableReference;
-import org.kin.kinrpc.config.ProtocolType;
 
 /**
  * @author huangjianqin

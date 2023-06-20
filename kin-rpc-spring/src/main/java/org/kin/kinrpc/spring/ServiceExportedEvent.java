@@ -1,6 +1,6 @@
 package org.kin.kinrpc.spring;
 
-import org.kin.kinrpc.config.ServiceConfig;
+import org.kin.kinrpc.conf.ServiceConfig;
 import org.springframework.context.ApplicationEvent;
 
 /**

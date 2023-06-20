@@ -5,6 +5,8 @@ import io.netty.util.ReferenceCountUtil;
 import org.kin.kinrpc.transport.RequestIdGenerator;
 import org.kin.kinrpc.transport.TransportConstants;
 
+import java.util.Arrays;
+
 /**
  * @author huangjianqin
  * @date 2023/6/1
@@ -99,5 +101,14 @@ public class RpcRequestCommand extends RequestCommand {
 
     public ByteBuf getParamsPayload() {
         return paramsPayload;
+    }
+
+    @Override
+    public String toString() {
+        return "RpcRequestCommand{" +
+                "gsv='" + gsv + '\'' +
+                ", method='" + method + '\'' +
+                ", params=" + Arrays.toString(params) +
+                '}';
     }
 }

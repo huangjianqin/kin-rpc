@@ -39,6 +39,21 @@ public abstract class RequestCommand extends RemotingCommand {
         timeout = VarIntUtils.readRawVarInt32(in);
     }
 
+    /**
+     * process request command时触发
+     */
+    public void onProcess() {
+        execTime = System.currentTimeMillis();
+    }
+
+    /**
+     * 判断process request command是否超时
+     * 一般server端处理结束才会调用
+     */
+    public boolean isTimeout() {
+        return execTime > 0 && System.currentTimeMillis() > timeout;
+    }
+
     //setter && getter
     public int getTimeout() {
         return timeout;

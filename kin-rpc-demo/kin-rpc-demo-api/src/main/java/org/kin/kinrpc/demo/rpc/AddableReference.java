@@ -1,7 +1,7 @@
 package org.kin.kinrpc.demo.rpc;
 
 import org.kin.kinrpc.cluster.RpcCallContext;
-import org.kin.kinrpc.config.ReferenceConfig;
+import org.kin.kinrpc.conf.ReferenceConfig;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;

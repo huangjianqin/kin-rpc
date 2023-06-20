@@ -1,15 +1,15 @@
 package org.kin.kinrpc.spring;
 
+import org.kin.kinrpc.conf.ProtocolType;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.serialization.SerializationType;
-import org.kin.kinrpc.config.ProtocolType;
 import org.kin.transport.netty.CompressionType;
 import org.springframework.stereotype.Service;
 
 import java.lang.annotation.*;
 
 /**
- * 配置的含义请看{@link org.kin.kinrpc.config.ServiceConfig}
+ * 配置的含义请看{@link org.kin.kinrpc.conf.ServiceConfig}
  *
  * @author huangjianqin
  * @date 2020/12/6

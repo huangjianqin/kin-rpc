@@ -5,11 +5,11 @@ import io.netty.channel.ChannelOption;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.StringUtils;
-import org.kin.kinrpc.rpc.AsyncContext;
-import org.kin.kinrpc.rpc.executor.ExecutorFactory;
-import org.kin.kinrpc.rpc.Invoker;
+import org.kin.kinrpc.common.Url;
+import org.kin.kinrpc.core.AsyncContext;
+import org.kin.kinrpc.core.Invoker;
+import org.kin.kinrpc.executor.ExecutorFactory;
 import org.kin.kinrpc.rpc.common.SslConfig;
-import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.exception.TpsLimitException;
 import org.kin.kinrpc.rpc.invoker.TpsLimitInvoker;
 import org.kin.kinrpc.serialization.Serialization;
@@ -54,7 +54,7 @@ public class KinRpcProvider {
     /**
      * executorFactory
      * <p>
-     * 注意: 如果kinrpc 服务中使用reference调用其他服务, 如果使用CompletableFuture进行异步处理, 则remote service返回结果的处理的executor则是在{@link org.kin.kinrpc.rpc.RpcThreadPool#EXECUTORS}处理
+     * 注意: 如果kinrpc 服务中使用reference调用其他服务, 如果使用CompletableFuture进行异步处理, 则remote service返回结果的处理的executor则是在{@link RpcThreadPool#EXECUTORS}处理
      * 而不是在{@link ExecutorFactory}选择的{@link Executor}执行, 如果想要保持在同一{@link Executor}处理业务, 则需要block
      */
     private final ExecutorFactory executorFactory;

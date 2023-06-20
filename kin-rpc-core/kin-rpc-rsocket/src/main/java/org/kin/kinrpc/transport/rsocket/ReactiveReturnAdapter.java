@@ -1,6 +1,6 @@
 package org.kin.kinrpc.transport.rsocket;
 
-import org.kin.kinrpc.rpc.RpcCallReturnAdapter;
+import org.kin.kinrpc.core.RpcCallReturnAdapter;
 import org.reactivestreams.Publisher;
 
 import java.util.concurrent.CompletableFuture;

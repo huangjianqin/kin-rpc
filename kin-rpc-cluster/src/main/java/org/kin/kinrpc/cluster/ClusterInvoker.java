@@ -4,7 +4,6 @@ import com.google.common.net.HostAndPort;
 import org.kin.framework.Closeable;
 import org.kin.framework.concurrent.Timeout;
 import org.kin.framework.utils.ClassUtils;
-import org.kin.kinrpc.cluster.exception.CannotFindInvokerException;
 import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.kin.kinrpc.rpc.Notifier;
 import org.kin.kinrpc.rpc.RpcThreadPool;
@@ -96,7 +95,7 @@ abstract class ClusterInvoker<T> implements Closeable {
     protected void invoke0(ClusterInvocation clusterInvocation, String methodName, Object[] params) {
         try {
             invoke1(clusterInvocation, methodName, params);
-        } catch (CannotFindInvokerException e) {
+        } catch (InvokerNotFoundException e) {
             handleInvokeException(e, clusterInvocation, methodName, params);
         }
     }
@@ -130,7 +129,7 @@ abstract class ClusterInvoker<T> implements Closeable {
                 });
             }
         } else {
-            throw new CannotFindInvokerException(url.getServiceKey(), methodName);
+            throw new InvokerNotFoundException(url.getServiceKey(), methodName);
         }
     }
 
@@ -140,7 +139,7 @@ abstract class ClusterInvoker<T> implements Closeable {
                                        Object[] params) {
         if (throwable instanceof RpcCallRetryException ||
                 throwable instanceof RpcCallTimeOutException ||
-                throwable instanceof CannotFindInvokerException) {
+                throwable instanceof InvokerNotFoundException) {
             //重试异常, 尝试retry rpc call
             if (clusterInvocation.failure()) {
                 RpcThreadPool.executors().schedule(

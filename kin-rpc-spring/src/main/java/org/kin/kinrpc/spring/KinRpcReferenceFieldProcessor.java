@@ -3,7 +3,7 @@ package org.kin.kinrpc.spring;
 import org.kin.framework.log.LoggerOprs;
 import org.kin.framework.spring.beans.AbstractAnnotationBeanPostProcessor;
 import org.kin.framework.utils.StringUtils;
-import org.kin.kinrpc.config.ReferenceConfig;
+import org.kin.kinrpc.conf.ReferenceConfig;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;

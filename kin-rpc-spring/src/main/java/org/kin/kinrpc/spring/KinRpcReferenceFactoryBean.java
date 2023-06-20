@@ -2,7 +2,7 @@ package org.kin.kinrpc.spring;
 
 import com.google.common.base.Preconditions;
 import org.kin.framework.log.LoggerOprs;
-import org.kin.kinrpc.config.ReferenceConfig;
+import org.kin.kinrpc.conf.ReferenceConfig;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.ApplicationContext;

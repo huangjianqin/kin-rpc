@@ -1,10 +1,13 @@
 package org.kin.kinrpc.transport;
 
-import org.kin.kinrpc.transport.cmd.*;
+import org.kin.kinrpc.transport.cmd.MessageCommand;
+import org.kin.kinrpc.transport.cmd.RequestCommand;
+import org.kin.kinrpc.transport.cmd.RpcResponseCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * request process context
@@ -44,7 +47,10 @@ public class RequestContext{
      * write message response
      * @param message   message response result
      */
-    public void writeMessageResponse(Serializable message){
+    public void writeMessageResponse(Serializable message) {
+        if (Objects.isNull(message)) {
+            throw new IllegalArgumentException("does not support response empty message");
+        }
         remotingContext.writeResponse(new MessageCommand((MessageCommand) command, message));
     }
 }

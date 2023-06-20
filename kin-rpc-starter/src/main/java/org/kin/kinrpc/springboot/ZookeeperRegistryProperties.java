@@ -1,6 +1,6 @@
 package org.kin.kinrpc.springboot;
 
-import org.kin.kinrpc.config.ZKRegistryConfig;
+import org.kin.kinrpc.conf.ZKRegistryConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**

@@ -1,6 +1,6 @@
 package org.kin.kinrpc.spring;
 
-import org.kin.kinrpc.config.ZKRegistryConfig;
+import org.kin.kinrpc.conf.ZKRegistryConfig;
 import org.kin.kinrpc.rpc.common.Constants;
 
 import java.lang.annotation.*;

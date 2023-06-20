@@ -11,13 +11,13 @@ import java.lang.annotation.*;
 
 /**
  * 仅仅允许注解在interface上
- * 配置的含义请看{@link org.kin.kinrpc.config.ReferenceConfig}
+ * 配置的含义请看{@link org.kin.kinrpc.conf.ReferenceConfig}
  * 两种用法:
  * 1. 注解在Field上. 当多个service需要使用同一reference时, 将{@link KinRpcReference}和{@link ZookeeperRegistry}注解复制到其他用到Field上即可.
  * 建议所有注解复制一遍, 因为无法保证注入顺序, 如果beanname一样, 但其余一些配置不一样, 只会使用最先注入的配置而创建service reference
  * 此类beanName=Reference${appName}${serviceName}${version}.
  * 2. 注解在服务接口上. 可以通过@Autowired, 在需要的services注入服务引用. 此方法不太友好, 需要复制接口代码
- * 3. 在@Configuration配置类中使用{@link org.kin.kinrpc.config.ReferenceConfig}构建Reference并注册Bean
+ * 3. 在@Configuration配置类中使用{@link org.kin.kinrpc.conf.ReferenceConfig}构建Reference并注册Bean
  *
  * @author huangjianqin
  * @date 2020/12/6

@@ -1,8 +1,8 @@
 package org.kin.kinrpc.demo.rpc.grpc;
 
 import org.kin.framework.JvmCloseCleaner;
-import org.kin.kinrpc.config.ServiceConfig;
-import org.kin.kinrpc.config.ProtocolType;
+import org.kin.kinrpc.conf.ProtocolType;
+import org.kin.kinrpc.conf.ServiceConfig;
 
 /**
  * @author huangjianqin

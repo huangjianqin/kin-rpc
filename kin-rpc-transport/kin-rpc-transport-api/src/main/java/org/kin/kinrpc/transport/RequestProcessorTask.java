@@ -1,9 +1,6 @@
 package org.kin.kinrpc.transport;
 
-import org.kin.kinrpc.transport.cmd.RemotingCommand;
 import org.kin.kinrpc.transport.cmd.RequestCommand;
-import org.kin.kinrpc.transport.cmd.RpcRequestCommand;
-import org.kin.kinrpc.transport.cmd.RpcResponseCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,10 +49,11 @@ public class RequestProcessorTask implements Runnable{
     @SuppressWarnings("unchecked")
     private void doProcess(){
         try {
+            command.onProcess();
             requestProcessor.process(new RequestContext(context, command), request);
         } catch (Exception e) {
-            log.error("processor remoting request fail, id={}, from={}", command.getId(), context.address(), e);
-            context.writeResponseIfError(command, "processor remoting request fail due to " + e.getMessage());
+            log.error("process remoting request fail, id={}, from={}", command.getId(), context.address(), e);
+            context.writeResponseIfError(command, "process remoting request fail due to " + e.getMessage());
         }
     }
 }

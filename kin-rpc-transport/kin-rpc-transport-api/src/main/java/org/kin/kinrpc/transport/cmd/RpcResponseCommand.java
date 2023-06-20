@@ -4,6 +4,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.util.ReferenceCountUtil;
 import org.kin.kinrpc.transport.TransportException;
 
+import java.util.Objects;
+
 /**
  * @author huangjianqin
  * @date 2023/6/1
@@ -58,7 +60,9 @@ public class RpcResponseCommand extends RemotingCommand {
          */
 
         out.writeByte(status.getCode());
-        out.writeBytes(getSerialization().serialize(result));
+        if (Objects.nonNull(result)) {
+            out.writeBytes(getSerialization().serialize(result));
+        }
     }
 
     @Override

@@ -1,8 +1,8 @@
 package org.kin.kinrpc.demo.rpc.kinrpc;
 
 import org.kin.framework.JvmCloseCleaner;
-import org.kin.kinrpc.config.ServiceConfig;
-import org.kin.kinrpc.config.ZKRegistryConfig;
+import org.kin.kinrpc.conf.ServiceConfig;
+import org.kin.kinrpc.conf.ZKRegistryConfig;
 import org.kin.kinrpc.demo.rpc.Addable;
 import org.kin.kinrpc.demo.rpc.Adder;
 
