@@ -3,19 +3,19 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>kin-rpc-registry</artifactId>
         <groupId>org.kin</groupId>
+        <artifactId>kin-rpc-parent</artifactId>
         <version>${revision}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>kin-rpc-registry-api</artifactId>
-    <packaging>jar</packaging>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-protocol-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-    </dependencies>
+    <artifactId>kin-rpc-protocol</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+        <module>kin-rpc-protocol-api</module>
+        <module>kin-rpc-protocol-grpc</module>
+        <module>kin-rpc-protocol-jvm</module>
+        <module>kin-rpc-protocol-kinrpc</module>
+        <module>kin-rpc-protocol-rsocket</module>
+    </modules>
 </project>

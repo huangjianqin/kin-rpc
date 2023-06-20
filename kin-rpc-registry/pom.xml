@@ -15,12 +15,4 @@
         <module>kin-rpc-registry-directurls</module>
     </modules>
     <packaging>pom</packaging>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-transport-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-    </dependencies>
 </project>

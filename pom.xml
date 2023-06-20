@@ -10,7 +10,7 @@
         <module>kin-rpc</module>
         <module>kin-rpc-transport</module>
         <module>kin-rpc-cluster</module>
-        <module>kin-rpc-core</module>
+        <module>kin-rpc-protocol</module>
         <module>kin-rpc-demo</module>
         <module>kin-rpc-registry</module>
         <module>kin-rpc-message</module>
@@ -18,6 +18,8 @@
         <module>kin-rpc-spring</module>
         <module>kin-rpc-starter</module>
         <module>kin-rpc-bom</module>
+        <module>kin-rpc-api</module>
+        <module>kin-rpc-boot</module>
     </modules>
     <packaging>pom</packaging>
 

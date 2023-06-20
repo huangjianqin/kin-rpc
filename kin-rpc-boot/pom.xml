@@ -2,19 +2,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>kin-rpc-registry</artifactId>
-        <groupId>org.kin</groupId>
-        <version>${revision}</version>
-    </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>kin-rpc-registry-api</artifactId>
-    <packaging>jar</packaging>
+    <parent>
+        <groupId>org.kin</groupId>
+        <artifactId>kin-rpc-parent</artifactId>
+        <version>0.2.0.0</version>
+    </parent>
+
+    <artifactId>kin-rpc-boot</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-protocol-api</artifactId>
+            <artifactId>kin-rpc-cluster</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
