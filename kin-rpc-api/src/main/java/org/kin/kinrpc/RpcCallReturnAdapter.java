@@ -7,6 +7,7 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * reference rpc call返回值适配器
+ * todo
  *
  * @author huangjianqin
  * @date 2021/2/6

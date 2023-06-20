@@ -1,11 +1,10 @@
 package org.kin.kinrpc.config;
 
 import org.kin.framework.utils.ExtensionLoader;
-import org.kin.kinrpc.Notifier;
 import org.kin.kinrpc.bootstrap.ReferenceBootstrap;
 import org.kin.kinrpc.constants.ReferenceConstants;
 
-import java.util.*;
+import java.util.Objects;
 
 /**
  * 服务引用配置
@@ -21,9 +20,6 @@ public class ReferenceConfig<T> extends AbstractInterfaceConfig<T, ReferenceConf
     private String loadBalance = LoadBalanceType.ROUND_ROBIN.getName();
     /** 路由类型, 默认none */
     private String router = RouterType.NONE.getName();
-    /** async rpc call 事件通知 */
-    // TODO: 待实现
-    private final List<Notifier<?>> notifiers = new ArrayList<>();
     /** 兼容协议(非kinrpc)是否使用Generic通用接口服务 */
     // TODO: 待实现
     private boolean generic;
@@ -114,19 +110,6 @@ public class ReferenceConfig<T> extends AbstractInterfaceConfig<T, ReferenceConf
 
     public ReferenceConfig<T> router(RouterType routerType) {
         return router(routerType.getName());
-    }
-
-    public List<Notifier<?>> getNotifiers() {
-        return notifiers;
-    }
-
-    public ReferenceConfig<T> notifiers(Notifier<?>... notifiers) {
-        return notifiers(Arrays.asList(notifiers));
-    }
-
-    public ReferenceConfig<T> notifiers(Collection<Notifier<?>> notifiers) {
-        this.notifiers.addAll(notifiers);
-        return this;
     }
 
     public boolean isGeneric() {

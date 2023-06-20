@@ -2,6 +2,7 @@ package org.kin.kinrpc;
 
 /**
  * 泛化服务, 仅提供方法名和方法参数即可完成一次rpc call
+ * todo
  *
  * @author huangjianqin
  * @date 2020/11/16
