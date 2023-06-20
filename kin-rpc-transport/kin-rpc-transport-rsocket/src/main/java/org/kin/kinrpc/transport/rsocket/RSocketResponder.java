@@ -8,7 +8,6 @@ import io.rsocket.util.ByteBufPayload;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.transport.ChannelContext;
 import org.kin.kinrpc.transport.RemotingProcessor;
-import org.kin.kinrpc.transport.TransportException;
 import org.kin.kinrpc.transport.TransportOperationListener;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
@@ -17,13 +16,9 @@ import reactor.core.publisher.Sinks;
 import reactor.netty.ReactorNetty;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.SocketAddress;
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 
 /**
  * @author huangjianqin
@@ -54,7 +49,24 @@ public class RSocketResponder implements RSocket {
 
     @Override
     public Mono<Void> fireAndForget(Payload payload) {
-        return Mono.error(new UnsupportedOperationException());
+        try {
+            remotingProcessor.process(new ChannelContext() {
+                @Override
+                public void writeAndFlush(ByteBuf byteBuf, @Nonnull TransportOperationListener listener) {
+                    //!!!无法监听transport error
+                    listener.onComplete();
+                }
+
+                @Override
+                public SocketAddress address() {
+                    return remoteAddress;
+                }
+            }, payload.data().retain());
+        } finally {
+            ReactorNetty.safeRelease(payload);
+        }
+
+        return Mono.empty();
     }
 
     @Override

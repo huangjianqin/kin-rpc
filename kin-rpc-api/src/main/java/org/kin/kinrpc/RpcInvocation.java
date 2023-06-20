@@ -50,6 +50,11 @@ public class RpcInvocation implements Invocation {
     }
 
     @Override
+    public boolean isOneWay() {
+        return methodMetadata.isOneWay();
+    }
+
+    @Override
     public Class<?> getRealReturnType() {
         return methodMetadata.getRealReturnType();
     }

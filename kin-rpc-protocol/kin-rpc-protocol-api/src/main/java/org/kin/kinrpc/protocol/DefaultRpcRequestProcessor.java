@@ -96,7 +96,9 @@ public class DefaultRpcRequestProcessor extends RpcRequestProcessor {
                            RpcInvocation invocation) {
         try {
             RpcResult rpcResult = invoker.invoke(invocation);
-            rpcResult.onFinish((r, t) -> onFinish(requestContext, request, r, t));
+            if (!invocation.isOneWay()) {
+                rpcResult.onFinish((r, t) -> onFinish(requestContext, request, r, t));
+            }
         } catch (Exception e) {
             log.error("process rpc request fail, request= {}", request, e);
             requestContext.writeResponseIfError(new RpcException("process rpc request fail", e));

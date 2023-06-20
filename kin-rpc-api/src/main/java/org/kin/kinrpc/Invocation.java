@@ -43,6 +43,9 @@ public interface Invocation {
      */
     boolean isAsyncReturn();
 
+    /** 标识服务方法没有返回值 */
+    boolean isOneWay();
+
     /**
      * 返回服务调用结果真实返回值
      * 异步返回(比如CompletableFuture, Mono或Flux等等), 则取返回值中的泛型参数

@@ -22,6 +22,8 @@ public class MethodMetadata {
     private final Class<?> returnType;
     /** 标识是否是异步返回 */
     private final boolean asyncReturn;
+    /** 标识服务方法没有返回值 */
+    private final boolean oneWay;
     /**
      * 方法返回类型泛型参数实际类型
      * 非泛型, 则是Object
@@ -34,10 +36,11 @@ public class MethodMetadata {
         this.returnType = method.getReturnType();
         if (CompletableFuture.class.isAssignableFrom(returnType) ||
                 Publisher.class.isAssignableFrom(returnType)) {
-            asyncReturn = true;
+            this.asyncReturn = true;
         } else {
-            asyncReturn = false;
+            this.asyncReturn = false;
         }
+        this.oneWay = Void.class.equals(returnType);
         this.inferredClassForReturn = ClassUtils.getInferredClassForGeneric(method.getGenericReturnType());
     }
 
@@ -71,5 +74,9 @@ public class MethodMetadata {
 
     public boolean isAsyncReturn() {
         return asyncReturn;
+    }
+
+    public boolean isOneWay() {
+        return oneWay;
     }
 }

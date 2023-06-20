@@ -1,11 +1,7 @@
 package org.kin.kinrpc.transport.kinrpc;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.util.NetUtil;
 import org.kin.kinrpc.transport.AbsRemotingClient;
-import org.kin.kinrpc.transport.ChannelContext;
-import org.kin.kinrpc.transport.TransportException;
-import org.kin.kinrpc.transport.TransportOperationListener;
 import org.kin.kinrpc.transport.cmd.RequestCommand;
 import org.kin.transport.netty.ChannelOperationListener;
 import org.kin.transport.netty.ClientObserver;
@@ -16,9 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.net.SocketAddress;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -85,14 +79,23 @@ public class KinRpcClient extends AbsRemotingClient {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T> CompletableFuture<T> requestResponse(RequestCommand command) {
+    /**
+     * request之前的操作, 一般用于检查
+     *
+     * @param command request command
+     */
+    private void beforeRequest(RequestCommand command) {
         if (Objects.isNull(command)) {
             throw new IllegalArgumentException("request command is null");
         }
 
         checkStarted();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> CompletableFuture<T> requestResponse(RequestCommand command) {
+        beforeRequest(command);
 
         CompletableFuture<Object> requestFuture = createRequestFuture(command.getId());
         client.send(codec.encode(command), new ChannelOperationListener() {
@@ -104,5 +107,11 @@ public class KinRpcClient extends AbsRemotingClient {
         }).subscribe();
 
         return (CompletableFuture<T>) requestFuture;
+    }
+
+    @Override
+    public void fireAndForget(RequestCommand command) {
+        beforeRequest(command);
+        client.send(codec.encode(command)).subscribe();
     }
 }

@@ -7,8 +7,6 @@ import org.kin.framework.collection.CopyOnWriteMap;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.transport.AbsRemotingClient;
-import org.kin.kinrpc.transport.ChannelContext;
-import org.kin.kinrpc.transport.TransportOperationListener;
 import org.kin.kinrpc.transport.cmd.MessageCommand;
 import org.kin.kinrpc.transport.cmd.RequestCommand;
 import org.kin.kinrpc.transport.cmd.RpcRequestCommand;
@@ -16,8 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.net.SocketAddress;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -78,20 +74,47 @@ public class GrpcClient extends AbsRemotingClient {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T> CompletableFuture<T> requestResponse(RequestCommand command) {
+    /**
+     * call之前的操作, 一般用于检查
+     *
+     * @param command request command
+     */
+    private void beforeCall(RequestCommand command) {
         if (Objects.isNull(command)) {
             throw new IllegalArgumentException("request command is null");
         }
 
         checkStarted();
+    }
 
-        CompletableFuture<Object> requestFuture = createRequestFuture(command.getId());
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> CompletableFuture<T> requestResponse(RequestCommand command) {
+        beforeCall(command);
+
+        CompletableFuture<T> requestFuture = (CompletableFuture<T>) createRequestFuture(command.getId());
+        return call(command, requestFuture);
+    }
+
+    @Override
+    public void fireAndForget(@Nonnull RequestCommand command) {
+        beforeCall(command);
+
+        call(command, null);
+    }
+
+    /**
+     * grpc call
+     *
+     * @param command       request command
+     * @param requestFuture request future
+     */
+    private <T> CompletableFuture<T> call(RequestCommand command,
+                                          CompletableFuture<T> requestFuture) {
         if (command instanceof RpcRequestCommand) {
-            return (CompletableFuture<T>) rpcCall((RpcRequestCommand) command, requestFuture);
+            return rpcCall((RpcRequestCommand) command, requestFuture);
         } else if (command instanceof MessageCommand) {
-            return (CompletableFuture<T>) messageCall((MessageCommand) command, requestFuture);
+            return messageCall((MessageCommand) command, requestFuture);
         }
         throw new UnsupportedOperationException(String.format("does not support request command '%s' now", command.getClass()));
     }
@@ -101,8 +124,8 @@ public class GrpcClient extends AbsRemotingClient {
      *
      * @param command rpc request command
      */
-    private CompletableFuture<Object> rpcCall(@Nonnull RpcRequestCommand command,
-                                              CompletableFuture<Object> requestFuture) {
+    private <T> CompletableFuture<T> rpcCall(@Nonnull RpcRequestCommand command,
+                                             CompletableFuture<T> requestFuture) {
         String gsv = command.getGsv();
         String method = command.getMethod();
         String cacheKey = getMethodDescriptorCacheKey(gsv, method);
@@ -113,7 +136,7 @@ public class GrpcClient extends AbsRemotingClient {
             methodDescriptor = GrpcConstants.GENERIC_METHOD_DESCRIPTOR;
         }
 
-        return call(methodDescriptor, command, codec.encode(command), requestFuture);
+        return callNow(methodDescriptor, command, codec.encode(command), requestFuture);
     }
 
     /**
@@ -121,21 +144,23 @@ public class GrpcClient extends AbsRemotingClient {
      *
      * @param command message command
      */
-    private CompletableFuture<Object> messageCall(@Nonnull MessageCommand command,
-                                                  CompletableFuture<Object> requestFuture) {
-        return call(GrpcMessages.METHOD_DESCRIPTOR, command, codec.encode(command), requestFuture);
+    private <T> CompletableFuture<T> messageCall(@Nonnull MessageCommand command,
+                                                 CompletableFuture<T> requestFuture) {
+        return callNow(GrpcMessages.METHOD_DESCRIPTOR, command, codec.encode(command), requestFuture);
     }
 
     /**
      * grpc call
      *
      * @param methodDescriptor grpc service method descriptor
+     * @param command          request command
      * @param payload          call payload
+     * @param requestFuture    request future
      */
-    private CompletableFuture<Object> call(MethodDescriptor<ByteBuf, ByteBuf> methodDescriptor,
-                                           RequestCommand command,
-                                           ByteBuf payload,
-                                           CompletableFuture<Object> requestFuture) {
+    private <T> CompletableFuture<T> callNow(MethodDescriptor<ByteBuf, ByteBuf> methodDescriptor,
+                                             RequestCommand command,
+                                             ByteBuf payload,
+                                             CompletableFuture<T> requestFuture) {
         ClientCall<ByteBuf, ByteBuf> clientCall = channel.newCall(methodDescriptor, CallOptions.DEFAULT);
         // TODO: 2023/6/8 是否需要设置header
         clientCall.start(new ClientCall.Listener<ByteBuf>() {
@@ -146,7 +171,7 @@ public class GrpcClient extends AbsRemotingClient {
 
             @Override
             public void onClose(Status status, Metadata trailers) {
-                if (!status.isOk()) {
+                if (!status.isOk() && Objects.nonNull(requestFuture)) {
                     removeRequestFuture(command.getId());
                     requestFuture.completeExceptionally(status.getCause());
                 }

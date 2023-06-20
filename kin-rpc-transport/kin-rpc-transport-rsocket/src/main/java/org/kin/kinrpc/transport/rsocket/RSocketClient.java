@@ -1,6 +1,5 @@
 package org.kin.kinrpc.transport.rsocket;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.rsocket.RSocket;
 import io.rsocket.core.RSocketConnector;
@@ -10,9 +9,6 @@ import io.rsocket.util.ByteBufPayload;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.transport.AbsRemotingClient;
-import org.kin.kinrpc.transport.ChannelContext;
-import org.kin.kinrpc.transport.TransportException;
-import org.kin.kinrpc.transport.TransportOperationListener;
 import org.kin.kinrpc.transport.cmd.RequestCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,8 +17,6 @@ import reactor.core.publisher.Sinks;
 import reactor.netty.ReactorNetty;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.net.SocketAddress;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -78,6 +72,19 @@ public class RSocketClient extends AbsRemotingClient {
         }
     }
 
+    /**
+     * request之前的操作, 一般用于检查
+     *
+     * @param command request command
+     */
+    private void beforeRequest(RequestCommand command) {
+        if (Objects.isNull(command)) {
+            throw new IllegalArgumentException("request command is null");
+        }
+
+        checkStarted();
+    }
+
     @Override
     public void shutdown() {
         checkStarted();
@@ -98,6 +105,8 @@ public class RSocketClient extends AbsRemotingClient {
     @SuppressWarnings("unchecked")
     @Override
     public <T> CompletableFuture<T> requestResponse(RequestCommand command) {
+        beforeRequest(command);
+
         CompletableFuture<Object> requestFuture = createRequestFuture(command.getId());
 
         requesterMono.flatMap(rsocket -> rsocket.requestResponse(ByteBufPayload.create(codec.encode(command)))
@@ -115,5 +124,13 @@ public class RSocketClient extends AbsRemotingClient {
                 .subscribe();
 
         return (CompletableFuture<T>) requestFuture;
+    }
+
+    @Override
+    public void fireAndForget(@Nonnull RequestCommand command) {
+        beforeRequest(command);
+
+        requesterMono.flatMap(rsocket -> rsocket.fireAndForget(ByteBufPayload.create(codec.encode(command))))
+                .subscribe();
     }
 }
