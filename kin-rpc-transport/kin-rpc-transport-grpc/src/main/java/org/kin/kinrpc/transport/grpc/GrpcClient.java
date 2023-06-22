@@ -7,9 +7,8 @@ import org.kin.framework.collection.CopyOnWriteMap;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.transport.AbsRemotingClient;
-import org.kin.kinrpc.transport.cmd.MessageCommand;
-import org.kin.kinrpc.transport.cmd.RequestCommand;
-import org.kin.kinrpc.transport.cmd.RpcRequestCommand;
+import org.kin.kinrpc.transport.TransportException;
+import org.kin.kinrpc.transport.cmd.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,11 +39,15 @@ public class GrpcClient extends AbsRemotingClient {
     }
 
     @Override
-    public void start() {
+    protected void onConnect() {
         if (Objects.nonNull(channel)) {
-            throw new IllegalStateException(String.format("grpc client has been connect to %s:%d", host, port));
+            throw new IllegalStateException(String.format("%s has been connect to %s", name(), remoteAddress()));
         }
 
+        onConnect0();
+    }
+
+    private void onConnect0() {
         NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(host, port);
         //user custom
         for (GrpcClientCustomizer customizer : ExtensionLoader.getExtensions(GrpcClientCustomizer.class)) {
@@ -52,26 +55,47 @@ public class GrpcClient extends AbsRemotingClient {
         }
         //internal, user can not modify
         channelBuilder.usePlaintext();
+        //async connect
         this.channel = channelBuilder.build();
-        log.info("grpc client connect to {}:{} success", host, port);
-    }
-
-    @Override
-    public void shutdown() {
-        checkStarted();
-
-        channel.shutdown();
-        remotingProcessor.shutdown();
-        log.info("grpc client(- R:{}:{}) terminated", host, port);
+        checkChannelConnectState();
     }
 
     /**
-     * 检查client是否started
+     * 检查channel state
      */
-    private void checkStarted() {
-        if (Objects.isNull(channel)) {
-            throw new IllegalStateException(String.format("grpc client does not start to connect to %s:%d", host, port));
+    private void checkChannelConnectState() {
+        ConnectivityState curState = this.channel.getState(true);
+        if (ConnectivityState.READY.equals(curState)) {
+            onConnectSuccess();
+        } else if (ConnectivityState.TRANSIENT_FAILURE.equals(curState)) {
+            onConnectFail(new TransportException(String.format("%s connect to %s fail", name(), remoteAddress())));
+        } else if (ConnectivityState.SHUTDOWN.equals(curState)) {
+            // TODO: 2023/6/21  还没想到如何处理SHUTDOWN state
+            log.warn("doesn't handle state 'SHUTDOWN' when grpc client connect");
+        } else {
+            //connecting or idle state, 还没建立channel
+            this.channel.notifyWhenStateChanged(curState, this::checkChannelConnectState);
         }
+    }
+
+    @Override
+    protected void onShutdown() {
+        if (Objects.isNull(channel)) {
+            return;
+        }
+
+        channel.shutdown();
+        remotingProcessor.shutdown();
+        log.info("{} terminated", name());
+    }
+
+    @Override
+    protected void onReconnect() {
+        if (Objects.nonNull(channel) && !channel.isTerminated()) {
+            channel.shutdown();
+        }
+
+        onConnect0();
     }
 
     /**
@@ -79,12 +103,10 @@ public class GrpcClient extends AbsRemotingClient {
      *
      * @param command request command
      */
-    private void beforeCall(RequestCommand command) {
+    private void beforeCall(RemotingCommand command) {
         if (Objects.isNull(command)) {
             throw new IllegalArgumentException("request command is null");
         }
-
-        checkStarted();
     }
 
     @SuppressWarnings("unchecked")
@@ -103,18 +125,31 @@ public class GrpcClient extends AbsRemotingClient {
         call(command, null);
     }
 
+    @Override
+    protected CompletableFuture<Void> heartbeat() {
+        HeartbeatCommand command = new HeartbeatCommand();
+        beforeCall(command);
+
+        CompletableFuture<Object> requestFuture = createRequestFuture(command.getId());
+        call(command, requestFuture);
+
+        return CompletableFuture.allOf(requestFuture);
+    }
+
     /**
      * grpc call
      *
      * @param command       request command
      * @param requestFuture request future
      */
-    private <T> CompletableFuture<T> call(RequestCommand command,
+    private <T> CompletableFuture<T> call(RemotingCommand command,
                                           CompletableFuture<T> requestFuture) {
         if (command instanceof RpcRequestCommand) {
             return rpcCall((RpcRequestCommand) command, requestFuture);
         } else if (command instanceof MessageCommand) {
             return messageCall((MessageCommand) command, requestFuture);
+        } else if (command instanceof HeartbeatCommand) {
+            return heartbeatCall((HeartbeatCommand) command, requestFuture);
         }
         throw new UnsupportedOperationException(String.format("does not support request command '%s' now", command.getClass()));
     }
@@ -150,6 +185,16 @@ public class GrpcClient extends AbsRemotingClient {
     }
 
     /**
+     * heartbeat call
+     *
+     * @param command heartbeat command
+     */
+    private <T> CompletableFuture<T> heartbeatCall(@Nonnull HeartbeatCommand command,
+                                                   CompletableFuture<T> requestFuture) {
+        return callNow(GrpcConstants.GENERIC_METHOD_DESCRIPTOR, command, codec.encode(command), requestFuture);
+    }
+
+    /**
      * grpc call
      *
      * @param methodDescriptor grpc service method descriptor
@@ -158,7 +203,7 @@ public class GrpcClient extends AbsRemotingClient {
      * @param requestFuture    request future
      */
     private <T> CompletableFuture<T> callNow(MethodDescriptor<ByteBuf, ByteBuf> methodDescriptor,
-                                             RequestCommand command,
+                                             RemotingCommand command,
                                              ByteBuf payload,
                                              CompletableFuture<T> requestFuture) {
         ClientCall<ByteBuf, ByteBuf> clientCall = channel.newCall(methodDescriptor, CallOptions.DEFAULT);
@@ -174,6 +219,10 @@ public class GrpcClient extends AbsRemotingClient {
                 if (!status.isOk() && Objects.nonNull(requestFuture)) {
                     removeRequestFuture(command.getId());
                     requestFuture.completeExceptionally(status.getCause());
+
+                    if (command instanceof RequestCommand) {
+                        onRequestFail(status.getCause());
+                    }
                 }
             }
         }, new Metadata());

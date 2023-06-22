@@ -13,7 +13,7 @@ import java.io.IOException;
 public class KinRpcClientTest {
     public static void main(String[] args) throws IOException {
         KinRpcClient client = new KinRpcClient(19999);
-        client.start();
+        client.connect();
 
         RpcRequestCommand rpcRequestCommand = new RpcRequestCommand((byte) 4, "test:test", "test", new Object[]{new String("Hello rpc")});
         RpcResponseCommand rpcResponseCommand = client.bRequestResponse(rpcRequestCommand);

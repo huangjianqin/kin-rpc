@@ -12,12 +12,19 @@ import java.util.concurrent.TimeUnit;
  */
 public interface RemotingClient {
     /**
-     * start the server
+     * remote connect
      */
-    void start();
+    void connect();
 
     /**
-     * shutdown the server
+     * client是否存活
+     *
+     * @return true表示client存活
+     */
+    boolean isAvailable();
+
+    /**
+     * shutdown the client
      */
     void shutdown();
 

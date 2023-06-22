@@ -1,6 +1,8 @@
 package org.kin.kinrpc.transport.cmd;
 
 import io.netty.buffer.ByteBuf;
+import org.kin.kinrpc.transport.RequestIdGenerator;
+import org.kin.kinrpc.transport.TransportConstants;
 
 /**
  * heartbeat command
@@ -12,6 +14,7 @@ public final class HeartbeatCommand extends RemotingCommand {
     private static final long serialVersionUID = -4897142987926394746L;
 
     public HeartbeatCommand() {
+        this(TransportConstants.VERSION, RequestIdGenerator.next());
     }
 
     public HeartbeatCommand(short version, long id) {

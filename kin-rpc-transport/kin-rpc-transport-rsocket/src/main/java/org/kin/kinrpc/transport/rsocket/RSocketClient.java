@@ -9,6 +9,8 @@ import io.rsocket.util.ByteBufPayload;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.transport.AbsRemotingClient;
+import org.kin.kinrpc.transport.cmd.HeartbeatCommand;
+import org.kin.kinrpc.transport.cmd.RemotingCommand;
 import org.kin.kinrpc.transport.cmd.RequestCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,11 +41,15 @@ public class RSocketClient extends AbsRemotingClient {
     }
 
     @Override
-    public void start() {
+    protected void onConnect() {
         if (Objects.nonNull(requesterMono)) {
-            throw new IllegalStateException(String.format("rsocket client has been connect to %s:%d", host, port));
+            throw new IllegalStateException(String.format("%s has been connect to %s", name(), remoteAddress()));
         }
 
+        onConnect0();
+    }
+
+    private void onConnect0() {
         Sinks.One<RSocket> sink = Sinks.one();
         this.requesterMono = sink.asMono();
 
@@ -58,18 +64,51 @@ public class RSocketClient extends AbsRemotingClient {
                 .payloadDecoder(PayloadDecoder.ZERO_COPY)
                 .connect(TcpClientTransport.create(host, port))
                 .subscribe(rsocket -> {
-                    log.info("rsocket client connect to {}:{} success", host, port);
+                    rsocket.onClose()
+                            .doOnSuccess(v -> {
+                                log.info("{} terminated", name());
+                                onTerminated();
+                            })
+                            .subscribe();
+
                     sink.emitValue(rsocket, RetryNonSerializedEmitFailureHandler.RETRY_NON_SERIALIZED);
+                    onConnectSuccess();
+                }, t -> {
+                    sink.emitEmpty(RetryNonSerializedEmitFailureHandler.RETRY_NON_SERIALIZED);
+                    onConnectFail(t);
                 });
     }
 
-    /**
-     * 检查client是否started
-     */
-    private void checkStarted() {
+    @Override
+    protected void onReconnect() {
+        requesterMono.doOnSuccess(r -> {
+                    if (Objects.nonNull(r) && !r.isDisposed()) {
+                        r.dispose();
+                    }
+                    onConnect0();
+                })
+                .subscribe();
+    }
+
+    @Override
+    protected void onShutdown() {
         if (Objects.isNull(requesterMono)) {
-            throw new IllegalStateException(String.format("rsocket client does not start to connect to %s:%d", host, port));
+            return;
         }
+
+        requesterMono.doOnSuccess(rsocket -> {
+                    if (Objects.isNull(rsocket)) {
+                        return;
+                    }
+
+                    if (rsocket.isDisposed()) {
+                        return;
+                    }
+
+                    rsocket.dispose();
+                    remotingProcessor.shutdown();
+                })
+                .subscribe();
     }
 
     /**
@@ -77,34 +116,24 @@ public class RSocketClient extends AbsRemotingClient {
      *
      * @param command request command
      */
-    private void beforeRequest(RequestCommand command) {
+    private void beforeRequest(RemotingCommand command) {
         if (Objects.isNull(command)) {
             throw new IllegalArgumentException("request command is null");
         }
-
-        checkStarted();
     }
 
     @Override
-    public void shutdown() {
-        checkStarted();
+    protected CompletableFuture<Void> heartbeat() {
+        return requestResponse0(new HeartbeatCommand());
+    }
 
-        requesterMono.flatMap(rsocket -> {
-                    if (rsocket.isDisposed()) {
-                        return Mono.empty();
-                    }
-
-                    rsocket.dispose();
-                    remotingProcessor.shutdown();
-                    return rsocket.onClose()
-                            .doOnNext(v -> log.info("rsocket client(- R:{}:{}) terminated", host, port));
-                })
-                .subscribe();
+    @Override
+    public <T> CompletableFuture<T> requestResponse(RequestCommand command) {
+        return requestResponse0(command);
     }
 
     @SuppressWarnings("unchecked")
-    @Override
-    public <T> CompletableFuture<T> requestResponse(RequestCommand command) {
+    private <T> CompletableFuture<T> requestResponse0(RemotingCommand command) {
         beforeRequest(command);
 
         CompletableFuture<Object> requestFuture = createRequestFuture(command.getId());
@@ -113,6 +142,10 @@ public class RSocketClient extends AbsRemotingClient {
                         .doOnError(t -> {
                             removeRequestFuture(command.getId());
                             requestFuture.completeExceptionally(t);
+
+                            if (command instanceof RequestCommand) {
+                                onRequestFail(t);
+                            }
                         })
                         .doOnNext(p -> {
                             try {
@@ -131,6 +164,7 @@ public class RSocketClient extends AbsRemotingClient {
         beforeRequest(command);
 
         requesterMono.flatMap(rsocket -> rsocket.fireAndForget(ByteBufPayload.create(codec.encode(command))))
+                .doOnError(this::onRequestFail)
                 .subscribe();
     }
 }

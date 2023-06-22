@@ -2,6 +2,8 @@ package org.kin.kinrpc.transport.kinrpc;
 
 import io.netty.util.NetUtil;
 import org.kin.kinrpc.transport.AbsRemotingClient;
+import org.kin.kinrpc.transport.cmd.HeartbeatCommand;
+import org.kin.kinrpc.transport.cmd.RemotingCommand;
 import org.kin.kinrpc.transport.cmd.RequestCommand;
 import org.kin.transport.netty.ChannelOperationListener;
 import org.kin.transport.netty.ClientObserver;
@@ -13,8 +15,10 @@ import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Predicate;
 
 /**
  * @author huangjianqin
@@ -22,12 +26,13 @@ import java.util.concurrent.CompletableFuture;
  */
 public class KinRpcClient extends AbsRemotingClient {
     private static final Logger log = LoggerFactory.getLogger(KinRpcClient.class);
-
+    /** unhealth exception */
+    private static final Predicate<Throwable> UNHEALTH_EXCEPTION = t -> t instanceof IOException;
 
     /** tcp client transport config */
     private final TcpClientTransport transport;
     /** tcp client */
-    private volatile TcpClient client;
+    private TcpClient client;
 
     public KinRpcClient(int port) {
         this(NetUtil.LOCALHOST.getHostAddress(), port);
@@ -41,42 +46,51 @@ public class KinRpcClient extends AbsRemotingClient {
                 .observer(new ClientObserver<TcpClient>() {
                     @Override
                     public void onConnected(TcpClient client, Session session) {
-                        log.info("kinrpc client connect to {}:{} success", host, port);
+                        onConnectSuccess();
                     }
+
+                    // TODO: 2023/6/21 处理connect fail
 
                     @Override
                     public void onDisconnected(TcpClient client, @Nullable Session session) {
-                        log.info("kinrpc client(- R:{}:{}) terminated", host, port);
+                        log.info("{} disconnected", name());
                     }
                 });
     }
 
     @Override
-    public void start() {
+    public void onConnect() {
         if (client != null) {
-            throw new IllegalStateException(String.format("kinrpc client has been connect to %s:%d", host, port));
+            throw new IllegalStateException(String.format("%s has been connect to %s", name(), remoteAddress()));
         }
+        onConnect0();
+    }
+
+    private void onConnect0() {
         client = transport.connect(host, port);
     }
 
     @Override
-    public void shutdown() {
-        checkStarted();
+    protected void onReconnect() {
+        if (Objects.nonNull(client) && !client.isDisposed()) {
+            client.dispose();
+        }
+
+        onConnect0();
+    }
+
+    @Override
+    public void onShutdown() {
+        if (Objects.isNull(client)) {
+            return;
+        }
 
         if (client.isDisposed()) {
             return;
         }
+
         remotingProcessor.shutdown();
         client.dispose();
-    }
-
-    /**
-     * 检查client是否started
-     */
-    private void checkStarted() {
-        if (Objects.isNull(client)) {
-            throw new IllegalStateException(String.format("kinrpc client does not start to connect to %s:%d", host, port));
-        }
     }
 
     /**
@@ -84,12 +98,10 @@ public class KinRpcClient extends AbsRemotingClient {
      *
      * @param command request command
      */
-    private void beforeRequest(RequestCommand command) {
+    private void beforeRequest(RemotingCommand command) {
         if (Objects.isNull(command)) {
             throw new IllegalArgumentException("request command is null");
         }
-
-        checkStarted();
     }
 
     @SuppressWarnings("unchecked")
@@ -103,6 +115,7 @@ public class KinRpcClient extends AbsRemotingClient {
             public void onFailure(Session session, Throwable cause) {
                 removeRequestFuture(command.getId());
                 requestFuture.completeExceptionally(cause);
+                onRequestFail(cause);
             }
         }).subscribe();
 
@@ -112,6 +125,44 @@ public class KinRpcClient extends AbsRemotingClient {
     @Override
     public void fireAndForget(RequestCommand command) {
         beforeRequest(command);
-        client.send(codec.encode(command)).subscribe();
+        client.send(codec.encode(command), new ChannelOperationListener() {
+            @Override
+            public void onFailure(Session session, Throwable cause) {
+                onRequestFail(cause);
+            }
+        }).subscribe();
+    }
+
+    @Override
+    protected CompletableFuture<Void> heartbeat() {
+        HeartbeatCommand command = new HeartbeatCommand();
+
+        beforeRequest(command);
+        CompletableFuture<Object> requestFuture = createRequestFuture(command.getId());
+        client.send(codec.encode(command), new ChannelOperationListener() {
+            @Override
+            public void onSuccess(Session session) {
+                requestFuture.complete(null);
+            }
+
+            @Override
+            public void onFailure(Session session, Throwable cause) {
+                requestFuture.completeExceptionally(cause);
+            }
+        }).subscribe();
+        return CompletableFuture.allOf(requestFuture);
+    }
+
+    /**
+     * 发送请求失败
+     *
+     * @param t 发送异常
+     */
+    protected void onRequestFail(Throwable t) {
+        if (!UNHEALTH_EXCEPTION.test(t)) {
+            return;
+        }
+
+        super.onRequestFail(t);
     }
 }

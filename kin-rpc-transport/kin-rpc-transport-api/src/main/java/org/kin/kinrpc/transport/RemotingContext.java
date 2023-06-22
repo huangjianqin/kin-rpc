@@ -38,7 +38,9 @@ public class RemotingContext{
      * @param listener  transport operation listener
      */
     private void writeAndFlush(RemotingCommand command, @Nonnull TransportOperationListener listener) {
-        if(!(command instanceof RpcResponseCommand) && !(command instanceof MessageCommand)){
+        if (!(command instanceof RpcResponseCommand) &&
+                !(command instanceof MessageCommand) &&
+                !(command instanceof HeartbeatCommand)) {
             throw new TransportException("can not write message which type is" + command.getClass().getName());
         }
 
@@ -47,7 +49,7 @@ public class RemotingContext{
         } catch (Exception e) {
             String errorMsg = String.format("write response command fail, id=%d, due to %s", command.getId(), e.getMessage());
             log.error("write response command fail, id={}", command.getId(), e);
-            if(!(e instanceof CodecException)){
+            if (!(e instanceof CodecException)) {
                 writeResponseIfError(command, errorMsg, listener);
             }
         }
