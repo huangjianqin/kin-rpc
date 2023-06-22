@@ -49,11 +49,14 @@ public class KinRpcClient extends AbsRemotingClient {
                         onConnectSuccess();
                     }
 
-                    // TODO: 2023/6/21 处理connect fail
+                    @Override
+                    public void onConnectFail(TcpClient client, Throwable cause) {
+                        KinRpcClient.this.onConnectFail(cause);
+                    }
 
                     @Override
                     public void onDisconnected(TcpClient client, @Nullable Session session) {
-                        log.info("{} disconnected", name());
+                        KinRpcClient.this.onConnectionClosed();
                     }
                 });
     }
@@ -165,4 +168,6 @@ public class KinRpcClient extends AbsRemotingClient {
 
         super.onRequestFail(t);
     }
+
+
 }

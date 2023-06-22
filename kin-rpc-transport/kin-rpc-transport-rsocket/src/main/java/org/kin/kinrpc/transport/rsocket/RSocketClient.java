@@ -65,10 +65,7 @@ public class RSocketClient extends AbsRemotingClient {
                 .connect(TcpClientTransport.create(host, port))
                 .subscribe(rsocket -> {
                     rsocket.onClose()
-                            .doOnSuccess(v -> {
-                                log.info("{} terminated", name());
-                                onTerminated();
-                            })
+                            .doOnSuccess(v -> onConnectionClosed())
                             .subscribe();
 
                     sink.emitValue(rsocket, RetryNonSerializedEmitFailureHandler.RETRY_NON_SERIALIZED);

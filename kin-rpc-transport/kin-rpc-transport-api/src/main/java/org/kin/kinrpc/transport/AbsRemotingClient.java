@@ -208,13 +208,15 @@ public abstract class AbsRemotingClient implements RemotingClient {
     }
 
     /**
-     * client terminated
+     * client connection closed
      */
-    protected void onTerminated() {
+    protected void onConnectionClosed() {
         if (isTerminated()) {
             //after shutdown
             return;
         }
+
+        log.info("{} connection closed", name());
 
         //remote down or remote force close connection
         RemotingClientMonitor.onClientTerminated(observer);
