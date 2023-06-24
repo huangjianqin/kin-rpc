@@ -32,8 +32,8 @@ public class DefaultRpcRequestProcessor extends RpcRequestProcessor {
      *
      * @param invoker 服务invoker
      */
-    public synchronized void register(Invoker<?> invoker) {
-        ServiceConfig<?> config = (ServiceConfig<?>) invoker.config();
+    public synchronized void register(ServiceInvoker<?> invoker) {
+        ServiceConfig<?> config = invoker.getConfig();
         String gsv = config.gsv();
         int serviceId = GsvUtils.serviceId(gsv);
         if (serviceMetadataMap.containsKey(serviceId)) {

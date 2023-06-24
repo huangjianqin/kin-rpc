@@ -2,7 +2,7 @@ package org.kin.kinrpc;
 
 import org.kin.framework.proxy.MethodDefinition;
 import org.kin.framework.proxy.Proxys;
-import org.kin.kinrpc.config.AbstractInterfaceConfig;
+import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.utils.RpcUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,16 +17,17 @@ import java.util.concurrent.CompletableFuture;
  * @author huangjianqin
  * @date 2023/2/27
  */
-public class ServiceInvoker<T> extends AbstractInvoker<T> {
+public class ServiceInvoker<T> implements Invoker<T> {
     private static final Logger log = LoggerFactory.getLogger(ServiceInvoker.class);
 
+    private final ServiceConfig<T> config;
     /** 服务实例 */
     private final T instance;
     /** 服务方法invoker */
     private Map<String, org.kin.framework.proxy.ProxyInvoker<?>> methodInvokerMap = Collections.emptyMap();
 
-    public ServiceInvoker(AbstractInterfaceConfig<T, ?> config, T instance) {
-        super(config);
+    public ServiceInvoker(ServiceConfig<T> config, T instance) {
+        this.config = config;
         this.instance = instance;
         //生成方法代理类
         init(instance, config.getInterfaceClass());
@@ -130,14 +131,12 @@ public class ServiceInvoker<T> extends AbstractInvoker<T> {
         }
     }
 
-
-    @Override
-    public Class<T> getInterface() {
-        return config().getInterfaceClass();
+    //getter
+    public ServiceConfig<T> getConfig() {
+        return config;
     }
 
-    @Override
-    public void destroy() {
-        //do nothing
+    public Class<T> getInterface() {
+        return config.getInterfaceClass();
     }
 }
