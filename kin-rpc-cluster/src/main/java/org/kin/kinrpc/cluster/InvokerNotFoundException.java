@@ -1,15 +1,14 @@
 package org.kin.kinrpc.cluster;
 
+import org.kin.kinrpc.RpcException;
+
 /**
  * @author huangjianqin
  * @date 2019/7/2
  */
-public class InvokerNotFoundException extends RuntimeException {
-    public InvokerNotFoundException() {
-        this("", "");
-    }
+public class InvokerNotFoundException extends RpcException {
 
-    public InvokerNotFoundException(String serviceName, String methedName) {
-        super(String.format("cannot find valid invoker(serviceName='%s', methedName='%s')", serviceName, methedName));
+    public InvokerNotFoundException(String handler) {
+        super(String.format("can not find valid invoker(handler='%s')", handler));
     }
 }

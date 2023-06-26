@@ -12,7 +12,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 /**
@@ -25,7 +28,7 @@ public final class RemotingClientMonitor {
     private static final Logger log = LoggerFactory.getLogger(RemotingClientMonitor.class);
 
     /** remoting client健康检查scheduler */
-    public static final ScheduledExecutorService SCHEDULER =
+    private static final ScheduledThreadPoolExecutor SCHEDULER =
             new ScheduledThreadPoolExecutor(SysUtils.CPU_NUM, new SimpleThreadFactory("remoting-client-monitor", true));
     /** unhealth exception */
     private static final Predicate<Throwable> UNHEALTH_EXCEPTION = t -> !(t instanceof RemotingException) && !(t instanceof CodecException);
@@ -42,6 +45,9 @@ public final class RemotingClientMonitor {
     private static final Set<RemotingClientObserver> UNHEALTH_CLIENT_OBSERVERS = new ConcurrentHashSet<>();
 
     static {
+        //允许core thread timeout
+        SCHEDULER.allowCoreThreadTimeOut(true);
+
         //心跳超时时间
         HEARTBEAT_TIMEOUT = SysUtils.getIntSysProperty("kinrpc.transport.heartbeat.timeout", 3000);
         //心跳间隔

@@ -51,28 +51,28 @@ public class DefaultRpcRequestProcessor extends RpcRequestProcessor {
     @Override
     public void process(RequestContext requestContext, RpcRequestCommand request) {
         //获取服务元数据
-        String gsv = request.getGsv();
-        int serviceId = GsvUtils.serviceId(gsv);
+        int serviceId = request.getServiceId();
         ServiceMetadata serviceMetadata = serviceMetadataMap.get(serviceId);
         if (Objects.isNull(serviceMetadata)) {
-            throw new RpcException("can not find service metadata with serviceId " + serviceId);
+            throw new RpcException("can not find service metadata with serviceId=" + serviceId);
         }
+
         //获取服务方法元数据
-        String methodName = request.getMethod();
-        MethodMetadata methodMetadata = serviceMetadata.getMethodMetadata(methodName);
+        int handlerId = request.getHandlerId();
+        MethodMetadata methodMetadata = serviceMetadata.getMethodMetadata(handlerId);
         if (Objects.isNull(methodMetadata)) {
-            throw new RpcException(String.format("can not find methodName '%s' metadata", methodName));
+            throw new RpcException("can not find method metadata with handlerId=" + handlerId);
         }
 
         //反序列化调用参数
         try {
-            request.deserializeParams(methodMetadata.getParamsType());
+            request.deserializeParams(methodMetadata.paramsType());
         } catch (Exception e) {
             throw new CodecException("deserialize rpc request params fail", e);
         }
 
         //invoke
-        RpcInvocation invocation = new RpcInvocation(serviceId, gsv, request.getParams(), methodMetadata);
+        RpcInvocation invocation = new RpcInvocation(serviceId, serviceMetadata.service(), request.getParams(), methodMetadata);
         Invoker<?> invoker = serviceMetadata.getInvoker();
         Executor executor = serviceMetadata.getExecutor();
         if (Objects.nonNull(executor)) {
@@ -107,6 +107,7 @@ public class DefaultRpcRequestProcessor extends RpcRequestProcessor {
 
     /**
      * 服务方法调用
+     * !!!在invoker#invoker线程执行
      *
      * @param requestContext rpc request context
      * @param result         服务调用结果

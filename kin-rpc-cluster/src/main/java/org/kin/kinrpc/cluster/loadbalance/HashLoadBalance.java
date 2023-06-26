@@ -1,7 +1,8 @@
 package org.kin.kinrpc.cluster.loadbalance;
 
 import org.kin.framework.utils.HashUtils;
-import org.kin.kinrpc.rpc.AsyncInvoker;
+import org.kin.kinrpc.Invocation;
+import org.kin.kinrpc.ReferenceInvoker;
 
 import java.util.List;
 import java.util.TreeMap;
@@ -13,13 +14,11 @@ import java.util.TreeMap;
  * @date 2019/7/29
  */
 public class HashLoadBalance implements LoadBalance {
-    private static final int LIMIT = 9;
-
     @Override
-    public AsyncInvoker loadBalance(String serviceKey, String method, Object[] params, List<AsyncInvoker> invokers) {
-        TreeMap<Integer, AsyncInvoker> map = new TreeMap<>();
-        for (AsyncInvoker AsyncInvoker : invokers) {
-            map.put(HashUtils.efficientHash(AsyncInvoker, LIMIT), AsyncInvoker);
+    public ReferenceInvoker<?> loadBalance(Invocation invocation, List<ReferenceInvoker<?>> invokers) {
+        TreeMap<Integer, ReferenceInvoker<?>> map = new TreeMap<>();
+        for (ReferenceInvoker<?> invoker : invokers) {
+            map.put(HashUtils.efficientHash(invoker, invokers.size()), invoker);
         }
 
         return map.firstEntry().getValue();

@@ -1,26 +1,19 @@
 package org.kin.kinrpc.cluster.loadbalance;
 
-import org.kin.kinrpc.rpc.AsyncInvoker;
-import org.kin.kinrpc.rpc.common.Constants;
+import org.kin.kinrpc.ReferenceInvoker;
 
 /**
  * @author huangjianqin
  * @date 2021/11/21
  */
 public abstract class AbstractLoadBalance implements LoadBalance {
-
     /**
-     * 获取负载均衡的粒度key, 默认是以服务方法为key, 不同服务方法的各自负载均衡
+     * 返回invoker权重
+     *
+     * @param invoker invoker
+     * @return invoker权重
      */
-    protected int key(String serviceKey, String method) {
-        return (serviceKey + "#" + method).hashCode();
-    }
-
-    /**
-     * 获取{@link AsyncInvoker}权重
-     */
-    @SuppressWarnings("rawtypes")
-    protected int weight(AsyncInvoker invoker) {
-        return invoker.url().getIntParam(Constants.WEIGHT, Constants.DEFAULT_WEIGHT);
+    protected int weight(ReferenceInvoker<?> invoker) {
+        return invoker.serviceInstance().weight();
     }
 }

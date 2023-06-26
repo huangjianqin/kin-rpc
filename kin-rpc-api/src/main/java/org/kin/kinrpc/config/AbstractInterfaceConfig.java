@@ -3,7 +3,9 @@ package org.kin.kinrpc.config;
 import org.kin.kinrpc.Interceptor;
 import org.kin.kinrpc.utils.GsvUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * todo interceptor配置
@@ -16,8 +18,6 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
     private ApplicationConfig app;
     /** 注册中心配置 */
     private final List<RegistryConfig> registries = new ArrayList<>();
-    /** 服务方法配置 */
-    private final Map<String, MethodConfig> methodMap = new HashMap<>();
     /** 接口 */
     private Class<T> interfaceClass;
     /** 服务所属组 */
@@ -46,7 +46,7 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
      * @return 服务唯一标识
      */
     public String gsv() {
-        return GsvUtils.serviceKey(group, serviceName, version);
+        return GsvUtils.service(group, serviceName, version);
     }
 
     /**
@@ -78,20 +78,6 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
 
     public IC registries(List<RegistryConfig> registries) {
         this.registries.addAll(registries);
-        return castThis();
-    }
-
-    public Map<String, MethodConfig> getMethodMap() {
-        return methodMap;
-    }
-
-    public IC method(String methodName, MethodConfig method) {
-        this.methodMap.put(methodName, method);
-        return castThis();
-    }
-
-    public IC methods(Map<String, MethodConfig> methodMap) {
-        this.methodMap.putAll(methodMap);
         return castThis();
     }
 

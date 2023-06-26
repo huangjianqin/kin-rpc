@@ -1,26 +1,42 @@
 package org.kin.kinrpc;
 
+import org.kin.framework.collection.AttachmentSupport;
+
 /**
  * {@link Invoker#invoke(Invocation)}参数
- * .invoke相关元数据
+ * rpc call相关元数据
  *
  * @author huangjianqin
  * @date 2023/2/26
  */
-public interface Invocation {
+public interface Invocation extends AttachmentSupport {
     /**
-     * 返回服务唯一标识
+     * 返回服务唯一id
      *
-     * @return 服务唯一标识
+     * @return 服务唯一id
      */
-    int getServiceId();
+    int serviceId();
 
     /**
      * 返回服务唯一标识
      *
      * @return 服务唯一标识
      */
-    String getGsv();
+    String service();
+
+    /**
+     * 返回服务方法唯一id
+     *
+     * @return 服务方法唯一id
+     */
+    int handlerId();
+
+    /**
+     * 返回服务方法唯一标识
+     *
+     * @return 服务方法唯一标识
+     */
+    String handler();
 
     /**
      * 返回服务方法名
@@ -34,7 +50,7 @@ public interface Invocation {
      *
      * @return 服务调用参数
      */
-    Object[] getParams();
+    Object[] params();
 
     /**
      * 返回服务调用结果是否异步返回
@@ -53,12 +69,19 @@ public interface Invocation {
      *
      * @return 服务调用结果真实返回值
      */
-    Class<?> getRealReturnType();
+    Class<?> realReturnType();
 
     /**
      * 返回服务方法返回值
      *
      * @return 服务方法返回值
      */
-    Class<?> getReturnType();
+    Class<?> returnType();
+
+    /**
+     * 判断是否是{@link Object}定义方法
+     *
+     * @return true表示是{@link Object}定义方法
+     */
+    boolean isObjectMethod();
 }

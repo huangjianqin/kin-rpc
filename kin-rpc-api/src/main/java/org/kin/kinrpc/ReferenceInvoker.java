@@ -1,6 +1,9 @@
 package org.kin.kinrpc;
 
 /**
+ * reference端{@link Invoker}实现
+ * todo 记得实现hashcode equal
+ *
  * @author huangjianqin
  * @date 2023/6/24
  */
@@ -18,4 +21,9 @@ public interface ReferenceInvoker<T> extends Invoker<T> {
      * @return true表示invoker available
      */
     boolean isAvailable();
+
+    /**
+     * 关闭底层client, 释放资源
+     */
+    void destroy();
 }

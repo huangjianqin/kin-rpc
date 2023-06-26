@@ -1,4 +1,4 @@
-package org.kin.kinrpc.cluster;
+package org.kin.kinrpc.cluster.bootstrap;
 
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
@@ -9,14 +9,10 @@ import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
 import org.kin.kinrpc.cluster.router.Router;
 import org.kin.kinrpc.registry.Registries;
 import org.kin.kinrpc.registry.Registry;
-import org.kin.kinrpc.rpc.Exporter;
-import org.kin.kinrpc.rpc.Notifier;
+import org.kin.kinrpc.rpc.*;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
-import org.kin.kinrpc.rpc.JavassistProviderInvoker;
-import org.kin.kinrpc.rpc.JdkProxyProviderInvoker;
 import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
-import org.kin.kinrpc.rpc.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +26,7 @@ import java.util.Objects;
 public class Clusters {
     private static final Logger log = LoggerFactory.getLogger(Clusters.class);
 
-    private static final Cache<String, ClusterInvoker> REFERENCE_CACHE = CacheBuilder.newBuilder().build();
+    private static final Cache<String, ClusterInvoker1> REFERENCE_CACHE = CacheBuilder.newBuilder().build();
     private static final Cache<Url, Exporter> EXPORTER_CACHE = CacheBuilder.newBuilder().build();
 
     private Clusters() {
@@ -140,7 +136,7 @@ public class Clusters {
      * close 引用服务
      */
     public static synchronized void disableReference(Url url) {
-        ClusterInvoker<?> clusterInvoker = REFERENCE_CACHE.getIfPresent(url.getServiceKey());
+        ClusterInvoker1<?> clusterInvoker = REFERENCE_CACHE.getIfPresent(url.getServiceKey());
 
         if (clusterInvoker != null) {
             clusterInvoker.close();

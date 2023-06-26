@@ -9,8 +9,7 @@ import org.apache.zookeeper.*;
 import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.registry.AbstractRegistry;
-import org.kin.kinrpc.registry.Directory;
-import org.kin.kinrpc.registry.common.RegistryConstants;
+import org.kin.kinrpc.registry.directory.DefaultDirectory;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.slf4j.Logger;
@@ -63,7 +62,7 @@ public final class ZookeeperRegistry extends AbstractRegistry {
             } else if (ConnectionState.RECONNECTED.equals(connectionState)) {
                 log.info("zookeeper registry reconnected");
                 //重连时重新订阅
-                for (Directory directory : directoryCache.asMap().values()) {
+                for (DefaultDirectory directory : directoryCache.asMap().values()) {
                     watch(directory);
                 }
             } else if (ConnectionState.LOST.equals(connectionState)) {
@@ -135,9 +134,9 @@ public final class ZookeeperRegistry extends AbstractRegistry {
     }
 
     @Override
-    public Directory subscribe(String serviceKey) {
+    public DefaultDirectory subscribe(String serviceKey) {
         log.info("reference subscribe service '{}' ", serviceKey);
-        Directory directory = new Directory(serviceKey);
+        DefaultDirectory directory = new DefaultDirectory(serviceKey);
         watch(directory);
         directoryCache.put(serviceKey, directory);
         return directory;
@@ -146,7 +145,7 @@ public final class ZookeeperRegistry extends AbstractRegistry {
     @Override
     public void unSubscribe(String serviceKey) {
         log.info("reference unsubscribe service '{}' ", serviceKey);
-        Directory directory = directoryCache.getIfPresent(serviceKey);
+        DefaultDirectory directory = directoryCache.getIfPresent(serviceKey);
         if (directory != null) {
             directory.destroy();
         }
@@ -156,7 +155,7 @@ public final class ZookeeperRegistry extends AbstractRegistry {
     /**
      * 监控某服务
      */
-    private void watch(Directory directory) {
+    private void watch(DefaultDirectory directory) {
         watchServiveNode(directory);
         watchServiveNodeChilds(directory);
     }
@@ -164,7 +163,7 @@ public final class ZookeeperRegistry extends AbstractRegistry {
     /**
      * 监听服务根节点
      */
-    private void watchServiveNode(Directory directory) {
+    private void watchServiveNode(DefaultDirectory directory) {
         try {
             client.checkExists().usingWatcher((Watcher) (WatchedEvent watchedEvent) -> {
                 if (watchedEvent.getType() == Watcher.Event.EventType.NodeCreated) {
@@ -200,7 +199,7 @@ public final class ZookeeperRegistry extends AbstractRegistry {
     /**
      * 监听服务子节点
      */
-    private void watchServiveNodeChilds(Directory directory) {
+    private void watchServiveNodeChilds(DefaultDirectory directory) {
         try {
             //获取{root}/{serviceName}/ child nodes
             List<String> addresses = client.getChildren().usingWatcher(
@@ -228,7 +227,7 @@ public final class ZookeeperRegistry extends AbstractRegistry {
 
     private void handleConnectError() {
         //断连时, 让所有directory持有的invoker失效
-        for (Directory directory : directoryCache.asMap().values()) {
+        for (DefaultDirectory directory : directoryCache.asMap().values()) {
             directory.discover(url, Collections.emptyList());
         }
     }
@@ -237,7 +236,7 @@ public final class ZookeeperRegistry extends AbstractRegistry {
     public void destroy() {
         if (client != null) {
             client.close();
-            for (Directory directory : directoryCache.asMap().values()) {
+            for (DefaultDirectory directory : directoryCache.asMap().values()) {
                 directory.destroy();
             }
             directoryCache.invalidateAll();

@@ -1,19 +1,24 @@
 package org.kin.kinrpc;
 
+import org.eclipse.collections.api.map.primitive.IntObjectMap;
+import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
 import org.kin.framework.proxy.MethodDefinition;
+import org.kin.framework.proxy.ProxyInvoker;
 import org.kin.framework.proxy.Proxys;
 import org.kin.kinrpc.config.ServiceConfig;
+import org.kin.kinrpc.utils.GsvUtils;
+import org.kin.kinrpc.utils.HandlerUtils;
 import org.kin.kinrpc.utils.RpcUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
+ * service端{@link Invoker}实现
+ *
  * @author huangjianqin
  * @date 2023/2/27
  */
@@ -24,38 +29,35 @@ public class ServiceInvoker<T> implements Invoker<T> {
     /** 服务实例 */
     private final T instance;
     /** 服务方法invoker */
-    private Map<String, org.kin.framework.proxy.ProxyInvoker<?>> methodInvokerMap = Collections.emptyMap();
+    private IntObjectMap<ProxyInvoker<?>> methodInvokerMap;
 
     public ServiceInvoker(ServiceConfig<T> config, T instance) {
         this.config = config;
         this.instance = instance;
+
+        String service = GsvUtils.service(config.getGroup(), config.getServiceName(), config.getVersion());
         //生成方法代理类
-        init(instance, config.getInterfaceClass());
+        init(instance, service, config.getInterfaceClass());
     }
 
     /**
      * 初始化
      */
-    private void init(Object service, Class<T> interfaceClass) {
+    private void init(Object instance,
+                      String service,
+                      Class<T> interfaceClass) {
         Method[] declaredMethods = interfaceClass.getDeclaredMethods();
 
-        Map<String, org.kin.framework.proxy.ProxyInvoker<?>> methodInvokerMap = new HashMap<>(declaredMethods.length);
+        IntObjectHashMap<ProxyInvoker<?>> methodInvokerMap = new IntObjectHashMap<>(declaredMethods.length);
+
         for (Method method : declaredMethods) {
-            String uniqueName = method.getName();
-
-            if (Object.class.equals(method.getDeclaringClass())) {
-                //过滤Object定义的方法
-                continue;
-            }
-
             if (!RpcUtils.isRpcMethodValid(method)) {
-                log.warn("service method '{}' is ignore, due to it is invalid", uniqueName);
                 continue;
             }
 
             org.kin.framework.proxy.ProxyInvoker<?> proxyInvoker = Proxys.adaptive().enhanceMethod(
-                    new MethodDefinition<>(service, method));
-            methodInvokerMap.put(uniqueName, proxyInvoker);
+                    new MethodDefinition<>(instance, method));
+            methodInvokerMap.put(HandlerUtils.handlerId(service, RpcUtils.getUniqueName(method)), proxyInvoker);
         }
         this.methodInvokerMap = methodInvokerMap;
     }
@@ -78,6 +80,8 @@ public class ServiceInvoker<T> implements Invoker<T> {
     private CompletableFuture<Object> wrapFuture(Object ret) {
         if (ret instanceof CompletableFuture) {
             return (CompletableFuture<Object>) ret;
+        } else if (ret instanceof Mono) {
+            return (CompletableFuture<Object>) ((Mono<?>) ret).toFuture();
         } else {
             return CompletableFuture.completedFuture(ret);
         }
@@ -87,29 +91,32 @@ public class ServiceInvoker<T> implements Invoker<T> {
      * 真正调用方法
      */
     private Object doInvoke(Invocation invocation) {
-        String serviceName = invocation.getGsv();
         String methodName = invocation.getMethodName();
-        Object[] params = invocation.getParams();
+        Object[] params = invocation.params();
 
-        log.debug("'{}' method '{}' invoking...", serviceName, methodName);
+        if (log.isDebugEnabled()) {
+            log.debug("handle rpc call... invocation={}", invocation);
+        }
         //Object类方法直接调用
-        if ("getClass".equals(methodName)) {
-            return instance.getClass();
-        }
-        if ("hashCode".equals(methodName)) {
-            return instance.hashCode();
-        }
-        if ("toString".equals(methodName)) {
-            return instance.toString();
-        }
-        if ("equals".equals(methodName)) {
-            if (params.length == 1) {
-                return instance.equals(params[0]);
+        if (invocation.isObjectMethod()) {
+            if ("getClass".equals(methodName)) {
+                return instance.getClass();
+            } else if ("hashCode".equals(methodName)) {
+                return instance.hashCode();
+            } else if ("toString".equals(methodName)) {
+                return instance.toString();
+            } else if ("equals".equals(methodName)) {
+                if (params.length == 1) {
+                    return instance.equals(params[0]);
+                }
+                throw new IllegalArgumentException(String.format("method '%s' parameter number error", methodName));
+            } else {
+                throw new UnsupportedOperationException(String.format("does not support to call method '%s'", methodName));
             }
-            throw new IllegalArgumentException(String.format("method '%s' parameter number error", methodName));
         }
 
-        org.kin.framework.proxy.ProxyInvoker<?> methodInvoker = methodInvokerMap.get(methodName);
+        //其他方法
+        org.kin.framework.proxy.ProxyInvoker<?> methodInvoker = methodInvokerMap.get(invocation.handlerId());
 
         if (methodInvoker == null) {
             throw new IllegalStateException("cannot find invoker which method name is " + methodName);
@@ -121,7 +128,9 @@ public class ServiceInvoker<T> implements Invoker<T> {
         for (int i = 0; i < actualParamTypeNames.length; i++) {
             actualParamTypeNames[i] = params[i].getClass().getName();
         }
-        log.debug("method '{}' actual params' type is {}", methodName, actualParamTypeNames);
+        if (log.isDebugEnabled()) {
+            log.debug("method '{}' actual params' type is {}", methodName, actualParamTypeNames);
+        }
 
         try {
             return methodInvoker.invoke(params);

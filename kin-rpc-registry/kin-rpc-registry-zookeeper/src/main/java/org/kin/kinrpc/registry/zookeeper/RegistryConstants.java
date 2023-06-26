@@ -1,4 +1,4 @@
-package org.kin.kinrpc.registry.common;
+package org.kin.kinrpc.registry.zookeeper;
 
 /**
  * Created by huangjianqin on 2019/6/11.

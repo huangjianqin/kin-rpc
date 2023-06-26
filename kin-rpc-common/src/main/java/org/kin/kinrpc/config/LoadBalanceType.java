@@ -8,10 +8,6 @@ package org.kin.kinrpc.config;
 public enum LoadBalanceType {
     /** hash */
     HASH("hash"),
-    /** lfu, 最不经常使用 */
-    LFU("lfu"),
-    /** lru, 最近最少使用 */
-    LRU("lru"),
     /** random */
     RANDOM("random"),
     /** round robin */

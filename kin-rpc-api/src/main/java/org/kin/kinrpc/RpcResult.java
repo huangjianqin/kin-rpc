@@ -1,6 +1,7 @@
 package org.kin.kinrpc;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
 
 /**
@@ -32,6 +33,10 @@ public final class RpcResult {
         return new RpcResult(invocation, EMPTY_FUTURE);
     }
 
+    /**
+     * @param invocation   rpc call信息
+     * @param resultFuture rpc call result future, 由{@link RpcResult}创建者控制complete
+     */
     private RpcResult(Invocation invocation, CompletableFuture<Object> resultFuture) {
         this.invocation = invocation;
         this.resultFuture = resultFuture;
@@ -46,8 +51,21 @@ public final class RpcResult {
 
     /**
      * 当invoke结果返回时, 回调{@code fnc}
+     *
+     * @param action 回调方法
      */
     public CompletableFuture<Object> onFinish(BiConsumer<Object, Throwable> action) {
         return resultFuture.whenComplete(action);
+    }
+
+    /**
+     * 当invoke结果返回时, 异步回调{@code fnc}
+     *
+     * @param action   回调方法
+     * @param executor 回调方法执行线程
+     */
+    public CompletableFuture<Object> onFinishAsync(BiConsumer<Object, Throwable> action,
+                                                   Executor executor) {
+        return resultFuture.whenCompleteAsync(action, executor);
     }
 }

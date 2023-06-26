@@ -1,13 +1,15 @@
-package org.kin.kinrpc.registry;
+package org.kin.kinrpc.registry.directory;
 
 import com.google.common.base.Preconditions;
 import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.ExtensionLoader;
+import org.kin.kinrpc.ReferenceInvoker;
+import org.kin.kinrpc.ServiceInstance;
 import org.kin.kinrpc.rpc.AsyncInvoker;
 import org.kin.kinrpc.rpc.Invoker;
-import org.kin.kinrpc.rpc.common.Url;
 import org.kin.kinrpc.rpc.Protocol;
+import org.kin.kinrpc.rpc.common.Url;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,8 +22,8 @@ import java.util.stream.Collectors;
  * @author huangjianqin
  * @date 2019/6/11
  */
-public final class Directory {
-    private static final Logger log = LoggerFactory.getLogger(Directory.class);
+public class DefaultDirectory implements Directory {
+    private static final Logger log = LoggerFactory.getLogger(DefaultDirectory.class);
 
     /** 订阅的服务名 */
     private final String serviceName;
@@ -30,7 +32,7 @@ public final class Directory {
 
     private volatile boolean isStopped;
 
-    public Directory(String serviceName) {
+    public DefaultDirectory(String serviceName) {
         this.serviceName = serviceName;
     }
 
@@ -48,10 +50,8 @@ public final class Directory {
         invokers = Collections.unmodifiableList(newInvokers);
     }
 
-    /**
-     * 获取当前可用invokers
-     */
-    public List<AsyncInvoker> list() {
+    @Override
+    public List<ReferenceInvoker<?>> list() {
         //Directory关闭中调用该方法会返回一个size=0的列表
         if (!isStopped) {
             return getActiveReferenceInvoker();
@@ -59,10 +59,8 @@ public final class Directory {
         return Collections.emptyList();
     }
 
-    /**
-     * 发现可用服务的address, 并构建reference invoker
-     */
-    public void discover(Url referenceUrl, List<Url> urls) {
+    @Override
+    public void discover(List<ServiceInstance> serviceInstances) {
         if (!isStopped) {
             //利用consumer url覆盖provider url
             urls = urls.stream().map(url -> Url.mergeUrl(referenceUrl, url)).collect(Collectors.toList());
@@ -132,6 +130,7 @@ public final class Directory {
         }
     }
 
+    @Override
     public void destroy() {
         if (!isStopped) {
             isStopped = true;
@@ -143,10 +142,9 @@ public final class Directory {
         }
     }
 
-    /**
-     * @return 服务名
-     */
-    public String getServiceName() {
-        return serviceName;
+    @Override
+    public String service() {
+        // TODO: 2023/6/25
+        return null;
     }
 }

@@ -22,7 +22,7 @@ public class ServiceConfig<T> extends AbstractInterfaceConfig<T, ServiceConfig<T
     /** 服务实例 */
     private T service;
     /** bootstrap 类型 */
-    private String bootstrap = "default";
+    private String bootstrap = "kinrpc";
 
     private transient ServiceBootstrap<T> serviceBootstrap;
 

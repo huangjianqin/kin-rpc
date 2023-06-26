@@ -1,6 +1,7 @@
 package org.kin.kinrpc.registry;
 
 
+import org.kin.kinrpc.registry.directory.DefaultDirectory;
 import org.kin.kinrpc.rpc.common.Url;
 
 /**
@@ -33,7 +34,7 @@ public interface Registry {
      * @param serviceKey serviceName-version
      * @return 服务订阅目录, 包含所有可用invokers
      */
-    Directory subscribe(String serviceKey);
+    DefaultDirectory subscribe(String serviceKey);
 
     /**
      * 取消订阅服务

@@ -1,6 +1,7 @@
 package org.kin.kinrpc.cluster.loadbalance;
 
-import org.kin.kinrpc.rpc.AsyncInvoker;
+import org.kin.kinrpc.Invocation;
+import org.kin.kinrpc.ReferenceInvoker;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -10,9 +11,8 @@ import java.util.concurrent.ThreadLocalRandom;
  * Created by 健勤 on 2017/2/15.
  */
 public class RandomLoadBalance extends AbstractLoadBalance {
-    @SuppressWarnings("rawtypes")
     @Override
-    public AsyncInvoker loadBalance(String serviceKey, String method, Object[] params, List<AsyncInvoker> invokers) {
+    public ReferenceInvoker<?> loadBalance(Invocation invocation, List<ReferenceInvoker<?>> invokers) {
         //invoker数量
         int length = invokers.size();
         if (length == 0) {

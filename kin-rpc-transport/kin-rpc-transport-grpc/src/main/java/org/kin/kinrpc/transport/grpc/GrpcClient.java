@@ -161,8 +161,8 @@ public class GrpcClient extends AbsRemotingClient {
      */
     private <T> CompletableFuture<T> rpcCall(@Nonnull RpcRequestCommand command,
                                              CompletableFuture<T> requestFuture) {
-        String gsv = command.getGsv();
-        String method = command.getMethod();
+        String gsv = command.getService();
+        String method = command.getMethodName();
         String cacheKey = getMethodDescriptorCacheKey(gsv, method);
         MethodDescriptor<ByteBuf, ByteBuf> methodDescriptor = methodDescriptorCache.get(cacheKey);
         if (Objects.isNull(methodDescriptor)) {

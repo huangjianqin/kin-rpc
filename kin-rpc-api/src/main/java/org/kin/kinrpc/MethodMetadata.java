@@ -1,9 +1,12 @@
 package org.kin.kinrpc;
 
 import org.kin.framework.utils.ClassUtils;
+import org.kin.kinrpc.utils.HandlerUtils;
+import org.kin.kinrpc.utils.RpcUtils;
 import org.reactivestreams.Publisher;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -14,8 +17,11 @@ import java.util.concurrent.CompletableFuture;
  * @date 2023/6/19
  */
 public class MethodMetadata {
-    /** 方法名 */
-    private final String name;
+    private final Method method;
+    /** 服务方法唯一id */
+    private final int handlerId;
+    /** 服务方法唯一标识 */
+    private final String handler;
     /** 服务防范参数类型 */
     private final Class<?>[] paramsType;
     /** 方法返回类型 */
@@ -30,8 +36,10 @@ public class MethodMetadata {
      */
     private final Class<?> inferredClassForReturn;
 
-    public MethodMetadata(Method method) {
-        this.name = method.getName();
+    public MethodMetadata(String service, Method method) {
+        this.method = method;
+        this.handler = HandlerUtils.handler(service, RpcUtils.getUniqueName(method));
+        this.handlerId = HandlerUtils.handlerId(this.handler);
         this.paramsType = method.getParameterTypes();
         this.returnType = method.getReturnType();
         if (CompletableFuture.class.isAssignableFrom(returnType) ||
@@ -59,16 +67,37 @@ public class MethodMetadata {
         }
     }
 
-    //getter
-    public String getName() {
-        return name;
+    /**
+     * 判断是否是{@link Object}定义方法
+     *
+     * @return true表示是{@link Object}定义方法
+     */
+    public boolean isObjectMethod() {
+        return Object.class.equals(method.getDeclaringClass());
     }
 
-    public Class<?>[] getParamsType() {
+    //getter
+    public Method method() {
+        return method;
+    }
+
+    public String methodName() {
+        return RpcUtils.getUniqueName(method);
+    }
+
+    public int handlerId() {
+        return handlerId;
+    }
+
+    public String handler() {
+        return handler;
+    }
+
+    public Class<?>[] paramsType() {
         return paramsType;
     }
 
-    public Class<?> getReturnType() {
+    public Class<?> returnType() {
         return returnType;
     }
 
@@ -78,5 +107,19 @@ public class MethodMetadata {
 
     public boolean isOneWay() {
         return oneWay;
+    }
+
+    @Override
+    public String toString() {
+        return "MethodMetadata{" +
+                "method=" + method +
+                ", handlerId=" + handlerId +
+                ", handler='" + handler + '\'' +
+                ", paramsType=" + Arrays.toString(paramsType) +
+                ", returnType=" + returnType +
+                ", asyncReturn=" + asyncReturn +
+                ", oneWay=" + oneWay +
+                ", inferredClassForReturn=" + inferredClassForReturn +
+                '}';
     }
 }

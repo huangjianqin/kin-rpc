@@ -4,7 +4,7 @@ import org.kin.framework.utils.ExtensionLoader;
 import org.kin.kinrpc.bootstrap.ReferenceBootstrap;
 import org.kin.kinrpc.constants.ReferenceConstants;
 
-import java.util.Objects;
+import java.util.*;
 
 /**
  * 服务引用配置
@@ -13,6 +13,9 @@ import java.util.Objects;
  * @date 2023/6/16
  */
 public class ReferenceConfig<T> extends AbstractInterfaceConfig<T, ReferenceConfig<T>> {
+    // TODO: 2023/6/25 校验方法名是否一致
+    /** 服务方法配置 */
+    private final List<MethodConfig> methods = new ArrayList<>();
     /** 集群处理, 默认是failover */
     // TODO: 待实现
     private String cluster;
@@ -26,8 +29,7 @@ public class ReferenceConfig<T> extends AbstractInterfaceConfig<T, ReferenceConf
     /** 服务connection ssl配置 */
     private SslConfig ssl;
     /** bootstrap 类型 */
-    private String bootstrap = "default";
-
+    private String bootstrap = "kinrpc";
 
     //----------------------------------------------------------------方法级配置, 如果方法没有特殊配置, 则取这个
     /**
@@ -77,6 +79,24 @@ public class ReferenceConfig<T> extends AbstractInterfaceConfig<T, ReferenceConf
     }
 
     //setter && getter
+    public List<MethodConfig> getMethods() {
+        return methods;
+    }
+
+    public ReferenceConfig<T> method(MethodConfig method) {
+        this.methods.add(method);
+        return this;
+    }
+
+    public ReferenceConfig<T> methods(MethodConfig... methods) {
+        return methods(Arrays.asList(methods));
+    }
+
+    public ReferenceConfig<T> methods(Collection<MethodConfig> methods) {
+        this.methods.addAll(methods);
+        return this;
+    }
+
     public String getCluster() {
         return cluster;
     }

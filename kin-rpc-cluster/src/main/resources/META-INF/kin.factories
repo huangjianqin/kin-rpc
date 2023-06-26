@@ -1,9 +1,10 @@
 router=org.kin.kinrpc.cluster.router.NoneRouter
 loadbalance=org.kin.kinrpc.cluster.loadbalance.HashLoadBalance,\
             org.kin.kinrpc.cluster.loadbalance.ConsistentHashLoadBalance,\
-            org.kin.kinrpc.cluster.loadbalance.LFULoadBalance,\
-            org.kin.kinrpc.cluster.loadbalance.LRULoadBalance,\
             org.kin.kinrpc.cluster.loadbalance.RandomLoadBalance,\
             org.kin.kinrpc.cluster.loadbalance.RoundRobinLoadBalance,\
 
-resultAdapter=org.kin.kinrpc.cluster.FutureReturnAdapter
+rpcResultAdapter=org.kin.kinrpc.cluster.call.FutureResultAdapter,\
+  org.kin.kinrpc.cluster.call.ReactiveResultAdapter
+cluster=org.kin.kinrpc.cluster.invoker.FailFastClusterInvoker,\
+  org.kin.kinrpc.cluster.invoker.FailoverClusterInvoker

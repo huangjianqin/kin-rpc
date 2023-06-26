@@ -1,6 +1,7 @@
 package org.kin.kinrpc.cluster.loadbalance;
 
-import org.kin.kinrpc.rpc.AsyncInvoker;
+import org.kin.kinrpc.Invocation;
+import org.kin.kinrpc.ReferenceInvoker;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,14 +13,14 @@ import java.util.concurrent.atomic.AtomicLong;
  * Created by 健勤 on 2017/2/15.
  */
 public class RoundRobinLoadBalance extends AbstractLoadBalance {
+    /** 回收长期没有selected到的invoker时间(毫秒) */
     private static final int RECYCLE_PERIOD = 60000;
-    /** key -> 服务方法id, value -> {key -> invoker id, value -> invoker} */
+    /** key -> 服务方法唯一id, value -> {key -> invoker id, value -> invoker} */
     private final ConcurrentMap<Integer, ConcurrentHashMap<Integer, WeightedRoundRobin>> weightedRoundRobinMap = new ConcurrentHashMap<>();
 
-    @SuppressWarnings("rawtypes")
     @Override
-    public AsyncInvoker loadBalance(String serviceKey, String method, Object[] params, List<AsyncInvoker> invokers) {
-        int key = key(serviceKey, method);
+    public ReferenceInvoker<?> loadBalance(Invocation invocation, List<ReferenceInvoker<?>> invokers) {
+        int key = invocation.handlerId();
         ConcurrentHashMap<Integer, WeightedRoundRobin> map = weightedRoundRobinMap.computeIfAbsent(key, k -> new ConcurrentHashMap<>());
         //总权重
         int totalWeight = 0;
@@ -27,11 +28,11 @@ public class RoundRobinLoadBalance extends AbstractLoadBalance {
         long maxCurrent = Long.MIN_VALUE;
         long now = System.currentTimeMillis();
         //最终选择到的invoker
-        AsyncInvoker selectedInvoker = null;
+        ReferenceInvoker<?> selectedInvoker = null;
         WeightedRoundRobin selectedWRR = null;
-        for (AsyncInvoker invoker : invokers) {
+        for (ReferenceInvoker<?> invoker : invokers) {
             //invoker id
-            int invokerIdentity = invoker.url().identityStr().hashCode();
+            int invokerIdentity = invoker.hashCode();
             //invoker权重
             int weight = weight(invoker);
             WeightedRoundRobin weightedRoundRobin = map.computeIfAbsent(invokerIdentity, k -> {
@@ -70,13 +71,16 @@ public class RoundRobinLoadBalance extends AbstractLoadBalance {
         return invokers.get(0);
     }
 
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    /** invoker权重计算缓存数据 */
     private static class WeightedRoundRobin {
         /** invoker权重 */
-        private int weight;
+        private volatile int weight;
         /** 当前权重积累值 */
         private final AtomicLong current = new AtomicLong(0);
         /** 上次增加累积权重的时间 */
-        private long lastUpdate;
+        private volatile long lastUpdate;
 
         public void setWeight(int weight) {
             this.weight = weight;

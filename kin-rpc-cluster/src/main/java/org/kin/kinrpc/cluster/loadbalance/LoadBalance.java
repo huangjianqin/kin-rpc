@@ -2,20 +2,22 @@ package org.kin.kinrpc.cluster.loadbalance;
 
 
 import org.kin.framework.utils.SPI;
-import org.kin.kinrpc.rpc.AsyncInvoker;
+import org.kin.kinrpc.Invocation;
+import org.kin.kinrpc.ReferenceInvoker;
 
 import java.util.List;
 
 /**
- * Created by 健勤 on 2017/2/15.
+ * @author huangjianqin
+ * @date 2023/6/25
  */
-@SPI(value = "hash", alias = "loadbalance")
+@SPI(alias = "loadbalance")
 public interface LoadBalance {
     /**
-     * 负载均衡 过滤invokers
+     * 应用负载均衡策略过滤invokers
      *
      * @param invokers 可用invokers
-     * @return 过滤后的invoker
+     * @return selected invoker
      */
-    AsyncInvoker loadBalance(String serviceKey, String method, Object[] params, List<AsyncInvoker> invokers);
+    ReferenceInvoker<?> loadBalance(Invocation invocation, List<ReferenceInvoker<?>> invokers);
 }

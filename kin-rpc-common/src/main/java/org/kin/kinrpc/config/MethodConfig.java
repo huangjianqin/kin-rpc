@@ -3,7 +3,8 @@ package org.kin.kinrpc.config;
 import org.kin.kinrpc.constants.ReferenceConstants;
 
 /**
- * 服务方法配置, 如果不配置, 则直接取{@link ReferenceConfig}
+ * 服务方法配置, 如果不配置, 则直接取reference config
+ *
  * @author huangjianqin
  * @date 2023/6/16
  */
@@ -69,12 +70,22 @@ public class MethodConfig implements Config{
         return this;
     }
 
+    public MethodConfig async(boolean async) {
+        this.async = async;
+        return this;
+    }
+
     public boolean isSticky() {
         return sticky;
     }
 
     public MethodConfig sticky() {
         this.sticky = true;
+        return this;
+    }
+
+    public MethodConfig sticky(boolean sticky) {
+        this.sticky = sticky;
         return this;
     }
 }

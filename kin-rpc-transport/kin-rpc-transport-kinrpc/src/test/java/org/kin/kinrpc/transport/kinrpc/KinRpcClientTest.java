@@ -20,7 +20,7 @@ public class KinRpcClientTest {
                 Thread.sleep(1_000);
             }
 
-            RpcRequestCommand rpcRequestCommand = new RpcRequestCommand((byte) 4, "test:test", "test", new Object[]{new String("Hello rpc")});
+            RpcRequestCommand rpcRequestCommand = new RpcRequestCommand((byte) 4, 0, 0, new Object[]{new String("Hello rpc")});
             RpcResponseCommand rpcResponseCommand = client.bRequestResponse(rpcRequestCommand);
             rpcResponseCommand.deserializeResult(String.class);
             System.out.println(rpcResponseCommand.getResult());

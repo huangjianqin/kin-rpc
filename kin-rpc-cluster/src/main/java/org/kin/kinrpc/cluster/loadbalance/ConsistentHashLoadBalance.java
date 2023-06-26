@@ -1,6 +1,7 @@
 package org.kin.kinrpc.cluster.loadbalance;
 
-import org.kin.kinrpc.rpc.AsyncInvoker;
+import org.kin.kinrpc.Invocation;
+import org.kin.kinrpc.ReferenceInvoker;
 
 import java.util.List;
 import java.util.Objects;
@@ -13,45 +14,45 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author huangjianqin
  * @date 2021/11/21
  */
-@SuppressWarnings("rawtypes")
 public class ConsistentHashLoadBalance extends AbstractLoadBalance {
+    /** key -> handler id, value -> 该服务方法对应的一致性hash环 */
     private final ConcurrentHashMap<Integer, ConsistentHash> consistentHashMap = new ConcurrentHashMap<>();
 
     @Override
-    public AsyncInvoker loadBalance(String serviceKey, String method, Object[] params, List<AsyncInvoker> invokers) {
-        int key = key(serviceKey, method);
+    public ReferenceInvoker<?> loadBalance(Invocation invocation, List<ReferenceInvoker<?>> invokers) {
+        int handlerId = invocation.handlerId();
         int hashCode = invokers.hashCode();
-        ConsistentHash consistentHash = consistentHashMap.get(key);
+        ConsistentHash consistentHash = consistentHashMap.get(handlerId);
         if (Objects.isNull(consistentHash) || consistentHash.hashCode != hashCode) {
             consistentHash = new ConsistentHash(invokers, hashCode);
-            consistentHashMap.put(key, consistentHash);
+            consistentHashMap.put(handlerId, consistentHash);
         }
 
-        //以第一个参数作为hash对象
-        return consistentHash.get(params[0]);
+        //以参数作为hash对象
+        return consistentHash.get(invocation.params());
     }
 
     /**
      * 不可变hash环
-     * 如果发现{@link AsyncInvoker} list发生变化时, 直接替换
+     * 如果发现invoker list发生变化时, 直接替换
      */
-    private static class ConsistentHash extends org.kin.framework.utils.ConsistentHash<AsyncInvoker> {
+    private static class ConsistentHash extends org.kin.framework.utils.ConsistentHash<ReferenceInvoker<?>> {
         /** hash环每个节点数量(含虚拟节点) */
         private static final int HASH_NODE_NUM = 128;
-        /** 标识该hash环对应的{@link AsyncInvoker} list, 用于判断{@link AsyncInvoker} list是否发生变化 */
+        /** hash环唯一标识, 即hashCode(list(invoker)), 用于判断invoker list是否发生变化 */
         private final int hashCode;
 
-        public ConsistentHash(List<AsyncInvoker> invokers, int hashCode) {
+        public ConsistentHash(List<ReferenceInvoker<?>> invokers, int hashCode) {
             super(HASH_NODE_NUM);
 
-            for (AsyncInvoker invoker : invokers) {
+            for (ReferenceInvoker<?> invoker : invokers) {
                 add(invoker);
             }
             this.hashCode = hashCode;
         }
 
         @Override
-        protected void applySlot(SortedMap<Long, AsyncInvoker> circle, String s, AsyncInvoker node) {
+        protected void applySlot(SortedMap<Long, ReferenceInvoker<?>> circle, String s, ReferenceInvoker<?> node) {
             if (hashCode == 0) {
                 //初始化
                 super.applySlot(circle, s, node);
@@ -61,7 +62,7 @@ public class ConsistentHashLoadBalance extends AbstractLoadBalance {
         }
 
         @Override
-        protected void removeSlot(SortedMap<Long, AsyncInvoker> circle, String s) {
+        protected void removeSlot(SortedMap<Long, ReferenceInvoker<?>> circle, String s) {
             if (hashCode == 0) {
                 //初始化
                 super.removeSlot(circle, s);

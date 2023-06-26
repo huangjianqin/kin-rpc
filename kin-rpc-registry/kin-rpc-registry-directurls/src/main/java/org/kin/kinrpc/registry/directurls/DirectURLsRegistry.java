@@ -1,7 +1,7 @@
 package org.kin.kinrpc.registry.directurls;
 
 import org.kin.kinrpc.registry.AbstractRegistry;
-import org.kin.kinrpc.registry.Directory;
+import org.kin.kinrpc.registry.directory.DefaultDirectory;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
 import org.slf4j.Logger;
@@ -42,9 +42,9 @@ public final class DirectURLsRegistry extends AbstractRegistry {
     }
 
     @Override
-    public Directory subscribe(String serviceKey) {
+    public DefaultDirectory subscribe(String serviceKey) {
         log.info("reference subscribe service '{}' ", serviceKey);
-        Directory directory = new Directory(serviceKey);
+        DefaultDirectory directory = new DefaultDirectory(serviceKey);
         directory.discover(url, urls);
         directoryCache.put(serviceKey, directory);
         return directory;
@@ -53,7 +53,7 @@ public final class DirectURLsRegistry extends AbstractRegistry {
     @Override
     public void unSubscribe(String serviceKey) {
         log.info("reference unsubscribe service '{}' ", serviceKey);
-        Directory directory = directoryCache.getIfPresent(serviceKey);
+        DefaultDirectory directory = directoryCache.getIfPresent(serviceKey);
         if (directory != null) {
             directory.destroy();
         }
@@ -64,7 +64,7 @@ public final class DirectURLsRegistry extends AbstractRegistry {
     public void destroy() {
         urls.clear();
         urls = null;
-        for (Directory directory : directoryCache.asMap().values()) {
+        for (DefaultDirectory directory : directoryCache.asMap().values()) {
             directory.destroy();
         }
         directoryCache.invalidateAll();

@@ -11,6 +11,7 @@ import java.util.UUID;
  * @date 2023/6/12
  */
 public class KinRpcAppContext {
+    // TODO: 2023/6/25
     /** app uuid */
     public static final String ID = UUID.randomUUID().toString();
     /** 是否支持字节码增强 */

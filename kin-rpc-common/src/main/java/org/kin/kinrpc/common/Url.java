@@ -71,7 +71,7 @@ public class Url extends AttachmentMap implements Serializable {
             this.params = new HashMap<>();
         }
 
-        this.serviceKey = GsvUtils.serviceKey(getGroup(), getService(), getVersion());
+        this.serviceKey = GsvUtils.service(getGroup(), getService(), getVersion());
         this.serviceId = GsvUtils.serviceId(serviceKey);
         this.interfaceName = getParam(UrlParamConstants.INTERFACE);
     }
