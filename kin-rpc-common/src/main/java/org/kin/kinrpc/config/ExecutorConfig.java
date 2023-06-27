@@ -52,6 +52,38 @@ public class ExecutorConfig extends AbstractConfig {
         return create(executorType).name(name);
     }
 
+    public static ExecutorConfig cache() {
+        return create(ExecutorType.CACHE);
+    }
+
+    public static ExecutorConfig cache(String name) {
+        return create(name, ExecutorType.CACHE);
+    }
+
+    public static ExecutorConfig direct() {
+        return create(ExecutorType.DIRECT);
+    }
+
+    public static ExecutorConfig direct(String name) {
+        return create(name, ExecutorType.DIRECT);
+    }
+
+    public static ExecutorConfig eager() {
+        return create(ExecutorType.EAGER);
+    }
+
+    public static ExecutorConfig eager(String name) {
+        return create(name, ExecutorType.EAGER);
+    }
+
+    public static ExecutorConfig fix() {
+        return create(ExecutorType.FIX);
+    }
+
+    public static ExecutorConfig fix(String name) {
+        return create(name, ExecutorType.FIX);
+    }
+
     private ExecutorConfig() {
     }
 

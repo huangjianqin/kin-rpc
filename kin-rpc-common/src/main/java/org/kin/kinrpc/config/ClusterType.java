@@ -2,17 +2,15 @@ package org.kin.kinrpc.config;
 
 /**
  * @author huangjianqin
- * @date 2021/4/20
+ * @date 2023/6/27
  */
-public enum ExecutorType{
-    CACHE("cache"),
-    DIRECT("direct"),
-    EAGER("eager"),
-    FIX("fix"),
+public enum ClusterType {
+    FAILOVER("failover"),
+    FAIL_FAST("failfast"),
     ;
     private final String name;
 
-    ExecutorType(String name) {
+    ClusterType(String name) {
         this.name = name;
     }
 

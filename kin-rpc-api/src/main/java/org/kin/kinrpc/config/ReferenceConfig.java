@@ -18,7 +18,7 @@ public class ReferenceConfig<T> extends AbstractInterfaceConfig<T, ReferenceConf
     private final List<MethodConfig> methods = new ArrayList<>();
     /** 集群处理, 默认是failover */
     // TODO: 待实现
-    private String cluster;
+    private String cluster = ClusterType.FAIL_FAST.getName();
     /** 负载均衡类型, 默认round robin */
     private String loadBalance = LoadBalanceType.ROUND_ROBIN.getName();
     /** 路由类型, 默认none */
@@ -103,6 +103,11 @@ public class ReferenceConfig<T> extends AbstractInterfaceConfig<T, ReferenceConf
 
     public ReferenceConfig<T> cluster(String cluster) {
         this.cluster = cluster;
+        return this;
+    }
+
+    public ReferenceConfig<T> cluster(ClusterType clusterType) {
+        this.cluster = clusterType.getName();
         return this;
     }
 

@@ -27,7 +27,7 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
     /** 版本号 */
     private String version = "0.1.0.0";
     /** 默认序列化方式 */
-    private String serialization;
+    private String serialization = SerializationType.JSON.getName();
     // TODO: 2023/6/20 spring通过bean name查询 interceptor来添加
     /** 服务调用拦截器列表 */
     private List<Interceptor> interceptors;

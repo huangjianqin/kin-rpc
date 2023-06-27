@@ -25,12 +25,36 @@ public class RegistryConfig extends AbstractConfig {
         return create(type).address(address);
     }
 
-    public static RegistryConfig create(RegistryType type){
+    public static RegistryConfig create(RegistryType type) {
         return create(type.getName());
     }
 
-    public static RegistryConfig create(RegistryType type, String address){
+    public static RegistryConfig create(RegistryType type, String address) {
         return create(type.getName(), address);
+    }
+
+    public static RegistryConfig direct(String address) {
+        return create(RegistryType.DIRECT, address);
+    }
+
+    public static RegistryConfig zk(String address) {
+        return create(RegistryType.ZOOKEEPER, address);
+    }
+
+    public static RegistryConfig nacos(String address) {
+        return create(RegistryType.NACOS, address);
+    }
+
+    public static RegistryConfig etcd(String address) {
+        return create(RegistryType.ETCD, address);
+    }
+
+    public static RegistryConfig consul(String address) {
+        return create(RegistryType.CONSUL, address);
+    }
+
+    public static RegistryConfig k8s(String address) {
+        return create(RegistryType.K8S, address);
     }
 
     private RegistryConfig() {

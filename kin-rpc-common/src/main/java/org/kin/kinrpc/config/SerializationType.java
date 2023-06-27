@@ -1,7 +1,6 @@
 package org.kin.kinrpc.config;
 
 /**
- * serialization支持类型
  * @author huangjianqin
  * @date 2023/6/16
  */

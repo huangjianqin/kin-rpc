@@ -1,7 +1,6 @@
 package org.kin.kinrpc.config;
 
 /**
- * todo增加基于性能监控动态计算权重的负载均衡算法
  * @author huangjianqin
  * @date 2019/7/30
  */

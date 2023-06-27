@@ -25,6 +25,10 @@ public class ServerConfig extends AbstractConfig {
     /** 服务connection ssl配置 */
     private SslConfig ssl;
 
+    public static ServerConfig create() {
+        return create(ProtocolType.KINRPC);
+    }
+
     public static ServerConfig create(String protocol) {
         return new ServerConfig().protocol(protocol);
     }
