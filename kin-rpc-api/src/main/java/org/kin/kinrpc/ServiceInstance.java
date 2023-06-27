@@ -11,39 +11,40 @@ import java.util.Map;
  */
 public interface ServiceInstance {
     /**
-     * 返回serviceId
+     * 返回服务唯一标识
      *
-     * @return serviceId
+     * @return 服务唯一标识
      */
-    String getServiceId();
+    String service();
 
     /**
-     * 返回service host
+     * 返回service instance host
      *
-     * @return service host
+     * @return service instance host
      */
-    String getHost();
+    String host();
 
     /**
-     * 返回service host
+     * 返回service instance port
      *
-     * @return service port
+     * @return service instance port
      */
-    int getPort();
+    int port();
 
     /**
-     * 返回service metadata
+     * 返回service instance metadata
      *
-     * @return service metadata
+     * @return service instance metadata
      */
-    Map<String, String> getMetadata();
+    Map<String, String> metadata();
 
     /**
-     * 返回service schema
+     * 返回service instance schema
+     * todo 是否需要合并schema
      *
-     * @return service schema
+     * @return service instance schema
      */
-    String getScheme();
+    String scheme();
 
     /**
      * 返回服务权重
@@ -51,4 +52,25 @@ public interface ServiceInstance {
      * @return 服务权重
      */
     int weight();
+
+    /**
+     * 返回服务元数据
+     *
+     * @param key 元数据key
+     * @return
+     */
+    default String metadata(String key) {
+        return metadata(key, "");
+    }
+
+    /**
+     * 返回服务元数据
+     *
+     * @param key          元数据key
+     * @param defaultValue 缺省默认值
+     * @return
+     */
+    default String metadata(String key, String defaultValue) {
+        return metadata().getOrDefault(key, defaultValue);
+    }
 }

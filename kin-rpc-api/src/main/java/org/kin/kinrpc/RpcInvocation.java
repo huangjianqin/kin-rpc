@@ -70,7 +70,7 @@ public class RpcInvocation extends AttachmentMap implements Invocation {
 
     @Override
     public Class<?> realReturnType() {
-        return methodMetadata.getRealReturnType();
+        return methodMetadata.realReturnType();
     }
 
     @Override

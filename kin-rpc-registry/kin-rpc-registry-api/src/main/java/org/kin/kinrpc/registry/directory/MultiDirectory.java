@@ -5,7 +5,9 @@ import org.kin.kinrpc.ServiceInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -16,10 +18,19 @@ import java.util.stream.Collectors;
  */
 public final class MultiDirectory implements Directory {
     private static final Logger log = LoggerFactory.getLogger(MultiDirectory.class);
-
+    /** 订阅同一服务的{@link Directory}实例数组 */
     private final List<Directory> directories;
 
     public MultiDirectory(List<Directory> directories) {
+        Set<String> services = new HashSet<>();
+        for (Directory directory : directories) {
+            services.add(directory.service());
+        }
+
+        if (services.size() != 1) {
+            throw new UnsupportedOperationException("directories must be not empty and subscribe same service");
+        }
+
         this.directories = directories;
     }
 
@@ -40,7 +51,6 @@ public final class MultiDirectory implements Directory {
                 directory.destroy();
             } catch (Exception e) {
                 log.error("directory destroy fail", e);
-
             }
         }
     }

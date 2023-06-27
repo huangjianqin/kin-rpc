@@ -6,7 +6,6 @@ import org.kin.framework.proxy.MethodDefinition;
 import org.kin.framework.proxy.ProxyInvoker;
 import org.kin.framework.proxy.Proxys;
 import org.kin.kinrpc.config.ServiceConfig;
-import org.kin.kinrpc.utils.GsvUtils;
 import org.kin.kinrpc.utils.HandlerUtils;
 import org.kin.kinrpc.utils.RpcUtils;
 import org.slf4j.Logger;
@@ -35,9 +34,8 @@ public class ServiceInvoker<T> implements Invoker<T> {
         this.config = config;
         this.instance = instance;
 
-        String service = GsvUtils.service(config.getGroup(), config.getServiceName(), config.getVersion());
         //生成方法代理类
-        init(instance, service, config.getInterfaceClass());
+        init(instance, config.service(), config.getInterfaceClass());
     }
 
     /**

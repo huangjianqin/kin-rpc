@@ -22,11 +22,11 @@ public class ExecutorManager {
      * 服务调用线程池
      * key -> executor name
      */
-    private static final Map<String, ServiceExecutor> executorMap = new HashMap<>();
+    private static final Map<String, ServiceExecutor> EXECUTOR_MAP = new HashMap<>();
 
     static {
         JvmCloseCleaner.instance().add(() -> {
-            for (ServiceExecutor executor : executorMap.values()) {
+            for (ServiceExecutor executor : EXECUTOR_MAP.values()) {
                 executor.shutdown();
             }
         });
@@ -35,15 +35,15 @@ public class ExecutorManager {
     /**
      * 获取服务线程池
      *
-     * @param gsv    服务唯一标识
-     * @param config 服务调用线程池配置
+     * @param service 服务唯一标识
+     * @param config  服务调用线程池配置
      * @return 服务线程池
      */
-    public static synchronized ServiceExecutor getOrCreateExecutor(String gsv, ExecutorConfig config) {
+    public static synchronized ServiceExecutor getOrCreateExecutor(String service, ExecutorConfig config) {
         String name = config.getName();
         if (StringUtils.isNotBlank(name)) {
             //复用已注册的线程池
-            ServiceExecutor serviceExecutor = executorMap.get(name);
+            ServiceExecutor serviceExecutor = EXECUTOR_MAP.get(name);
             if (Objects.isNull(serviceExecutor)) {
                 throw new RpcException(String.format("can not find executor with name '%s'", name));
             }
@@ -52,7 +52,7 @@ public class ExecutorManager {
         } else {
             //默认executor name
             //创建并注册线程池
-            return createExecutor(config.name(gsv + "-default"));
+            return createExecutor(config.name(service + "-default"));
         }
     }
 
@@ -63,11 +63,11 @@ public class ExecutorManager {
      * @param executor 服务调用线程池
      */
     public static synchronized void registerExecutor(String name, ServiceExecutor executor) {
-        if (executorMap.containsKey(name)) {
+        if (EXECUTOR_MAP.containsKey(name)) {
             throw new RpcException(String.format("executor name with '%s' has registered", name));
         }
 
-        executorMap.put(name, executor);
+        EXECUTOR_MAP.put(name, executor);
     }
 
     /**
@@ -90,7 +90,7 @@ public class ExecutorManager {
             throw new IllegalArgumentException("executor name must be not blank");
         }
 
-        if (executorMap.containsKey(name)) {
+        if (EXECUTOR_MAP.containsKey(name)) {
             throw new RpcException(String.format("executor name with '%s' has registered", name));
         }
 
@@ -100,7 +100,7 @@ public class ExecutorManager {
         }
 
         ServiceExecutor serviceExecutor = executorFactory.create(config);
-        executorMap.put(name, serviceExecutor);
+        EXECUTOR_MAP.put(name, serviceExecutor);
         return serviceExecutor;
     }
 
@@ -110,7 +110,7 @@ public class ExecutorManager {
      * @param name 服务调用线程池唯一标识
      */
     public static synchronized void removeExecutor(String name) {
-        ServiceExecutor serviceExecutor = executorMap.get(name);
+        ServiceExecutor serviceExecutor = EXECUTOR_MAP.get(name);
         if (Objects.isNull(serviceExecutor)) {
             return;
         }

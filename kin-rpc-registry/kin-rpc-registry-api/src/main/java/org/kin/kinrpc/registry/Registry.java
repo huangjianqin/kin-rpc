@@ -1,63 +1,52 @@
 package org.kin.kinrpc.registry;
 
 
-import org.kin.kinrpc.registry.directory.DefaultDirectory;
-import org.kin.kinrpc.rpc.common.Url;
+import org.kin.framework.utils.SPI;
+import org.kin.kinrpc.config.ServiceConfig;
+import org.kin.kinrpc.registry.directory.Directory;
 
 /**
+ * 注册中心
  * Created by 健勤 on 2016/10/9.
  */
-
+@SPI("registry")
 public interface Registry {
     /**
-     * 连接注册中心
+     * 初始化
      */
-    void connect();
+    void init();
 
     /**
      * 注册服务
      *
-     * @param url 服务配置
+     * @param serviceConfig 服务配置
      */
-    void register(Url url);
+    void register(ServiceConfig<?> serviceConfig);
 
     /**
      * 注销服务
      *
-     * @param url 服务配置
+     * @param serviceConfig 服务配置
      */
-    void unRegister(Url url);
+    void unregister(ServiceConfig<?> serviceConfig);
 
     /**
-     * 订阅服务
+     * 服务订阅
      *
-     * @param serviceKey serviceName-version
-     * @return 服务订阅目录, 包含所有可用invokers
+     * @param service 服务gsv
+     * @return {@link Directory}实例
      */
-    DefaultDirectory subscribe(String serviceKey);
+    Directory subscribe(String service);
 
     /**
-     * 取消订阅服务
+     * 取消服务订阅
      *
-     * @param serviceKey serviceName-version
+     * @param service 服务gsv
      */
-    void unSubscribe(String serviceKey);
+    void unsubscribe(String service);
 
     /**
-     * retain
-     * 增加引用数
-     * 在同一jvm下, 该对象是否还有引用
-     */
-    void retain();
-
-    /**
-     * 释放引用数
-     * @return 是否释放引用数成功(引用数不够)
-     */
-    boolean release();
-
-    /**
-     * 销毁注册中心
+     * 释放注册中心占用资源
      */
     void destroy();
 }

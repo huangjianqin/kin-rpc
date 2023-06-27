@@ -45,7 +45,7 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
      *
      * @return 服务唯一标识
      */
-    public String gsv() {
+    public String service() {
         return GsvUtils.service(group, serviceName, version);
     }
 

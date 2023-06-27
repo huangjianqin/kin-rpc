@@ -1,22 +1,22 @@
 package org.kin.kinrpc.registry;
 
-import org.kin.kinrpc.rpc.common.Url;
+import org.kin.framework.utils.SPI;
+import org.kin.kinrpc.config.RegistryConfig;
 
 /**
- * Created by huangjianqin on 2019/6/18.
+ * 注册中心工厂
+ *
+ * @author huangjianqin
+ * @date 2023/6/26
  */
+@SPI("registryFactory")
+@FunctionalInterface
 public interface RegistryFactory {
     /**
-     * 根据url获取注册中心
+     * 创建{@link Registry}实例
      *
-     * @param url 注册中心地址
-     * @return 注册中心实例
+     * @param config 注册中心配置
+     * @return {@link Registry}实例
      */
-    Registry getRegistry(Url url);
-
-    /**
-     * 销毁指定注册中心
-     * @param url 注册中心实例
-     */
-    void close(Url url);
+    Registry create(RegistryConfig config);
 }

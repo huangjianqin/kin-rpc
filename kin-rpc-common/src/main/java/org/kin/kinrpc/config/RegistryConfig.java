@@ -1,5 +1,8 @@
 package org.kin.kinrpc.config;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * 注册中心配置
  *
@@ -35,11 +38,16 @@ public class RegistryConfig extends AbstractConfig {
 
     /**
      * 将注册中心地址默认分隔符替换为{@code separator}
+     *
      * @param separator 用户自定义分隔符
-     * @return  替换后的注册中心地址
+     * @return 替换后的注册中心地址
      */
-    public String replaceSeparator(String separator){
+    public String replaceSeparator(String separator) {
         return address.replace(DEFAULT_ADDRESS_SEPARATOR, separator);
+    }
+
+    public List<String> getAddressList() {
+        return Arrays.asList(address.split(DEFAULT_ADDRESS_SEPARATOR));
     }
 
     //setter && getter

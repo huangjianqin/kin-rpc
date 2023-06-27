@@ -33,7 +33,7 @@ public class ServiceMetadata {
     public ServiceMetadata(ServiceConfig<?> config,
                            Invoker<?> invoker,
                            Executor executor) {
-        this.service = GsvUtils.service(config.getGroup(), config.getServiceName(), config.getVersion());
+        this.service = config.service();
         this.serviceId = GsvUtils.serviceId(this.service);
         this.methodMetadataMap = RpcUtils.getMethodMetadataMap(this.service, config.getInterfaceClass());
         this.invoker = invoker;

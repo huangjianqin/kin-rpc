@@ -8,7 +8,7 @@
         <version>${revision}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>kin-rpc-registry-directurls</artifactId>
+    <artifactId>kin-rpc-registry-direct</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>

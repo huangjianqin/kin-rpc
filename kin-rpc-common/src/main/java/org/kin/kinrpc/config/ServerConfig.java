@@ -5,7 +5,7 @@ import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.constants.Constants;
 
 /**
- * todo TLS
+ * server配置
  *
  * @author huangjianqin
  * @date 2023/6/16

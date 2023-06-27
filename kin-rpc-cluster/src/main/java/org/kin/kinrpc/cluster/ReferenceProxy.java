@@ -54,7 +54,7 @@ public final class ReferenceProxy implements InvocationHandler {
 
     public ReferenceProxy(ReferenceConfig<?> config, ClusterInvoker<?> invoker) {
         this.config = config;
-        this.service = GsvUtils.service(config.getGroup(), config.getServiceName(), config.getVersion());
+        this.service = config.service();
         this.serviceId = GsvUtils.serviceId(this.service);
         this.invoker = invoker;
         this.methodMetadataMap = RpcUtils.getMethodMetadataMap(this.service, config.getInterfaceClass());

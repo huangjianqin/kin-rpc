@@ -7,8 +7,8 @@ import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
 import org.kin.kinrpc.cluster.router.Router;
-import org.kin.kinrpc.registry.Registries;
 import org.kin.kinrpc.registry.Registry;
+import org.kin.kinrpc.registry.RegistryHelper;
 import org.kin.kinrpc.rpc.*;
 import org.kin.kinrpc.rpc.common.Constants;
 import org.kin.kinrpc.rpc.common.Url;
@@ -60,7 +60,7 @@ public class Clusters {
         EXPORTER_CACHE.put(url, export);
 
         //再注册
-        Registry registry = Registries.getRegistry(url);
+        Registry registry = RegistryHelper.getRegistry(url);
         if (registry != null) {
             registry.register(url);
         }
@@ -70,10 +70,10 @@ public class Clusters {
      * 取消服务注册
      */
     private static void unRegisterService(Url url) {
-        Registry registry = Registries.getRegistry(url);
+        Registry registry = RegistryHelper.getRegistry(url);
         if (registry != null) {
-            registry.unRegister(url);
-            Registries.closeRegistry(url);
+            registry.unregister(url);
+            RegistryHelper.closeRegistry(url);
         }
     }
 
@@ -100,7 +100,7 @@ public class Clusters {
      */
     @SuppressWarnings("unchecked")
     public static synchronized <T> T reference(Url url, Class<T> interfaceClass, List<Notifier<?>> notifiers) {
-        Registry registry = Registries.getRegistry(url);
+        Registry registry = RegistryHelper.getRegistry(url);
         Preconditions.checkNotNull(registry);
 
         //构建Cluster类
@@ -141,10 +141,10 @@ public class Clusters {
         if (clusterInvoker != null) {
             clusterInvoker.close();
         }
-        Registry registry = Registries.getRegistry(url);
+        Registry registry = RegistryHelper.getRegistry(url);
         if (Objects.nonNull(registry)) {
-            registry.unSubscribe(url.getServiceKey());
-            Registries.closeRegistry(url);
+            registry.unsubscribe(url.getServiceKey());
+            RegistryHelper.closeRegistry(url);
         }
 
         REFERENCE_CACHE.invalidate(url.getServiceKey());

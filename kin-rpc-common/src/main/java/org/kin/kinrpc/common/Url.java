@@ -45,6 +45,18 @@ public class Url extends AttachmentMap implements Serializable {
     /** 接口名 */
     private final String interfaceName;
 
+    public Url(String protocol, String host, int port) {
+        this(protocol, host, port, "");
+    }
+
+    public Url(String protocol, String host, int port, String path) {
+        this(protocol, host, port, path, Collections.emptyMap());
+    }
+
+    public Url(String protocol, String host, int port, String path, Map<String, String> params) {
+        this(protocol, "", "", host, port, path, params, null);
+    }
+
     public Url(String protocol, String username, String password, String host, int port, String path, Map<String, String> params) {
         this(protocol, username, password, host, port, path, params, null);
     }
@@ -74,6 +86,10 @@ public class Url extends AttachmentMap implements Serializable {
         this.serviceKey = GsvUtils.service(getGroup(), getService(), getVersion());
         this.serviceId = GsvUtils.serviceId(serviceKey);
         this.interfaceName = getParam(UrlParamConstants.INTERFACE);
+
+        if (CollectionUtils.isNonEmpty(attachmentMap)) {
+            attachMany(attachmentMap);
+        }
     }
 
     /**
@@ -654,5 +670,9 @@ public class Url extends AttachmentMap implements Serializable {
 
     public String getInterfaceName() {
         return interfaceName;
+    }
+
+    public Map<String, String> getParams() {
+        return params;
     }
 }

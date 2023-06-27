@@ -59,7 +59,7 @@ public class MethodMetadata {
      *
      * @return 真实返回值
      */
-    public Class<?> getRealReturnType() {
+    public Class<?> realReturnType() {
         if (asyncReturn) {
             return inferredClassForReturn;
         } else {
