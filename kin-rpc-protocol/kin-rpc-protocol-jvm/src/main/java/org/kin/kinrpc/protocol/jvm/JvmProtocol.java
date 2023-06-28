@@ -19,12 +19,12 @@ import java.util.concurrent.CompletableFuture;
 @Extension("jvm")
 public class JvmProtocol implements Protocol {
     /** key -> service id, value -> service provider invoker */
-    private final Map<Integer, ServiceInvoker<?>> providers = new CopyOnWriteMap<>();
+    private final Map<Integer, ServiceInvoker<?>> serviceInvokerMap = new CopyOnWriteMap<>();
 
     @Override
     public <T> Exporter<T> export(ServiceConfig<T> serviceConfig) {
         ServiceInvoker<T> invoker = new ServiceInvoker<>(serviceConfig);
-        providers.put(serviceConfig.serviceId(), invoker);
+        serviceInvokerMap.put(serviceConfig.serviceId(), invoker);
 
         return new Exporter<T>() {
             @Override
@@ -35,7 +35,7 @@ public class JvmProtocol implements Protocol {
             @Override
             public void unexport() {
                 ServiceInvoker<T> invoker = getInvoker();
-                providers.remove(invoker.getConfig().serviceId());
+                serviceInvokerMap.remove(invoker.getConfig().serviceId());
             }
         };
     }
@@ -47,7 +47,7 @@ public class JvmProtocol implements Protocol {
 
     @Override
     public void destroy() {
-        providers.clear();
+        serviceInvokerMap.clear();
     }
 
     //------------------------------------------------------------------------------------------------------------------------------------------
@@ -65,7 +65,7 @@ public class JvmProtocol implements Protocol {
                 throw new RpcException(String.format("invocation service(%s) is not right, should be %s", invocation.service(), instance.service()));
             }
 
-            ServiceInvoker<?> serviceInvoker = providers.get(invocation.serviceId());
+            ServiceInvoker<?> serviceInvoker = serviceInvokerMap.get(invocation.serviceId());
             Preconditions.checkNotNull(serviceInvoker, "can not find service invoker for service " + invocation.service());
             CompletableFuture<Object> future = new CompletableFuture<>();
             ReferenceContext.EXECUTOR.execute(() -> serviceInvoker.invoke(invocation).onFinish(future));
