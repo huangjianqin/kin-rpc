@@ -1,8 +1,7 @@
-package org.kin.kinrpc.transport.jvm;
+package org.kin.kinrpc.protocol.jvm;
 
 import com.google.common.base.Preconditions;
 import org.kin.framework.collection.CopyOnWriteMap;
-import org.kin.framework.log.LoggerOprs;
 import org.kin.framework.utils.Extension;
 import org.kin.kinrpc.*;
 import org.kin.kinrpc.config.ServiceConfig;
@@ -18,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
  * @date 2020/12/13
  */
 @Extension("jvm")
-public class JvmProtocol implements Protocol, LoggerOprs {
+public class JvmProtocol implements Protocol {
     /** key -> service id, value -> service provider invoker */
     private final Map<Integer, ServiceInvoker<?>> providers = new CopyOnWriteMap<>();
 
