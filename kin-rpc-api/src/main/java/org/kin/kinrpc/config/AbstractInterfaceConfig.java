@@ -42,7 +42,7 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
 
     /**
      * todo 是否缓存
-     * 获取服务唯一标识
+     * 返回服务唯一标识
      *
      * @return 服务唯一标识
      */
@@ -51,9 +51,9 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
     }
 
     /**
-     * 获取服务唯一标识
+     * 返回服务唯一id
      *
-     * @return 服务唯一标识
+     * @return 服务唯一id
      */
     public int serviceId() {
         return GsvUtils.serviceId(group, serviceName, version);

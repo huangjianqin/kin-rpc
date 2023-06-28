@@ -136,6 +136,24 @@ public class ServiceInvoker<T> implements Invoker<T> {
         }
     }
 
+    /**
+     * 返回服务唯一标识
+     *
+     * @return 服务唯一标识
+     */
+    public String service() {
+        return config.service();
+    }
+
+    /**
+     * 返回服务唯一id
+     *
+     * @return 服务唯一id
+     */
+    public int serviceId() {
+        return config.serviceId();
+    }
+
     //getter
     public ServiceConfig<T> getConfig() {
         return config;

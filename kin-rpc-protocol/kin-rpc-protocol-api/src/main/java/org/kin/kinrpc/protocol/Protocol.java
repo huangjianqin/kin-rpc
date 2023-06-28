@@ -4,7 +4,8 @@ import org.kin.framework.utils.SPI;
 import org.kin.kinrpc.Exporter;
 import org.kin.kinrpc.ReferenceInvoker;
 import org.kin.kinrpc.ServiceInstance;
-import org.kin.kinrpc.config.ServiceConfig;
+import org.kin.kinrpc.ServiceInvoker;
+import org.kin.kinrpc.config.ServerConfig;
 
 /**
  * 传输层协议, 目前仅仅支持kinrpc(自研, 基于netty), grpc, protobuf
@@ -17,11 +18,12 @@ public interface Protocol {
     /**
      * export service
      *
-     * @param serviceConfig service config
-     * @param <T>           service interface
+     * @param serviceInvoker service invoker
+     * @param serverConfig   server config
+     * @param <T>            service interface
      * @return {@link Exporter}实例
      */
-    <T> Exporter<T> export(ServiceConfig<T> serviceConfig);
+    <T> Exporter<T> export(ServiceInvoker<T> serviceInvoker, ServerConfig serverConfig);
 
     /**
      * reference service

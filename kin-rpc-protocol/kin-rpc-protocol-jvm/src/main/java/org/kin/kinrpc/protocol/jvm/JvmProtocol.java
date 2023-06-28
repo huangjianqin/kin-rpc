@@ -4,7 +4,7 @@ import com.google.common.base.Preconditions;
 import org.kin.framework.collection.CopyOnWriteMap;
 import org.kin.framework.utils.Extension;
 import org.kin.kinrpc.*;
-import org.kin.kinrpc.config.ServiceConfig;
+import org.kin.kinrpc.config.ServerConfig;
 import org.kin.kinrpc.protocol.Protocol;
 
 import java.util.Map;
@@ -22,14 +22,19 @@ public class JvmProtocol implements Protocol {
     private final Map<Integer, ServiceInvoker<?>> serviceInvokerMap = new CopyOnWriteMap<>();
 
     @Override
-    public <T> Exporter<T> export(ServiceConfig<T> serviceConfig) {
-        ServiceInvoker<T> invoker = new ServiceInvoker<>(serviceConfig);
-        serviceInvokerMap.put(serviceConfig.serviceId(), invoker);
+    public <T> Exporter<T> export(ServiceInvoker<T> serviceInvoker, ServerConfig serverConfig) {
+        String service = serviceInvoker.service();
+        int serviceId = serviceInvoker.serviceId();
+        if (serviceInvokerMap.containsKey(serviceId)) {
+            throw new RpcException(String.format("service invoker '%s' has been exported", service));
+        }
+
+        serviceInvokerMap.put(serviceId, serviceInvoker);
 
         return new Exporter<T>() {
             @Override
             public ServiceInvoker<T> getInvoker() {
-                return invoker;
+                return serviceInvoker;
             }
 
             @Override
