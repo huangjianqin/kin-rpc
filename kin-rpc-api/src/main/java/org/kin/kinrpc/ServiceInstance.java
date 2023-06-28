@@ -1,5 +1,7 @@
 package org.kin.kinrpc;
 
+import org.kin.kinrpc.utils.GsvUtils;
+
 import java.util.Map;
 
 /**
@@ -10,6 +12,15 @@ import java.util.Map;
  * @date 2023/6/24
  */
 public interface ServiceInstance {
+    /**
+     * 返回服务唯一id
+     *
+     * @return 服务唯一id
+     */
+    default int serviceId() {
+        return GsvUtils.serviceId(service());
+    }
+
     /**
      * 返回服务唯一标识
      *

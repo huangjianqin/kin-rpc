@@ -41,6 +41,7 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
     }
 
     /**
+     * todo 是否缓存
      * 获取服务唯一标识
      *
      * @return 服务唯一标识

@@ -1,19 +1,15 @@
 package org.kin.kinrpc.transport.jvm;
 
 import com.google.common.base.Preconditions;
+import org.kin.framework.collection.CopyOnWriteMap;
 import org.kin.framework.log.LoggerOprs;
-import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.Extension;
-import org.kin.kinrpc.common.Url;
-import org.kin.kinrpc.core.Exporter;
-import org.kin.kinrpc.core.Invoker;
+import org.kin.kinrpc.*;
+import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.protocol.Protocol;
-import org.kin.kinrpc.rpc.AsyncInvoker;
-import org.kin.kinrpc.rpc.invoker.ProviderInvoker;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 在同一jvm内部直接调用
@@ -24,88 +20,72 @@ import java.util.concurrent.ConcurrentHashMap;
 @Extension("jvm")
 public class JvmProtocol implements Protocol, LoggerOprs {
     /** key -> service id, value -> service provider invoker */
-    private final Map<Integer, ProviderInvoker<?>> providers = new ConcurrentHashMap<>();
+    private final Map<Integer, ServiceInvoker<?>> providers = new CopyOnWriteMap<>();
 
     @Override
-    public <T> Exporter<T> export(ProviderInvoker<T> invoker) {
-        Url url = invoker.url();
-        providers.put(url.getServiceId(), invoker);
-
-        info("jvm service '{}' export address '{}'", url.getServiceKey(), url.getAddress());
+    public <T> Exporter<T> export(ServiceConfig<T> serviceConfig) {
+        ServiceInvoker<T> invoker = new ServiceInvoker<>(serviceConfig);
+        providers.put(serviceConfig.serviceId(), invoker);
 
         return new Exporter<T>() {
             @Override
-            public Invoker<T> getInvoker() {
+            public ServiceInvoker<T> getInvoker() {
                 return invoker;
             }
 
             @Override
             public void unexport() {
-                providers.remove(url.getServiceId());
-                invoker.destroy();
+                ServiceInvoker<T> invoker = getInvoker();
+                providers.remove(invoker.getConfig().serviceId());
             }
         };
     }
 
     @Override
-    public <T> AsyncInvoker<T> refer(Url url) {
-        info("jvm reference '{}' refer address '{}'", url.getService(), url.getAddress());
-
-        return new AsyncInvoker<T>() {
-            @Override
-            public CompletableFuture<Object> invokeAsync(String methodName, Object... params) {
-                return CompletableFuture.supplyAsync(() -> {
-                    try {
-                        return invoke(methodName, params);
-                    } catch (Throwable throwable) {
-                        throw new IllegalStateException(throwable);
-                    }
-                }, RpcThreadPool.executors());
-            }
-
-            @Override
-            public Object invoke(String methodName, Object[] params) throws Throwable {
-                ProviderInvoker<?> providerInvoker = providers.get(url.getServiceId());
-                Preconditions.checkNotNull(providerInvoker, "can not find valid invoker");
-                try {
-                    return providerInvoker.invoke(methodName, params);
-                } catch (Throwable throwable) {
-                    ExceptionUtils.throwExt(throwable);
-                }
-
-                throw new IllegalStateException("encounter unknown error");
-            }
-
-            @SuppressWarnings("unchecked")
-            @Override
-            public Class<T> getInterface() {
-                try {
-                    return (Class<T>) Class.forName(url.getInterfaceName());
-                } catch (ClassNotFoundException e) {
-                    ExceptionUtils.throwExt(e);
-                }
-                throw new IllegalStateException("encounter unknown error");
-            }
-
-            @Override
-            public Url url() {
-                return url;
-            }
-
-            @Override
-            public boolean isAvailable() {
-                return providers.containsKey(url.getServiceId());
-            }
-
-            @Override
-            public void destroy() {
-                //do nothing
-            }
-        };
+    public <T> ReferenceInvoker<T> refer(ServiceInstance instance) {
+        return new JvmReferenceInvoker<>(instance);
     }
 
     @Override
     public void destroy() {
         providers.clear();
+    }
+
+    //------------------------------------------------------------------------------------------------------------------------------------------
+    private class JvmReferenceInvoker<T> implements ReferenceInvoker<T> {
+        /** 服务实例信息 */
+        private final ServiceInstance instance;
+
+        public JvmReferenceInvoker(ServiceInstance instance) {
+            this.instance = instance;
+        }
+
+        @Override
+        public RpcResult invoke(Invocation invocation) {
+            if (invocation.serviceId() != instance.serviceId()) {
+                throw new RpcException(String.format("invocation service(%s) is not right, should be %s", invocation.service(), instance.service()));
+            }
+
+            ServiceInvoker<?> serviceInvoker = providers.get(invocation.serviceId());
+            Preconditions.checkNotNull(serviceInvoker, "can not find service invoker for service " + invocation.service());
+            CompletableFuture<Object> future = new CompletableFuture<>();
+            ReferenceContext.EXECUTOR.execute(() -> serviceInvoker.invoke(invocation).onFinish(future));
+            return RpcResult.success(invocation, future);
+        }
+
+        @Override
+        public ServiceInstance serviceInstance() {
+            return instance;
+        }
+
+        @Override
+        public boolean isAvailable() {
+            return true;
+        }
+
+        @Override
+        public void destroy() {
+            //do nothing
+        }
     }
 }

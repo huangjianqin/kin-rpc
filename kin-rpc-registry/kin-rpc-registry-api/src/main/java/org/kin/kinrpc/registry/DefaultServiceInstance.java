@@ -1,6 +1,7 @@
 package org.kin.kinrpc.registry;
 
 import org.kin.kinrpc.ServiceInstance;
+import org.kin.kinrpc.utils.GsvUtils;
 
 import java.util.Collections;
 import java.util.Map;
@@ -10,6 +11,8 @@ import java.util.Map;
  * @date 2023/6/27
  */
 public class DefaultServiceInstance implements ServiceInstance {
+    /** 服务唯一id */
+    private final int serviceId;
     /** 服务唯一标识 */
     private final String service;
     /** 服务实例schema */
@@ -27,6 +30,7 @@ public class DefaultServiceInstance implements ServiceInstance {
                                   String host,
                                   int port,
                                   Map<String, String> metadata) {
+        this.serviceId = GsvUtils.serviceId(service);
         this.service = service;
         this.host = host;
         this.port = port;
@@ -34,6 +38,11 @@ public class DefaultServiceInstance implements ServiceInstance {
 
         this.scheme = metadata(ServiceMetadataConstants.SCHEMA);
         this.weight = Integer.parseInt(metadata(ServiceMetadataConstants.WEIGHT, "0"));
+    }
+
+    @Override
+    public int serviceId() {
+        return serviceId;
     }
 
     @Override

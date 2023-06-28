@@ -9,13 +9,14 @@ package org.kin.kinrpc;
  */
 public interface Exporter<T> {
     /**
-     * 获取provider invoker
+     * 返回service invoker
+     *
+     * @return service invoker
      */
-    Invoker<T> getInvoker();
+    ServiceInvoker<T> getInvoker();
 
     /**
-     * unexport.
-     * 相当于getInvoker().destroy();
+     * unexport service
      */
     void unexport();
 }

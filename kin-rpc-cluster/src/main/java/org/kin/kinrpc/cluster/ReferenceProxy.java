@@ -147,13 +147,7 @@ public final class ReferenceProxy implements InvocationHandler {
         // TODO: 2023/6/26 第一次rpc call还是在user invoke线程, 其他是在reference通用线程发起, 真要全异步, 这里需要扔到reference通用线程执行invoker.invoke
         RpcResult rpcResult = invoker.invoke(invocation);
         //reference通用线程处理
-        rpcResult.onFinish((r, t) -> {
-            if (Objects.isNull(t)) {
-                userFuture.complete(r);
-            } else {
-                userFuture.completeExceptionally(t);
-            }
-        });
+        rpcResult.onFinish(userFuture);
         return userFuture;
     }
 }

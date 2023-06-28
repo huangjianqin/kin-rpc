@@ -20,16 +20,16 @@ public class ServiceConfig<T> extends AbstractInterfaceConfig<T, ServiceConfig<T
     /** 服务方法执行线程池 */
     private ExecutorConfig executor;
     /** 服务实例 */
-    private T service;
+    private T instance;
     /** bootstrap 类型 */
     private String bootstrap = "kinrpc";
 
     private transient ServiceBootstrap<T> serviceBootstrap;
 
-    public static <T> ServiceConfig<T> create(Class<T> interfaceClass, T service) {
+    public static <T> ServiceConfig<T> create(Class<T> interfaceClass, T instance) {
         return new ServiceConfig<T>().interfaceClass(interfaceClass)
                 .serviceName(interfaceClass.getCanonicalName())
-                .service(service);
+                .instance(instance);
 
     }
 
@@ -51,7 +51,7 @@ public class ServiceConfig<T> extends AbstractInterfaceConfig<T, ServiceConfig<T
     /**
      * 服务下线
      */
-    public synchronized void unExport() {
+    public synchronized void unexport() {
         if (Objects.isNull(serviceBootstrap)) {
             return;
         }
@@ -82,12 +82,12 @@ public class ServiceConfig<T> extends AbstractInterfaceConfig<T, ServiceConfig<T
         return this;
     }
 
-    public T getService() {
-        return service;
+    public T getInstance() {
+        return instance;
     }
 
-    public ServiceConfig<T> service(T service) {
-        this.service = service;
+    public ServiceConfig<T> instance(T instance) {
+        this.instance = instance;
         return this;
     }
 

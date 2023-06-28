@@ -25,17 +25,14 @@ public class ServiceInvoker<T> implements Invoker<T> {
     private static final Logger log = LoggerFactory.getLogger(ServiceInvoker.class);
 
     private final ServiceConfig<T> config;
-    /** 服务实例 */
-    private final T instance;
     /** 服务方法invoker */
     private IntObjectMap<ProxyInvoker<?>> methodInvokerMap;
 
-    public ServiceInvoker(ServiceConfig<T> config, T instance) {
+    public ServiceInvoker(ServiceConfig<T> config) {
         this.config = config;
-        this.instance = instance;
 
         //生成方法代理类
-        init(instance, config.service(), config.getInterfaceClass());
+        init(config.getInstance(), config.service(), config.getInterfaceClass());
     }
 
     /**
@@ -97,6 +94,7 @@ public class ServiceInvoker<T> implements Invoker<T> {
         }
         //Object类方法直接调用
         if (invocation.isObjectMethod()) {
+            T instance = config.getInstance();
             if ("getClass".equals(methodName)) {
                 return instance.getClass();
             } else if ("hashCode".equals(methodName)) {

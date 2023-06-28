@@ -59,14 +59,7 @@ public final class RpcCallInvoker<T> implements Invoker<T> {
             if (Objects.nonNull(outterTimeout)) {
                 outterTimeout.cancel();
             }
-
-            if (Objects.isNull(t)) {
-                //success
-                future.complete(r);
-            } else {
-                future.completeExceptionally(t);
-            }
-        }, ReferenceContext.EXECUTOR);
+        }, future, ReferenceContext.EXECUTOR);
         return RpcResult.success(invocation, future);
     }
 }
