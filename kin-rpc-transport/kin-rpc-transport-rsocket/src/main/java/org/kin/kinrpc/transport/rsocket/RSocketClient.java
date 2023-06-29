@@ -33,10 +33,10 @@ import java.util.concurrent.CompletableFuture;
 public class RSocketClient extends AbsRemotingClient {
     private static final Logger log = LoggerFactory.getLogger(RSocketClient.class);
 
-    /** rsocket requester */
-    private volatile Mono<RSocket> requesterMono;
     /** ssl配置 */
     private final SslConfig sslConfig;
+    /** rsocket requester */
+    private volatile Mono<RSocket> requesterMono;
 
     public RSocketClient(int port) {
         this(port, null);

@@ -19,7 +19,7 @@ public abstract class AbstractProtocol implements Protocol {
      * server cache
      * key -> listen address
      */
-    private final ReferenceCountedCache<String, RemotingServerContext> serverContextCache = new ReferenceCountedCache<>((k, s) -> s.server.shutdown());
+    private final ReferenceCountedCache<String, RemotingServerContext> serverContextCache = new ReferenceCountedCache<>((k, c) -> c.getServer().shutdown());
     /**
      * client cache
      * key -> remote address

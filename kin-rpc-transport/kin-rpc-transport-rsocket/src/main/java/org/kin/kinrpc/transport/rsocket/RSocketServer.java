@@ -24,10 +24,10 @@ import java.util.Objects;
 public class RSocketServer extends AbsRemotingServer {
     private static final Logger log = LoggerFactory.getLogger(RSocketServer.class);
 
-    /** rsocket server disposable */
-    private volatile Mono<CloseableChannel> closeableChannelMono;
     /** ssl配置 */
     private final SslConfig sslConfig;
+    /** rsocket server disposable */
+    private volatile Mono<CloseableChannel> closeableChannelMono;
 
     public RSocketServer(int port) {
         this(port, null);
