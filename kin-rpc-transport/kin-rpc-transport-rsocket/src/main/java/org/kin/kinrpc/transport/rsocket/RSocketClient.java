@@ -8,17 +8,21 @@ import io.rsocket.transport.netty.client.TcpClientTransport;
 import io.rsocket.util.ByteBufPayload;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.NetUtils;
+import org.kin.kinrpc.config.SslConfig;
 import org.kin.kinrpc.transport.AbsRemotingClient;
 import org.kin.kinrpc.transport.cmd.HeartbeatCommand;
 import org.kin.kinrpc.transport.cmd.RemotingCommand;
 import org.kin.kinrpc.transport.cmd.RequestCommand;
+import org.kin.transport.netty.utils.SslUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.netty.ReactorNetty;
+import reactor.netty.tcp.TcpClient;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -31,13 +35,20 @@ public class RSocketClient extends AbsRemotingClient {
 
     /** rsocket requester */
     private volatile Mono<RSocket> requesterMono;
+    /** ssl配置 */
+    private final SslConfig sslConfig;
 
     public RSocketClient(int port) {
-        this(NetUtils.getLocalhostIp(), port);
+        this(port, null);
     }
 
-    public RSocketClient(String host, int port) {
+    public RSocketClient(int port, SslConfig sslConfig) {
+        this(NetUtils.getLocalhostIp(), port, sslConfig);
+    }
+
+    public RSocketClient(String host, int port, @Nullable SslConfig sslConfig) {
         super(host, port);
+        this.sslConfig = sslConfig;
     }
 
     @Override
@@ -53,6 +64,15 @@ public class RSocketClient extends AbsRemotingClient {
         Sinks.One<RSocket> sink = Sinks.one();
         this.requesterMono = sink.asMono();
 
+        TcpClient tcpClient = TcpClient.create()
+                .host(host)
+                .port(port);
+        if (Objects.nonNull(sslConfig)) {
+            tcpClient = tcpClient.secure(scs -> scs.sslContext(SslUtils.setUpServerSslContext(
+                    sslConfig.getCertFile(), sslConfig.getCertKeyFile(), sslConfig.getCertKeyPassword(),
+                    sslConfig.getCaFile(), sslConfig.getFingerprintFile())));
+        }
+
         RSocketConnector rsocketConnector = RSocketConnector.create();
         //user custom
         for (RSocketClientCustomizer customizer : ExtensionLoader.getExtensions(RSocketClientCustomizer.class)) {
@@ -62,7 +82,7 @@ public class RSocketClient extends AbsRemotingClient {
         rsocketConnector.setupPayload(ByteBufPayload.create(Unpooled.EMPTY_BUFFER))
                 //zero copy
                 .payloadDecoder(PayloadDecoder.ZERO_COPY)
-                .connect(TcpClientTransport.create(host, port))
+                .connect(TcpClientTransport.create(tcpClient))
                 .subscribe(rsocket -> {
                     rsocket.onClose()
                             .doOnSuccess(v -> onConnectionClosed())

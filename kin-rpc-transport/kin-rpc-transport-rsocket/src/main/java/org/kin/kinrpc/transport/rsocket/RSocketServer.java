@@ -5,12 +5,16 @@ import io.rsocket.transport.netty.server.CloseableChannel;
 import io.rsocket.transport.netty.server.TcpServerTransport;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.NetUtils;
+import org.kin.kinrpc.config.SslConfig;
 import org.kin.kinrpc.transport.AbsRemotingServer;
+import org.kin.transport.netty.utils.SslUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
+import reactor.netty.tcp.TcpServer;
 
+import javax.annotation.Nullable;
 import java.util.Objects;
 
 /**
@@ -22,13 +26,20 @@ public class RSocketServer extends AbsRemotingServer {
 
     /** rsocket server disposable */
     private volatile Mono<CloseableChannel> closeableChannelMono;
+    /** ssl配置 */
+    private final SslConfig sslConfig;
 
     public RSocketServer(int port) {
-        this(NetUtils.getLocalhostIp(), port);
+        this(port, null);
     }
 
-    public RSocketServer(String host, int port) {
+    public RSocketServer(int port, SslConfig sslConfig) {
+        this(NetUtils.getLocalhostIp(), port, sslConfig);
+    }
+
+    public RSocketServer(String host, int port, @Nullable SslConfig sslConfig) {
         super(host, port);
+        this.sslConfig = sslConfig;
     }
 
     @Override
@@ -40,7 +51,15 @@ public class RSocketServer extends AbsRemotingServer {
         Sinks.One<CloseableChannel> sink = Sinks.one();
         closeableChannelMono = sink.asMono();
 
-        TcpServerTransport transport = TcpServerTransport.create(host, port);
+        TcpServer tcpServer = TcpServer.create()
+                .host(host)
+                .port(port);
+        if (Objects.nonNull(sslConfig)) {
+            tcpServer = tcpServer.secure(scs -> scs.sslContext(SslUtils.setUpServerSslContext(
+                    sslConfig.getCertFile(), sslConfig.getCertKeyFile(), sslConfig.getCertKeyPassword(),
+                    sslConfig.getCaFile(), sslConfig.getFingerprintFile())));
+        }
+
         io.rsocket.core.RSocketServer rsocketServer = io.rsocket.core.RSocketServer.create();
         //user custom
         for (RSocketServerCustomizer customizer : ExtensionLoader.getExtensions(RSocketServerCustomizer.class)) {
@@ -50,7 +69,7 @@ public class RSocketServer extends AbsRemotingServer {
         rsocketServer.acceptor((setup, requester) -> Mono.just(new RSocketResponder(requester, remotingProcessor)))
                 //zero copy
                 .payloadDecoder(PayloadDecoder.ZERO_COPY)
-                .bind(transport)
+                .bind(TcpServerTransport.create(tcpServer))
                 .onTerminateDetach()
                 .subscribe(cc -> {
                     log.info("rsocket server started on {}:{}", host, port);
