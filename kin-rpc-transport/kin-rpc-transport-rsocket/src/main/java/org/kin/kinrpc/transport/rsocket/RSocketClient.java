@@ -68,7 +68,7 @@ public class RSocketClient extends AbsRemotingClient {
                 .host(host)
                 .port(port);
         if (Objects.nonNull(sslConfig)) {
-            tcpClient = tcpClient.secure(scs -> scs.sslContext(SslUtils.setUpServerSslContext(
+            tcpClient = tcpClient.secure(scs -> scs.sslContext(SslUtils.setUpClientSslContext(
                     sslConfig.getCertFile(), sslConfig.getCertKeyFile(), sslConfig.getCertKeyPassword(),
                     sslConfig.getCaFile(), sslConfig.getFingerprintFile())));
         }
