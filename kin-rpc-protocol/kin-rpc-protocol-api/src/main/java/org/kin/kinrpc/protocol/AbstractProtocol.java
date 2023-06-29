@@ -31,6 +31,7 @@ public abstract class AbstractProtocol implements Protocol {
         String address = serverConfig.getAddress();
         RemotingServerContext serverContext = serverContextCache.get(address, () -> createServerContext(serverConfig));
         serverContext.getRpcRequestProcessor().register(rpcService);
+        onExport(rpcService, serverContext.getServer());
         return new Exporter<T>() {
             @Override
             public RpcService<T> service() {
@@ -40,6 +41,7 @@ public abstract class AbstractProtocol implements Protocol {
             @Override
             public void unexport() {
                 serverContext.getRpcRequestProcessor().unregister(rpcService.serviceId());
+                onUnexport(rpcService, serverContext.getServer());
                 serverContextCache.release(address);
             }
         };
@@ -67,6 +69,22 @@ public abstract class AbstractProtocol implements Protocol {
      * @return {@link RemotingServer}实例
      */
     protected abstract RemotingServer createServer(ServerConfig serverConfig);
+
+    /**
+     * service export时触发
+     * 用于service export时, 自定义server一些操作
+     */
+    protected void onExport(RpcService<?> service, RemotingServer server) {
+        //default do nothing
+    }
+
+    /**
+     * service unexport时触发
+     * 用于service unexport时, 自定义server一些操作
+     */
+    protected void onUnexport(RpcService<?> service, RemotingServer server) {
+        //default do nothing
+    }
 
     @Override
     public final <T> ReferenceInvoker<T> refer(ServiceInstance instance, SslConfig sslConfig) {

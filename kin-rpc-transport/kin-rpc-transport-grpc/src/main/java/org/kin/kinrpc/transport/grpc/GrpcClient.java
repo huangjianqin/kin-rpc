@@ -8,13 +8,16 @@ import io.netty.buffer.ByteBuf;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.NetUtils;
+import org.kin.kinrpc.config.SslConfig;
 import org.kin.kinrpc.transport.AbsRemotingClient;
 import org.kin.kinrpc.transport.TransportException;
 import org.kin.kinrpc.transport.cmd.*;
+import org.kin.transport.netty.utils.SslUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -26,6 +29,9 @@ import java.util.concurrent.ExecutionException;
  */
 public class GrpcClient extends AbsRemotingClient {
     private static final Logger log = LoggerFactory.getLogger(GrpcClient.class);
+
+    /** ssl配置 */
+    private final SslConfig sslConfig;
     /** grpc client channel */
     private volatile ManagedChannel channel;
     /** grpc client call method descriptor cache */
@@ -35,11 +41,16 @@ public class GrpcClient extends AbsRemotingClient {
             .build();
 
     public GrpcClient(int port) {
-        this(NetUtils.getLocalhostIp(), port);
+        this(port, null);
     }
 
-    public GrpcClient(String host, int port) {
+    public GrpcClient(int port, SslConfig sslConfig) {
+        this(NetUtils.getLocalhostIp(), port, sslConfig);
+    }
+
+    public GrpcClient(String host, int port, @Nullable SslConfig sslConfig) {
         super(host, port);
+        this.sslConfig = sslConfig;
     }
 
     @Override
@@ -59,6 +70,12 @@ public class GrpcClient extends AbsRemotingClient {
         }
         //internal, user can not modify
         channelBuilder.usePlaintext();
+        if (Objects.nonNull(sslConfig)) {
+            //ssl
+            channelBuilder.sslContext(SslUtils.setUpClientSslContext(
+                    sslConfig.getCertFile(), sslConfig.getCertKeyFile(), sslConfig.getCertKeyPassword(),
+                    sslConfig.getCaFile(), sslConfig.getFingerprintFile()));
+        }
         //async connect
         this.channel = channelBuilder.build();
         checkChannelConnectState();

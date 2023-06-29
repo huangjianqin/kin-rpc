@@ -8,21 +8,26 @@ import io.grpc.stub.ServerCalls;
 import io.netty.buffer.ByteBuf;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.NetUtils;
+import org.kin.kinrpc.config.SslConfig;
 import org.kin.kinrpc.transport.AbsRemotingServer;
 import org.kin.kinrpc.transport.TransportException;
 import org.kin.kinrpc.transport.grpc.interceptor.DefaultServerInterceptor;
 import org.kin.kinrpc.utils.GsvUtils;
 import org.kin.kinrpc.utils.HandlerUtils;
+import org.kin.transport.netty.utils.SslUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 仍然需要注册服务方法, 是因为需要充分利用http2 stream(一个服务方法对应一个stream), 实现server端多线程处理rpc请求
+ *
  * @author huangjianqin
  * @date 2023/6/8
  */
@@ -38,10 +43,14 @@ public class GrpcServer extends AbsRemotingServer {
             (byteBuf, streamObserver) -> remotingProcessor.process(new GrpcServerChannelContext(streamObserver), byteBuf));
 
     public GrpcServer(int port) {
-        this(NetUtils.getLocalhostIp(), port);
+        this(port, null);
     }
 
-    public GrpcServer(String host, int port) {
+    public GrpcServer(int port, SslConfig sslConfig) {
+        this(NetUtils.getLocalhostIp(), port, sslConfig);
+    }
+
+    public GrpcServer(String host, int port, @Nullable SslConfig sslConfig) {
         super(host, port);
         NettyServerBuilder serverBuilder = NettyServerBuilder
                 .forAddress(new InetSocketAddress(host, port));
@@ -52,6 +61,13 @@ public class GrpcServer extends AbsRemotingServer {
         //internal
         serverBuilder.intercept(DefaultServerInterceptor.INSTANCE)
                 .fallbackHandlerRegistry(handlerRegistry);
+        if (Objects.nonNull(sslConfig)) {
+            //ssl
+            serverBuilder.sslContext(SslUtils.setUpServerSslContext(
+                    sslConfig.getCertFile(), sslConfig.getCertKeyFile(), sslConfig.getCertKeyPassword(),
+                    sslConfig.getCaFile(), sslConfig.getFingerprintFile()));
+        }
+
         this.server = serverBuilder.build();
     }
 
@@ -60,10 +76,10 @@ public class GrpcServer extends AbsRemotingServer {
         try {
             server.start();
             //注册message服务
-            addService(GsvUtils.serviceId(GrpcMessages.SERVICE_NAME),
+            registerService(GsvUtils.serviceId(GrpcMessages.SERVICE_NAME),
                     HandlerUtils.handlerId(GrpcMessages.SERVICE_NAME, GrpcMessages.METHOD_NAME));
             //注册generic服务
-            addService(GsvUtils.serviceId(GrpcConstants.GENERIC_SERVICE_NAME),
+            registerService(GsvUtils.serviceId(GrpcConstants.GENERIC_SERVICE_NAME),
                     HandlerUtils.handlerId(GrpcConstants.GENERIC_SERVICE_NAME, GrpcConstants.GENERIC_METHOD_NAME));
             log.info("grpc server started on {}:{}", host, port);
         } catch (IOException e) {
@@ -85,8 +101,8 @@ public class GrpcServer extends AbsRemotingServer {
      * @param serviceId  服务唯一id
      * @param handlerIds 服务方法唯一id array
      */
-    public void addService(int serviceId, Integer... handlerIds) {
-        addService(serviceId, Arrays.asList(handlerIds));
+    public void registerService(int serviceId, Integer... handlerIds) {
+        registerService(serviceId, Arrays.asList(handlerIds));
     }
 
     /**
@@ -95,7 +111,7 @@ public class GrpcServer extends AbsRemotingServer {
      * @param serviceId  服务唯一id
      * @param handlerIds 服务方法唯一id list
      */
-    public void addService(int serviceId, List<Integer> handlerIds) {
+    public void registerService(int serviceId, List<Integer> handlerIds) {
         ServerServiceDefinition.Builder serviceDefinitionBuilder = ServerServiceDefinition.builder(GrpcConstants.SERVICE_PREFIX + serviceId);
         for (Integer handlerId : handlerIds) {
             serviceDefinitionBuilder.addMethod(GrpcUtils.genMethodDescriptor(serviceId, handlerId), serviceHandler);
@@ -109,7 +125,7 @@ public class GrpcServer extends AbsRemotingServer {
      *
      * @param serviceId 服务唯一id
      */
-    public void removeService(int serviceId) {
+    public void unregisterService(int serviceId) {
         handlerRegistry.removeService(serviceId);
     }
 }

@@ -17,5 +17,11 @@
             <artifactId>kin-rpc-protocol-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-rpc-transport-grpc</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>
