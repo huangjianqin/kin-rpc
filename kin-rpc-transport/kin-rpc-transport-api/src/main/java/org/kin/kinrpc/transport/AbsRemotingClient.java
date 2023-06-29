@@ -268,7 +268,7 @@ public abstract class AbsRemotingClient implements RemotingClient {
     /**
      * 发送心跳
      *
-     * @return 心跳response
+     * @return 心跳response signal
      */
     protected abstract CompletableFuture<Void> heartbeat();
 

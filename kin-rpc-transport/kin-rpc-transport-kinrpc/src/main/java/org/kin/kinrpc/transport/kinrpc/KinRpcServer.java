@@ -2,9 +2,9 @@ package org.kin.kinrpc.transport.kinrpc;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.util.NetUtil;
+import org.kin.kinrpc.config.SslConfig;
 import org.kin.kinrpc.transport.AbsRemotingServer;
 import org.kin.kinrpc.transport.ChannelContext;
-import org.kin.kinrpc.transport.TransportException;
 import org.kin.kinrpc.transport.TransportOperationListener;
 import org.kin.transport.netty.ChannelOperationListener;
 import org.kin.transport.netty.ServerObserver;
@@ -33,10 +33,17 @@ public class KinRpcServer extends AbsRemotingServer {
     private volatile TcpServer server;
 
     public KinRpcServer(int port) {
-        this(NetUtil.LOCALHOST.getHostAddress(), port);
+        this(port, null);
     }
 
-    public KinRpcServer(String host, int port) {
+    public KinRpcServer(int port,
+                        SslConfig sslConfig) {
+        this(NetUtil.LOCALHOST.getHostAddress(), port, sslConfig);
+    }
+
+    public KinRpcServer(String host,
+                        int port,
+                        @Nullable SslConfig sslConfig) {
         super(host, port);
         transport = TcpServerTransport.create()
                 .payloadProcessor((s, bp) ->
@@ -73,6 +80,15 @@ public class KinRpcServer extends AbsRemotingServer {
                         log.info("kinrpc server({}:{}) terminated", host, port);
                     }
                 });
+
+        if (Objects.nonNull(sslConfig)) {
+            //配置ssl
+            transport.certFile(sslConfig.getCertFile())
+                    .certKeyFile(sslConfig.getCertKeyFile())
+                    .certKeyPassword(sslConfig.getCertKeyPassword())
+                    .caFile(sslConfig.getCaFile())
+                    .fingerprintFile(sslConfig.getFingerprintFile());
+        }
     }
 
     @Override

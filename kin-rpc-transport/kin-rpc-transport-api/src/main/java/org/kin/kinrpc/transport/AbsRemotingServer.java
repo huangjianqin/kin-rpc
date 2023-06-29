@@ -1,5 +1,8 @@
 package org.kin.kinrpc.transport;
 
+import com.google.common.base.Preconditions;
+import org.kin.framework.utils.NetUtils;
+import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.transport.cmd.RemotingCodec;
 
 /**
@@ -18,6 +21,10 @@ public abstract class AbsRemotingServer implements RemotingServer {
     protected final int port;
 
     protected AbsRemotingServer(String host, int port) {
+        Preconditions.checkArgument(port > 0, "server port must be greater than 0");
+        if (StringUtils.isBlank(host)) {
+            host = NetUtils.getLocalhostIp();
+        }
         this.host = host;
         this.port = port;
     }

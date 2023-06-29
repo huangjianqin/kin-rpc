@@ -1,9 +1,11 @@
 package org.kin.kinrpc.transport.grpc;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import io.grpc.*;
 import io.grpc.netty.NettyChannelBuilder;
 import io.netty.buffer.ByteBuf;
-import org.kin.framework.collection.CopyOnWriteMap;
+import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.transport.AbsRemotingClient;
@@ -13,11 +15,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author huangjianqin
@@ -28,7 +29,10 @@ public class GrpcClient extends AbsRemotingClient {
     /** grpc client channel */
     private volatile ManagedChannel channel;
     /** grpc client call method descriptor cache */
-    private final Map<String, MethodDescriptor<ByteBuf, ByteBuf>> methodDescriptorCache = new CopyOnWriteMap<>();
+    private final Cache<Integer, MethodDescriptor<ByteBuf, ByteBuf>> methodDescriptorCache = CacheBuilder.newBuilder()
+            //5分钟没有访问, 则clear, 用于延迟清理无用MethodDescriptor
+            .expireAfterAccess(Duration.ofMinutes(5))
+            .build();
 
     public GrpcClient(int port) {
         this(NetUtils.getLocalhostIp(), port);
@@ -119,10 +123,8 @@ public class GrpcClient extends AbsRemotingClient {
     }
 
     @Override
-    public void fireAndForget(@Nonnull RequestCommand command) {
-        beforeCall(command);
-
-        call(command, null);
+    public CompletableFuture<Void> fireAndForget(@Nonnull RequestCommand command) {
+        throw new UnsupportedOperationException(String.format("%s does not support fire and forget, please ensure service method does not return void", name()));
     }
 
     @Override
@@ -161,17 +163,9 @@ public class GrpcClient extends AbsRemotingClient {
      */
     private <T> CompletableFuture<T> rpcCall(@Nonnull RpcRequestCommand command,
                                              CompletableFuture<T> requestFuture) {
-        String gsv = command.getService();
-        String method = command.getMethodName();
-        String cacheKey = getMethodDescriptorCacheKey(gsv, method);
-        MethodDescriptor<ByteBuf, ByteBuf> methodDescriptor = methodDescriptorCache.get(cacheKey);
-        if (Objects.isNull(methodDescriptor)) {
-            //fallback
-            log.warn("does not find method descriptor fallback to generic method descriptor, service name = {}, method name = {}", gsv, method);
-            methodDescriptor = GrpcConstants.GENERIC_METHOD_DESCRIPTOR;
-        }
-
-        return callNow(methodDescriptor, command, codec.encode(command), requestFuture);
+        int serviceId = command.getServiceId();
+        int handlerId = command.getHandlerId();
+        return callNow(getMethodDescriptor(serviceId, handlerId), command, codec.encode(command), requestFuture);
     }
 
     /**
@@ -218,7 +212,7 @@ public class GrpcClient extends AbsRemotingClient {
             public void onClose(Status status, Metadata trailers) {
                 if (!status.isOk() && Objects.nonNull(requestFuture)) {
                     removeRequestFuture(command.getId());
-                    requestFuture.completeExceptionally(status.getCause());
+                    requestFuture.completeExceptionally(new GrpcException(status.getDescription(), status.getCause()));
 
                     if (command instanceof RequestCommand) {
                         onRequestFail(status.getCause());
@@ -230,48 +224,22 @@ public class GrpcClient extends AbsRemotingClient {
         clientCall.sendMessage(payload);
         clientCall.halfClose();
         clientCall.request(1);
-
         return requestFuture;
     }
 
     /**
-     * 获取method descriptor cache key
+     * 返回grpc method descriptor
      *
-     * @param serviceName 服务名
-     * @param method      服务方法名
-     * @return method descriptor cache key
+     * @param serviceId 服务唯一id
+     * @param handlerId 服务方法唯一id
+     * @return grpc method descriptor
      */
-    private String getMethodDescriptorCacheKey(String serviceName, String method) {
-        return serviceName + "." + method;
-    }
-
-    /**
-     * 注册服务及服务方法
-     *
-     * @param serviceName 服务名
-     * @param methodNames 服务方法list
-     */
-    public void addService(String serviceName, String... methodNames) {
-        addService(serviceName, Arrays.asList(methodNames));
-    }
-
-    /**
-     * 注册服务及服务方法
-     *
-     * @param serviceName 服务名
-     * @param methodNames 服务方法list
-     */
-    public void addService(String serviceName, List<String> methodNames) {
-        for (String methodName : methodNames) {
-            String fullName = serviceName + "/" + methodName;
-            MethodDescriptor<ByteBuf, ByteBuf> methodDescriptor = MethodDescriptor.<ByteBuf, ByteBuf>newBuilder()
-                    // TODO: 2023/6/8 如果需要扩展stream request response, 则需要按方法返回值来设置method type
-                    .setType(MethodDescriptor.MethodType.UNARY)
-                    .setFullMethodName(fullName)
-                    .setRequestMarshaller(ByteBufMarshaller.DEFAULT)
-                    .setResponseMarshaller(ByteBufMarshaller.DEFAULT)
-                    .build();
-            methodDescriptorCache.put(fullName, methodDescriptor);
+    private MethodDescriptor<ByteBuf, ByteBuf> getMethodDescriptor(int serviceId, int handlerId) {
+        try {
+            return methodDescriptorCache.get(handlerId, () -> GrpcUtils.genMethodDescriptor(serviceId, handlerId));
+        } catch (ExecutionException e) {
+            ExceptionUtils.throwExt(e);
+            return null;
         }
     }
 }

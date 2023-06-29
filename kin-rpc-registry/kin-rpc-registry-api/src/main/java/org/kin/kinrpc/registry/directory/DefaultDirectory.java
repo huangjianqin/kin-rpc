@@ -66,6 +66,8 @@ public class DefaultDirectory implements Directory {
                 .collect(Collectors.toList());
         log.info("directory(service={}) discover start, oldInstances={}, discoverInstances={}", service, oldInstanceUrls, discoverInstanceUrls);
 
+        // TODO: 2023/6/29 过滤非法service, 比如serialization不支持==
+
         List<ReferenceInvoker<?>> validInvokers = new ArrayList<>(serviceInstances.size());
         List<ReferenceInvoker<?>> invalidInvokers = new ArrayList<>(oldInvokers.size());
         if (CollectionUtils.isNonEmpty(serviceInstances)) {

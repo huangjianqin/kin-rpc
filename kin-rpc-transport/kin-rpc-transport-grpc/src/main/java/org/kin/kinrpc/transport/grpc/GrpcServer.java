@@ -1,6 +1,5 @@
 package org.kin.kinrpc.transport.grpc;
 
-import io.grpc.MethodDescriptor;
 import io.grpc.Server;
 import io.grpc.ServerCallHandler;
 import io.grpc.ServerServiceDefinition;
@@ -12,13 +11,14 @@ import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.transport.AbsRemotingServer;
 import org.kin.kinrpc.transport.TransportException;
 import org.kin.kinrpc.transport.grpc.interceptor.DefaultServerInterceptor;
+import org.kin.kinrpc.utils.GsvUtils;
+import org.kin.kinrpc.utils.HandlerUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -60,9 +60,11 @@ public class GrpcServer extends AbsRemotingServer {
         try {
             server.start();
             //注册message服务
-            addService(GrpcMessages.SERVICE_NAME, GrpcMessages.METHOD_NAME);
+            addService(GsvUtils.serviceId(GrpcMessages.SERVICE_NAME),
+                    HandlerUtils.handlerId(GrpcMessages.SERVICE_NAME, GrpcMessages.METHOD_NAME));
             //注册generic服务
-            addService(GrpcConstants.GENERIC_SERVICE_NAME, GrpcConstants.GENERIC_METHOD_NAME);
+            addService(GsvUtils.serviceId(GrpcConstants.GENERIC_SERVICE_NAME),
+                    HandlerUtils.handlerId(GrpcConstants.GENERIC_SERVICE_NAME, GrpcConstants.GENERIC_METHOD_NAME));
             log.info("grpc server started on {}:{}", host, port);
         } catch (IOException e) {
             shutdown();
@@ -80,40 +82,34 @@ public class GrpcServer extends AbsRemotingServer {
     /**
      * 注册服务及服务方法
      *
-     * @param serviceName 服务名
-     * @param methodNames 服务方法list
+     * @param serviceId  服务唯一id
+     * @param handlerIds 服务方法唯一id array
      */
-    public void addService(String serviceName, String... methodNames) {
-        addService(serviceName, Arrays.asList(methodNames));
+    public void addService(int serviceId, Integer... handlerIds) {
+        addService(serviceId, Arrays.asList(handlerIds));
     }
 
     /**
      * 注册服务及服务方法
      *
-     * @param serviceName 服务名
-     * @param methodNames 服务方法list
+     * @param serviceId  服务唯一id
+     * @param handlerIds 服务方法唯一id list
      */
-    public void addService(String serviceName, List<String> methodNames) {
-        ServerServiceDefinition.Builder serviceDefinitionBuilder = ServerServiceDefinition.builder(serviceName);
-        for (String methodName : methodNames) {
-            serviceDefinitionBuilder.addMethod(MethodDescriptor.<ByteBuf, ByteBuf>newBuilder()
-                    // TODO: 2023/6/8 如果需要扩展stream request response, 则需要按方法返回值来设置method type
-                    .setType(MethodDescriptor.MethodType.UNARY)
-                    .setFullMethodName(serviceName + "/" + methodName)
-                    .setRequestMarshaller(ByteBufMarshaller.DEFAULT)
-                    .setResponseMarshaller(ByteBufMarshaller.DEFAULT)
-                    .build(), serviceHandler);
+    public void addService(int serviceId, List<Integer> handlerIds) {
+        ServerServiceDefinition.Builder serviceDefinitionBuilder = ServerServiceDefinition.builder(GrpcConstants.SERVICE_PREFIX + serviceId);
+        for (Integer handlerId : handlerIds) {
+            serviceDefinitionBuilder.addMethod(GrpcUtils.genMethodDescriptor(serviceId, handlerId), serviceHandler);
         }
 
-        handlerRegistry.addService(serviceDefinitionBuilder.build());
+        handlerRegistry.addService(serviceId, serviceDefinitionBuilder.build());
     }
 
     /**
      * 注销服务及服务方法
      *
-     * @param serviceName 服务名
+     * @param serviceId 服务唯一id
      */
-    public void removeService(String serviceName) {
-        handlerRegistry.removeService(serviceName);
+    public void removeService(int serviceId) {
+        handlerRegistry.removeService(serviceId);
     }
 }

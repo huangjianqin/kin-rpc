@@ -1,6 +1,7 @@
 package org.kin.kinrpc.transport.kinrpc;
 
 import io.netty.util.NetUtil;
+import org.kin.kinrpc.config.SslConfig;
 import org.kin.kinrpc.transport.AbsRemotingClient;
 import org.kin.kinrpc.transport.cmd.HeartbeatCommand;
 import org.kin.kinrpc.transport.cmd.RemotingCommand;
@@ -35,10 +36,14 @@ public class KinRpcClient extends AbsRemotingClient {
     private TcpClient client;
 
     public KinRpcClient(int port) {
-        this(NetUtil.LOCALHOST.getHostAddress(), port);
+        this(port, null);
     }
 
-    public KinRpcClient(String host, int port) {
+    public KinRpcClient(int port, SslConfig sslConfig) {
+        this(NetUtil.LOCALHOST.getHostAddress(), port, sslConfig);
+    }
+
+    public KinRpcClient(String host, int port, @Nullable SslConfig sslConfig) {
         super(host, port);
         transport = TcpClientTransport.create()
                 .payloadProcessor((s, bp) ->
@@ -59,10 +64,18 @@ public class KinRpcClient extends AbsRemotingClient {
                         KinRpcClient.this.onConnectionClosed();
                     }
                 });
+        if (Objects.nonNull(sslConfig)) {
+            //配置ssl
+            transport.certFile(sslConfig.getCertFile())
+                    .certKeyFile(sslConfig.getCertKeyFile())
+                    .certKeyPassword(sslConfig.getCertKeyPassword())
+                    .caFile(sslConfig.getCaFile())
+                    .fingerprintFile(sslConfig.getFingerprintFile());
+        }
     }
 
     @Override
-    public void onConnect() {
+    protected void onConnect() {
         if (client != null) {
             throw new IllegalStateException(String.format("%s has been connect to %s", name(), remoteAddress()));
         }
@@ -83,7 +96,7 @@ public class KinRpcClient extends AbsRemotingClient {
     }
 
     @Override
-    public void onShutdown() {
+    protected void onShutdown() {
         if (Objects.isNull(client)) {
             return;
         }
@@ -126,14 +139,22 @@ public class KinRpcClient extends AbsRemotingClient {
     }
 
     @Override
-    public void fireAndForget(RequestCommand command) {
+    public CompletableFuture<Void> fireAndForget(RequestCommand command) {
         beforeRequest(command);
+        CompletableFuture<Void> signal = new CompletableFuture<>();
         client.send(codec.encode(command), new ChannelOperationListener() {
             @Override
+            public void onSuccess(Session session) {
+                signal.complete(null);
+            }
+
+            @Override
             public void onFailure(Session session, Throwable cause) {
+                signal.completeExceptionally(cause);
                 onRequestFail(cause);
             }
         }).subscribe();
+        return signal;
     }
 
     @Override
@@ -143,11 +164,6 @@ public class KinRpcClient extends AbsRemotingClient {
         beforeRequest(command);
         CompletableFuture<Object> requestFuture = createRequestFuture(command.getId());
         client.send(codec.encode(command), new ChannelOperationListener() {
-            @Override
-            public void onSuccess(Session session) {
-                requestFuture.complete(null);
-            }
-
             @Override
             public void onFailure(Session session, Throwable cause) {
                 requestFuture.completeExceptionally(cause);

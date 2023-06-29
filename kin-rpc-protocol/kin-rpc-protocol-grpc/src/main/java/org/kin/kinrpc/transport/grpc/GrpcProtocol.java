@@ -110,8 +110,7 @@ public final class GrpcProtocol extends AbstractProxyProtocol {
         info("grpc service '{}' export address '{}'", url.getServiceKey(), url.getAddress());
 
         return new Exporter<T>() {
-            @Override
-            public Invoker<T> getInvoker() {
+            public Invoker<T> service() {
                 return invoker;
             }
 

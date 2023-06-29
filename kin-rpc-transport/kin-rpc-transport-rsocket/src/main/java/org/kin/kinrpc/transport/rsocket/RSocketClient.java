@@ -157,11 +157,18 @@ public class RSocketClient extends AbsRemotingClient {
     }
 
     @Override
-    public void fireAndForget(@Nonnull RequestCommand command) {
+    public CompletableFuture<Void> fireAndForget(@Nonnull RequestCommand command) {
         beforeRequest(command);
 
+        CompletableFuture<Void> signal = new CompletableFuture<>();
         requesterMono.flatMap(rsocket -> rsocket.fireAndForget(ByteBufPayload.create(codec.encode(command))))
-                .doOnError(this::onRequestFail)
+                .doOnError(t -> {
+                    signal.completeExceptionally(t);
+                    onRequestFail(t);
+                })
+                .doOnSuccess(v -> signal.complete(null))
                 .subscribe();
+
+        return signal;
     }
 }

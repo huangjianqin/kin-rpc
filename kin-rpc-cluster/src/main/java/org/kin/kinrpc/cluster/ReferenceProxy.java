@@ -7,6 +7,7 @@ import org.checkerframework.common.returnsreceiver.qual.This;
 import org.eclipse.collections.api.map.primitive.IntObjectMap;
 import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
 import org.kin.framework.utils.ExceptionUtils;
+import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.MethodHandleUtils;
 import org.kin.kinrpc.*;
 import org.kin.kinrpc.cluster.call.RpcResultAdapterHelper;
@@ -18,6 +19,7 @@ import org.kin.kinrpc.constants.ReferenceConstants;
 import org.kin.kinrpc.utils.GsvUtils;
 import org.kin.kinrpc.utils.HandlerUtils;
 import org.kin.kinrpc.utils.RpcUtils;
+import org.kin.serialization.Serialization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +41,8 @@ public final class ReferenceProxy implements InvocationHandler {
 
     /** reference端配置 */
     private final ReferenceConfig<?> config;
+    /** 序列化code */
+    private byte serializationCode;
     /** 服务唯一id */
     private final int serviceId;
     /** 服务唯一标识 */
@@ -54,6 +58,7 @@ public final class ReferenceProxy implements InvocationHandler {
 
     public ReferenceProxy(ReferenceConfig<?> config, ClusterInvoker<?> invoker) {
         this.config = config;
+        this.serializationCode = (byte) ExtensionLoader.getExtensionCode(Serialization.class, config.getSerialization());
         this.service = config.service();
         this.serviceId = GsvUtils.serviceId(this.service);
         this.invoker = invoker;
@@ -103,7 +108,7 @@ public final class ReferenceProxy implements InvocationHandler {
         MethodConfig methodConfig = getMethodConfig(handlerId);
 
         RpcInvocation invocation = new RpcInvocation(serviceId,
-                service, args, methodMetadata);
+                service, args, methodMetadata, this.serializationCode);
         invocation.attach(ReferenceConstants.METHOD_CONFIG_KEY, methodConfig);
 
         if (log.isDebugEnabled()) {

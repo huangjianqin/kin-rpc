@@ -8,6 +8,7 @@ import org.kin.kinrpc.cluster.router.Router;
 import org.kin.kinrpc.config.MethodConfig;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.constants.ReferenceConstants;
+import org.kin.kinrpc.protocol.RpcBizException;
 import org.kin.kinrpc.registry.directory.DefaultDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,8 +70,13 @@ public class FailoverClusterInvoker<T> extends ClusterInvoker<T> {
             } else {
                 //fail
                 log.warn("rpc call fail {} times, invocation={}, exception={}", curTimes, invocation, t);
-                onResetInvocation(invocation);
-                doInvoke(invocation, future, curTimes + 1, maxRetries);
+                if (!(t instanceof RpcBizException)) {
+                    //非服务方法调用异常, 重试
+                    onResetInvocation(invocation);
+                    doInvoke(invocation, future, curTimes + 1, maxRetries);
+                } else {
+                    future.completeExceptionally(t);
+                }
             }
         });
     }

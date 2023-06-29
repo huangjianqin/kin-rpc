@@ -84,4 +84,20 @@ public interface Invocation extends AttachmentSupport {
      * @return true表示是{@link Object}定义方法
      */
     boolean isObjectMethod();
+
+    /**
+     * 返回序列化类型code
+     *
+     * @return 序列化类型code
+     */
+    byte serializationCode();
+
+    /**
+     * 返回值是否为空
+     *
+     * @return true表示返回值为空
+     */
+    default boolean isVoid() {
+        return Void.class.equals(returnType());
+    }
 }

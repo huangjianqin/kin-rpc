@@ -45,9 +45,6 @@ public final class RemotingClientMonitor {
     private static final Set<RemotingClientObserver> UNHEALTH_CLIENT_OBSERVERS = new ConcurrentHashSet<>();
 
     static {
-        //允许core thread timeout
-        SCHEDULER.allowCoreThreadTimeOut(true);
-
         //心跳超时时间
         HEARTBEAT_TIMEOUT = SysUtils.getIntSysProperty("kinrpc.transport.heartbeat.timeout", 3000);
         //心跳间隔

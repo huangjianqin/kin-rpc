@@ -1,12 +1,13 @@
 package org.kin.kinrpc;
 
+import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.utils.GsvUtils;
 
 import java.util.Map;
 
 /**
  * service信息
- * todo 记得实现hashcode equal
+ * !!!其实现类也必须要实现{@link Object#equals(Object)}和{@link Object#hashCode()}
  *
  * @author huangjianqin
  * @date 2023/6/24
@@ -41,6 +42,15 @@ public interface ServiceInstance {
      * @return service instance port
      */
     int port();
+
+    /**
+     * 返回service instance address
+     *
+     * @return service instance address
+     */
+    default String address() {
+        return NetUtils.getIpPort(host(), port());
+    }
 
     /**
      * 返回service instance metadata

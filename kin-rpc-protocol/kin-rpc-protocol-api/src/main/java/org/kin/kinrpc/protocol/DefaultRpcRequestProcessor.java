@@ -1,11 +1,10 @@
 package org.kin.kinrpc.protocol;
 
+import io.netty.util.collection.IntCollections;
 import io.netty.util.collection.IntObjectHashMap;
 import io.netty.util.collection.IntObjectMap;
 import org.kin.kinrpc.*;
-import org.kin.kinrpc.config.ExecutorConfig;
 import org.kin.kinrpc.config.ServiceConfig;
-import org.kin.kinrpc.executor.ExecutorManager;
 import org.kin.kinrpc.transport.RequestContext;
 import org.kin.kinrpc.transport.RpcRequestProcessor;
 import org.kin.kinrpc.transport.cmd.CodecException;
@@ -15,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
-import java.util.concurrent.Executor;
 
 /**
  * @author huangjianqin
@@ -25,41 +23,60 @@ public class DefaultRpcRequestProcessor extends RpcRequestProcessor {
     private static final Logger log = LoggerFactory.getLogger(DefaultRpcRequestProcessor.class);
 
     /** 已注册的服务元数据 */
-    private final IntObjectMap<ServiceMetadata> serviceMetadataMap = new IntObjectHashMap<>(16);
+    private volatile IntObjectMap<RpcService<?>> rpcServiceMap = IntCollections.emptyMap();
 
     /**
-     * 注册服务invoker
+     * 注册服务
      *
-     * @param invoker 服务invoker
+     * @param rpcService 服务
      */
-    public synchronized void register(ServiceInvoker<?> invoker) {
-        ServiceConfig<?> config = invoker.getConfig();
+    public synchronized void register(RpcService<?> rpcService) {
+        ServiceConfig<?> config = rpcService.getConfig();
         String gsv = config.service();
         int serviceId = GsvUtils.serviceId(gsv);
-        if (serviceMetadataMap.containsKey(serviceId)) {
-            throw new RpcException("service invoker has been registered, gsv = " + gsv);
+
+        //copy
+        IntObjectMap<RpcService<?>> rpcServiceMap = new IntObjectHashMap<>(this.rpcServiceMap.size() + 1);
+        rpcServiceMap.putAll(this.rpcServiceMap);
+
+        if (rpcServiceMap.containsKey(serviceId)) {
+            throw new RpcException("service has been registered, gsv = " + gsv);
         }
 
-        ExecutorConfig executorConfig = config.getExecutor();
-        Executor executor = null;
-        if (Objects.nonNull(executorConfig)) {
-            executor = ExecutorManager.getOrCreateExecutor(gsv, executorConfig);
-        }
-        serviceMetadataMap.put(serviceId, new ServiceMetadata(config, invoker, executor));
+        rpcServiceMap.put(serviceId, rpcService);
+
+        //update
+        this.rpcServiceMap = rpcServiceMap;
+    }
+
+    /**
+     * 取消注册服务
+     *
+     * @param serviceId 服务唯一id
+     */
+    public synchronized void unregister(int serviceId) {
+        //copy
+        IntObjectMap<RpcService<?>> rpcServiceMap = new IntObjectHashMap<>(this.rpcServiceMap.size() + 1);
+        rpcServiceMap.putAll(this.rpcServiceMap);
+
+        rpcServiceMap.remove(serviceId);
+
+        //update
+        this.rpcServiceMap = rpcServiceMap;
     }
 
     @Override
     public void process(RequestContext requestContext, RpcRequestCommand request) {
         //获取服务元数据
         int serviceId = request.getServiceId();
-        ServiceMetadata serviceMetadata = serviceMetadataMap.get(serviceId);
-        if (Objects.isNull(serviceMetadata)) {
-            throw new RpcException("can not find service metadata with serviceId=" + serviceId);
+        RpcService<?> rpcService = rpcServiceMap.get(serviceId);
+        if (Objects.isNull(rpcService)) {
+            throw new RpcException("can not find service with serviceId=" + serviceId);
         }
 
         //获取服务方法元数据
         int handlerId = request.getHandlerId();
-        MethodMetadata methodMetadata = serviceMetadata.getMethodMetadata(handlerId);
+        MethodMetadata methodMetadata = rpcService.getMethodMetadata(handlerId);
         if (Objects.isNull(methodMetadata)) {
             throw new RpcException("can not find method metadata with handlerId=" + handlerId);
         }
@@ -72,33 +89,11 @@ public class DefaultRpcRequestProcessor extends RpcRequestProcessor {
         }
 
         //invoke
-        RpcInvocation invocation = new RpcInvocation(serviceId, serviceMetadata.service(), request.getParams(), methodMetadata);
-        Invoker<?> invoker = serviceMetadata.getInvoker();
-        Executor executor = serviceMetadata.getExecutor();
-        if (Objects.nonNull(executor)) {
-            executor.execute(() -> doProcess(requestContext, request, invoker, invocation));
-        } else {
-            doProcess(requestContext, request, invoker, invocation);
-        }
-    }
-
-    /**
-     * 服务方法调用
-     *
-     * @param requestContext rpc request context
-     * @param request        rpc request
-     * @param invoker        service invoker
-     * @param invocation     rpc invocation
-     */
-    private void doProcess(RequestContext requestContext,
-                           RpcRequestCommand request,
-                           Invoker<?> invoker,
-                           RpcInvocation invocation) {
+        RpcInvocation invocation = new RpcInvocation(serviceId, rpcService.service(),
+                request.getParams(), methodMetadata, request.getSerializationCode());
         try {
-            RpcResult rpcResult = invoker.invoke(invocation);
-            if (!invocation.isOneWay()) {
-                rpcResult.onFinish((r, t) -> onFinish(requestContext, request, r, t));
-            }
+            RpcResult rpcResult = rpcService.invoke(invocation);
+            rpcResult.onFinish((r, t) -> onFinish(requestContext, request, invocation.isOneWay(), r, t));
         } catch (Exception e) {
             log.error("process rpc request fail, request= {}", request, e);
             requestContext.writeResponseIfError(new RpcException("process rpc request fail", e));
@@ -110,11 +105,14 @@ public class DefaultRpcRequestProcessor extends RpcRequestProcessor {
      * !!!在invoker#invoker线程执行
      *
      * @param requestContext rpc request context
+     * @param request        rpc request
+     * @param oneWay         服务方法是否返回void
      * @param result         服务调用结果
      * @param t              服务调用异常
      */
     private void onFinish(RequestContext requestContext,
                           RpcRequestCommand request,
+                          boolean oneWay,
                           Object result,
                           Throwable t) {
         if (request.isTimeout()) {
@@ -124,7 +122,9 @@ public class DefaultRpcRequestProcessor extends RpcRequestProcessor {
 
         if (Objects.isNull(t)) {
             //服务调用正常结束
-            requestContext.writeResponse(result);
+            if (!oneWay) {
+                requestContext.writeResponse(result);
+            }
         } else {
             //服务调用异常
             requestContext.writeResponseIfError(t);

@@ -6,6 +6,7 @@ import org.kin.kinrpc.utils.GsvUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * todo interceptor配置
@@ -32,6 +33,12 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
     /** 服务调用拦截器列表 */
     private List<Interceptor> interceptors;
 
+    //----------------------------------------------------------------动态变量, lazy init
+    /** 返回服务唯一标识 */
+    private transient String service;
+    /** 返回服务唯一id */
+    private transient int serviceId;
+
     protected AbstractInterfaceConfig() {
     }
 
@@ -41,13 +48,15 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
     }
 
     /**
-     * todo 是否缓存
      * 返回服务唯一标识
      *
      * @return 服务唯一标识
      */
     public String service() {
-        return GsvUtils.service(group, serviceName, version);
+        if (Objects.isNull(service)) {
+            service = GsvUtils.service(group, serviceName, version);
+        }
+        return service;
     }
 
     /**
@@ -56,7 +65,10 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
      * @return 服务唯一id
      */
     public int serviceId() {
-        return GsvUtils.serviceId(group, serviceName, version);
+        if (serviceId == 0) {
+            serviceId = GsvUtils.serviceId(service());
+        }
+        return serviceId;
     }
 
     //setter && getter

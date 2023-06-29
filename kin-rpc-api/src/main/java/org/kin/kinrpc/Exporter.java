@@ -1,19 +1,18 @@
 package org.kin.kinrpc;
 
 /**
- * services exporter
- * todo
+ * service exporter
  *
  * @author huangjianqin
  * @date 2020/11/3
  */
 public interface Exporter<T> {
     /**
-     * 返回service invoker
+     * 返回service
      *
-     * @return service invoker
+     * @return service
      */
-    ServiceInvoker<T> getInvoker();
+    RpcService<T> service();
 
     /**
      * unexport service

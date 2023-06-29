@@ -5,6 +5,7 @@ import org.kin.framework.collection.CopyOnWriteMap;
 import org.kin.framework.utils.Extension;
 import org.kin.kinrpc.*;
 import org.kin.kinrpc.config.ServerConfig;
+import org.kin.kinrpc.config.SslConfig;
 import org.kin.kinrpc.protocol.Protocol;
 
 import java.util.Map;
@@ -19,40 +20,40 @@ import java.util.concurrent.CompletableFuture;
 @Extension("jvm")
 public class JvmProtocol implements Protocol {
     /** key -> service id, value -> service provider invoker */
-    private final Map<Integer, ServiceInvoker<?>> serviceInvokerMap = new CopyOnWriteMap<>();
+    private final Map<Integer, RpcService<?>> rpcServiceCache = new CopyOnWriteMap<>();
 
     @Override
-    public <T> Exporter<T> export(ServiceInvoker<T> serviceInvoker, ServerConfig serverConfig) {
-        String service = serviceInvoker.service();
-        int serviceId = serviceInvoker.serviceId();
-        if (serviceInvokerMap.containsKey(serviceId)) {
-            throw new RpcException(String.format("service invoker '%s' has been exported", service));
+    public <T> Exporter<T> export(RpcService<T> rpcService, ServerConfig serverConfig) {
+        String service = rpcService.service();
+        int serviceId = rpcService.serviceId();
+        if (rpcServiceCache.containsKey(serviceId)) {
+            throw new RpcException(String.format("service '%s' has been exported", service));
         }
 
-        serviceInvokerMap.put(serviceId, serviceInvoker);
+        rpcServiceCache.put(serviceId, rpcService);
 
         return new Exporter<T>() {
             @Override
-            public ServiceInvoker<T> getInvoker() {
-                return serviceInvoker;
+            public RpcService<T> service() {
+                return rpcService;
             }
 
             @Override
             public void unexport() {
-                ServiceInvoker<T> invoker = getInvoker();
-                serviceInvokerMap.remove(invoker.getConfig().serviceId());
+                RpcService<T> invoker = service();
+                rpcServiceCache.remove(invoker.getConfig().serviceId());
             }
         };
     }
 
     @Override
-    public <T> ReferenceInvoker<T> refer(ServiceInstance instance) {
+    public <T> ReferenceInvoker<T> refer(ServiceInstance instance, SslConfig sslConfig) {
         return new JvmReferenceInvoker<>(instance);
     }
 
     @Override
     public void destroy() {
-        serviceInvokerMap.clear();
+        rpcServiceCache.clear();
     }
 
     //------------------------------------------------------------------------------------------------------------------------------------------
@@ -70,10 +71,10 @@ public class JvmProtocol implements Protocol {
                 throw new RpcException(String.format("invocation service(%s) is not right, should be %s", invocation.service(), instance.service()));
             }
 
-            ServiceInvoker<?> serviceInvoker = serviceInvokerMap.get(invocation.serviceId());
-            Preconditions.checkNotNull(serviceInvoker, "can not find service invoker for service " + invocation.service());
+            RpcService<?> rpcService = rpcServiceCache.get(invocation.serviceId());
+            Preconditions.checkNotNull(rpcService, String.format("can not find service '%s'", invocation.service()));
             CompletableFuture<Object> future = new CompletableFuture<>();
-            ReferenceContext.EXECUTOR.execute(() -> serviceInvoker.invoke(invocation).onFinish(future));
+            ReferenceContext.EXECUTOR.execute(() -> rpcService.invoke(invocation).onFinish(future));
             return RpcResult.success(invocation, future);
         }
 

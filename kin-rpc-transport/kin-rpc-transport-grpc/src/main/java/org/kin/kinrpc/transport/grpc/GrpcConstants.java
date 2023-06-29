@@ -2,14 +2,18 @@ package org.kin.kinrpc.transport.grpc;
 
 import io.grpc.MethodDescriptor;
 import io.netty.buffer.ByteBuf;
+import org.kin.kinrpc.utils.GsvUtils;
+import org.kin.kinrpc.utils.HandlerUtils;
 
 /**
  * @author huangjianqin
  * @date 2023/6/8
  */
 public final class GrpcConstants {
-    private GrpcConstants() {
-    }
+    /** 服务前缀 */
+    public static final String SERVICE_PREFIX = "s";
+    /** 服务方法前缀 */
+    public static final String HANDLER_PREFIX = "h";
 
     /** generic服务名 */
     public static final String GENERIC_SERVICE_NAME = "$generic";
@@ -18,10 +22,10 @@ public final class GrpcConstants {
     public static final String GENERIC_METHOD_NAME = "requestResponse";
 
     /** generic专用method descriptor */
-    public static final MethodDescriptor<ByteBuf, ByteBuf> GENERIC_METHOD_DESCRIPTOR = MethodDescriptor.<ByteBuf, ByteBuf>newBuilder()
-            .setType(MethodDescriptor.MethodType.UNARY)
-            .setFullMethodName(GENERIC_SERVICE_NAME + "/" + GENERIC_METHOD_NAME)
-            .setRequestMarshaller(ByteBufMarshaller.DEFAULT)
-            .setResponseMarshaller(ByteBufMarshaller.DEFAULT)
-            .build();
+    public static final MethodDescriptor<ByteBuf, ByteBuf> GENERIC_METHOD_DESCRIPTOR =
+            GrpcUtils.genMethodDescriptor(GsvUtils.serviceId(GENERIC_SERVICE_NAME),
+                    HandlerUtils.handlerId(GENERIC_SERVICE_NAME, GENERIC_METHOD_NAME));
+
+    private GrpcConstants() {
+    }
 }

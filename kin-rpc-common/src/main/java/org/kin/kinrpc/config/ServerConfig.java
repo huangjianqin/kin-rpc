@@ -84,6 +84,10 @@ public class ServerConfig extends AbstractConfig {
         return this;
     }
 
+    public String getAddress() {
+        return NetUtils.getIpPort(host, port);
+    }
+
     public ExecutorConfig getExecutor() {
         return executor;
     }

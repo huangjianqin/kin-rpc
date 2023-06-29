@@ -5,6 +5,7 @@ import org.kin.kinrpc.utils.GsvUtils;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author huangjianqin
@@ -73,5 +74,18 @@ public class DefaultServiceInstance implements ServiceInstance {
     @Override
     public int weight() {
         return weight;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DefaultServiceInstance that = (DefaultServiceInstance) o;
+        return serviceId == that.serviceId && port == that.port && Objects.equals(host, that.host);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(serviceId, host, port);
     }
 }
