@@ -12,7 +12,6 @@ import java.util.Objects;
 
 /**
  * 服务调用线程池管理
- * todo map key为string的是否可优化性能
  *
  * @author huangjianqin
  * @date 2023/3/1
@@ -67,7 +66,7 @@ public class ExecutorHelper {
             throw new RpcException(String.format("executor name with '%s' has registered", name));
         }
 
-        EXECUTOR_MAP.put(name, executor);
+        EXECUTOR_MAP.put(name, wrapExecutor(name, executor));
     }
 
     /**
@@ -99,9 +98,31 @@ public class ExecutorHelper {
             throw new RpcException(String.format("can not find executor factory for type '%s'", config.getType()));
         }
 
-        ManagedExecutor executor = executorFactory.create(config);
+        ManagedExecutor executor = wrapExecutor(name, executorFactory.create(config));
         EXECUTOR_MAP.put(name, executor);
         return executor;
+    }
+
+    /**
+     * 对{@link ManagedExecutor#shutdown()}进行封装, 使用{@link #removeExecutor(String)}来完成 executor shutdown
+     * 以防executor user shutdown executor, 但没有从{@link #EXECUTOR_MAP}移除, 导致无用对象无法gc, 一直占用内存
+     *
+     * @param name     executor name
+     * @param executor executor
+     * @return {@link ManagedExecutor}实例
+     */
+    private static ManagedExecutor wrapExecutor(String name, ManagedExecutor executor) {
+        return new ManagedExecutor() {
+            @Override
+            public void execute(Runnable command) {
+                executor.execute(command);
+            }
+
+            @Override
+            public void shutdown() {
+                removeExecutor(name);
+            }
+        };
     }
 
     /**
@@ -110,7 +131,7 @@ public class ExecutorHelper {
      * @param name 服务调用线程池唯一标识
      */
     public static synchronized void removeExecutor(String name) {
-        ManagedExecutor executor = EXECUTOR_MAP.get(name);
+        ManagedExecutor executor = EXECUTOR_MAP.remove(name);
         if (Objects.isNull(executor)) {
             return;
         }

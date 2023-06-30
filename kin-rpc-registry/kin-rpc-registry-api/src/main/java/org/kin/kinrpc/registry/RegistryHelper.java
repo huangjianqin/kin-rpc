@@ -1,6 +1,5 @@
 package org.kin.kinrpc.registry;
 
-import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.cache.ReferenceCountedCache;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.kinrpc.ServiceInstance;
@@ -21,9 +20,10 @@ public class RegistryHelper {
     /** 注册中心缓存 */
     private static final ReferenceCountedCache<String, Registry> REGISTRY_CACHE = new ReferenceCountedCache<>((k, v) -> v.destroy());
 
-    static {
-        JvmCloseCleaner.instance().add(REGISTRY_CACHE::clear);
-    }
+    // TODO: 2023/6/30 是否需要恢复
+//    static {
+//        JvmCloseCleaner.instance().add(REGISTRY_CACHE::clear);
+//    }
 
     private RegistryHelper() {
     }

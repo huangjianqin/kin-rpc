@@ -13,7 +13,7 @@ import java.util.List;
  * @author huangjianqin
  * @date 2023/6/25
  */
-@SPI(alias = "loadbalance")
+@SPI("loadbalance")
 public interface LoadBalance {
     /**
      * 应用负载均衡策略过滤invokers

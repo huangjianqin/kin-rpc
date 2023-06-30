@@ -1,7 +1,6 @@
 package org.kin.kinrpc.registry;
 
 
-import org.kin.framework.utils.SPI;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.registry.directory.Directory;
@@ -10,7 +9,6 @@ import org.kin.kinrpc.registry.directory.Directory;
  * 注册中心
  * Created by 健勤 on 2016/10/9.
  */
-@SPI("registry")
 public interface Registry {
     /**
      * 初始化

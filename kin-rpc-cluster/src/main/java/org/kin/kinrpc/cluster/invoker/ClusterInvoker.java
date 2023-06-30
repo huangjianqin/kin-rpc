@@ -10,7 +10,6 @@ import org.kin.kinrpc.cluster.router.Router;
 import org.kin.kinrpc.config.MethodConfig;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.constants.ReferenceConstants;
-import org.kin.kinrpc.registry.directory.DefaultDirectory;
 import org.kin.kinrpc.registry.directory.Directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +26,7 @@ import java.util.stream.Collectors;
  * @author huangjianqin
  * @date 2023/6/25
  */
-@SPI(alias = "cluster")
+@SPI(alias = "cluster", singleton = false)
 public abstract class ClusterInvoker<T> implements Invoker<T> {
     private static final Logger log = LoggerFactory.getLogger(ClusterInvoker.class);
 
@@ -47,11 +46,11 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
             .expireAfterAccess(Duration.ofMinutes(5))
             .build();
 
-    public ClusterInvoker(ReferenceConfig<T> config,
-                          DefaultDirectory directory,
-                          Router router,
-                          LoadBalance loadBalance,
-                          InterceptorChain<T> interceptorChain) {
+    protected ClusterInvoker(ReferenceConfig<T> config,
+                             Directory directory,
+                             Router router,
+                             LoadBalance loadBalance,
+                             InterceptorChain<T> interceptorChain) {
         this.config = config;
         this.directory = directory;
         this.router = router;

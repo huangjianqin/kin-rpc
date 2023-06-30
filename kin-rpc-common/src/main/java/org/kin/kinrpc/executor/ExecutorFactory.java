@@ -9,7 +9,7 @@ import org.kin.kinrpc.config.ExecutorConfig;
  * @author huangjianqin
  * @date 2021/4/20
  */
-@SPI(alias = "executorFactory")
+@SPI("executorFactory")
 public interface ExecutorFactory {
     /**
      * 返回服务调用线程池

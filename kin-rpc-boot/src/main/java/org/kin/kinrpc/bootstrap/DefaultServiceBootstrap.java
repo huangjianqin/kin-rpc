@@ -19,6 +19,8 @@ import java.util.Objects;
  * @date 2023/6/30
  */
 public class DefaultServiceBootstrap<T> extends ServiceBootstrap<T> {
+    /** rpc service */
+    private volatile RpcService<T> rpcService;
     /** service exporter */
     private volatile Exporter<T> exporter;
 
@@ -28,8 +30,13 @@ public class DefaultServiceBootstrap<T> extends ServiceBootstrap<T> {
 
     @Override
     protected void doExport() {
+        if (Objects.nonNull(rpcService) ||
+                Objects.nonNull(exporter)) {
+            return;
+        }
+
         //创建rpc service
-        RpcService<T> rpcService = new RpcService<>(config);
+        rpcService = new RpcService<>(config);
 
         List<Exporter<T>> exporters = new ArrayList<>();
         //创建server, 并注册监听接受处理该service的请求
@@ -40,7 +47,7 @@ public class DefaultServiceBootstrap<T> extends ServiceBootstrap<T> {
             exporters.add(protocol.export(rpcService, serverConfig));
         }
 
-        //创建注册中心client, 并发布服务
+        //获取注册中心client, 并发布服务
         for (RegistryConfig registryConfig : config.getRegistries()) {
             Registry registry = RegistryHelper.getRegistry(registryConfig);
             registry.register(config);
@@ -52,10 +59,19 @@ public class DefaultServiceBootstrap<T> extends ServiceBootstrap<T> {
 
     @Override
     protected void doUnExport() {
-        if (Objects.isNull(exporter)) {
+        if (Objects.isNull(rpcService) || Objects.isNull(exporter)) {
             return;
         }
 
+        //获取注册中心client, 并取消发布服务
+        for (RegistryConfig registryConfig : config.getRegistries()) {
+            Registry registry = RegistryHelper.getRegistry(registryConfig);
+            registry.unregister(config);
+        }
+
+        //service destroy
+        rpcService.destroy();
+        //shutdown server
         exporter.unExport();
     }
 }

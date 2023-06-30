@@ -9,7 +9,7 @@ import org.kin.kinrpc.config.MethodConfig;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.constants.ReferenceConstants;
 import org.kin.kinrpc.protocol.RpcBizException;
-import org.kin.kinrpc.registry.directory.DefaultDirectory;
+import org.kin.kinrpc.registry.directory.Directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +25,7 @@ public class FailoverClusterInvoker<T> extends ClusterInvoker<T> {
     private static final Logger log = LoggerFactory.getLogger(FailoverClusterInvoker.class);
 
     public FailoverClusterInvoker(ReferenceConfig<T> config,
-                                  DefaultDirectory directory,
+                                  Directory directory,
                                   Router router,
                                   LoadBalance loadBalance,
                                   InterceptorChain<T> interceptorChain) {

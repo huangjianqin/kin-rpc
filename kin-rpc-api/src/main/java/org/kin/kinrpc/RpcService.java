@@ -8,6 +8,7 @@ import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.config.ExecutorConfig;
 import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.executor.ExecutorHelper;
+import org.kin.kinrpc.executor.ManagedExecutor;
 import org.kin.kinrpc.utils.RpcUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +18,6 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 /**
@@ -34,7 +34,9 @@ public class RpcService<T> implements Invoker<T> {
     /** 服务方法元数据 */
     private final IntObjectMap<RpcHandler> rpcHandlerMap;
     /** 服务调用线程池 */
-    private final Executor executor;
+    private final ManagedExecutor executor;
+    /** 是否terminated */
+    private volatile boolean terminated;
 
     public RpcService(ServiceConfig<T> config) {
         this.config = config;
@@ -64,7 +66,7 @@ public class RpcService<T> implements Invoker<T> {
 
         //create invoke executor
         ExecutorConfig executorConfig = config.getExecutor();
-        Executor executor = null;
+        ManagedExecutor executor = null;
         if (Objects.nonNull(executorConfig)) {
             executor = ExecutorHelper.getOrCreateExecutor(executorConfig, service);
         }
@@ -73,9 +75,20 @@ public class RpcService<T> implements Invoker<T> {
 
     @Override
     public RpcResult invoke(Invocation invocation) {
+        if (isTerminated()) {
+            return RpcResult.fail(invocation, new IllegalStateException(String.format("service '%s' unExported", service())));
+        }
+
         CompletableFuture<Object> future = new CompletableFuture<>();
         if (Objects.nonNull(executor)) {
-            executor.execute(() -> chain.invoke(invocation).onFinish(future));
+            executor.execute(() -> {
+                if (isTerminated()) {
+                    future.complete(new IllegalStateException(String.format("service '%s' unExported", service())));
+                    return;
+                }
+
+                chain.invoke(invocation).onFinish(future);
+            });
         } else {
             chain.invoke(invocation).onFinish(future);
         }
@@ -212,6 +225,17 @@ public class RpcService<T> implements Invoker<T> {
         return config.serviceId();
     }
 
+    /**
+     * 释放占用资源
+     */
+    public void destroy() {
+        if (isTerminated()) {
+            return;
+        }
+        terminated = true;
+        executor.shutdown();
+    }
+
     //getter
     public ServiceConfig<T> getConfig() {
         return config;
@@ -243,5 +267,9 @@ public class RpcService<T> implements Invoker<T> {
      */
     public Collection<MethodMetadata> getMethodMetadatas() {
         return rpcHandlerMap.values().stream().map(RpcHandler::metadata).collect(Collectors.toList());
+    }
+
+    public boolean isTerminated() {
+        return terminated;
     }
 }
