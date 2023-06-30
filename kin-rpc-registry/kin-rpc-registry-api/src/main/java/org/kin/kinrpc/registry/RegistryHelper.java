@@ -4,9 +4,11 @@ import org.kin.framework.cache.ReferenceCountedCache;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.kinrpc.ServiceInstance;
 import org.kin.kinrpc.common.Url;
+import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.RegistryConfig;
 import org.kin.kinrpc.config.ServerConfig;
 import org.kin.kinrpc.config.ServiceConfig;
+import org.kin.kinrpc.registry.directory.Directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,11 +55,51 @@ public class RegistryHelper {
                 throw new RegistryFactoryNotFoundException(type);
             }
 
-            // TODO: 2023/6/30 引用计数缓存对象在封装, destroy, shutdown方法释放计数并非真的逻辑
-            Registry registry = registryFactory.create(config);
+            Registry registry = wrapRegistry(registryFactory.create(config), config);
             registry.init();
             return registry;
         });
+    }
+
+    /**
+     * 对{@link Registry#destroy()}进行封装, 释放registry引用, 而不是直接destroy registry
+     *
+     * @param registry registry
+     * @param config   registry config
+     * @return wrapped registry instance
+     */
+    private static Registry wrapRegistry(Registry registry, RegistryConfig config) {
+        return new Registry() {
+            @Override
+            public void init() {
+                registry.init();
+            }
+
+            @Override
+            public void register(ServiceConfig<?> serviceConfig) {
+                registry.register(serviceConfig);
+            }
+
+            @Override
+            public void unregister(ServiceConfig<?> serviceConfig) {
+                registry.unregister(serviceConfig);
+            }
+
+            @Override
+            public Directory subscribe(ReferenceConfig<?> config) {
+                return registry.subscribe(config);
+            }
+
+            @Override
+            public void unsubscribe(String service) {
+                registry.unsubscribe(service);
+            }
+
+            @Override
+            public void destroy() {
+                releaseRegistry(config);
+            }
+        };
     }
 
     /**

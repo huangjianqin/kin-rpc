@@ -109,7 +109,7 @@ public class ExecutorHelper {
      *
      * @param name     executor name
      * @param executor executor
-     * @return {@link ManagedExecutor}实例
+     * @return wrapped executor instance
      */
     private static ManagedExecutor wrapExecutor(String name, ManagedExecutor executor) {
         return new ManagedExecutor() {

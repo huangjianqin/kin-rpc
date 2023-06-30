@@ -12,9 +12,11 @@ import org.kin.kinrpc.executor.ExecutorHelper;
 import org.kin.kinrpc.executor.ManagedExecutor;
 import org.kin.kinrpc.transport.RemotingClient;
 import org.kin.kinrpc.transport.RemotingServer;
+import org.kin.kinrpc.transport.cmd.RequestCommand;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author huangjianqin
@@ -103,11 +105,11 @@ public abstract class AbstractProtocol implements Protocol {
     public final <T> ReferenceInvoker<T> refer(ServiceInstance instance, SslConfig sslConfig) {
         String address = instance.address();
         RemotingClient client = clientCache.get(address, () -> {
-            RemotingClient innerClient = createClient(instance, sslConfig);
+            RemotingClient innerClient = warpClient(createClient(instance, sslConfig), address);
             innerClient.connect();
             return innerClient;
         });
-        return new DefaultReferenceInvoker<>(instance, client, (inst, cli) -> clientCache.release(address));
+        return new DefaultReferenceInvoker<>(instance, client);
     }
 
     /**
@@ -117,6 +119,42 @@ public abstract class AbstractProtocol implements Protocol {
      * @return {@link RemotingClient}实例
      */
     protected abstract RemotingClient createClient(ServiceInstance instance, SslConfig sslConfig);
+
+    /**
+     * 对{@link RemotingClient#shutdown()}进一步封装, 释放client引用, 而不是直接shutdown client
+     *
+     * @param client  remoting client
+     * @param address remote address
+     * @return wrapped remoting client instance
+     */
+    private RemotingClient warpClient(RemotingClient client, String address) {
+        return new RemotingClient() {
+            @Override
+            public void connect() {
+                client.connect();
+            }
+
+            @Override
+            public boolean isAvailable() {
+                return client.isAvailable();
+            }
+
+            @Override
+            public void shutdown() {
+                clientCache.release(address);
+            }
+
+            @Override
+            public <T> CompletableFuture<T> requestResponse(RequestCommand command) {
+                return client.requestResponse(command);
+            }
+
+            @Override
+            public CompletableFuture<Void> fireAndForget(RequestCommand command) {
+                return client.fireAndForget(command);
+            }
+        };
+    }
 
     @Override
     public void destroy() {

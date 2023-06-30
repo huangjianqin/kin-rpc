@@ -7,7 +7,6 @@ import org.kin.kinrpc.transport.cmd.RpcResponseCommand;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BiConsumer;
 
 /**
  * @author huangjianqin
@@ -18,15 +17,11 @@ public class DefaultReferenceInvoker<T> implements ReferenceInvoker<T> {
     private final ServiceInstance instance;
     /** remoting client */
     private final RemotingClient client;
-    /** 自定义额外的{@link ReferenceInvoker#destroy()}逻辑 */
-    private final BiConsumer<ServiceInstance, RemotingClient> cleaner;
 
     public DefaultReferenceInvoker(ServiceInstance instance,
-                                   RemotingClient client,
-                                   BiConsumer<ServiceInstance, RemotingClient> cleaner) {
+                                   RemotingClient client) {
         this.instance = instance;
         this.client = client;
-        this.cleaner = cleaner;
     }
 
     @Override
@@ -83,6 +78,6 @@ public class DefaultReferenceInvoker<T> implements ReferenceInvoker<T> {
 
     @Override
     public void destroy() {
-        cleaner.accept(instance, client);
+        client.shutdown();
     }
 }
