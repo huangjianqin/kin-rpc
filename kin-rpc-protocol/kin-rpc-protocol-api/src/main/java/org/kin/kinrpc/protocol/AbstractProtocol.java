@@ -21,8 +21,10 @@ public abstract class AbstractProtocol implements Protocol {
      */
     private final ReferenceCountedCache<String, RemotingServerContext> serverContextCache = new ReferenceCountedCache<>((k, c) -> c.getServer().shutdown());
     /**
-     * client cache
+     * client cache, 复用client
      * key -> remote address
+     * todo 同一remote server, 但一个reference需要使用ssl, 另外一个reference需要不使用ssl, 怎么处理
+     * todo 同一remote server, 是否考虑需要client池
      */
     private final ReferenceCountedCache<String, RemotingClient> clientCache = new ReferenceCountedCache<>((k, c) -> c.shutdown());
 

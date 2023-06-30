@@ -19,12 +19,23 @@ public final class Serializations {
      * @param code  serialization code
      * @return  {@link Serialization}实例
      */
-    public static Serialization getByCode(int code){
+    public static Serialization getByCode(int code) {
         Serialization serialization = ExtensionLoader.getExtension(Serialization.class, code);
         if (Objects.isNull(serialization)) {
             throw new CodecException("can not find Serialization with code " + code);
         }
 
         return serialization;
+    }
+
+    /**
+     * 判断{@code  code}对应的序列化实现是否存在当前classpath
+     *
+     * @param code serialization code
+     * @return true表示在当前classpath找到{@code  code}对应的序列化实现
+     */
+    public static boolean isSerializationExists(int code) {
+        Serialization serialization = ExtensionLoader.getExtension(Serialization.class, code);
+        return Objects.nonNull(serialization);
     }
 }

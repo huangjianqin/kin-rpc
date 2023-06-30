@@ -1,20 +1,25 @@
 package org.kin.kinrpc.registry.directory;
 
 import com.google.common.base.Preconditions;
+import org.jctools.queues.atomic.MpscUnboundedAtomicArrayQueue;
 import org.kin.framework.utils.CollectionUtils;
-import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.ExtensionLoader;
+import org.kin.framework.utils.StringUtils;
+import org.kin.kinrpc.ReferenceContext;
 import org.kin.kinrpc.ReferenceInvoker;
 import org.kin.kinrpc.ServiceInstance;
+import org.kin.kinrpc.config.ReferenceConfig;
+import org.kin.kinrpc.protocol.Protocol;
+import org.kin.kinrpc.protocol.Protocols;
 import org.kin.kinrpc.registry.RegistryHelper;
-import org.kin.kinrpc.rpc.AsyncInvoker;
-import org.kin.kinrpc.rpc.Protocol;
+import org.kin.kinrpc.registry.ServiceMetadataConstants;
+import org.kin.kinrpc.transport.cmd.Serializations;
+import org.kin.serialization.Serialization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -24,14 +29,18 @@ import java.util.stream.Collectors;
 public class DefaultDirectory implements Directory {
     private static final Logger log = LoggerFactory.getLogger(DefaultDirectory.class);
 
-    /** 服务唯一标识 */
-    private final String service;
+    /** reference config */
+    private final ReferenceConfig<?> config;
     /** 订阅的invoker列表 */
     private volatile List<ReferenceInvoker<?>> invokers = Collections.emptyList();
-    private volatile boolean isStopped;
+    /** 标识是否正在处理服务发现实例 */
+    private final AtomicBoolean discovering = new AtomicBoolean(false);
+    /** 待处理的理服务发现实例列表 */
+    private final Queue<List<ServiceInstance>> discoverQueue = new MpscUnboundedAtomicArrayQueue<>(8);
+    private volatile boolean stopped;
 
-    public DefaultDirectory(String service) {
-        this.service = service;
+    public DefaultDirectory(ReferenceConfig<?> config) {
+        this.config = config;
     }
 
     /**
@@ -43,7 +52,7 @@ public class DefaultDirectory implements Directory {
 
     @Override
     public List<ReferenceInvoker<?>> list() {
-        if (isStopped) {
+        if (stopped) {
             return Collections.emptyList();
         }
         return getActiveInvokers();
@@ -51,7 +60,60 @@ public class DefaultDirectory implements Directory {
 
     @Override
     public void discover(List<ServiceInstance> serviceInstances) {
-        if (isStopped) {
+        if (stopped) {
+            return;
+        }
+
+        discoverQueue.add(serviceInstances);
+        if (!discovering.compareAndSet(false, true)) {
+            //discovering
+            return;
+        }
+
+        ReferenceContext.EXECUTOR.execute(this::doDiscover);
+    }
+
+    /**
+     * 处理服务发现的服务实例, 维护reference invoker缓存
+     */
+    private void doDiscover() {
+        //允许直接处理的最大次数, 防止discover一直占用线程(相当于死循环), 不释放
+        int maxTimes = 5;
+
+        for (int i = 0; i < maxTimes; i++) {
+            try {
+                if (stopped) {
+                    return;
+                }
+
+                //只处理最新的
+                //最新的服务发现服务实例列表
+                List<ServiceInstance> lastInstances = null;
+                List<ServiceInstance> tmp;
+                //遍历找到最新的服务发现服务实例列表
+                while ((tmp = discoverQueue.poll()) != null) {
+                    lastInstances = tmp;
+                }
+
+                if (Objects.nonNull(lastInstances)) {
+                    //如果有新的服务实例, 则更新当前缓存的reference invoker
+                    doDiscover(lastInstances);
+                }
+            } catch (Exception e) {
+                log.error("directory(service={}) discover fail", service(), e);
+            } finally {
+                if (Objects.isNull(discoverQueue.peek())) {
+                    //reset discovering flag
+                    discovering.compareAndSet(true, false);
+                } else {
+                    //发现仍然有服务实例列表需要处理, 直接处理, 节省上下文切换
+                }
+            }
+        }
+    }
+
+    private void doDiscover(List<ServiceInstance> serviceInstances) {
+        if (stopped) {
             return;
         }
 
@@ -64,10 +126,31 @@ public class DefaultDirectory implements Directory {
         List<String> discoverInstanceUrls = serviceInstances.stream()
                 .map(RegistryHelper::toSimpleUrlStr)
                 .collect(Collectors.toList());
-        log.info("directory(service={}) discover start, oldInstances={}, discoverInstances={}", service, oldInstanceUrls, discoverInstanceUrls);
 
-        // TODO: 2023/6/29 过滤非法service, 比如serialization不支持==
+        log.info("directory(service={}) discover start, oldInstances={}, discoverInstances={}", service(), oldInstanceUrls, discoverInstanceUrls);
 
+        //过滤非法service instance, 比如不支持的序列化, 不支持的协议
+        serviceInstances = serviceInstances.stream().filter(si -> {
+            String serialization = si.metadata(ServiceMetadataConstants.SERIALIZATION_KEY);
+            if (StringUtils.isNotBlank(serialization) &&
+                    Serializations.isSerializationExists(ExtensionLoader.getExtensionCode(Serialization.class, serialization))) {
+                return true;
+            } else {
+                log.warn("directory(service={}) ignore service instance due to serialization not found, {}", service(), si);
+                return false;
+            }
+        }).filter(si -> {
+            String schema = si.metadata(ServiceMetadataConstants.SCHEMA_KEY);
+            if (StringUtils.isNotBlank(schema) &&
+                    Protocols.isProtocolExists(schema)) {
+                return true;
+            } else {
+                log.warn("directory(service={}) ignore service instance due to protocol not found, {}", service(), si);
+                return false;
+            }
+        }).collect(Collectors.toList());
+
+        //遍历已创建的reference invoker, 分成3部分有效invoker, 无效invoker, 有效但未创建invoker的service instance
         List<ReferenceInvoker<?>> validInvokers = new ArrayList<>(serviceInstances.size());
         List<ReferenceInvoker<?>> invalidInvokers = new ArrayList<>(oldInvokers.size());
         if (CollectionUtils.isNonEmpty(serviceInstances)) {
@@ -88,23 +171,22 @@ public class DefaultDirectory implements Directory {
             invalidInvokers.addAll(oldInvokers);
         }
 
-        //new instance
+        //为未创建invoker的service instance创建invoker
         for (ServiceInstance instance : serviceInstances) {
-            //todo 检查protocol, serialization
-            Protocol protocol = ExtensionLoader.getExtension(Protocol.class, protocolName);
+            String schema = instance.metadata(ServiceMetadataConstants.SCHEMA_KEY);
+            Protocol protocol = ExtensionLoader.getExtension(Protocol.class, schema);
+            Preconditions.checkNotNull(protocol, String.format("protocol not found, %s", schema));
 
-            Preconditions.checkNotNull(protocol, String.format("unknown protocol: %s", protocolName));
-
-            AsyncInvoker referenceInvoker = null;
+            ReferenceInvoker<?> referenceInvoker = null;
             try {
-                referenceInvoker = protocol.refer(url);
+                referenceInvoker = protocol.refer(instance, config.getSsl());
             } catch (Throwable throwable) {
-                ExceptionUtils.throwExt(throwable);
+                log.error("fail to create reference invoker, instance = {}", instance);
             }
             validInvokers.add(referenceInvoker);
         }
 
-        //destory invalid invokers
+        //destroy invalid invokers
         for (ReferenceInvoker<?> invoker : invalidInvokers) {
             invoker.destroy();
         }
@@ -117,25 +199,31 @@ public class DefaultDirectory implements Directory {
                 .map(RegistryHelper::toSimpleUrlStr)
                 .collect(Collectors.toList());
 
-        log.info("directory(service={}) discover finish, validInstances={}", service, validInstanceUrls);
+        log.info("directory(service={}) discover finished, validInstances={}", service(), validInstanceUrls);
+    }
+
+    @Override
+    public boolean isAvailable() {
+        return !stopped;
     }
 
     @Override
     public void destroy() {
-        if (isStopped) {
+        if (stopped) {
             return;
         }
 
-        isStopped = true;
+        stopped = true;
         for (ReferenceInvoker<?> invoker : invokers) {
             invoker.destroy();
         }
         invokers = Collections.emptyList();
-        log.info("directory destroyed");
+
+        log.info("service '{}' directory destroyed", service());
     }
 
     @Override
     public String service() {
-        return service;
+        return config.service();
     }
 }

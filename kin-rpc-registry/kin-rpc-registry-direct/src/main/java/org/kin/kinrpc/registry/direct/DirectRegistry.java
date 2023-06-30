@@ -4,6 +4,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.kin.kinrpc.RpcException;
 import org.kin.kinrpc.ServiceInstance;
+import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.RegistryConfig;
 import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.registry.AbstractRegistry;
@@ -63,19 +64,20 @@ public final class DirectRegistry extends AbstractRegistry {
     }
 
     @Override
-    public Directory subscribe(String service) {
+    public Directory subscribe(ReferenceConfig<?> config) {
         if (isStopped()) {
             throw new IllegalStateException("registry has been destroyed");
         }
 
-        log.info("reference subscribe service '{}' ", service);
-        Directory directory = null;
+        String service = config.service();
+        log.info("subscribe service '{}' ", service);
+        Directory directory;
         try {
             directory = directoryCache.get(service, () -> {
                 List<ServiceInstance> matchedServiceInstances = serviceInstances.stream()
                         .filter(si -> si.service().equals(service))
                         .collect(Collectors.toList());
-                DefaultDirectory newDirectory = new DefaultDirectory(service);
+                DefaultDirectory newDirectory = new DefaultDirectory(config);
                 newDirectory.discover(matchedServiceInstances);
                 return newDirectory;
             });

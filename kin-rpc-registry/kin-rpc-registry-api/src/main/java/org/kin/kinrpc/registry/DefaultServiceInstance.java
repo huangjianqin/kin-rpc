@@ -37,8 +37,8 @@ public class DefaultServiceInstance implements ServiceInstance {
         this.port = port;
         this.metadata = Collections.unmodifiableMap(metadata);
 
-        this.scheme = metadata(ServiceMetadataConstants.SCHEMA);
-        this.weight = Integer.parseInt(metadata(ServiceMetadataConstants.WEIGHT, "0"));
+        this.scheme = metadata(ServiceMetadataConstants.SCHEMA_KEY);
+        this.weight = Integer.parseInt(metadata(ServiceMetadataConstants.WEIGHT_KEY, "0"));
     }
 
     @Override

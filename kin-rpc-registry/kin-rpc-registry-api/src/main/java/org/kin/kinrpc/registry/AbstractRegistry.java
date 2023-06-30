@@ -3,6 +3,7 @@ package org.kin.kinrpc.registry;
 import org.kin.kinrpc.config.RegistryConfig;
 
 /**
+ * todo regsitry是否需要缓存directory
  * Created by huangjianqin on 2019/6/25.
  */
 public abstract class AbstractRegistry implements Registry {

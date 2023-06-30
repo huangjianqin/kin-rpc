@@ -45,6 +45,11 @@ public final class MultiDirectory implements Directory {
     }
 
     @Override
+    public boolean isAvailable() {
+        return false;
+    }
+
+    @Override
     public void destroy() {
         for (Directory directory : directories) {
             try {

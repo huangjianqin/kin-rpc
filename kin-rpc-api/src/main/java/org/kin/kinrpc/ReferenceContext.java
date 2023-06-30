@@ -21,7 +21,6 @@ public final class ReferenceContext {
                     new LinkedBlockingQueue<>(256),
                     new SimpleThreadFactory("kinrpc-reference-exec", false),
                     new ThreadPoolExecutor.CallerRunsPolicy());
-    // TODO: 2023/6/25
     /** reference端timer */
     public static final HashedWheelTimer TIMER = new HashedWheelTimer(new SimpleThreadFactory("kinrpc-reference-timer", true),
             60, TimeUnit.SECONDS);

@@ -13,11 +13,11 @@ import java.util.*;
  * @date 2023/6/16
  */
 public class ReferenceConfig<T> extends AbstractInterfaceConfig<T, ReferenceConfig<T>> {
+    // TODO: 2023/6/29 记录服务引用次数, 多次重复引用打warn日志, 因为这个操作会很浪费资源
     // TODO: 2023/6/25 校验方法名是否一致
     /** 服务方法配置 */
     private final List<MethodConfig> methods = new ArrayList<>();
     /** 集群处理, 默认是failover */
-    // TODO: 待实现
     private String cluster = ClusterType.FAIL_FAST.getName();
     /** 负载均衡类型, 默认round robin */
     private String loadBalance = LoadBalanceType.ROUND_ROBIN.getName();

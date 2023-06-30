@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Objects;
 
 /**
+ * todo 类命名统一, 是否都叫XXXs
  * Created by huangjianqin on 2019/6/18.
  */
 public class RegistryHelper {
@@ -87,10 +88,14 @@ public class RegistryHelper {
      * @return 服务url
      */
     public static Url toUrl(ServiceConfig<?> serviceConfig, ServerConfig serverConfig) {
-        return new Url(serverConfig.getProtocol(),
+        Url url = new Url(serverConfig.getProtocol(),
                 serverConfig.getHost(),
                 serverConfig.getPort(),
                 serviceConfig.service());
+        url.putParam(ServiceMetadataConstants.SCHEMA_KEY, serverConfig.getProtocol());
+        url.putParam(ServiceMetadataConstants.WEIGHT_KEY, serviceConfig.getWeight());
+        url.putParam(ServiceMetadataConstants.SERIALIZATION_KEY, serviceConfig.getSerialization());
+        return url;
     }
 
     /**

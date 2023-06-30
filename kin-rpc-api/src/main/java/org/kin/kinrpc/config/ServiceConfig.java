@@ -19,6 +19,9 @@ public class ServiceConfig<T> extends AbstractInterfaceConfig<T, ServiceConfig<T
     private final List<ServerConfig> servers = new ArrayList<>();
     /** 服务方法执行线程池 */
     private ExecutorConfig executor;
+    /** 权重 */
+    private int weight;
+
     /** 服务实例 */
     private T instance;
     /** bootstrap 类型 */
@@ -97,6 +100,15 @@ public class ServiceConfig<T> extends AbstractInterfaceConfig<T, ServiceConfig<T
 
     public ServiceConfig<T> bootstrap(String bootstrap) {
         this.bootstrap = bootstrap;
+        return this;
+    }
+
+    public int getWeight() {
+        return weight;
+    }
+
+    public ServiceConfig<T> weight(int weight) {
+        this.weight = weight;
         return this;
     }
 }

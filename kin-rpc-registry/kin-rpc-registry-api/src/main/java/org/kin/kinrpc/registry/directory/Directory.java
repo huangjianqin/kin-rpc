@@ -21,11 +21,18 @@ public interface Directory {
 
     /**
      * 注册中心回调接口
-     * 注册中心监听服务实例变化, 当发生变化时通知{@link Directory}
+     * 注册中心监听服务实例变化, 当发生变化时通知{@link Directory}, 维护reference invoker缓存
      *
      * @param serviceInstances 当前存活的服务实例
      */
     void discover(List<ServiceInstance> serviceInstances);
+
+    /**
+     * 返回directory是否available
+     *
+     * @return true表示directory available
+     */
+    boolean isAvailable();
 
     /**
      * 释放reference invoker占用资源

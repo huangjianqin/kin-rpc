@@ -1,6 +1,6 @@
 package org.kin.kinrpc.transport;
 
-import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * request id generator
@@ -9,6 +9,9 @@ import java.util.UUID;
  * @date 2023/6/1
  */
 public final class RequestIdGenerator {
+    /** request id generator */
+    private static final AtomicLong REQUEST_ID = new AtomicLong();
+
     private RequestIdGenerator() {
     }
 
@@ -16,6 +19,7 @@ public final class RequestIdGenerator {
      * 返回唯一的request id
      */
     public static long next() {
-        return Math.abs(UUID.randomUUID().getLeastSignificantBits());
+        //递增到负数也是接受的, 唯一即可
+        return REQUEST_ID.incrementAndGet();
     }
 }

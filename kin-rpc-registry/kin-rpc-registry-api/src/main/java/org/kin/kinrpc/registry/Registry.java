@@ -2,6 +2,7 @@ package org.kin.kinrpc.registry;
 
 
 import org.kin.framework.utils.SPI;
+import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.registry.directory.Directory;
 
@@ -33,10 +34,10 @@ public interface Registry {
     /**
      * 服务订阅
      *
-     * @param service 服务gsv
+     * @param config reference config
      * @return {@link Directory}实例
      */
-    Directory subscribe(String service);
+    Directory subscribe(ReferenceConfig<?> config);
 
     /**
      * 取消服务订阅

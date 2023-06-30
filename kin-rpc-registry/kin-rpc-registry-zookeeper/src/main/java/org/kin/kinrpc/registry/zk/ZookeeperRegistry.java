@@ -11,6 +11,7 @@ import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.ServiceInstance;
 import org.kin.kinrpc.common.Url;
+import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.RegistryConfig;
 import org.kin.kinrpc.config.ServerConfig;
 import org.kin.kinrpc.config.ServiceConfig;
@@ -203,18 +204,19 @@ public final class ZookeeperRegistry extends AbstractRegistry {
         for (ServerConfig serverConfig : serviceConfig.getServers()) {
             Url url = RegistryHelper.toUrl(serviceConfig, serverConfig);
             deleteZNode(getPath(service, url.getAddress()));
-            tryDeleteZNode(getPath(service));
         }
+        tryDeleteZNode(getPath(service));
     }
 
     @Override
-    public Directory subscribe(String service) {
+    public Directory subscribe(ReferenceConfig<?> config) {
+        String service = config.service();
         if (log.isDebugEnabled()) {
             log.debug("reference subscribe service '{}' on zookeeper registry(address={})", service, connectAddress());
         }
 
         return directoryCache.get(service, () -> {
-            DefaultDirectory iDirectory = new DefaultDirectory(service);
+            DefaultDirectory iDirectory = new DefaultDirectory(config);
             watch(iDirectory);
             return iDirectory;
         });
@@ -240,6 +242,9 @@ public final class ZookeeperRegistry extends AbstractRegistry {
      * 监听服务root path
      */
     private void watchServiceNode(Directory directory) {
+        if (!directory.isAvailable()) {
+            return;
+        }
         try {
             client.checkExists().usingWatcher((Watcher) (WatchedEvent event) -> {
                 //service root path created
@@ -283,6 +288,10 @@ public final class ZookeeperRegistry extends AbstractRegistry {
      * 监听服务root path下child node
      */
     private void watchServiceNodeChilds(Directory directory) {
+        if (!directory.isAvailable()) {
+            return;
+        }
+
         try {
             List<String> childPaths = client.getChildren().usingWatcher(
                     (Watcher) (WatchedEvent event) -> {
