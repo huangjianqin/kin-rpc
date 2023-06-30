@@ -150,7 +150,14 @@ public class RpcService<T> implements Invoker<T> {
         } else if (ret instanceof Mono) {
             return (CompletableFuture<Object>) ((Mono<?>) ret).toFuture();
         } else {
-            return CompletableFuture.completedFuture(ret);
+            //非异步返回结果
+            AsyncContext asyncContext = AsyncContext.remove();
+            if (Objects.nonNull(asyncContext)) {
+                //使用了async context
+                return asyncContext.getFuture();
+            } else {
+                return CompletableFuture.completedFuture(ret);
+            }
         }
     }
 
