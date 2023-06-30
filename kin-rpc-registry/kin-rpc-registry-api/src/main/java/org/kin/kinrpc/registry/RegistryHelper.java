@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Objects;
 
 /**
- * todo 类命名统一, 是否都叫XXXs
  * Created by huangjianqin on 2019/6/18.
  */
 public class RegistryHelper {
