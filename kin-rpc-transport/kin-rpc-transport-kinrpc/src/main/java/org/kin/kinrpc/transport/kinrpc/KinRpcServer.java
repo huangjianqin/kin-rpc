@@ -3,6 +3,7 @@ package org.kin.kinrpc.transport.kinrpc;
 import io.netty.buffer.ByteBuf;
 import io.netty.util.NetUtil;
 import org.kin.kinrpc.config.SslConfig;
+import org.kin.kinrpc.executor.ManagedExecutor;
 import org.kin.kinrpc.transport.AbsRemotingServer;
 import org.kin.kinrpc.transport.ChannelContext;
 import org.kin.kinrpc.transport.TransportOperationListener;
@@ -38,13 +39,20 @@ public class KinRpcServer extends AbsRemotingServer {
 
     public KinRpcServer(int port,
                         SslConfig sslConfig) {
-        this(NetUtil.LOCALHOST.getHostAddress(), port, sslConfig);
+        this(port, null, sslConfig);
+    }
+
+    public KinRpcServer(int port,
+                        ManagedExecutor executor,
+                        SslConfig sslConfig) {
+        this(NetUtil.LOCALHOST.getHostAddress(), port, executor, sslConfig);
     }
 
     public KinRpcServer(String host,
                         int port,
+                        @Nullable ManagedExecutor executor,
                         @Nullable SslConfig sslConfig) {
-        super(host, port);
+        super(host, port, executor);
         transport = TcpServerTransport.create()
                 .payloadProcessor((s, bp) ->
                         Mono.fromRunnable(() -> remotingProcessor.process(new ChannelContext() {

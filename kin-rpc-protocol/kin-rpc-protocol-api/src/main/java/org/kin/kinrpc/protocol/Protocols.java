@@ -1,6 +1,7 @@
 package org.kin.kinrpc.protocol;
 
 import org.kin.framework.utils.ExtensionLoader;
+import org.kin.kinrpc.transport.cmd.CodecException;
 
 import java.util.Objects;
 
@@ -12,6 +13,21 @@ import java.util.Objects;
  */
 public final class Protocols {
     private Protocols() {
+    }
+
+    /**
+     * 根据protocol name查找{@link Protocol}实现
+     *
+     * @param name protocol name
+     * @return {@link Protocol}实例
+     */
+    public static Protocol getByName(String name) {
+        Protocol protocol = ExtensionLoader.getExtension(Protocol.class, name);
+        if (Objects.isNull(protocol)) {
+            throw new CodecException("can not find Protocol named " + name);
+        }
+
+        return protocol;
     }
 
     /**

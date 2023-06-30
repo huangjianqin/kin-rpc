@@ -1,0 +1,2 @@
+serviceBootstrap=org.kin.kinrpc.bootstrap.ServiceBootstrap
+referenceBootstrap=org.kin.kinrpc.bootstrap.ReferenceBootstrap

@@ -6,6 +6,7 @@ import io.rsocket.transport.netty.server.TcpServerTransport;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.config.SslConfig;
+import org.kin.kinrpc.executor.ManagedExecutor;
 import org.kin.kinrpc.transport.AbsRemotingServer;
 import org.kin.transport.netty.utils.SslUtils;
 import org.slf4j.Logger;
@@ -34,11 +35,19 @@ public class RSocketServer extends AbsRemotingServer {
     }
 
     public RSocketServer(int port, SslConfig sslConfig) {
-        this(NetUtils.getLocalhostIp(), port, sslConfig);
+        this(port, null, sslConfig);
     }
 
-    public RSocketServer(String host, int port, @Nullable SslConfig sslConfig) {
-        super(host, port);
+    public RSocketServer(int port,
+                         ManagedExecutor executor,
+                         SslConfig sslConfig) {
+        this(NetUtils.getLocalhostIp(), port, executor, sslConfig);
+    }
+
+    public RSocketServer(String host, int port,
+                         @Nullable ManagedExecutor executor,
+                         @Nullable SslConfig sslConfig) {
+        super(host, port, executor);
         this.sslConfig = sslConfig;
     }
 

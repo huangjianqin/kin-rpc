@@ -5,10 +5,16 @@ import org.kin.kinrpc.Exporter;
 import org.kin.kinrpc.ReferenceInvoker;
 import org.kin.kinrpc.RpcService;
 import org.kin.kinrpc.ServiceInstance;
+import org.kin.kinrpc.config.ExecutorConfig;
 import org.kin.kinrpc.config.ServerConfig;
 import org.kin.kinrpc.config.SslConfig;
+import org.kin.kinrpc.executor.ExecutorHelper;
+import org.kin.kinrpc.executor.ManagedExecutor;
 import org.kin.kinrpc.transport.RemotingClient;
 import org.kin.kinrpc.transport.RemotingServer;
+
+import javax.annotation.Nullable;
+import java.util.Objects;
 
 /**
  * @author huangjianqin
@@ -41,9 +47,9 @@ public abstract class AbstractProtocol implements Protocol {
             }
 
             @Override
-            public void unexport() {
+            public void unExport() {
                 serverContext.getRpcRequestProcessor().unregister(rpcService.serviceId());
-                onUnexport(rpcService, serverContext.getServer());
+                onUnExport(rpcService, serverContext.getServer());
                 serverContextCache.release(address);
             }
         };
@@ -56,7 +62,11 @@ public abstract class AbstractProtocol implements Protocol {
      * @return {@link RemotingServerContext}实例
      */
     private RemotingServerContext createServerContext(ServerConfig serverConfig) {
-        RemotingServer server = createServer(serverConfig);
+        ExecutorConfig executorConfig = serverConfig.getExecutor();
+        String executorName = serverConfig.getAddress() + "-command-processor";
+        ManagedExecutor executor = Objects.nonNull(executorConfig) ? ExecutorHelper.getOrCreateExecutor(executorConfig, executorName) : null;
+
+        RemotingServer server = createServer(serverConfig, executor);
         DefaultRpcRequestProcessor rpcRequestProcessor = new DefaultRpcRequestProcessor();
         server.registerRequestProcessor(rpcRequestProcessor);
 
@@ -68,9 +78,10 @@ public abstract class AbstractProtocol implements Protocol {
      * 构造{@link RemotingServer}实例
      *
      * @param serverConfig server config
+     * @param executor     server command process executor
      * @return {@link RemotingServer}实例
      */
-    protected abstract RemotingServer createServer(ServerConfig serverConfig);
+    protected abstract RemotingServer createServer(ServerConfig serverConfig, @Nullable ManagedExecutor executor);
 
     /**
      * service export时触发
@@ -81,10 +92,10 @@ public abstract class AbstractProtocol implements Protocol {
     }
 
     /**
-     * service unexport时触发
-     * 用于service unexport时, 自定义server一些操作
+     * service unExport时触发
+     * 用于service unExport时, 自定义server一些操作
      */
-    protected void onUnexport(RpcService<?> service, RemotingServer server) {
+    protected void onUnExport(RpcService<?> service, RemotingServer server) {
         //default do nothing
     }
 

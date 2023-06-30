@@ -9,6 +9,7 @@ import io.netty.buffer.ByteBuf;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.config.SslConfig;
+import org.kin.kinrpc.executor.ManagedExecutor;
 import org.kin.kinrpc.transport.AbsRemotingServer;
 import org.kin.kinrpc.transport.TransportException;
 import org.kin.kinrpc.transport.grpc.interceptor.DefaultServerInterceptor;
@@ -47,11 +48,19 @@ public class GrpcServer extends AbsRemotingServer {
     }
 
     public GrpcServer(int port, SslConfig sslConfig) {
-        this(NetUtils.getLocalhostIp(), port, sslConfig);
+        this(port, null, sslConfig);
     }
 
-    public GrpcServer(String host, int port, @Nullable SslConfig sslConfig) {
-        super(host, port);
+    public GrpcServer(int port,
+                      ManagedExecutor executor,
+                      SslConfig sslConfig) {
+        this(NetUtils.getLocalhostIp(), port, executor, sslConfig);
+    }
+
+    public GrpcServer(String host, int port,
+                      @Nullable ManagedExecutor executor,
+                      @Nullable SslConfig sslConfig) {
+        super(host, port, executor);
         NettyServerBuilder serverBuilder = NettyServerBuilder
                 .forAddress(new InetSocketAddress(host, port));
         //user custom, user can not modify

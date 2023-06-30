@@ -2,6 +2,7 @@ package org.kin.kinrpc.transport;
 
 import org.kin.framework.collection.ConcurrentHashSet;
 import org.kin.framework.concurrent.SimpleThreadFactory;
+import org.kin.framework.concurrent.ThreadPoolUtils;
 import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.transport.cmd.CodecException;
@@ -12,10 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.Predicate;
 
 /**
@@ -28,8 +26,9 @@ public final class RemotingClientMonitor {
     private static final Logger log = LoggerFactory.getLogger(RemotingClientMonitor.class);
 
     /** remoting client健康检查scheduler */
-    private static final ScheduledThreadPoolExecutor SCHEDULER =
-            new ScheduledThreadPoolExecutor(SysUtils.CPU_NUM, new SimpleThreadFactory("remoting-client-monitor", true));
+    private static final ScheduledThreadPoolExecutor SCHEDULER = ThreadPoolUtils.newScheduledThreadPool("remoting-client-monitor", true,
+            SysUtils.CPU_NUM, new SimpleThreadFactory("remoting-client-monitor", true),
+            new ThreadPoolExecutor.CallerRunsPolicy());
     /** unhealth exception */
     private static final Predicate<Throwable> UNHEALTH_EXCEPTION = t -> !(t instanceof RemotingException) && !(t instanceof CodecException);
     /** 心跳超时时间 */

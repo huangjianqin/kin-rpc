@@ -56,7 +56,7 @@ public class ServiceConfig<T> extends AbstractInterfaceConfig<T, ServiceConfig<T
     }
 
     /**
-     * 暴露服务
+     * 发布服务
      */
     @SuppressWarnings("unchecked")
     public synchronized void export() {
@@ -72,12 +72,12 @@ public class ServiceConfig<T> extends AbstractInterfaceConfig<T, ServiceConfig<T
     /**
      * 服务下线
      */
-    public synchronized void unexport() {
+    public synchronized void unExport() {
         if (Objects.isNull(serviceBootstrap)) {
             return;
         }
 
-        serviceBootstrap.unexport();
+        serviceBootstrap.unExport();
     }
 
     //setter && getter

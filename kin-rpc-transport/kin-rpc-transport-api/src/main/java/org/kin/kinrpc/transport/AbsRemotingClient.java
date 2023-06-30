@@ -1,6 +1,11 @@
 package org.kin.kinrpc.transport;
 
 import org.jctools.maps.NonBlockingHashMap;
+import org.kin.framework.concurrent.SimpleThreadFactory;
+import org.kin.framework.concurrent.ThreadPoolUtils;
+import org.kin.framework.utils.SysUtils;
+import org.kin.kinrpc.executor.DefaultManagedExecutor;
+import org.kin.kinrpc.executor.ManagedExecutor;
 import org.kin.kinrpc.transport.cmd.RemotingCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +16,9 @@ import java.net.SocketAddress;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author huangjianqin
@@ -22,7 +30,7 @@ public abstract class AbsRemotingClient implements RemotingClient {
     /** remoting codec */
     protected final RemotingCodec codec = new RemotingCodec();
     /** remoting processor */
-    protected final RemotingProcessor remotingProcessor = new RemotingProcessor(codec);
+    protected final RemotingProcessor remotingProcessor;
     /** key -> request id, value -> request future */
     protected final Map<Long, CompletableFuture<Object>> requestFutureMap = new NonBlockingHashMap<>();
     /** remote host */
@@ -103,6 +111,14 @@ public abstract class AbsRemotingClient implements RemotingClient {
         this.port = port;
         this.remoteAddress = new InetSocketAddress(host, port);
         this.name = getClass().getSimpleName() + String.format("(- R:%s)", remoteAddress());
+        String executorName = name + "-command-processor";
+        ManagedExecutor executor = new DefaultManagedExecutor(
+                ThreadPoolUtils.newThreadPool(executorName, true,
+                        SysUtils.CPU_NUM, SysUtils.DOUBLE_CPU,
+                        60, TimeUnit.SECONDS,
+                        new LinkedBlockingQueue<>(256), new SimpleThreadFactory(executorName),
+                        new ThreadPoolExecutor.CallerRunsPolicy()));
+        this.remotingProcessor = new RemotingProcessor(codec, executor);
     }
 
     @Override

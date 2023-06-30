@@ -17,16 +17,16 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2023/3/1
  */
-public class ExecutorManager {
+public class ExecutorHelper {
     /**
      * 服务调用线程池
      * key -> executor name
      */
-    private static final Map<String, ServiceExecutor> EXECUTOR_MAP = new HashMap<>();
+    private static final Map<String, ManagedExecutor> EXECUTOR_MAP = new HashMap<>();
 
     static {
         JvmCloseCleaner.instance().add(() -> {
-            for (ServiceExecutor executor : EXECUTOR_MAP.values()) {
+            for (ManagedExecutor executor : EXECUTOR_MAP.values()) {
                 executor.shutdown();
             }
         });
@@ -35,24 +35,24 @@ public class ExecutorManager {
     /**
      * 获取服务线程池
      *
-     * @param service 服务唯一标识
-     * @param config  服务调用线程池配置
+     * @param defaultName 默认线程池唯一标识
+     * @param config      服务调用线程池配置
      * @return 服务线程池
      */
-    public static synchronized ServiceExecutor getOrCreateExecutor(String service, ExecutorConfig config) {
+    public static synchronized ManagedExecutor getOrCreateExecutor(ExecutorConfig config, String defaultName) {
         String name = config.getName();
         if (StringUtils.isNotBlank(name)) {
             //复用已注册的线程池
-            ServiceExecutor serviceExecutor = EXECUTOR_MAP.get(name);
-            if (Objects.isNull(serviceExecutor)) {
+            ManagedExecutor executor = EXECUTOR_MAP.get(name);
+            if (Objects.isNull(executor)) {
                 throw new RpcException(String.format("can not find executor with name '%s'", name));
             }
 
-            return serviceExecutor;
+            return executor;
         } else {
             //默认executor name
             //创建并注册线程池
-            return createExecutor(config.name(service + "-default"));
+            return createExecutor(config.name(defaultName));
         }
     }
 
@@ -62,7 +62,7 @@ public class ExecutorManager {
      * @param name     服务调用线程池唯一标识
      * @param executor 服务调用线程池
      */
-    public static synchronized void registerExecutor(String name, ServiceExecutor executor) {
+    public static synchronized void registerExecutor(String name, ManagedExecutor executor) {
         if (EXECUTOR_MAP.containsKey(name)) {
             throw new RpcException(String.format("executor name with '%s' has registered", name));
         }
@@ -84,7 +84,7 @@ public class ExecutorManager {
      *
      * @param config 服务调用线程池配置
      */
-    private static ServiceExecutor createExecutor(ExecutorConfig config) {
+    private static ManagedExecutor createExecutor(ExecutorConfig config) {
         String name = config.getName();
         if (StringUtils.isBlank(name)) {
             throw new IllegalArgumentException("executor name must be not blank");
@@ -99,9 +99,9 @@ public class ExecutorManager {
             throw new RpcException(String.format("can not find executor factory for type '%s'", config.getType()));
         }
 
-        ServiceExecutor serviceExecutor = executorFactory.create(config);
-        EXECUTOR_MAP.put(name, serviceExecutor);
-        return serviceExecutor;
+        ManagedExecutor executor = executorFactory.create(config);
+        EXECUTOR_MAP.put(name, executor);
+        return executor;
     }
 
     /**
@@ -110,11 +110,11 @@ public class ExecutorManager {
      * @param name 服务调用线程池唯一标识
      */
     public static synchronized void removeExecutor(String name) {
-        ServiceExecutor serviceExecutor = EXECUTOR_MAP.get(name);
-        if (Objects.isNull(serviceExecutor)) {
+        ManagedExecutor executor = EXECUTOR_MAP.get(name);
+        if (Objects.isNull(executor)) {
             return;
         }
 
-        serviceExecutor.shutdown();
+        executor.shutdown();
     }
 }

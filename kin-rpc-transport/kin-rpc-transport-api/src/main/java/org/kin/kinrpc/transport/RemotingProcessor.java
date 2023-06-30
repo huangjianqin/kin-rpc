@@ -1,17 +1,15 @@
 package org.kin.kinrpc.transport;
 
+import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
-import org.kin.framework.concurrent.ExecutionContext;
-import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.utils.ClassUtils;
-import org.kin.framework.utils.SysUtils;
+import org.kin.kinrpc.executor.ManagedExecutor;
 import org.kin.kinrpc.transport.cmd.RemotingCodec;
 import org.kin.kinrpc.transport.cmd.RemotingCommand;
 import org.kin.kinrpc.transport.cmd.processor.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -25,26 +23,25 @@ public class RemotingProcessor {
 
     /** key -> command code, value -> {@link CommandProcessor}实例 */
     private final Map<Short, CommandProcessor<RemotingCommand>> cmdProcessorMap = new HashMap<>();
-    // TODO: 2023/6/12 支持配置
     /** command processor线程池 */
-    private final ExecutionContext executor =
-            ExecutionContext.elastic(SysUtils.CPU_NUM, SysUtils.DOUBLE_CPU,
-                    new SimpleThreadFactory("command-processor", true));
+    private final ManagedExecutor executor;
     /** 协议codec */
     private final RemotingCodec codec;
     /** {@link RequestProcessor}实例管理 */
     private final RequestProcessorRegistry requestProcessorRegistry = new RequestProcessorRegistry();
 
     @SuppressWarnings("unchecked")
-    public RemotingProcessor(RemotingCodec codec) {
+    public RemotingProcessor(RemotingCodec codec, ManagedExecutor executor) {
+        Preconditions.checkNotNull(executor);
         this.codec = codec;
-
+        this.executor = executor;
+        //internal
         List<CommandProcessor<? extends RemotingCommand>> commandProcessors = Arrays.asList(new HeartbeatCommandProcessor(),
                 new MessageCommandProcessor(),
                 new RpcRequestCommandProcessor(),
                 new RpcResponseCommandProcessor());
         for (CommandProcessor<? extends RemotingCommand> commandProcessor : commandProcessors) {
-            Class<? extends RemotingCommand> type = (Class<?extends RemotingCommand>)
+            Class<? extends RemotingCommand> type = (Class<? extends RemotingCommand>)
                     ClassUtils.getSuperInterfacesGenericActualTypes(CommandProcessor.class, commandProcessor.getClass()).get(0);
             short commandCode = CommandHelper.getCommandCode(type);
             cmdProcessorMap.put(commandCode, (CommandProcessor<RemotingCommand>) commandProcessor);
@@ -52,14 +49,18 @@ public class RemotingProcessor {
     }
 
     /**
-     * process protocol byte buffer
+     * process command
      * 会对{@code in}进行{@link ByteBuf#release()}操作, 需保证{@link ByteBuf#refCnt()}大于0
      *
      * @param context channel context
      * @param in      protocol byte buffer
      */
     public void process(ChannelContext context, ByteBuf in) {
-        executor.execute(new CommandProcessTask(context, in));
+        try {
+            executor.execute(new CommandProcessTask(context, in));
+        } catch (Exception e) {
+            log.error("process command error", e);
+        }
     }
 
     /**

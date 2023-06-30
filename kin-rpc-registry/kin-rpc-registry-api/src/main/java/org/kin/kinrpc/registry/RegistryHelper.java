@@ -39,12 +39,12 @@ public class RegistryHelper {
     }
 
     /**
-     * 关联注册中心, 如果缓存中存在注册中心, 则复用, 否则创建一个新的
+     * 返回注册中心, 如果缓存中已存在注册中心client, 则复用, 否则创建一个新的
      *
      * @param config 注册中心配置
      * @return {@link Registry}实例
      */
-    public static synchronized Registry attachRegistry(RegistryConfig config) {
+    public static synchronized Registry getRegistry(RegistryConfig config) {
         String key = getCacheKey(config);
         return REGISTRY_CACHE.get(key, () -> {
             String type = config.getType();
@@ -53,6 +53,7 @@ public class RegistryHelper {
                 throw new RegistryFactoryNotFoundException(type);
             }
 
+            // TODO: 2023/6/30 引用计数缓存对象在封装, destroy, shutdown方法释放计数并非真的逻辑
             Registry registry = registryFactory.create(config);
             registry.init();
             return registry;
@@ -60,11 +61,11 @@ public class RegistryHelper {
     }
 
     /**
-     * 取消关联注册中心
+     * 释放注册中心client引用次数
      *
      * @param config 注册中心配置
      */
-    public static synchronized void detachRegistry(RegistryConfig config) {
+    public static synchronized void releaseRegistry(RegistryConfig config) {
         REGISTRY_CACHE.release(getCacheKey(config));
     }
 

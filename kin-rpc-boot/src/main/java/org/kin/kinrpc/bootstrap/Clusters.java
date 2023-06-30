@@ -1,4 +1,4 @@
-package org.kin.kinrpc.cluster.bootstrap;
+package org.kin.kinrpc.bootstrap;
 
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
@@ -33,7 +33,7 @@ public class Clusters {
     }
 
     /**
-     * 暴露服务
+     * 发布服务
      */
     public static synchronized <T> void export(Url url, Class<T> interfaceClass, T instance) {
         String protocolName = url.getProtocol();

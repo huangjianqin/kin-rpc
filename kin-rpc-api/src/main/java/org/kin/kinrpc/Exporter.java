@@ -15,7 +15,7 @@ public interface Exporter<T> {
     RpcService<T> service();
 
     /**
-     * unexport service
+     * unExport service
      */
-    void unexport();
+    void unExport();
 }

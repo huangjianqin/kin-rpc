@@ -39,7 +39,7 @@ public class JvmProtocol implements Protocol {
             }
 
             @Override
-            public void unexport() {
+            public void unExport() {
                 RpcService<T> invoker = service();
                 rpcServiceCache.remove(invoker.getConfig().serviceId());
             }

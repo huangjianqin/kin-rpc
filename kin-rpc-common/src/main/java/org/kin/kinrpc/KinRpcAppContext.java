@@ -1,19 +1,18 @@
-package org.kin.kinrpc.common;
+package org.kin.kinrpc;
 
 import org.kin.framework.event.DefaultEventBus;
 import org.kin.framework.event.EventBus;
+import org.kin.framework.utils.SysUtils;
 
 import java.util.Objects;
-import java.util.UUID;
 
 /**
  * @author huangjianqin
  * @date 2023/6/12
  */
-public class KinRpcAppContext {
-    // TODO: 2023/6/25
-    /** app uuid */
-    public static final String ID = UUID.randomUUID().toString();
+public final class KinRpcAppContext {
+    /** 进程pid */
+    public static final int PID = SysUtils.getPid();
     /** 是否支持字节码增强 */
     public static final boolean ENHANCE;
     /** 默认event bus */
@@ -30,11 +29,15 @@ public class KinRpcAppContext {
         ENHANCE = Objects.nonNull(byteBuddyClass);
     }
 
+    private KinRpcAppContext() {
+    }
+
     /**
      * dispatch event
+     *
      * @param event 时间
      */
-    public static void dispatchEvent(Object event){
+    public static void dispatchEvent(Object event) {
         EVENT_BUS.post(event);
     }
 }

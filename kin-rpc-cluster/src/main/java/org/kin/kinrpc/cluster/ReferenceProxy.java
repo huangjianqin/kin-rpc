@@ -12,7 +12,6 @@ import org.kin.framework.utils.MethodHandleUtils;
 import org.kin.kinrpc.*;
 import org.kin.kinrpc.cluster.call.RpcResultAdapterHelper;
 import org.kin.kinrpc.cluster.invoker.ClusterInvoker;
-import org.kin.kinrpc.common.KinRpcAppContext;
 import org.kin.kinrpc.config.MethodConfig;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.constants.ReferenceConstants;

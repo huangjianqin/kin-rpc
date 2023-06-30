@@ -7,7 +7,7 @@ import org.kin.framework.proxy.Proxys;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.config.ExecutorConfig;
 import org.kin.kinrpc.config.ServiceConfig;
-import org.kin.kinrpc.executor.ExecutorManager;
+import org.kin.kinrpc.executor.ExecutorHelper;
 import org.kin.kinrpc.utils.RpcUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +21,7 @@ import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 /**
- * service端{@link Invoker}实现
+ * rpc服务封装
  *
  * @author huangjianqin
  * @date 2023/2/27
@@ -30,6 +30,7 @@ public class RpcService<T> implements Invoker<T> {
     private static final Logger log = LoggerFactory.getLogger(RpcService.class);
 
     private final ServiceConfig<T> config;
+    private final InterceptorChain<T> chain;
     /** 服务方法元数据 */
     private final IntObjectMap<RpcHandler> rpcHandlerMap;
     /** 服务调用线程池 */
@@ -37,7 +38,11 @@ public class RpcService<T> implements Invoker<T> {
 
     public RpcService(ServiceConfig<T> config) {
         this.config = config;
+        //create interceptor chain
+        Invoker<T> invoker = this::doInvoke;
+        this.chain = InterceptorChain.create(config, invoker);
 
+        //create rpc handler
         IntObjectHashMap<RpcHandler> rpcHandlerMap = new IntObjectHashMap<>();
         T instance = config.getInstance();
         String service = service();
@@ -57,16 +62,34 @@ public class RpcService<T> implements Invoker<T> {
         }
         this.rpcHandlerMap = rpcHandlerMap;
 
+        //create invoke executor
         ExecutorConfig executorConfig = config.getExecutor();
         Executor executor = null;
         if (Objects.nonNull(executorConfig)) {
-            executor = ExecutorManager.getOrCreateExecutor(service, executorConfig);
+            executor = ExecutorHelper.getOrCreateExecutor(executorConfig, service);
         }
         this.executor = executor;
     }
 
     @Override
     public RpcResult invoke(Invocation invocation) {
+        CompletableFuture<Object> future = new CompletableFuture<>();
+        if (Objects.nonNull(executor)) {
+            executor.execute(() -> chain.invoke(invocation).onFinish(future));
+        } else {
+            chain.invoke(invocation).onFinish(future);
+        }
+
+        return RpcResult.success(invocation, future);
+    }
+
+    /**
+     * 服务方法调用
+     *
+     * @param invocation rpc invocation
+     * @return
+     */
+    private RpcResult doInvoke(Invocation invocation) {
         int handlerId = invocation.handlerId();
         RpcHandler rpcHandler = rpcHandlerMap.get(handlerId);
         if (Objects.isNull(rpcHandler)) {
@@ -74,12 +97,7 @@ public class RpcService<T> implements Invoker<T> {
         }
 
         CompletableFuture<Object> future = new CompletableFuture<>();
-        if (Objects.nonNull(executor)) {
-            executor.execute(() -> doInvoke(rpcHandler, invocation, future));
-        } else {
-            doInvoke(rpcHandler, invocation, future);
-        }
-
+        doInvoke0(rpcHandler, invocation, future);
         return RpcResult.success(invocation, future);
     }
 
@@ -90,11 +108,11 @@ public class RpcService<T> implements Invoker<T> {
      * @param invocation rpc invocation
      * @param future     result future
      */
-    private void doInvoke(RpcHandler rpcHandler,
-                          Invocation invocation,
-                          CompletableFuture<Object> future) {
+    private void doInvoke0(RpcHandler rpcHandler,
+                           Invocation invocation,
+                           CompletableFuture<Object> future) {
         try {
-            Object ret = doInvoke0(rpcHandler, invocation);
+            Object ret = doInvoke1(rpcHandler, invocation);
             CompletableFuture<Object> invokeFuture = wrapFuture(ret);
             invokeFuture.whenComplete((r, t) -> {
                 if (Objects.isNull(t)) {
@@ -129,7 +147,7 @@ public class RpcService<T> implements Invoker<T> {
      * @param rpcHandler rpc handler
      * @param invocation rpc invocation
      */
-    private Object doInvoke0(RpcHandler rpcHandler,
+    private Object doInvoke1(RpcHandler rpcHandler,
                              Invocation invocation) {
         String methodName = invocation.getMethodName();
         Object[] params = invocation.params();

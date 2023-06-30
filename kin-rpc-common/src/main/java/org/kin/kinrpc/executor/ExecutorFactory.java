@@ -18,5 +18,5 @@ public interface ExecutorFactory {
      *
      * @return 服务调用线程池
      */
-    ServiceExecutor create(ExecutorConfig config);
+    ManagedExecutor create(ExecutorConfig config);
 }

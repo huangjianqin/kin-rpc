@@ -20,11 +20,11 @@ public class ServerConfig extends AttachableConfig {
     private String host = NetUtils.getLocalhostIp();
     /** 监听端口 */
     private int port = Constants.DEFAULT_SERVER_PORT;
-    /** server端业务线程池大小, 默认是double cpu处理器数量, 无限队列长度的线程池 */
+    /** server端业务线程池大小, 默认是double cpu处理器数量, 队列长度为512的线程池 */
     private ExecutorConfig executor = ExecutorConfig.create(ExecutorType.FIX)
-            .corePoolSize(SysUtils.DOUBLE_CPU)
+            .corePoolSize(SysUtils.CPU_NUM)
             .maxPoolSize(SysUtils.DOUBLE_CPU)
-            .queueSize(Integer.MAX_VALUE);
+            .queueSize(1024);
     /** 服务connection ssl配置 */
     private SslConfig ssl;
 
