@@ -1,5 +1,6 @@
 package org.kin.kinrpc.config;
 
+import org.kin.framework.utils.StringUtils;
 import org.kin.framework.utils.SysUtils;
 
 import java.util.concurrent.TimeUnit;
@@ -11,11 +12,11 @@ import java.util.concurrent.TimeUnit;
  * @author huangjianqin
  * @date 2023/6/16
  */
-public class ExecutorConfig extends AbstractConfig {
+public class ExecutorConfig extends AttachableConfig {
     /** executor name */
     private String name;
     /** 服务处理线程类型 */
-    private String executor;
+    private String type;
     /** core thread size, 默认为cpu处理器数量 */
     private int corePoolSize = SysUtils.getSuitableThreadNum();
     /** max thread size, 默认为{@link Integer#MAX_VALUE} */
@@ -23,7 +24,7 @@ public class ExecutorConfig extends AbstractConfig {
     /** thread pool keepAliveTime, default 60s */
     private int alive = (int) TimeUnit.SECONDS.toMillis(60);
     /** thread pool's queue size */
-    private int queueSize = 1024;
+    private int queueSize = 256;
 
     /**
      * 复用executor
@@ -37,7 +38,7 @@ public class ExecutorConfig extends AbstractConfig {
     }
 
     public static ExecutorConfig create(String executor) {
-        return new ExecutorConfig().executor(executor);
+        return new ExecutorConfig().type(executor);
     }
 
     public static ExecutorConfig create(ExecutorType executorType) {
@@ -87,6 +88,17 @@ public class ExecutorConfig extends AbstractConfig {
     private ExecutorConfig() {
     }
 
+    @Override
+    protected void checkValid() {
+        super.checkValid();
+        check(StringUtils.isNotBlank(type), "executor type must be not blank");
+        check(corePoolSize > 0, "executor corePoolSize must be greater than 0");
+        check(maxPoolSize > 0, "executor maxPoolSize must be greater than 0");
+        check(maxPoolSize >= corePoolSize, "executor maxPoolSize must be greater and equal than corePoolSize");
+        check(alive > 0, "executor alive time must be greater than 0");
+        check(queueSize > 0, "executor queue size must be greater than 0");
+    }
+
     //setter && getter
     public String getName() {
         return name;
@@ -97,12 +109,12 @@ public class ExecutorConfig extends AbstractConfig {
         return this;
     }
 
-    public String getExecutor() {
-        return executor;
+    public String getType() {
+        return type;
     }
 
-    public ExecutorConfig executor(String executor) {
-        this.executor = executor;
+    public ExecutorConfig type(String type) {
+        this.type = type;
         return this;
     }
 

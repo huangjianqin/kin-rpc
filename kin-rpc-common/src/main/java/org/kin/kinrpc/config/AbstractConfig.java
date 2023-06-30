@@ -1,13 +1,31 @@
 package org.kin.kinrpc.config;
 
-import org.kin.framework.collection.AttachmentMap;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.kin.kinrpc.IllegalConfigException;
 
 /**
- * config抽象父类, 继承自{@link AttachmentMap}用于用户自定义配置项
- * 当用户自定义registry或者protocol时,就可以通过{@link AttachmentMap}定义自定义配置项
+ * config抽象父类
  *
  * @author huangjianqin
- * @date 2023/6/15
+ * @date 2023/6/30
  */
-public abstract class AbstractConfig extends AttachmentMap implements Config {
+public abstract class AbstractConfig implements Config {
+    /**
+     * 检查配置合法性
+     */
+    protected void checkValid() {
+        //default do nothing
+    }
+
+    /**
+     * 检查配置, 如果{@code expression}为false, 则抛{@link  IllegalConfigException}异常
+     *
+     * @param expression   配置检查表达式
+     * @param errorMessage 配置异常消息
+     */
+    protected static void check(boolean expression, @Nullable Object errorMessage) {
+        if (!expression) {
+            throw new IllegalConfigException(String.valueOf(errorMessage));
+        }
+    }
 }

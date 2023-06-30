@@ -1,9 +1,12 @@
 package org.kin.kinrpc.config;
 
 import org.kin.framework.utils.ExtensionLoader;
+import org.kin.framework.utils.StringUtils;
+import org.kin.kinrpc.IllegalConfigException;
 import org.kin.kinrpc.bootstrap.ReferenceBootstrap;
 import org.kin.kinrpc.constants.ReferenceConstants;
 
+import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -13,8 +16,6 @@ import java.util.*;
  * @date 2023/6/16
  */
 public class ReferenceConfig<T> extends AbstractInterfaceConfig<T, ReferenceConfig<T>> {
-    // TODO: 2023/6/29 记录服务引用次数, 多次重复引用打warn日志, 因为这个操作会很浪费资源
-    // TODO: 2023/6/25 校验方法名是否一致
     /** 服务方法配置 */
     private final List<MethodConfig> methods = new ArrayList<>();
     /** 集群处理, 默认是failover */
@@ -44,6 +45,7 @@ public class ReferenceConfig<T> extends AbstractInterfaceConfig<T, ReferenceConf
     /** 是否服务调用粘黏 */
     private boolean sticky;
 
+    //----------------------------------------------------------------动态变量, lazy init
     private transient ReferenceBootstrap<T> referenceBootstrap;
 
     public static <T> ReferenceConfig<T> create(Class<T> interfaceClass) {
@@ -53,6 +55,32 @@ public class ReferenceConfig<T> extends AbstractInterfaceConfig<T, ReferenceConf
     private ReferenceConfig() {
     }
 
+    @Override
+    protected void checkValid() {
+        super.checkValid();
+        Set<String> availableMethodNames = new HashSet<>();
+        for (Method method : getInterfaceClass().getDeclaredMethods()) {
+            availableMethodNames.add(method.getName());
+        }
+        for (MethodConfig methodConfig : methods) {
+            methodConfig.checkValid();
+
+            //检查方法名是否合法
+            String name = methodConfig.getName();
+            if (!availableMethodNames.contains(name)) {
+                throw new IllegalConfigException(String.format("method '%s' is not found in interface '%s'", name, getInterfaceClass().getName()));
+            }
+        }
+
+        check(StringUtils.isNotBlank(cluster), "cluster must be not blank");
+        check(StringUtils.isNotBlank(loadBalance), "loadBalance must be not blank");
+        check(StringUtils.isNotBlank(router), "router must be not blank");
+        check(StringUtils.isNotBlank(bootstrap), "bootstrap must be not blank");
+
+        check(rpcTimeout > 0, "global method rpc call timeout must be greater than 0");
+        check(retries > 0, "global method rpc call retry times must be greater than 0");
+    }
+
     /**
      * 创建服务引用代理实例
      *
@@ -60,6 +88,8 @@ public class ReferenceConfig<T> extends AbstractInterfaceConfig<T, ReferenceConf
      */
     @SuppressWarnings("unchecked")
     public synchronized T refer() {
+        checkValid();
+
         if (Objects.isNull(referenceBootstrap)) {
             referenceBootstrap = ExtensionLoader.getExtension(ReferenceBootstrap.class, bootstrap, this);
         }

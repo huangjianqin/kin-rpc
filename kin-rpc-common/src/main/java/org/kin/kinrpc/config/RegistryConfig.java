@@ -1,5 +1,7 @@
 package org.kin.kinrpc.config;
 
+import org.kin.framework.utils.StringUtils;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -9,7 +11,7 @@ import java.util.List;
  * @author huangjianqin
  * @date 2023/6/15
  */
-public class RegistryConfig extends AbstractConfig {
+public class RegistryConfig extends AttachableConfig {
     /** 默认注册中心地址分隔符 */
     private static final String DEFAULT_ADDRESS_SEPARATOR = ";";
     /** 注册中心类型 */
@@ -17,7 +19,7 @@ public class RegistryConfig extends AbstractConfig {
     /** 注册中心的地址, 如果有多个, 用分号分隔 */
     private String address;
 
-    public static RegistryConfig create(String type){
+    public static RegistryConfig create(String type) {
         return new RegistryConfig().type(type);
     }
 
@@ -58,6 +60,13 @@ public class RegistryConfig extends AbstractConfig {
     }
 
     private RegistryConfig() {
+    }
+
+    @Override
+    protected void checkValid() {
+        super.checkValid();
+        check(StringUtils.isNotBlank(type), "registry type must be not blank");
+        check(StringUtils.isNotBlank(address), "registry address must be not blank");
     }
 
     /**

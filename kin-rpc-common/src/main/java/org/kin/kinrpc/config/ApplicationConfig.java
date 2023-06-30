@@ -1,12 +1,14 @@
 package org.kin.kinrpc.config;
 
+import org.kin.framework.utils.StringUtils;
+
 /**
  * 应用配置
  *
  * @author huangjianqin
  * @date 2023/6/16
  */
-public class ApplicationConfig implements Config {
+public class ApplicationConfig extends AbstractConfig {
     /** 应用名 */
     private String appName;
 
@@ -15,6 +17,12 @@ public class ApplicationConfig implements Config {
     }
 
     private ApplicationConfig() {
+    }
+
+    @Override
+    protected void checkValid() {
+        super.checkValid();
+        check(StringUtils.isNotBlank(appName), "appName must be not blank");
     }
 
     //setter && getter

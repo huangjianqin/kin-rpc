@@ -1,5 +1,6 @@
 package org.kin.kinrpc.config;
 
+import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.Interceptor;
 import org.kin.kinrpc.utils.GsvUtils;
 
@@ -14,7 +15,7 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2023/6/16
  */
-public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceConfig<T, IC>> extends AbstractConfig {
+public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceConfig<T, IC>> extends AttachableConfig {
     /** 应用配置 */
     private ApplicationConfig app;
     /** 注册中心配置 */
@@ -31,7 +32,7 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
     private String serialization = SerializationType.JSON.getName();
     // TODO: 2023/6/20 spring通过bean name查询 interceptor来添加
     /** 服务调用拦截器列表 */
-    private List<Interceptor> interceptors;
+    private List<Interceptor> interceptors = new ArrayList<>();
 
     //----------------------------------------------------------------动态变量, lazy init
     /** 返回服务唯一标识 */
@@ -40,6 +41,21 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
     private transient int serviceId;
 
     protected AbstractInterfaceConfig() {
+    }
+
+    @Override
+    protected void checkValid() {
+        super.checkValid();
+        check(Objects.nonNull(app), "app config must be not null");
+        check(registries.size() > 0, "registry config must be config at least one");
+        for (RegistryConfig registryConfig : registries) {
+            registryConfig.checkValid();
+        }
+        check(Objects.nonNull(interfaceClass), "interface class be not null");
+        check(StringUtils.isNotBlank(group), "group be not blank");
+        check(StringUtils.isNotBlank(serviceName), "service name be not blank");
+        check(StringUtils.isNotBlank(version), "version be not blank");
+        check(StringUtils.isNotBlank(serialization), "serialization type be not blank");
     }
 
     @SuppressWarnings("unchecked")

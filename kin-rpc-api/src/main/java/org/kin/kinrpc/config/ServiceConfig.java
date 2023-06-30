@@ -1,6 +1,7 @@
 package org.kin.kinrpc.config;
 
 import org.kin.framework.utils.ExtensionLoader;
+import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.bootstrap.ServiceBootstrap;
 
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ public class ServiceConfig<T> extends AbstractInterfaceConfig<T, ServiceConfig<T
     /** bootstrap 类型 */
     private String bootstrap = "kinrpc";
 
+    //----------------------------------------------------------------动态变量, lazy init
     private transient ServiceBootstrap<T> serviceBootstrap;
 
     public static <T> ServiceConfig<T> create(Class<T> interfaceClass, T instance) {
@@ -39,11 +41,27 @@ public class ServiceConfig<T> extends AbstractInterfaceConfig<T, ServiceConfig<T
     private ServiceConfig() {
     }
 
+    @Override
+    protected void checkValid() {
+        super.checkValid();
+        check(servers.size() > 0, "server config must be config at least one");
+        for (ServerConfig serverConfig : servers) {
+            serverConfig.checkValid();
+        }
+        if (Objects.nonNull(executor)) {
+            executor.checkValid();
+        }
+        check(Objects.nonNull(instance), "service instance must be not null");
+        check(StringUtils.isNotBlank(bootstrap), "boostrap type must be not null");
+    }
+
     /**
      * 暴露服务
      */
     @SuppressWarnings("unchecked")
     public synchronized void export() {
+        checkValid();
+
         if (Objects.isNull(serviceBootstrap)) {
             serviceBootstrap = ExtensionLoader.getExtension(ServiceBootstrap.class, bootstrap, this);
         }
@@ -59,7 +77,7 @@ public class ServiceConfig<T> extends AbstractInterfaceConfig<T, ServiceConfig<T
             return;
         }
 
-        serviceBootstrap.unExport();
+        serviceBootstrap.unexport();
     }
 
     //setter && getter

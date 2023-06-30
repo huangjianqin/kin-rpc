@@ -1,5 +1,6 @@
 package org.kin.kinrpc.config;
 
+import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.constants.ReferenceConstants;
 
 /**
@@ -8,7 +9,7 @@ import org.kin.kinrpc.constants.ReferenceConstants;
  * @author huangjianqin
  * @date 2023/6/16
  */
-public class MethodConfig implements Config{
+public class MethodConfig extends AbstractConfig {
     /**
      * 方法名称
      * todo 暂时无法做到重载方法的配置
@@ -26,11 +27,19 @@ public class MethodConfig implements Config{
     /** 是否服务调用粘黏 */
     private boolean sticky;
 
-    public static MethodConfig create(String name){
+    public static MethodConfig create(String name) {
         return new MethodConfig().name(name);
     }
 
     private MethodConfig() {
+    }
+
+    @Override
+    protected void checkValid() {
+        super.checkValid();
+        check(StringUtils.isNotBlank(name), "method name must be not blank");
+        check(timeout > 0, "method rpc call timeout must be greater than 0");
+        check(retries > 0, "method rpc call retry times must be greater than 0");
     }
 
     //setter && getter

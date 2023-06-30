@@ -94,9 +94,9 @@ public class ExecutorManager {
             throw new RpcException(String.format("executor name with '%s' has registered", name));
         }
 
-        ExecutorFactory executorFactory = ExtensionLoader.getExtension(ExecutorFactory.class, config.getExecutor());
+        ExecutorFactory executorFactory = ExtensionLoader.getExtension(ExecutorFactory.class, config.getType());
         if (Objects.isNull(executorFactory)) {
-            throw new RpcException(String.format("can not find executor factory for type '%s'", config.getExecutor()));
+            throw new RpcException(String.format("can not find executor factory for type '%s'", config.getType()));
         }
 
         ServiceExecutor serviceExecutor = executorFactory.create(config);

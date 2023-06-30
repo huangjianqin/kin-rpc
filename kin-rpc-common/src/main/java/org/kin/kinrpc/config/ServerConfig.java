@@ -1,8 +1,11 @@
 package org.kin.kinrpc.config;
 
 import org.kin.framework.utils.NetUtils;
+import org.kin.framework.utils.StringUtils;
 import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.constants.Constants;
+
+import java.util.Objects;
 
 /**
  * server配置
@@ -10,7 +13,7 @@ import org.kin.kinrpc.constants.Constants;
  * @author huangjianqin
  * @date 2023/6/16
  */
-public class ServerConfig extends AbstractConfig {
+public class ServerConfig extends AttachableConfig {
     /** 协议名 */
     private String protocol;
     /** 监听IP */
@@ -54,6 +57,17 @@ public class ServerConfig extends AbstractConfig {
     }
 
     private ServerConfig() {
+    }
+
+    @Override
+    protected void checkValid() {
+        super.checkValid();
+        check(StringUtils.isNotBlank(protocol), "server protocol must be not blank");
+        check(StringUtils.isNotBlank(host), "server host must be not blank");
+        check(port > 0, "server port must be greater than 0");
+        if (Objects.nonNull(executor)) {
+            executor.checkValid();
+        }
     }
 
     //setter && getter
