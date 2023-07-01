@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * todo interceptor配置
- *
  * @author huangjianqin
  * @date 2023/6/16
  */

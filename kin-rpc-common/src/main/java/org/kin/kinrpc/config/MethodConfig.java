@@ -16,8 +16,7 @@ public class MethodConfig extends AbstractConfig {
      */
     private String name;
     /**
-     * rpc call timeout
-     * todo 对于service端, 如果调用超时, 那么仅仅会打印log
+     * rpc call timeout(ms)
      */
     private int timeout = ReferenceConstants.DEFAULT_RPC_CALL_TIMEOUT;
     /** 失败后重试次数 */

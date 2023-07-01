@@ -2,6 +2,7 @@ package org.kin.kinrpc.utils;
 
 import org.eclipse.collections.api.map.primitive.IntObjectMap;
 import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
+import org.kin.kinrpc.DefaultMethodMetadata;
 import org.kin.kinrpc.MethodMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +70,7 @@ public final class RpcUtils {
                 continue;
             }
 
-            MethodMetadata metadata = new MethodMetadata(service, method);
+            MethodMetadata metadata = new DefaultMethodMetadata(service, method);
             methodMetadataMap.put(metadata.handlerId(), metadata);
         }
 

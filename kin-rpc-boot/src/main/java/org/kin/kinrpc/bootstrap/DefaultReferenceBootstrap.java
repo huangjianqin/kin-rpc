@@ -20,15 +20,14 @@ import org.kin.kinrpc.registry.directory.Directory;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author huangjianqin
  * @date 2023/6/30
  */
 public class DefaultReferenceBootstrap<T> extends ReferenceBootstrap<T> {
-    /** service reference */
-    private volatile T reference;
+    /** cluster invoker */
+    private volatile ClusterInvoker<T> clusterInvoker;
 
     public DefaultReferenceBootstrap(ReferenceConfig<T> config) {
         super(config);
@@ -37,10 +36,6 @@ public class DefaultReferenceBootstrap<T> extends ReferenceBootstrap<T> {
     @SuppressWarnings("unchecked")
     @Override
     public T doRefer() {
-        if (Objects.nonNull(reference)) {
-            return reference;
-        }
-
         //创建interceptor chain
         InterceptorChain<T> chain = InterceptorChain.create(config, (Invoker<T>) RpcCallInvoker.INSTANCE);
 
@@ -56,7 +51,7 @@ public class DefaultReferenceBootstrap<T> extends ReferenceBootstrap<T> {
             directories.add(registry.subscribe(config));
         }
 
-        ClusterInvoker<T> clusterInvoker = ExtensionLoader.getExtension(ClusterInvoker.class, config.getCluster(),
+        clusterInvoker = ExtensionLoader.getExtension(ClusterInvoker.class, config.getCluster(),
                 config, new CompositeDirectory(directories),
                 router, loadBalance, chain);
         ReferenceProxy referenceProxy = new ReferenceProxy(config, clusterInvoker);
@@ -75,9 +70,7 @@ public class DefaultReferenceBootstrap<T> extends ReferenceBootstrap<T> {
 
     @Override
     public void doUnRefer() {
-        if (Objects.isNull(reference)) {
-            return;
-        }
+        clusterInvoker.destroy();
 
         //获取注册中心client, 并取消订阅服务
         String service = config.service();
@@ -85,8 +78,5 @@ public class DefaultReferenceBootstrap<T> extends ReferenceBootstrap<T> {
             Registry registry = RegistryHelper.getRegistry(registryConfig);
             registry.unsubscribe(service);
         }
-
-        //释放引用
-        reference = null;
     }
 }

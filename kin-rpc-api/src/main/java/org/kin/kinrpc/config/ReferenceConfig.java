@@ -25,7 +25,6 @@ public class ReferenceConfig<T> extends AbstractInterfaceConfig<T, ReferenceConf
     /** 路由类型, 默认none */
     private String router = RouterType.NONE.getName();
     /** 兼容协议(非kinrpc)是否使用Generic通用接口服务 */
-    // TODO: 待实现
     private boolean generic;
     /** 服务connection ssl配置 */
     private SslConfig ssl;
@@ -34,8 +33,7 @@ public class ReferenceConfig<T> extends AbstractInterfaceConfig<T, ReferenceConf
 
     //----------------------------------------------------------------方法级配置, 如果方法没有特殊配置, 则取这个
     /**
-     * rpc call timeout
-     * todo 对于service端, 如果调用超时, 那么仅仅会打印log
+     * rpc call timeout(ms)
      */
     private int rpcTimeout = ReferenceConstants.DEFAULT_RPC_CALL_TIMEOUT;
     /** 失败后重试次数 */
@@ -60,7 +58,10 @@ public class ReferenceConfig<T> extends AbstractInterfaceConfig<T, ReferenceConf
         super.checkValid();
         Set<String> availableMethodNames = new HashSet<>();
         for (Method method : getInterfaceClass().getDeclaredMethods()) {
-            availableMethodNames.add(method.getName());
+            boolean notExists = availableMethodNames.add(method.getName());
+            if (!isGeneric() && !notExists) {
+                throw new IllegalConfigException(String.format("service interface method name '%s' conflict, does not support method overload now", method.getName()));
+            }
         }
         for (MethodConfig methodConfig : methods) {
             methodConfig.checkValid();

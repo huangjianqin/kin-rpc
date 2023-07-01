@@ -2,12 +2,11 @@ package org.kin.kinrpc.config;
 
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.StringUtils;
+import org.kin.kinrpc.IllegalConfigException;
 import org.kin.kinrpc.bootstrap.ServiceBootstrap;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.lang.reflect.Method;
+import java.util.*;
 
 /**
  * 服务配置
@@ -44,6 +43,14 @@ public class ServiceConfig<T> extends AbstractInterfaceConfig<T, ServiceConfig<T
     @Override
     protected void checkValid() {
         super.checkValid();
+        //检查接口方法是否有重载
+        Set<String> availableMethodNames = new HashSet<>();
+        for (Method method : getInterfaceClass().getDeclaredMethods()) {
+            String methodName = method.getName();
+            if (!availableMethodNames.add(methodName)) {
+                throw new IllegalConfigException(String.format("service interface method name '%s' conflict, does not support method overload now", methodName));
+            }
+        }
         check(servers.size() > 0, "server config must be config at least one");
         for (ServerConfig serverConfig : servers) {
             serverConfig.checkValid();

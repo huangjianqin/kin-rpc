@@ -53,8 +53,8 @@ public class RpcInvocation extends AttachmentMap implements Invocation {
     }
 
     @Override
-    public String getMethodName() {
-        return methodMetadata.methodName();
+    public String getHandlerName() {
+        return methodMetadata.handlerName();
     }
 
     @Override

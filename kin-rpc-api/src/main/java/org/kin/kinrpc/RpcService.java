@@ -100,7 +100,7 @@ public class RpcService<T> implements Invoker<T> {
      * 服务方法调用
      *
      * @param invocation rpc invocation
-     * @return
+     * @return rpc result
      */
     private RpcResult doInvoke(Invocation invocation) {
         int handlerId = invocation.handlerId();
@@ -169,7 +169,7 @@ public class RpcService<T> implements Invoker<T> {
      */
     private Object doInvoke1(RpcHandler rpcHandler,
                              Invocation invocation) {
-        String methodName = invocation.getMethodName();
+        String handlerName = invocation.getHandlerName();
         Object[] params = invocation.params();
 
         if (log.isDebugEnabled()) {
@@ -178,19 +178,19 @@ public class RpcService<T> implements Invoker<T> {
         //Object类方法直接调用
         if (invocation.isObjectMethod()) {
             T instance = config.getInstance();
-            if ("getClass".equals(methodName)) {
+            if ("getClass".equals(handlerName)) {
                 return instance.getClass();
-            } else if ("hashCode".equals(methodName)) {
+            } else if ("hashCode".equals(handlerName)) {
                 return instance.hashCode();
-            } else if ("toString".equals(methodName)) {
+            } else if ("toString".equals(handlerName)) {
                 return instance.toString();
-            } else if ("equals".equals(methodName)) {
+            } else if ("equals".equals(handlerName)) {
                 if (params.length == 1) {
                     return instance.equals(params[0]);
                 }
-                throw new IllegalArgumentException(String.format("method '%s' parameter number error", methodName));
+                throw new IllegalArgumentException(String.format("method '%s' parameter number error", handlerName));
             } else {
-                throw new UnsupportedOperationException(String.format("does not support to call method '%s'", methodName));
+                throw new UnsupportedOperationException(String.format("does not support to call method '%s'", handlerName));
             }
         }
 
@@ -202,13 +202,13 @@ public class RpcService<T> implements Invoker<T> {
             actualParamTypeNames[i] = params[i].getClass().getName();
         }
         if (log.isDebugEnabled()) {
-            log.debug("method '{}' actual params' type is {}", methodName, actualParamTypeNames);
+            log.debug("method '{}' actual params' type is {}", handlerName, actualParamTypeNames);
         }
 
         try {
             return rpcHandler.handle(params);
         } catch (Exception e) {
-            log.error("method '{}' invoke error, params is {}, {}", methodName, params, e);
+            log.error("method '{}' invoke error, params is {}, {}", handlerName, params, e);
             ExceptionUtils.throwExt(e);
             return null;
         }

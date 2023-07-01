@@ -188,7 +188,6 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
      * 释放占用资源
      */
     public final void destroy() {
-        // TODO: 2023/6/26 loadbalance router释放unsubscribe服务订阅, 或者基于cache clearafterread
         //是否转移到registry unsubscribe更好
         directory.destroy();
     }

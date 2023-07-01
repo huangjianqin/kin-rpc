@@ -3,12 +3,15 @@ package org.kin.kinrpc.config;
 import org.kin.framework.utils.NetUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.framework.utils.SysUtils;
-import org.kin.kinrpc.constants.Constants;
+import org.kin.kinrpc.constants.ServerConstants;
 
 import java.util.Objects;
 
 /**
  * server配置
+ * todo kinrpc attachment netty options
+ * todo grpc attachment Inbound消息大小, Inbound元数据大小, 流控窗口, 每个连接最大请求并发处理
+ * todo kinrpc attachment netty options
  *
  * @author huangjianqin
  * @date 2023/6/16
@@ -19,7 +22,7 @@ public class ServerConfig extends AttachableConfig {
     /** 监听IP */
     private String host = NetUtils.getLocalhostIp();
     /** 监听端口 */
-    private int port = Constants.DEFAULT_SERVER_PORT;
+    private int port = ServerConstants.DEFAULT_SERVER_PORT;
     /** server端业务线程池大小, 默认是double cpu处理器数量, 队列长度为512的线程池 */
     private ExecutorConfig executor = ExecutorConfig.create(ExecutorType.FIX)
             .corePoolSize(SysUtils.CPU_NUM)

@@ -2,7 +2,6 @@ package org.kin.kinrpc;
 
 /**
  * reference端{@link Invoker}实现
- * todo 记得实现hashcode equal
  *
  * @author huangjianqin
  * @date 2023/6/24

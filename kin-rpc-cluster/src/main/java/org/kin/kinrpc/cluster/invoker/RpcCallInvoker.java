@@ -51,6 +51,7 @@ public final class RpcCallInvoker<T> implements Invoker<T> {
 
                 future.completeExceptionally(new RpcTimeoutException(invocation, timeoutMs));
             }, timeoutMs, TimeUnit.MILLISECONDS);
+            invocation.attachment(ReferenceConstants.TIMEOUT_KEY, System.currentTimeMillis() + timeoutMs);
         }
 
         RpcResult rpcResult = invoker.invoke(invocation);

@@ -1,6 +1,7 @@
 package org.kin.kinrpc.bootstrap;
 
 import org.kin.kinrpc.Exporter;
+import org.kin.kinrpc.KinRpcRuntimeContext;
 import org.kin.kinrpc.RpcService;
 import org.kin.kinrpc.config.RegistryConfig;
 import org.kin.kinrpc.config.ServerConfig;
@@ -12,7 +13,6 @@ import org.kin.kinrpc.registry.RegistryHelper;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author huangjianqin
@@ -30,11 +30,6 @@ public class DefaultServiceBootstrap<T> extends ServiceBootstrap<T> {
 
     @Override
     protected void doExport() {
-        if (Objects.nonNull(rpcService) ||
-                Objects.nonNull(exporter)) {
-            return;
-        }
-
         //创建rpc service
         rpcService = new RpcService<>(config);
 
@@ -59,10 +54,6 @@ public class DefaultServiceBootstrap<T> extends ServiceBootstrap<T> {
 
     @Override
     protected void doUnExport() {
-        if (Objects.isNull(rpcService) || Objects.isNull(exporter)) {
-            return;
-        }
-
         //获取注册中心client, 并取消发布服务
         for (RegistryConfig registryConfig : config.getRegistries()) {
             Registry registry = RegistryHelper.getRegistry(registryConfig);

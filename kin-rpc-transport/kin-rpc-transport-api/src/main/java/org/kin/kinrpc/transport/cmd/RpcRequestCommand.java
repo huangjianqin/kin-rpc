@@ -36,12 +36,30 @@ public class RpcRequestCommand extends RequestCommand {
         this(TransportConstants.VERSION, serializationCode, serviceId, handlerId, params);
     }
 
+    public RpcRequestCommand(byte serializationCode,
+                             int serviceId,
+                             int handlerId,
+                             int timeout,
+                             Object[] params) {
+        this(TransportConstants.VERSION, serializationCode, serviceId, handlerId, timeout, params);
+    }
+
     public RpcRequestCommand(short version,
                              byte serializationCode,
                              int serviceId,
                              int handlerId,
                              Object[] params) {
+        this(version, serializationCode, serviceId, handlerId, 0, params);
+    }
+
+    public RpcRequestCommand(short version,
+                             byte serializationCode,
+                             int serviceId,
+                             int handlerId,
+                             int timeout,
+                             Object[] params) {
         super(CommandCodes.RPC_REQUEST, version, RequestIdGenerator.next(), serializationCode);
+        setTimeout(timeout);
         this.serviceId = serviceId;
         this.handlerId = handlerId;
         this.params = params;
@@ -75,7 +93,8 @@ public class RpcRequestCommand extends RequestCommand {
 
     /**
      * 反序列化服务方法params
-     * @param paramTypes    服务方法param类型
+     *
+     * @param paramTypes 服务方法param类型
      */
     public void deserializeParams(Class<?>... paramTypes) {
         try {
@@ -84,7 +103,7 @@ public class RpcRequestCommand extends RequestCommand {
             } else {
                 params = EMPTY_PARAMS;
             }
-        }finally {
+        } finally {
             ReferenceCountUtil.safeRelease(paramsPayload);
             paramsPayload = null;
         }

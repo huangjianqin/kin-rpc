@@ -1,8 +1,10 @@
 package org.kin.kinrpc.transport.cmd.processor;
 
-import org.kin.kinrpc.transport.*;
-import org.kin.kinrpc.transport.message.Error;
+import org.kin.kinrpc.transport.RemotingContext;
+import org.kin.kinrpc.transport.RemotingException;
+import org.kin.kinrpc.transport.RequestProcessTask;
 import org.kin.kinrpc.transport.cmd.MessageCommand;
+import org.kin.kinrpc.transport.message.Error;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +37,7 @@ public class MessageCommandProcessor implements CommandProcessor<MessageCommand>
                 log.warn("receive Error message, just ignore");
             }
             else{
-                RequestProcessorTask processorTask = new RequestProcessorTask(context, command, command.getInterest(), data);
+                RequestProcessTask processorTask = new RequestProcessTask(context, command, command.getInterest(), data);
                 processorTask.run();
             }
         }

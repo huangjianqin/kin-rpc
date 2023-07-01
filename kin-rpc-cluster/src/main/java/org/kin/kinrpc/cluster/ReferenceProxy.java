@@ -6,6 +6,7 @@ import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.eclipse.collections.api.map.primitive.IntObjectMap;
 import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
+import org.kin.framework.collection.CopyOnWriteMap;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.MethodHandleUtils;
@@ -26,6 +27,8 @@ import javax.annotation.Nonnull;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -48,8 +51,8 @@ public final class ReferenceProxy implements InvocationHandler {
     private final String service;
     /** cluster invoker */
     private final ClusterInvoker<?> invoker;
-    /** 服务方法元数据 */
-    private final IntObjectMap<MethodMetadata> methodMetadataMap;
+    /** 服务方法元数据, key -> handlerId */
+    private final Map<Integer, MethodMetadata> methodMetadataMap = new CopyOnWriteMap<>();
     /** 方法级服务方法配置 */
     private final IntObjectMap<MethodConfig> methodConfigMap;
     /** 服务级服务方法配置 */
@@ -61,7 +64,14 @@ public final class ReferenceProxy implements InvocationHandler {
         this.service = config.service();
         this.serviceId = GsvUtils.serviceId(this.service);
         this.invoker = invoker;
-        this.methodMetadataMap = RpcUtils.getMethodMetadataMap(this.service, config.getInterfaceClass());
+        if (!config.isGeneric()) {
+            //非泛化, 服务方法是固定, 直接缓存
+            Map<Integer, MethodMetadata> methodMetadataMap = new HashMap<>();
+            for (MethodMetadata methodMetadata : RpcUtils.getMethodMetadataMap(this.service, config.getInterfaceClass())) {
+                methodMetadataMap.put(methodMetadata.handlerId(), methodMetadata);
+            }
+            this.methodMetadataMap.putAll(methodMetadataMap);
+        }
         //方法级
         IntObjectHashMap<MethodConfig> methodConfigMap = new IntObjectHashMap<>(config.getMethods().size());
         for (MethodConfig method : config.getMethods()) {
@@ -97,11 +107,25 @@ public final class ReferenceProxy implements InvocationHandler {
             }
         }
 
-        String uniqueName = RpcUtils.getUniqueName(method);
-        int handlerId = HandlerUtils.handlerId(service, uniqueName);
-        MethodMetadata methodMetadata = methodMetadataMap.get(handlerId);
-        if (Objects.isNull(methodMetadata)) {
-            throw new RpcException("can not find valid method metadata for method, " + method);
+        int handlerId;
+        MethodMetadata methodMetadata;
+        if (config.isGeneric()) {
+            //泛化调用
+            Class<?> returnType = Void.class;
+            if (args.length > 1) {
+                returnType = (Class<?>) args[2];
+            }
+            methodMetadata = new GenericMethodMetadata(service, method,
+                    (String) args[0], (Object[]) args[1], returnType);
+            handlerId = methodMetadata.handlerId();
+        } else {
+            //非泛化调用
+            String uniqueName = RpcUtils.getUniqueName(method);
+            handlerId = HandlerUtils.handlerId(service, uniqueName);
+            methodMetadata = methodMetadataMap.get(handlerId);
+            if (Objects.isNull(methodMetadata)) {
+                throw new RpcException("can not find valid method metadata for method, " + method);
+            }
         }
 
         MethodConfig methodConfig = getMethodConfig(handlerId);

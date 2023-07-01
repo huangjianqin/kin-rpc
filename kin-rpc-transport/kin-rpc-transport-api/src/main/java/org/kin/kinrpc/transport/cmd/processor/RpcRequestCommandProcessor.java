@@ -1,14 +1,11 @@
 package org.kin.kinrpc.transport.cmd.processor;
 
-import org.kin.kinrpc.transport.*;
-import org.kin.kinrpc.transport.cmd.HeartbeatCommand;
+import org.kin.kinrpc.transport.RemotingContext;
+import org.kin.kinrpc.transport.RequestProcessTask;
+import org.kin.kinrpc.transport.RequestProcessor;
 import org.kin.kinrpc.transport.cmd.RpcRequestCommand;
-import org.kin.kinrpc.transport.cmd.RpcResponseCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Objects;
-import java.util.concurrent.Executor;
 
 /**
  * @author huangjianqin
@@ -28,7 +25,7 @@ public class RpcRequestCommandProcessor implements CommandProcessor<RpcRequestCo
             return;
         }
 
-        RequestProcessorTask processorTask = new RequestProcessorTask(context, command, RequestProcessor.RPC_REQUEST_INTEREST, command);
+        RequestProcessTask processorTask = new RequestProcessTask(context, command, RequestProcessor.RPC_REQUEST_INTEREST, command);
         processorTask.run();
     }
 }

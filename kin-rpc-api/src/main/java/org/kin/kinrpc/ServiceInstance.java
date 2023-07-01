@@ -61,7 +61,6 @@ public interface ServiceInstance {
 
     /**
      * 返回service instance schema
-     * todo 是否需要合并schema
      *
      * @return service instance schema
      */

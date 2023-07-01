@@ -1,6 +1,8 @@
-package org.kin.kinrpc.bootstrap;
+package org.kin.kinrpc;
 
 import org.kin.framework.JvmCloseCleaner;
+import org.kin.kinrpc.bootstrap.ReferenceBootstrap;
+import org.kin.kinrpc.bootstrap.ServiceBootstrap;
 
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -46,11 +48,29 @@ public final class KinRpcRuntimeContext {
     }
 
     /**
+     * 移除已发布的服务缓存
+     *
+     * @param bootstrap service bootstrap
+     */
+    public static void removeService(ServiceBootstrap<?> bootstrap) {
+        SERVICE_BOOTSTRAP_SET.remove(bootstrap);
+    }
+
+    /**
      * 缓存已引用的服务代理
      *
      * @param bootstrap reference bootstrap
      */
     public static void cacheReference(ReferenceBootstrap<?> bootstrap) {
         REFERENCE_BOOTSTRAP_SET.add(bootstrap);
+    }
+
+    /**
+     * 移除已引用的服务代理缓存
+     *
+     * @param bootstrap reference bootstrap
+     */
+    public static void removeReference(ReferenceBootstrap<?> bootstrap) {
+        REFERENCE_BOOTSTRAP_SET.remove(bootstrap);
     }
 }

@@ -1,6 +1,7 @@
 package org.kin.kinrpc.protocol;
 
 import org.kin.kinrpc.*;
+import org.kin.kinrpc.constants.ReferenceConstants;
 import org.kin.kinrpc.transport.RemotingClient;
 import org.kin.kinrpc.transport.cmd.RpcRequestCommand;
 import org.kin.kinrpc.transport.cmd.RpcResponseCommand;
@@ -26,8 +27,9 @@ public class DefaultReferenceInvoker<T> implements ReferenceInvoker<T> {
 
     @Override
     public RpcResult invoke(Invocation invocation) {
+        Integer timeout = invocation.attachment(ReferenceConstants.TIMEOUT_KEY, 0);
         RpcRequestCommand command = new RpcRequestCommand(invocation.serializationCode(), invocation.serviceId(),
-                invocation.handlerId(), invocation.params());
+                invocation.handlerId(), timeout, invocation.params());
 
         CompletableFuture<Object> resultFuture = new CompletableFuture<>();
         if (invocation.isVoid()) {
@@ -79,5 +81,18 @@ public class DefaultReferenceInvoker<T> implements ReferenceInvoker<T> {
     @Override
     public void destroy() {
         client.shutdown();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DefaultReferenceInvoker<?> that = (DefaultReferenceInvoker<?>) o;
+        return Objects.equals(instance, that.instance);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(instance);
     }
 }

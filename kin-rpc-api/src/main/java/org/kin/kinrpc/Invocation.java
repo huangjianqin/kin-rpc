@@ -43,7 +43,7 @@ public interface Invocation extends AttachmentSupport {
      *
      * @return 服务方法名
      */
-    String getMethodName();
+    String getHandlerName();
 
     /**
      * 返回服务调用参数

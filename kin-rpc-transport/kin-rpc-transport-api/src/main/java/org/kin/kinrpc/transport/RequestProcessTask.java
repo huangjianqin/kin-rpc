@@ -10,12 +10,13 @@ import java.util.concurrent.Executor;
 
 /**
  * {@link RequestProcessor#process(RequestContext, Serializable)} task
+ *
  * @author huangjianqin
  * @date 2023/6/2
  */
 @SuppressWarnings("rawtypes")
-public class RequestProcessorTask implements Runnable{
-    private static final Logger log = LoggerFactory.getLogger(RequestProcessorTask.class);
+public class RequestProcessTask implements Runnable {
+    private static final Logger log = LoggerFactory.getLogger(RequestProcessTask.class);
 
     /** remoting context */
     private final RemotingContext context;
@@ -26,7 +27,7 @@ public class RequestProcessorTask implements Runnable{
     /** request processor */
     private final RequestProcessor requestProcessor;
 
-    public RequestProcessorTask(RemotingContext context, RequestCommand command, String interest, Serializable request) {
+    public RequestProcessTask(RemotingContext context, RequestCommand command, String interest, Serializable request) {
         this.context = context;
         this.command = command;
         this.request = request;

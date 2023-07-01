@@ -5,6 +5,7 @@ import io.netty.util.collection.IntObjectHashMap;
 import io.netty.util.collection.IntObjectMap;
 import org.kin.kinrpc.*;
 import org.kin.kinrpc.config.ServiceConfig;
+import org.kin.kinrpc.constants.ServiceConstants;
 import org.kin.kinrpc.transport.RequestContext;
 import org.kin.kinrpc.transport.RpcRequestProcessor;
 import org.kin.kinrpc.transport.cmd.CodecException;
@@ -88,9 +89,15 @@ public class DefaultRpcRequestProcessor extends RpcRequestProcessor {
             throw new CodecException("deserialize rpc request params fail", e);
         }
 
+        if (request.isTimeout()) {
+            //仅仅warning
+            log.warn("process rpc request timeout, request={}", request);
+        }
+
         //invoke
         RpcInvocation invocation = new RpcInvocation(serviceId, rpcService.service(),
                 request.getParams(), methodMetadata, request.getSerializationCode());
+        invocation.attach(ServiceConstants.TIMEOUT_KEY, request.getTimeout());
         try {
             RpcResult rpcResult = rpcService.invoke(invocation);
             rpcResult.onFinish((r, t) -> onFinish(requestContext, request, invocation.isOneWay(), r, t));

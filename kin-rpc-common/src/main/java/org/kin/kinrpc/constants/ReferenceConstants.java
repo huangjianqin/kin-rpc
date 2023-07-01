@@ -17,6 +17,8 @@ public final class ReferenceConstants {
     public static final String SELECTED_INVOKER_KEY = "selected";
     /** 服务方法配置 */
     public static final String METHOD_CONFIG_KEY = "methodConfig";
+    /** rpc call timeout(absolutely end time) */
+    public static final String TIMEOUT_KEY = "timeout";
 
     private ReferenceConstants() {
     }
