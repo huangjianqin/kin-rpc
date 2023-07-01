@@ -79,21 +79,27 @@ public class RpcService<T> implements Invoker<T> {
             return RpcResult.fail(invocation, new IllegalStateException(String.format("service '%s' unExported", service())));
         }
 
-        CompletableFuture<Object> future = new CompletableFuture<>();
-        if (Objects.nonNull(executor)) {
-            executor.execute(() -> {
-                if (isTerminated()) {
-                    future.complete(new IllegalStateException(String.format("service '%s' unExported", service())));
-                    return;
-                }
+        try {
+            CompletableFuture<Object> future = new CompletableFuture<>();
+            if (Objects.nonNull(executor)) {
+                //如果服务执行线程池队列已满, 则抛出RejectedExecutionException, 捕获异常后, 直接返回rpc result
+                executor.execute(() -> {
+                    if (isTerminated()) {
+                        future.complete(new IllegalStateException(String.format("service '%s' unExported", service())));
+                        return;
+                    }
 
+                    chain.invoke(invocation).onFinish(future);
+                });
+            } else {
                 chain.invoke(invocation).onFinish(future);
-            });
-        } else {
-            chain.invoke(invocation).onFinish(future);
-        }
+            }
 
-        return RpcResult.success(invocation, future);
+            return RpcResult.success(invocation, future);
+        } catch (Exception e) {
+            //执行异常直接返回
+            return RpcResult.fail(invocation, e);
+        }
     }
 
     /**
@@ -220,7 +226,7 @@ public class RpcService<T> implements Invoker<T> {
      * @return 服务唯一标识
      */
     public String service() {
-        return config.service();
+        return config.getService();
     }
 
     /**
@@ -229,7 +235,7 @@ public class RpcService<T> implements Invoker<T> {
      * @return 服务唯一id
      */
     public int serviceId() {
-        return config.serviceId();
+        return config.getServiceId();
     }
 
     /**

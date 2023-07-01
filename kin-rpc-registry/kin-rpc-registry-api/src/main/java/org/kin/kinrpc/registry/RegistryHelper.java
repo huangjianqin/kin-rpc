@@ -133,7 +133,7 @@ public class RegistryHelper {
         Url url = new Url(serverConfig.getProtocol(),
                 serverConfig.getHost(),
                 serverConfig.getPort(),
-                serviceConfig.service());
+                serviceConfig.getService());
         url.putParam(ServiceMetadataConstants.SCHEMA_KEY, serverConfig.getProtocol());
         url.putParam(ServiceMetadataConstants.WEIGHT_KEY, serviceConfig.getWeight());
         url.putParam(ServiceMetadataConstants.SERIALIZATION_KEY, serviceConfig.getSerialization());

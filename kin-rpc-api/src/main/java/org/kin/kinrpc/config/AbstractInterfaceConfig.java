@@ -4,10 +4,7 @@ import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.Interceptor;
 import org.kin.kinrpc.utils.GsvUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author huangjianqin
@@ -21,7 +18,7 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
     /** 接口 */
     private Class<T> interfaceClass;
     /** 服务所属组 */
-    private String group = "";
+    private String group = "kinrpc";
     /** 服务名 */
     private String serviceName;
     /** 版本号 */
@@ -56,6 +53,16 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
         check(StringUtils.isNotBlank(serialization), "serialization type be not blank");
     }
 
+    /**
+     * 缺省配置, 设置默认值
+     */
+    @Override
+    protected void setUpDefaultConfig() {
+        if (StringUtils.isBlank(getServiceName())) {
+            serviceName(getInterfaceClass().getSimpleName());
+        }
+    }
+
     @SuppressWarnings("unchecked")
     protected IC castThis() {
         return (IC) this;
@@ -66,7 +73,7 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
      *
      * @return 服务唯一标识
      */
-    public String service() {
+    public String getService() {
         if (Objects.isNull(service)) {
             service = GsvUtils.service(group, serviceName, version);
         }
@@ -78,9 +85,9 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
      *
      * @return 服务唯一id
      */
-    public int serviceId() {
+    public int getServiceId() {
         if (serviceId == 0) {
-            serviceId = GsvUtils.serviceId(service());
+            serviceId = GsvUtils.serviceId(getService());
         }
         return serviceId;
     }
@@ -99,6 +106,10 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
         return registries;
     }
 
+    public IC registry(RegistryConfig registry) {
+        return registries(Collections.singletonList(registry));
+    }
+
     public IC registries(RegistryConfig... registries) {
         return registries(Arrays.asList(registries));
     }
@@ -112,7 +123,7 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
         return interfaceClass;
     }
 
-    public IC interfaceClass(Class<T> interfaceClass) {
+    protected IC interfaceClass(Class<T> interfaceClass) {
         this.interfaceClass = interfaceClass;
         return castThis();
     }
@@ -161,12 +172,16 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
         return interceptors;
     }
 
-    public AbstractInterfaceConfig<T, IC> interceptors(Interceptor... interceptors) {
+    public IC interceptor(Interceptor interceptor) {
+        return interceptors(Collections.singletonList(interceptor));
+    }
+
+    public IC interceptors(Interceptor... interceptors) {
         return interceptors(Arrays.asList(interceptors));
     }
 
-    public AbstractInterfaceConfig<T, IC> interceptors(List<Interceptor> interceptors) {
+    public IC interceptors(List<Interceptor> interceptors) {
         this.interceptors.addAll(interceptors);
-        return this;
+        return castThis();
     }
 }

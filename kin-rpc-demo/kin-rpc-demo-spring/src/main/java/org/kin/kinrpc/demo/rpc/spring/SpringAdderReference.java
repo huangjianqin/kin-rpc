@@ -1,9 +1,6 @@
 package org.kin.kinrpc.demo.rpc.spring;
 
 import org.kin.kinrpc.cluster.RpcCallContext;
-import org.kin.kinrpc.demo.rpc.Addable;
-import org.kin.kinrpc.demo.rpc.Return1Notifier;
-import org.kin.kinrpc.demo.rpc.Return2Notifier;
 import org.kin.kinrpc.spring.KinRpcReference;
 import org.springframework.stereotype.Component;
 

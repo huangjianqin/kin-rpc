@@ -69,7 +69,7 @@ public final class DirectRegistry extends AbstractRegistry {
             throw new IllegalStateException("registry has been destroyed");
         }
 
-        String service = config.service();
+        String service = config.getService();
         log.info("subscribe service '{}' ", service);
         Directory directory;
         try {

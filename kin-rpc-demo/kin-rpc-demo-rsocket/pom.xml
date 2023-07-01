@@ -11,10 +11,6 @@
     <artifactId>kin-rpc-demo-rsocket</artifactId>
     <packaging>jar</packaging>
 
-    <properties>
-        <rsocket-rpc.version>0.3.0</rsocket-rpc.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.kin</groupId>
@@ -28,63 +24,4 @@
             <version>${project.version}</version>
         </dependency>
     </dependencies>
-
-    <build>
-        <extensions>
-            <extension>
-                <groupId>kr.motd.maven</groupId>
-                <artifactId>os-maven-plugin</artifactId>
-                <version>1.6.2</version>
-            </extension>
-        </extensions>
-
-        <plugins>
-            <!-- 添加kin-rpc-transport-grpc依赖, 添加下面插件, kinrpc-grpc代码生成demo -->
-            <plugin>
-                <groupId>org.xolstice.maven.plugins</groupId>
-                <artifactId>protobuf-maven-plugin</artifactId>
-                <version>0.6.1</version>
-                <configuration>
-                    <protocArtifact>
-                        com.google.protobuf:protoc:3.12.0:exe:${os.detected.classifier}
-                    </protocArtifact>
-                    <pluginId>rsocket-rpc</pluginId>
-                    <pluginArtifact>
-                        io.rsocket.rpc:rsocket-rpc-protobuf:${rsocket-rpc.version}:exe:${os.detected.classifier}
-                    </pluginArtifact>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>compile</goal>
-                            <goal>compile-custom</goal>
-                            <goal>test-compile</goal>
-                            <goal>test-compile-custom</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>3.2.0</version>
-                <executions>
-                    <execution>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>${project.build.directory}/generated-sources/protobuf/java</source>
-                                <source>${project.build.directory}/generated-sources/protobuf/rsocket-rpc</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-
 </project>

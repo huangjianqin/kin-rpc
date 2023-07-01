@@ -1,2 +1,4 @@
-serviceBootstrap=org.kin.kinrpc.bootstrap.ServiceBootstrap
-referenceBootstrap=org.kin.kinrpc.bootstrap.ReferenceBootstrap
+serviceBootstrap=org.kin.kinrpc.bootstrap.ServiceBootstrap.DefaultServiceBootstrap,\
+  org.kin.kinrpc.bootstrap.ServiceBootstrap.JvmServiceBootstrap
+referenceBootstrap=org.kin.kinrpc.bootstrap.ReferenceBootstrap.DefaultReferenceBootstrap,\
+  org.kin.kinrpc.bootstrap.ReferenceBootstrap.JvmReferenceBootstrap

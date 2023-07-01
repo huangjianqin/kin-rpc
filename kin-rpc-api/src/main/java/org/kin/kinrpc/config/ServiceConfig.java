@@ -63,10 +63,19 @@ public class ServiceConfig<T> extends AbstractInterfaceConfig<T, ServiceConfig<T
     }
 
     /**
+     * 缺省配置, 设置默认值
+     */
+    @Override
+    protected void setUpDefaultConfig() {
+        super.setUpDefaultConfig();
+    }
+
+    /**
      * 发布服务
      */
     @SuppressWarnings("unchecked")
-    public synchronized void export() {
+    public synchronized ServiceConfig<T> export() {
+        setUpDefaultConfig();
         checkValid();
 
         if (Objects.isNull(serviceBootstrap)) {
@@ -74,6 +83,7 @@ public class ServiceConfig<T> extends AbstractInterfaceConfig<T, ServiceConfig<T
         }
 
         serviceBootstrap.export();
+        return this;
     }
 
     /**
@@ -90,6 +100,14 @@ public class ServiceConfig<T> extends AbstractInterfaceConfig<T, ServiceConfig<T
     //setter && getter
     public List<ServerConfig> getServers() {
         return servers;
+    }
+
+    public ServiceConfig<T> jvm() {
+        return bootstrap(BootstrapType.JVM);
+    }
+
+    public ServiceConfig<T> server(ServerConfig server) {
+        return servers(Collections.singletonList(server));
     }
 
     public ServiceConfig<T> servers(ServerConfig... servers) {
@@ -125,6 +143,11 @@ public class ServiceConfig<T> extends AbstractInterfaceConfig<T, ServiceConfig<T
 
     public ServiceConfig<T> bootstrap(String bootstrap) {
         this.bootstrap = bootstrap;
+        return this;
+    }
+
+    public ServiceConfig<T> bootstrap(BootstrapType bootstrapType) {
+        this.bootstrap = bootstrapType.getName();
         return this;
     }
 

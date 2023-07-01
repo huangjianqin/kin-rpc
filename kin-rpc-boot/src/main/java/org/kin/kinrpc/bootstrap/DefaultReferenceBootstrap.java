@@ -3,13 +3,10 @@ package org.kin.kinrpc.bootstrap;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.kinrpc.InterceptorChain;
 import org.kin.kinrpc.Invoker;
-import org.kin.kinrpc.KinRpcAppContext;
-import org.kin.kinrpc.cluster.ReferenceProxy;
 import org.kin.kinrpc.cluster.invoker.ClusterInvoker;
 import org.kin.kinrpc.cluster.invoker.RpcCallInvoker;
 import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
 import org.kin.kinrpc.cluster.router.Router;
-import org.kin.kinrpc.cluster.utils.ByteBuddyUtils;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.RegistryConfig;
 import org.kin.kinrpc.registry.Registry;
@@ -17,7 +14,6 @@ import org.kin.kinrpc.registry.RegistryHelper;
 import org.kin.kinrpc.registry.directory.CompositeDirectory;
 import org.kin.kinrpc.registry.directory.Directory;
 
-import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +21,7 @@ import java.util.List;
  * @author huangjianqin
  * @date 2023/6/30
  */
-public class DefaultReferenceBootstrap<T> extends ReferenceBootstrap<T> {
+public class DefaultReferenceBootstrap<T> extends ProxyReferenceBootstrap<T> {
     /** cluster invoker */
     private volatile ClusterInvoker<T> clusterInvoker;
 
@@ -54,18 +50,8 @@ public class DefaultReferenceBootstrap<T> extends ReferenceBootstrap<T> {
         clusterInvoker = ExtensionLoader.getExtension(ClusterInvoker.class, config.getCluster(),
                 config, new CompositeDirectory(directories),
                 router, loadBalance, chain);
-        ReferenceProxy referenceProxy = new ReferenceProxy(config, clusterInvoker);
 
-        Class<T> interfaceClass = config.getInterfaceClass();
-        if (KinRpcAppContext.ENHANCE) {
-            reference = ByteBuddyUtils.build(interfaceClass, referenceProxy);
-        } else {
-            reference = (T) Proxy.newProxyInstance(interfaceClass.getClassLoader(),
-                    new Class[]{interfaceClass},
-                    referenceProxy);
-        }
-
-        return reference;
+        return createProxy(clusterInvoker);
     }
 
     @Override
@@ -73,7 +59,7 @@ public class DefaultReferenceBootstrap<T> extends ReferenceBootstrap<T> {
         clusterInvoker.destroy();
 
         //获取注册中心client, 并取消订阅服务
-        String service = config.service();
+        String service = config.getService();
         for (RegistryConfig registryConfig : config.getRegistries()) {
             Registry registry = RegistryHelper.getRegistry(registryConfig);
             registry.unsubscribe(service);

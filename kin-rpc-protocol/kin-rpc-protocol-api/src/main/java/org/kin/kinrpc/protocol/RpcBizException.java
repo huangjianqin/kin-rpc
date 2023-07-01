@@ -4,6 +4,7 @@ import org.kin.kinrpc.RpcException;
 
 /**
  * rpc服务方法调用异常, 即server端返回的异常
+ * todo 命名
  *
  * @author huangjianqin
  * @date 2023/6/29

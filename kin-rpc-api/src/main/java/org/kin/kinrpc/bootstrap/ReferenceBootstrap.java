@@ -47,7 +47,7 @@ public abstract class ReferenceBootstrap<T> {
             return reference;
         }
 
-        String service = config.service();
+        String service = config.getService();
         if (REFERENCED_SERVICES.contains(service)) {
             log.warn("service '{}' has been referenced before, " +
                     " please check and ensure duplicate refer is right operation, " +

@@ -2,6 +2,7 @@ package org.kin.kinrpc.config;
 
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.StringUtils;
+import org.kin.kinrpc.GenericService;
 import org.kin.kinrpc.IllegalConfigException;
 import org.kin.kinrpc.bootstrap.ReferenceBootstrap;
 import org.kin.kinrpc.constants.ReferenceConstants;
@@ -72,6 +73,10 @@ public class ReferenceConfig<T> extends AbstractInterfaceConfig<T, ReferenceConf
                 throw new IllegalConfigException(String.format("method '%s' is not found in interface '%s'", name, getInterfaceClass().getName()));
             }
         }
+        if (generic && !GenericService.class.equals(getInterfaceClass())) {
+            //开启泛化, 服务接口必须为GenericService
+            throw new IllegalConfigException(String.format("open generic, interface class must be org.kin.kinrpc.GenericService, but actually is %s", getInterfaceClass().getName()));
+        }
 
         check(StringUtils.isNotBlank(cluster), "cluster must be not blank");
         check(StringUtils.isNotBlank(loadBalance), "loadBalance must be not blank");
@@ -83,12 +88,21 @@ public class ReferenceConfig<T> extends AbstractInterfaceConfig<T, ReferenceConf
     }
 
     /**
+     * 缺省配置, 设置默认值
+     */
+    @Override
+    protected void setUpDefaultConfig() {
+        super.setUpDefaultConfig();
+    }
+
+    /**
      * 创建服务引用代理实例
      *
      * @return 服务引用代理实例
      */
     @SuppressWarnings("unchecked")
     public synchronized T refer() {
+        setUpDefaultConfig();
         checkValid();
 
         if (Objects.isNull(referenceBootstrap)) {
@@ -110,6 +124,11 @@ public class ReferenceConfig<T> extends AbstractInterfaceConfig<T, ReferenceConf
     }
 
     //setter && getter
+
+    public ReferenceConfig<T> jvm() {
+        return bootstrap(BootstrapType.JVM);
+    }
+
     public List<MethodConfig> getMethods() {
         return methods;
     }
@@ -228,6 +247,11 @@ public class ReferenceConfig<T> extends AbstractInterfaceConfig<T, ReferenceConf
 
     public ReferenceConfig<T> bootstrap(String bootstrap) {
         this.bootstrap = bootstrap;
+        return this;
+    }
+
+    public ReferenceConfig<T> bootstrap(BootstrapType bootstrapType) {
+        this.bootstrap = bootstrapType.getName();
         return this;
     }
 }

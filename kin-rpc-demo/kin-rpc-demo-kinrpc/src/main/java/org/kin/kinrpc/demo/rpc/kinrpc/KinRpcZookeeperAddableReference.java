@@ -3,7 +3,6 @@ package org.kin.kinrpc.demo.rpc.kinrpc;
 import org.kin.kinrpc.cluster.RpcCallContext;
 import org.kin.kinrpc.conf.ReferenceConfig;
 import org.kin.kinrpc.conf.ZKRegistryConfig;
-import org.kin.kinrpc.demo.rpc.Addable;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;

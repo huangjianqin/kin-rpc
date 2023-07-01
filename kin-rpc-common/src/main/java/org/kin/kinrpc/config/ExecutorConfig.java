@@ -7,7 +7,6 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 服务处理线程配置, 一般用于服务处理线程隔离
- * todo 是否可以考虑, 如果该executor队列满了, 是否允许在通用业务处理线程池完成服务调用
  *
  * @author huangjianqin
  * @date 2023/6/16

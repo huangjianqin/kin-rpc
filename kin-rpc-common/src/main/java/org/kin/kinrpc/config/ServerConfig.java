@@ -11,12 +11,14 @@ import java.util.Objects;
  * server配置
  * todo kinrpc attachment netty options
  * todo grpc attachment Inbound消息大小, Inbound元数据大小, 流控窗口, 每个连接最大请求并发处理
- * todo kinrpc attachment netty options
  *
  * @author huangjianqin
  * @date 2023/6/16
  */
 public class ServerConfig extends AttachableConfig {
+    /** jvm协议, 单例 */
+    public static final ServerConfig JVM = ServerConfig.create(ProtocolType.JVM);
+
     /** 协议名 */
     private String protocol;
     /** 监听IP */
@@ -66,8 +68,11 @@ public class ServerConfig extends AttachableConfig {
     protected void checkValid() {
         super.checkValid();
         check(StringUtils.isNotBlank(protocol), "server protocol must be not blank");
-        check(StringUtils.isNotBlank(host), "server host must be not blank");
-        check(port > 0, "server port must be greater than 0");
+        if (!ProtocolType.JVM.getName().equalsIgnoreCase(protocol)) {
+            //非jvm协议
+            check(StringUtils.isNotBlank(host), "server host must be not blank");
+            check(port > 0, "server port must be greater than 0");
+        }
         if (Objects.nonNull(executor)) {
             executor.checkValid();
         }

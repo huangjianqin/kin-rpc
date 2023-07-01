@@ -1,8 +1,6 @@
 package org.kin.kinrpc.demo.rpc.kinrpc;
 
 import org.kin.kinrpc.conf.ReferenceConfig;
-import org.kin.kinrpc.demo.rpc.Addable;
-import org.kin.kinrpc.demo.rpc.AddableReference;
 import org.kin.kinrpc.rpc.common.Constants;
 
 /**

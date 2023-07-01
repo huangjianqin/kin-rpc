@@ -187,7 +187,7 @@ public final class ZookeeperRegistry extends AbstractRegistry {
 
     @Override
     public void register(ServiceConfig<?> serviceConfig) {
-        String service = serviceConfig.service();
+        String service = serviceConfig.getService();
         log.info("zookeeper registry(address={}) register service '{}' ", connectAddress(), service);
 
         for (ServerConfig serverConfig : serviceConfig.getServers()) {
@@ -198,7 +198,7 @@ public final class ZookeeperRegistry extends AbstractRegistry {
 
     @Override
     public void unregister(ServiceConfig<?> serviceConfig) {
-        String service = serviceConfig.service();
+        String service = serviceConfig.getService();
         log.info("zookeeper registry(address={}) unregister service '{}' ", connectAddress(), service);
 
         for (ServerConfig serverConfig : serviceConfig.getServers()) {
@@ -210,7 +210,7 @@ public final class ZookeeperRegistry extends AbstractRegistry {
 
     @Override
     public Directory subscribe(ReferenceConfig<?> config) {
-        String service = config.service();
+        String service = config.getService();
         if (log.isDebugEnabled()) {
             log.debug("reference subscribe service '{}' on zookeeper registry(address={})", service, connectAddress());
         }

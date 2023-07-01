@@ -12,7 +12,6 @@ import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.MethodHandleUtils;
 import org.kin.kinrpc.*;
 import org.kin.kinrpc.cluster.call.RpcResultAdapterHelper;
-import org.kin.kinrpc.cluster.invoker.ClusterInvoker;
 import org.kin.kinrpc.config.MethodConfig;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.constants.ReferenceConstants;
@@ -50,7 +49,7 @@ public final class ReferenceProxy implements InvocationHandler {
     /** 服务唯一标识 */
     private final String service;
     /** cluster invoker */
-    private final ClusterInvoker<?> invoker;
+    private final Invoker<?> invoker;
     /** 服务方法元数据, key -> handlerId */
     private final Map<Integer, MethodMetadata> methodMetadataMap = new CopyOnWriteMap<>();
     /** 方法级服务方法配置 */
@@ -58,10 +57,10 @@ public final class ReferenceProxy implements InvocationHandler {
     /** 服务级服务方法配置 */
     private final MethodConfig globalMethodConfig;
 
-    public ReferenceProxy(ReferenceConfig<?> config, ClusterInvoker<?> invoker) {
+    public ReferenceProxy(ReferenceConfig<?> config, Invoker<?> invoker) {
         this.config = config;
         this.serializationCode = (byte) ExtensionLoader.getExtensionCode(Serialization.class, config.getSerialization());
-        this.service = config.service();
+        this.service = config.getService();
         this.serviceId = GsvUtils.serviceId(this.service);
         this.invoker = invoker;
         if (!config.isGeneric()) {
@@ -112,11 +111,11 @@ public final class ReferenceProxy implements InvocationHandler {
         if (config.isGeneric()) {
             //泛化调用
             Class<?> returnType = Void.class;
-            if (args.length > 1) {
-                returnType = (Class<?>) args[2];
+            if (args.length > 2) {
+                returnType = (Class<?>) args[1];
             }
             methodMetadata = new GenericMethodMetadata(service, method,
-                    (String) args[0], (Object[]) args[1], returnType);
+                    (String) args[0], (Object[]) args[2], returnType);
             handlerId = methodMetadata.handlerId();
         } else {
             //非泛化调用

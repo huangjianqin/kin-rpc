@@ -42,7 +42,7 @@ public abstract class ServiceBootstrap<T> {
         if (!state.compareAndSet(INIT_STATE, EXPORTED_STATE)) {
             return;
         }
-        String service = config.service();
+        String service = config.getService();
         if (EXPORTED_SERVICES.contains(service)) {
             log.warn("service '{}' has been exported before, " +
                     " please check and ensure duplicate export is right operation, " +

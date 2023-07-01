@@ -224,6 +224,6 @@ public class DefaultDirectory implements Directory {
 
     @Override
     public String service() {
-        return config.service();
+        return config.getService();
     }
 }

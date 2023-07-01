@@ -2,6 +2,8 @@ package org.kin.kinrpc;
 
 /**
  * rpc相关异常封装
+ * todo 命名
+ *
  * @author huangjianqin
  * @date 2023/2/26
  */

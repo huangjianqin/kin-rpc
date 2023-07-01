@@ -28,4 +28,11 @@ public abstract class AbstractConfig implements Config {
             throw new IllegalConfigException(String.valueOf(errorMessage));
         }
     }
+
+    /**
+     * 缺省配置, 设置默认值
+     */
+    protected void setUpDefaultConfig() {
+        //default do nothing
+    }
 }

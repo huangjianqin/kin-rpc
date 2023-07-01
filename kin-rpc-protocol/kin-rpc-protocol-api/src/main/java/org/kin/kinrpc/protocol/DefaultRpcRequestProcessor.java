@@ -33,7 +33,7 @@ public class DefaultRpcRequestProcessor extends RpcRequestProcessor {
      */
     public synchronized void register(RpcService<?> rpcService) {
         ServiceConfig<?> config = rpcService.getConfig();
-        String gsv = config.service();
+        String gsv = config.getService();
         int serviceId = GsvUtils.serviceId(gsv);
 
         //copy

@@ -64,5 +64,9 @@ public class DefaultServiceBootstrap<T> extends ServiceBootstrap<T> {
         rpcService.destroy();
         //shutdown server
         exporter.unExport();
+
+        //help gc
+        rpcService = null;
+        exporter = null;
     }
 }
