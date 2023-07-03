@@ -110,6 +110,9 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
         //4. load balance
         ReferenceInvoker<?> loadBalancedInvoker = loadBalance.loadBalance(invocation, routedInvokers);
 
+        //attach
+        invocation.attach(ReferenceConstants.LOADBALANCE, loadBalance);
+
         if (log.isDebugEnabled()) {
             if (loadBalancedInvoker != null) {
                 log.debug("reference invoker select finished, {}", loadBalancedInvoker.serviceInstance());

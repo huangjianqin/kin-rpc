@@ -8,13 +8,24 @@ package org.kin.kinrpc;
  */
 public interface Interceptor {
     /**
-     * 拦截逻辑实现
+     * 拦截rpc call
      *
      * @param invoker    拦截器调用链中下一个{@link Invoker}实例
      * @param invocation 服务调用信息
      * @return 服务调用结果
      */
     RpcResult intercept(Invoker<?> invoker, Invocation invocation);
+
+    /**
+     * rpc response时触发
+     *
+     * @param invocation rpc call信息
+     * @param response   rpc response
+     */
+    default void onResponse(Invocation invocation,
+                            RpcResponse response) {
+        //default do nothing
+    }
 
     /**
      * 拦截优先级, 数值越大, 优先级越低

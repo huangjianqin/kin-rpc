@@ -6,6 +6,7 @@ import org.kin.kinrpc.cluster.RpcTimeoutException;
 import org.kin.kinrpc.config.MethodConfig;
 import org.kin.kinrpc.constants.ReferenceConstants;
 
+import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -37,6 +38,10 @@ public final class RpcCallInvoker<T> implements Invoker<T> {
             throw new IllegalStateException("can not find available invoker. invocation=" + invocation);
         }
 
+        //ready to rpc call
+        long now = System.currentTimeMillis();
+        invocation.attach(ReferenceConstants.RPC_CALL_START_TIME_KEY, now);
+
         CompletableFuture<Object> future = new CompletableFuture<>();
 
         int timeoutMs = methodConfig.getTimeout();
@@ -51,16 +56,46 @@ public final class RpcCallInvoker<T> implements Invoker<T> {
 
                 future.completeExceptionally(new RpcTimeoutException(invocation, timeoutMs));
             }, timeoutMs, TimeUnit.MILLISECONDS);
-            invocation.attachment(ReferenceConstants.TIMEOUT_KEY, System.currentTimeMillis() + timeoutMs);
+            invocation.attach(ReferenceConstants.TIMEOUT_KEY, now + timeoutMs);
         }
 
         RpcResult rpcResult = invoker.invoke(invocation);
         Timeout outterTimeout = timeout;
-        rpcResult.onFinishAsync((r, t) -> {
-            if (Objects.nonNull(outterTimeout)) {
-                outterTimeout.cancel();
-            }
-        }, future, ReferenceContext.EXECUTOR);
+        rpcResult.onFinishAsync((r, t) -> onRpcCallResponse(invocation, r, t, outterTimeout, future), ReferenceContext.EXECUTOR);
         return RpcResult.success(invocation, future);
+    }
+
+    /**
+     * rpc call response处理
+     *
+     * @param invocation rpc call信息
+     * @param result     rpc call result
+     * @param t          rpc call exception
+     * @param future     listen rpc call future
+     */
+    private void onRpcCallResponse(Invocation invocation,
+                                   @Nullable Object result,
+                                   @Nullable Throwable t,
+                                   @Nullable Timeout timeout,
+                                   CompletableFuture<Object> future) {
+        invocation.attach(ReferenceConstants.RPC_CALL_FINISH_TIME_KEY, System.currentTimeMillis());
+        if (Objects.nonNull(timeout)) {
+            timeout.cancel();
+        }
+
+        RpcResponse rpcResponse = new RpcResponse(result, t);
+        InterceptorChain chain = invocation.attachment(ReferenceConstants.INTERCEPTOR_CHAIN);
+        if (Objects.nonNull(chain)) {
+            chain.onResponse(invocation, rpcResponse);
+        }
+
+        //overwrite
+        result = rpcResponse.getResult();
+        t = rpcResponse.getException();
+        if (Objects.isNull(t)) {
+            future.complete(result);
+        } else {
+            future.completeExceptionally(t);
+        }
     }
 }

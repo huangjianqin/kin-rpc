@@ -17,8 +17,16 @@ public final class ReferenceConstants {
     public static final String SELECTED_INVOKER_KEY = "selected";
     /** 服务方法配置 */
     public static final String METHOD_CONFIG_KEY = "methodConfig";
-    /** rpc call timeout(absolutely end time) */
+    /** rpc call start time(ms) */
+    public static final String RPC_CALL_START_TIME_KEY = "rpcCallStartTime";
+    /** rpc call Finish time(ms) */
+    public static final String RPC_CALL_FINISH_TIME_KEY = "rpcCallFinishTime";
+    /** rpc call timeout(absolutely end time, ms) */
     public static final String TIMEOUT_KEY = "timeout";
+    /** loadbalance, 可能为null */
+    public static final String LOADBALANCE = "loadbalance";
+    /** interceptor chain */
+    public static final String INTERCEPTOR_CHAIN = "interceptorChain";
 
     private ReferenceConstants() {
     }
