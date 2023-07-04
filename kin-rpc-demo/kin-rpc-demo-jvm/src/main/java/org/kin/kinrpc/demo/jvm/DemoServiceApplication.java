@@ -10,8 +10,8 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2023/7/4
  */
-public class CustomServiceApplication extends CustomServiceConsumerBase {
-    private static ServiceConfig<CustomService> serviceConfig;
+public class DemoServiceApplication extends DemoServiceConsumerBase {
+    private static ServiceConfig<DemoService> serviceConfig;
 
     public static void main(String[] args) throws InterruptedException {
         try {
@@ -28,9 +28,9 @@ public class CustomServiceApplication extends CustomServiceConsumerBase {
     }
 
     private static void export() {
-        serviceConfig = ServiceConfig.create(CustomService.class, new CustomServiceImpl())
+        serviceConfig = ServiceConfig.create(DemoService.class, new DemoServiceImpl())
                 .jvm()
-                .serviceName(Constants.CUSTOM_SERVICE_NAME)
+                .serviceName(Constants.DEMO_SERVICE_NAME)
                 .app(ApplicationConfig.create("kinrpc-demo-jvm-provider"))
                 .executor(ExecutorConfig.fix())
                 .weight(1)
@@ -39,15 +39,15 @@ public class CustomServiceApplication extends CustomServiceConsumerBase {
     }
 
     private static void consume() throws InterruptedException {
-        ReferenceConfig<CustomService> referenceConfig = ReferenceConfig.create(CustomService.class)
+        ReferenceConfig<DemoService> referenceConfig = ReferenceConfig.create(DemoService.class)
                 .jvm()
-                .serviceName(Constants.CUSTOM_SERVICE_NAME)
+                .serviceName(Constants.DEMO_SERVICE_NAME)
                 .app(ApplicationConfig.create("kinrpc-demo-jvm-consumer"))
                 .method(MethodConfig.create("asyncFind").timeout(4000))
                 .interceptor(new LogInterceptor(false));
         try {
-            CustomService customService = referenceConfig.refer();
-            invokeCustomService(customService);
+            DemoService demoService = referenceConfig.refer();
+            invokeDemoService(demoService);
         } finally {
             referenceConfig.unRefer();
         }
@@ -56,13 +56,13 @@ public class CustomServiceApplication extends CustomServiceConsumerBase {
         ReferenceConfig<GenericService> genericReferenceConfig = ReferenceConfig.create(GenericService.class)
                 .jvm()
                 .generic()
-                .serviceName(Constants.CUSTOM_SERVICE_NAME)
+                .serviceName(Constants.DEMO_SERVICE_NAME)
                 .app(ApplicationConfig.create("kinrpc-demo-jvm-generic-consumer"))
                 .method(MethodConfig.create("asyncFind").timeout(4000))
                 .interceptor(new LogInterceptor(false));
         try {
-            GenericService genericCustomService = genericReferenceConfig.refer();
-            invokeGenericCustomService(genericCustomService);
+            GenericService genericDemoService = genericReferenceConfig.refer();
+            invokeGenericDemoService(genericDemoService);
         } finally {
             genericReferenceConfig.unRefer();
         }

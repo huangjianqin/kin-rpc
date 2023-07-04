@@ -10,7 +10,7 @@ import java.util.concurrent.CompletableFuture;
  * @author huangjianqin
  * @date 2021/4/9
  */
-public interface CustomService {
+public interface DemoService {
     List<User> findAll();
 
 //    /**

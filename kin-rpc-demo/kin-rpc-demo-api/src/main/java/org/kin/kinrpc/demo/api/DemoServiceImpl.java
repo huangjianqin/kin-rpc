@@ -17,7 +17,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * @author huangjianqin
  * @date 2023/7/1
  */
-public class CustomServiceImpl implements CustomService {
+public class DemoServiceImpl implements DemoService {
     private static final List<User> USERS = Arrays.asList(
             User.of("A", 1),
             User.of("B", 2),
