@@ -1,0 +1,3 @@
+executorFactory=org.kin.kinrpc.executor.FixExecutorFactory,\
+  org.kin.kinrpc.executor.CacheExecutorFactory,\
+  org.kin.kinrpc.executor.EagerExecutorFactory

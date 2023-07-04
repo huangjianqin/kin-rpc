@@ -1,7 +1,5 @@
 package org.kin.kinrpc.transport.grpc;
 
-import io.grpc.Server;
-import io.grpc.netty.NettyChannelBuilder;
 import io.grpc.netty.NettyServerBuilder;
 import org.kin.framework.utils.SPI;
 
@@ -10,7 +8,7 @@ import org.kin.framework.utils.SPI;
  * @author huangjianqin
  * @date 2023/6/13
  */
-@SPI("grpcServerCustomizer")
+@SPI(alias = "grpcServerCustomizer")
 public interface GrpcServerCustomizer {
     /**
      * user自定义grpc server配置

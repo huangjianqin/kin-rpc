@@ -10,7 +10,7 @@ import java.util.concurrent.CompletableFuture;
  * @author huangjianqin
  * @date 2021/2/6
  */
-@SPI("rpcResultAdapter")
+@SPI(alias = "rpcResultAdapter")
 public interface RpcResultAdapter {
     /**
      * rpc call result处理

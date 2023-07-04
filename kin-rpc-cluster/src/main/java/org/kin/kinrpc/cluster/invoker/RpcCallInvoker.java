@@ -5,6 +5,8 @@ import org.kin.kinrpc.*;
 import org.kin.kinrpc.cluster.RpcTimeoutException;
 import org.kin.kinrpc.config.MethodConfig;
 import org.kin.kinrpc.constants.ReferenceConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
@@ -19,6 +21,8 @@ import java.util.concurrent.TimeUnit;
  * @date 2023/6/26
  */
 public final class RpcCallInvoker<T> implements Invoker<T> {
+    private static final Logger log = LoggerFactory.getLogger(RpcCallInvoker.class);
+
     /** 单例 */
     public static final Invoker<?> INSTANCE = new RpcCallInvoker<>();
 
@@ -78,6 +82,10 @@ public final class RpcCallInvoker<T> implements Invoker<T> {
                                    @Nullable Throwable t,
                                    @Nullable Timeout timeout,
                                    CompletableFuture<Object> future) {
+        if (log.isDebugEnabled()) {
+            log.debug("rpc call response. result={}, exception={}, invocation={}", result, t, invocation);
+        }
+
         invocation.attach(ReferenceConstants.RPC_CALL_FINISH_TIME_KEY, System.currentTimeMillis());
         if (Objects.nonNull(timeout)) {
             timeout.cancel();

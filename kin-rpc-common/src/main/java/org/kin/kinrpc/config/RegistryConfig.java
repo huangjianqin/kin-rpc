@@ -101,4 +101,12 @@ public class RegistryConfig extends AttachableConfig {
         this.address = address;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "RegistryConfig{" +
+                "type='" + type + '\'' +
+                ", address='" + address + '\'' +
+                '}';
+    }
 }

@@ -39,7 +39,12 @@ public class FailoverClusterInvoker<T> extends ClusterInvoker<T> {
             throw new IllegalStateException("can not find method config. invocation=" + invocation);
         }
 
-        doInvoke(invocation, future, 1, methodConfig.getRetries());
+        int maxRetries = methodConfig.getRetries();
+        if (maxRetries < 0) {
+            //reset to 1, means just invoke one times
+            maxRetries = 1;
+        }
+        doInvoke(invocation, future, 1, maxRetries);
     }
 
     /**

@@ -102,7 +102,7 @@ public class RpcInvocation extends AttachmentMap implements Invocation {
         return "RpcInvocation{" +
                 "serviceId=" + serviceId +
                 ", service='" + service + '\'' +
-                ", params=" + Arrays.toString(params) +
+                ", params=" + Arrays.deepToString(params) +
                 ", methodMetadata=" + methodMetadata +
                 ", serializationCode=" + serializationCode +
                 ", attachments=" + attachments() +

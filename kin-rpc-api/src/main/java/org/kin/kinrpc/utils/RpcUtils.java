@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 /**
@@ -35,7 +37,7 @@ public final class RpcUtils {
         }
 
         Class<?> returnType = method.getReturnType();
-        if (Future.class.isAssignableFrom(returnType)) {
+        if (Future.class.isAssignableFrom(returnType) && !CompletableFuture.class.isAssignableFrom(returnType)) {
             log.warn("service method '{}' is ignore, due to it is invalid", uniqueName);
             return false;
         }
@@ -75,5 +77,18 @@ public final class RpcUtils {
         }
 
         return methodMetadataMap;
+    }
+
+    /**
+     * 包装rpc call异常
+     *
+     * @return 异常
+     */
+    public static Throwable normalizeException(Throwable source) {
+        if (source instanceof ExecutionException) {
+            source = source.getCause();
+        }
+
+        return source;
     }
 }

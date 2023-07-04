@@ -9,7 +9,7 @@ import org.kin.kinrpc.config.RegistryConfig;
  * @author huangjianqin
  * @date 2023/6/26
  */
-@SPI("registryFactory")
+@SPI(alias = "registryFactory")
 @FunctionalInterface
 public interface RegistryFactory {
     /**

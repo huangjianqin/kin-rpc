@@ -3,7 +3,7 @@ package org.kin.kinrpc.cluster;
 import net.bytebuddy.implementation.bind.annotation.AllArguments;
 import net.bytebuddy.implementation.bind.annotation.Origin;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
-import org.checkerframework.common.returnsreceiver.qual.This;
+import net.bytebuddy.implementation.bind.annotation.This;
 import org.eclipse.collections.api.map.primitive.IntObjectMap;
 import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
 import org.kin.framework.collection.CopyOnWriteMap;
@@ -39,6 +39,8 @@ import java.util.concurrent.CompletableFuture;
  */
 public final class ReferenceProxy implements InvocationHandler {
     private static final Logger log = LoggerFactory.getLogger(ReferenceProxy.class);
+    /** 空参数 */
+    private static final Object[] EMPTY_PARAMETER = new Object[0];
 
     /** reference端配置 */
     private final ReferenceConfig<?> config;
@@ -112,10 +114,21 @@ public final class ReferenceProxy implements InvocationHandler {
             //泛化调用
             Class<?> returnType = Void.class;
             if (args.length > 2) {
+                //至少有三个
                 returnType = (Class<?>) args[1];
             }
+            Object[] params;
+            if (args.length == 2) {
+                params = (Object[]) args[1];
+            } else if (args.length == 3) {
+                params = (Object[]) args[2];
+            } else {
+                params = EMPTY_PARAMETER;
+            }
             methodMetadata = new GenericMethodMetadata(service, method,
-                    (String) args[0], (Object[]) args[2], returnType);
+                    (String) args[0], params, returnType);
+            //overwrite
+            args = params;
             handlerId = methodMetadata.handlerId();
         } else {
             //非泛化调用

@@ -179,7 +179,7 @@ public class RpcService<T> implements Invoker<T> {
         Object[] params = invocation.params();
 
         if (log.isDebugEnabled()) {
-            log.debug("handle rpc call... invocation={}", invocation);
+            log.debug("handle rpc call. invocation={}", invocation);
         }
         //Object类方法直接调用
         if (invocation.isObjectMethod()) {
@@ -214,7 +214,7 @@ public class RpcService<T> implements Invoker<T> {
         try {
             return rpcHandler.handle(params);
         } catch (Exception e) {
-            log.error("method '{}' invoke error, params is {}, {}", handlerName, params, e);
+            log.error("method '{}' invoke error, params is {}", handlerName, params, e);
             ExceptionUtils.throwExt(e);
             return null;
         }

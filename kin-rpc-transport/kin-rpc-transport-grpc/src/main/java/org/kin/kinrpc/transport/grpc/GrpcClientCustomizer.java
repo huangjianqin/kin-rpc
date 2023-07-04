@@ -8,7 +8,7 @@ import org.kin.framework.utils.SPI;
  * @author huangjianqin
  * @date 2023/6/13
  */
-@SPI("grpcClientCustomizer")
+@SPI(alias = "grpcClientCustomizer")
 public interface GrpcClientCustomizer {
     /**
      * user自定义grpc channel配置

@@ -13,10 +13,10 @@ import java.util.concurrent.CompletableFuture;
 public interface CustomService {
     List<User> findAll();
 
-    /**
-     * 测试重载检查
-     */
-    List<User> find(String name);
+//    /**
+//     * 测试重载检查
+//     */
+//    List<User> find(String name);
 
     User find(String name, int age);
 
@@ -35,7 +35,7 @@ public interface CustomService {
     /**
      * 主动抛异常
      */
-    void throwException();
+    void runWithError();
 
     /**
      * {@link Thread#sleep(long)}
@@ -57,4 +57,9 @@ public interface CustomService {
      * 测试{@link org.kin.kinrpc.AsyncContext}
      */
     User findWithAsyncContext(String name, int age);
+
+    /**
+     * 异步主动抛异常
+     */
+    CompletableFuture<Void> asyncRunWithError();
 }

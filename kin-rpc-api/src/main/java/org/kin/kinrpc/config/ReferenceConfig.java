@@ -64,15 +64,19 @@ public class ReferenceConfig<T> extends AbstractInterfaceConfig<T, ReferenceConf
                 throw new IllegalConfigException(String.format("service interface method name '%s' conflict, does not support method overload now", method.getName()));
             }
         }
-        for (MethodConfig methodConfig : methods) {
-            methodConfig.checkValid();
 
-            //检查方法名是否合法
-            String name = methodConfig.getName();
-            if (!availableMethodNames.contains(name)) {
-                throw new IllegalConfigException(String.format("method '%s' is not found in interface '%s'", name, getInterfaceClass().getName()));
+        if (!generic) {
+            for (MethodConfig methodConfig : methods) {
+                methodConfig.checkValid();
+
+                //检查方法名是否合法
+                String name = methodConfig.getName();
+                if (!availableMethodNames.contains(name)) {
+                    throw new IllegalConfigException(String.format("method '%s' is not found in interface '%s'", name, getInterfaceClass().getName()));
+                }
             }
         }
+
         if (generic && !GenericService.class.equals(getInterfaceClass())) {
             //开启泛化, 服务接口必须为GenericService
             throw new IllegalConfigException(String.format("open generic, interface class must be org.kin.kinrpc.GenericService, but actually is %s", getInterfaceClass().getName()));
@@ -87,12 +91,9 @@ public class ReferenceConfig<T> extends AbstractInterfaceConfig<T, ReferenceConf
         check(retries > 0, "global method rpc call retry times must be greater than 0");
     }
 
-    /**
-     * 缺省配置, 设置默认值
-     */
     @Override
-    protected void setUpDefaultConfig() {
-        super.setUpDefaultConfig();
+    protected boolean isJvmBootstrap() {
+        return BootstrapType.JVM.getName().equalsIgnoreCase(bootstrap);
     }
 
     /**
@@ -253,5 +254,23 @@ public class ReferenceConfig<T> extends AbstractInterfaceConfig<T, ReferenceConf
     public ReferenceConfig<T> bootstrap(BootstrapType bootstrapType) {
         this.bootstrap = bootstrapType.getName();
         return this;
+    }
+
+    @Override
+    public String toString() {
+        return "ReferenceConfig{" +
+                super.toString() +
+                ", methods=" + methods +
+                ", cluster='" + cluster + '\'' +
+                ", loadBalance='" + loadBalance + '\'' +
+                ", router='" + router + '\'' +
+                ", generic=" + generic +
+                ", ssl=" + ssl +
+                ", bootstrap='" + bootstrap + '\'' +
+                ", rpcTimeout=" + rpcTimeout +
+                ", retries=" + retries +
+                ", async=" + async +
+                ", sticky=" + sticky +
+                '}';
     }
 }

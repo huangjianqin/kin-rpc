@@ -8,7 +8,7 @@ import org.kin.framework.utils.SPI;
  * @author huangjianqin
  * @date 2023/6/13
  */
-@SPI("rsocketServerCustomizer")
+@SPI(alias = "rsocketServerCustomizer")
 public interface RSocketServerCustomizer {
     /**
      * user自定义rsocket server配置

@@ -1,5 +1,7 @@
 package org.kin.kinrpc.config;
 
+import org.kin.kinrpc.utils.ObjectUtils;
+
 import java.io.File;
 
 /**
@@ -84,5 +86,16 @@ public class SslConfig implements Config {
     public SslConfig fingerprintFile(File fingerprintFile) {
         this.fingerprintFile = fingerprintFile;
         return this;
+    }
+
+    @Override
+    public String toString() {
+        return "SslConfig{" +
+                ObjectUtils.toStringIfNonNull(certFile, "certFile=" + certFile) +
+                ObjectUtils.toStringIfNonNull(certKeyFile, ", certKeyFile=" + certKeyFile) +
+                ObjectUtils.toStringIfNonNull(certKeyPassword, ", certKeyPassword='" + certKeyPassword + '\'') +
+                ObjectUtils.toStringIfNonNull(caFile, ", caFile=" + caFile) +
+                ObjectUtils.toStringIfNonNull(fingerprintFile, ", fingerprintFile=" + fingerprintFile) +
+                '}';
     }
 }

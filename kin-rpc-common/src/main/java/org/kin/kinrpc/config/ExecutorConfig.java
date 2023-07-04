@@ -2,6 +2,7 @@ package org.kin.kinrpc.config;
 
 import org.kin.framework.utils.StringUtils;
 import org.kin.framework.utils.SysUtils;
+import org.kin.kinrpc.utils.ObjectUtils;
 
 import java.util.concurrent.TimeUnit;
 
@@ -58,14 +59,6 @@ public class ExecutorConfig extends AttachableConfig {
 
     public static ExecutorConfig cache(String name) {
         return create(name, ExecutorType.CACHE);
-    }
-
-    public static ExecutorConfig direct() {
-        return create(ExecutorType.DIRECT);
-    }
-
-    public static ExecutorConfig direct(String name) {
-        return create(name, ExecutorType.DIRECT);
     }
 
     public static ExecutorConfig eager() {
@@ -151,5 +144,17 @@ public class ExecutorConfig extends AttachableConfig {
     public ExecutorConfig queueSize(int queueSize) {
         this.queueSize = queueSize;
         return this;
+    }
+
+    @Override
+    public String toString() {
+        return "ExecutorConfig{" +
+                ObjectUtils.toStringIfPredicate(StringUtils.isNotBlank(name), "name='" + name + '\'') +
+                ", type='" + type + '\'' +
+                ", corePoolSize=" + corePoolSize +
+                ", maxPoolSize=" + maxPoolSize +
+                ", alive=" + alive +
+                ", queueSize=" + queueSize +
+                '}';
     }
 }

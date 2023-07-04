@@ -34,4 +34,11 @@ public class ApplicationConfig extends AbstractConfig {
         this.appName = appName;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "ApplicationConfig{" +
+                "appName='" + appName + '\'' +
+                '}';
+    }
 }

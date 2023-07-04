@@ -51,6 +51,8 @@ public abstract class ServiceBootstrap<T> {
 
         doExport();
         KinRpcRuntimeContext.cacheService(this);
+
+        log.info("service '{}' exported! serviceConfig={}", service, config);
     }
 
     /**
@@ -62,6 +64,8 @@ public abstract class ServiceBootstrap<T> {
         }
         doUnExport();
         KinRpcRuntimeContext.removeService(this);
+
+        log.info("service '{}' unExported!", config.getService());
     }
 
     /**

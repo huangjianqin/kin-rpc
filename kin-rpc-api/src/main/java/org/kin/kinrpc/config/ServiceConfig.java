@@ -1,9 +1,11 @@
 package org.kin.kinrpc.config;
 
+import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.IllegalConfigException;
 import org.kin.kinrpc.bootstrap.ServiceBootstrap;
+import org.kin.kinrpc.utils.ObjectUtils;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -51,23 +53,25 @@ public class ServiceConfig<T> extends AbstractInterfaceConfig<T, ServiceConfig<T
                 throw new IllegalConfigException(String.format("service interface method name '%s' conflict, does not support method overload now", methodName));
             }
         }
-        check(servers.size() > 0, "server config must be config at least one");
-        for (ServerConfig serverConfig : servers) {
-            serverConfig.checkValid();
-        }
         if (Objects.nonNull(executor)) {
             executor.checkValid();
         }
         check(Objects.nonNull(instance), "service instance must be not null");
         check(StringUtils.isNotBlank(bootstrap), "boostrap type must be not null");
+
+        if (isJvmBootstrap()) {
+            return;
+        }
+
+        check(servers.size() > 0, "server config must be config at least one");
+        for (ServerConfig serverConfig : servers) {
+            serverConfig.checkValid();
+        }
     }
 
-    /**
-     * 缺省配置, 设置默认值
-     */
     @Override
-    protected void setUpDefaultConfig() {
-        super.setUpDefaultConfig();
+    protected boolean isJvmBootstrap() {
+        return BootstrapType.JVM.getName().equalsIgnoreCase(bootstrap);
     }
 
     /**
@@ -158,5 +162,17 @@ public class ServiceConfig<T> extends AbstractInterfaceConfig<T, ServiceConfig<T
     public ServiceConfig<T> weight(int weight) {
         this.weight = weight;
         return this;
+    }
+
+    @Override
+    public String toString() {
+        return "ServiceConfig{" +
+                super.toString() +
+                ObjectUtils.toStringIfPredicate(CollectionUtils.isNonEmpty(servers), ", servers=" + servers) +
+                ObjectUtils.toStringIfNonNull(executor, ", executor=" + executor) +
+                ", weight=" + weight +
+                ", instance=" + instance +
+                ", bootstrap='" + bootstrap + '\'' +
+                '}';
     }
 }

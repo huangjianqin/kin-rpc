@@ -38,7 +38,6 @@ public class MethodConfig extends AbstractConfig {
         super.checkValid();
         check(StringUtils.isNotBlank(name), "method name must be not blank");
         check(timeout > 0, "method rpc call timeout must be greater than 0");
-        check(retries > 0, "method rpc call retry times must be greater than 0");
     }
 
     //setter && getter
@@ -69,6 +68,11 @@ public class MethodConfig extends AbstractConfig {
         return this;
     }
 
+    public MethodConfig unableRetry() {
+        this.retries = -1;
+        return this;
+    }
+
     public boolean isAsync() {
         return async;
     }
@@ -95,5 +99,16 @@ public class MethodConfig extends AbstractConfig {
     public MethodConfig sticky(boolean sticky) {
         this.sticky = sticky;
         return this;
+    }
+
+    @Override
+    public String toString() {
+        return "MethodConfig{" +
+                "name='" + name + '\'' +
+                ", timeout=" + timeout +
+                ", retries=" + retries +
+                ", async=" + async +
+                ", sticky=" + sticky +
+                '}';
     }
 }

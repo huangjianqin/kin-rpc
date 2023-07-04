@@ -42,15 +42,19 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
     protected void checkValid() {
         super.checkValid();
         check(Objects.nonNull(app), "app config must be not null");
-        check(registries.size() > 0, "registry config must be config at least one");
-        for (RegistryConfig registryConfig : registries) {
-            registryConfig.checkValid();
-        }
         check(Objects.nonNull(interfaceClass), "interface class be not null");
         check(StringUtils.isNotBlank(group), "group be not blank");
         check(StringUtils.isNotBlank(serviceName), "service name be not blank");
         check(StringUtils.isNotBlank(version), "version be not blank");
         check(StringUtils.isNotBlank(serialization), "serialization type be not blank");
+        if (isJvmBootstrap()) {
+            return;
+        }
+
+        check(registries.size() > 0, "registry config must be config at least one");
+        for (RegistryConfig registryConfig : registries) {
+            registryConfig.checkValid();
+        }
     }
 
     /**
@@ -90,6 +94,15 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
             serviceId = GsvUtils.serviceId(getService());
         }
         return serviceId;
+    }
+
+    /**
+     * 判断是否是jvm bootstrap
+     *
+     * @return true表示是jvm bootstrap
+     */
+    protected boolean isJvmBootstrap() {
+        return false;
     }
 
     //setter && getter
@@ -183,5 +196,18 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
     public IC interceptors(List<Interceptor> interceptors) {
         this.interceptors.addAll(interceptors);
         return castThis();
+    }
+
+    @Override
+    public String toString() {
+        return "app=" + app +
+                ", registries=" + registries +
+                ", interfaceClass=" + interfaceClass +
+                ", group='" + group + '\'' +
+                ", serviceName='" + serviceName + '\'' +
+                ", version='" + version + '\'' +
+                ", serialization='" + serialization + '\'' +
+                ", service='" + service + '\'' +
+                ", serviceId=" + serviceId;
     }
 }

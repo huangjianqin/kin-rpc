@@ -6,7 +6,6 @@ package org.kin.kinrpc.config;
  */
 public enum ExecutorType{
     CACHE("cache"),
-    DIRECT("direct"),
     EAGER("eager"),
     FIX("fix"),
     ;

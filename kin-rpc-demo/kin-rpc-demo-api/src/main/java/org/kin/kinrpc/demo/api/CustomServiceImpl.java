@@ -12,7 +12,6 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 
 /**
  * @author huangjianqin
@@ -35,13 +34,13 @@ public class CustomServiceImpl implements CustomService {
         return USERS;
     }
 
-    @Override
-    public List<User> find(String name) {
-        return USERS.stream()
-                .filter(u -> u.getName()
-                        .equals(name))
-                .collect(Collectors.toList());
-    }
+//    @Override
+//    public List<User> find(String name) {
+//        return USERS.stream()
+//                .filter(u -> u.getName()
+//                        .equals(name))
+//                .collect(Collectors.toList());
+//    }
 
     @Override
     public User find(String name, int age) {
@@ -77,13 +76,13 @@ public class CustomServiceImpl implements CustomService {
     }
 
     @Override
-    public void throwException() {
-        throw new BusinessException("unsupported");
+    public void runWithError() {
+        throw new BusinessException("run error");
     }
 
     @Override
     public int delayRandom() {
-        int delay = ThreadLocalRandom.current().nextInt(5_000);
+        int delay = 1500 + ThreadLocalRandom.current().nextInt(2_000);
         try {
             Thread.sleep(delay);
         } catch (InterruptedException e) {
@@ -142,5 +141,12 @@ public class CustomServiceImpl implements CustomService {
             }
         });
         return null;
+    }
+
+    @Override
+    public CompletableFuture<Void> asyncRunWithError() {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        future.completeExceptionally(new UnsupportedOperationException());
+        return future;
     }
 }

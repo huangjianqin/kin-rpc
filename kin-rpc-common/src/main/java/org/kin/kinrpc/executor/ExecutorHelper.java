@@ -1,6 +1,5 @@
 package org.kin.kinrpc.executor;
 
-import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.RpcException;
@@ -23,13 +22,14 @@ public class ExecutorHelper {
      */
     private static final Map<String, ManagedExecutor> EXECUTOR_MAP = new HashMap<>();
 
-    static {
-        JvmCloseCleaner.instance().add(() -> {
-            for (ManagedExecutor executor : EXECUTOR_MAP.values()) {
-                executor.shutdown();
-            }
-        });
-    }
+    // TODO: 2023/7/3 恢复
+//    static {
+//        JvmCloseCleaner.instance().add(() -> {
+//            for (ManagedExecutor executor : EXECUTOR_MAP.values()) {
+//                executor.shutdown();
+//            }
+//        });
+//    }
 
     /**
      * 获取服务线程池
@@ -120,7 +120,8 @@ public class ExecutorHelper {
 
             @Override
             public void shutdown() {
-                removeExecutor(name);
+                EXECUTOR_MAP.remove(name);
+                executor.shutdown();
             }
         };
     }

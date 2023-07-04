@@ -14,7 +14,7 @@ import org.kin.kinrpc.config.SslConfig;
  * @author huangjianqin
  * @date 2020/11/3
  */
-@SPI("protocol")
+@SPI(alias = "protocol")
 public interface Protocol {
     /**
      * export service

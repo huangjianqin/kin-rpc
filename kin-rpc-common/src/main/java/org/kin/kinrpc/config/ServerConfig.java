@@ -4,6 +4,7 @@ import org.kin.framework.utils.NetUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.constants.ServerConstants;
+import org.kin.kinrpc.utils.ObjectUtils;
 
 import java.util.Objects;
 
@@ -126,5 +127,16 @@ public class ServerConfig extends AttachableConfig {
     public ServerConfig ssl(SslConfig ssl) {
         this.ssl = ssl;
         return this;
+    }
+
+    @Override
+    public String toString() {
+        return "ServerConfig{" +
+                "protocol='" + protocol + '\'' +
+                ObjectUtils.toStringIfPredicate(StringUtils.isNotBlank(host), ", host='" + host + '\'') +
+                ", port=" + port +
+                ObjectUtils.toStringIfNonNull(executor, ", executor=" + executor) +
+                ObjectUtils.toStringIfNonNull(ssl, ", ssl=" + ssl) +
+                '}';
     }
 }

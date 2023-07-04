@@ -56,6 +56,10 @@ public abstract class ReferenceBootstrap<T> {
 
         reference = doRefer();
         KinRpcRuntimeContext.cacheReference(this);
+
+        if (log.isDebugEnabled()) {
+            log.debug("refer service '{}' success. referenceConfig={}", config.getService(), config);
+        }
         return reference;
     }
 
@@ -72,6 +76,10 @@ public abstract class ReferenceBootstrap<T> {
         reference = null;
 
         KinRpcRuntimeContext.removeReference(this);
+
+        if (log.isDebugEnabled()) {
+            log.debug("unRefer service '{}' success", config.getService());
+        }
     }
 
     /**

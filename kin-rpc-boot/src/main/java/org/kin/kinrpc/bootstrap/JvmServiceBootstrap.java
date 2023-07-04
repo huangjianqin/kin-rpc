@@ -7,8 +7,6 @@ import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.protocol.Protocol;
 import org.kin.kinrpc.protocol.Protocols;
 
-import java.util.Objects;
-
 /**
  * @author huangjianqin
  * @date 2023/7/2
@@ -25,10 +23,6 @@ public class JvmServiceBootstrap<T> extends ServiceBootstrap<T> {
 
     @Override
     protected void doExport() {
-        if (Objects.isNull(exporter)) {
-            return;
-        }
-
         //创建rpc service
         rpcService = new RpcService<>(config);
 

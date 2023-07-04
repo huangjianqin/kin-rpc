@@ -2,6 +2,7 @@ package org.kin.kinrpc.cluster.call;
 
 import org.kin.framework.utils.ClassUtils;
 import org.kin.framework.utils.ExceptionUtils;
+import org.kin.kinrpc.utils.RpcUtils;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -28,7 +29,7 @@ class DefaultRpcResultAdapter implements RpcResultAdapter {
             try {
                 return userFuture.get();
             } catch (Exception e) {
-                ExceptionUtils.throwExt(e);
+                ExceptionUtils.throwExt(RpcUtils.normalizeException(e));
                 return null;
             }
         }
