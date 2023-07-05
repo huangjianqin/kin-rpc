@@ -1,4 +1,4 @@
-package org.kin.kinrpc.spring;
+package org.kin.kinrpc.boot;
 
 /**
  * 传输协议附加配置

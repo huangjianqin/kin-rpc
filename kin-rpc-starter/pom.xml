@@ -14,8 +14,13 @@
     <dependencies>
         <dependency>
             <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-spring</artifactId>
+            <artifactId>kin-rpc</artifactId>
             <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-framework-spring</artifactId>
         </dependency>
 
         <!-- spring boot config -->

@@ -15,7 +15,6 @@
         <module>kin-rpc-registry</module>
         <module>kin-rpc-message</module>
         <module>kin-rpc-common</module>
-        <module>kin-rpc-spring</module>
         <module>kin-rpc-starter</module>
         <module>kin-rpc-bom</module>
         <module>kin-rpc-api</module>

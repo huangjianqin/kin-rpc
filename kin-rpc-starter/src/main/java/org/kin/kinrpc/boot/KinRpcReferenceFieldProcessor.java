@@ -1,4 +1,4 @@
-package org.kin.kinrpc.spring;
+package org.kin.kinrpc.boot;
 
 import org.kin.framework.log.LoggerOprs;
 import org.kin.framework.spring.beans.AbstractAnnotationBeanPostProcessor;

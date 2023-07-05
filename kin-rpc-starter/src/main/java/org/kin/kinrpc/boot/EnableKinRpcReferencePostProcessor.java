@@ -1,4 +1,4 @@
-package org.kin.kinrpc.spring;
+package org.kin.kinrpc.boot;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;

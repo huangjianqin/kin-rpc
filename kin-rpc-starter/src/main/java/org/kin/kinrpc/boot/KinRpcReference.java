@@ -1,4 +1,4 @@
-package org.kin.kinrpc.spring;
+package org.kin.kinrpc.boot;
 
 import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
 import org.kin.kinrpc.cluster.loadbalance.RoundRobinLoadBalance;

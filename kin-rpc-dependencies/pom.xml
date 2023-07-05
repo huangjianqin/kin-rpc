@@ -13,17 +13,16 @@
         <kin-framework-java.version>0.1.0.0</kin-framework-java.version>
         <kin-framework-dependencies.version>0.1.0.0</kin-framework-dependencies.version>
         <kin-transport-netty.version>0.2.0.0</kin-transport-netty.version>
+        <kin-framework-spring.version>0.1.0.0</kin-framework-spring.version>
+        <kin-serialization.version>0.1.0.0</kin-serialization.version>
         <junit.version>4.11</junit.version>
         <zookeeper.version>3.5.8</zookeeper.version>
         <curator.version>5.1.0</curator.version>
         <grpc.version>1.53.0</grpc.version>
         <springcloud.version>2020.0.4</springcloud.version>
         <springboot.version>2.5.12</springboot.version>
-        <netty.version>4.1.75.Final</netty.version>
         <reactor.version>2020.0.24</reactor.version>
         <rsocket.version>1.1.2</rsocket.version>
-        <kin-framework-spring.version>0.1.0.0</kin-framework-spring.version>
-        <kin-serialization.version>0.1.0.0</kin-serialization.version>
     </properties>
 
     <dependencyManagement>
@@ -62,13 +61,6 @@
                 <version>${kin-serialization.version}</version>
                 <scope>import</scope>
                 <type>pom</type>
-            </dependency>
-
-            <!-- netty-->
-            <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-all</artifactId>
-                <version>${netty.version}</version>
             </dependency>
 
             <!-- grpc -->

@@ -1,7 +1,7 @@
 package org.kin.kinrpc.demo.rpc.spring;
 
+import org.kin.kinrpc.boot.KinRpcReference;
 import org.kin.kinrpc.cluster.RpcCallContext;
-import org.kin.kinrpc.spring.KinRpcReference;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;

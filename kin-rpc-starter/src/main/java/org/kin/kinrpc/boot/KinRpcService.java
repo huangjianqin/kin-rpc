@@ -1,4 +1,4 @@
-package org.kin.kinrpc.spring;
+package org.kin.kinrpc.boot;
 
 import org.kin.kinrpc.conf.ProtocolType;
 import org.kin.kinrpc.rpc.common.Constants;

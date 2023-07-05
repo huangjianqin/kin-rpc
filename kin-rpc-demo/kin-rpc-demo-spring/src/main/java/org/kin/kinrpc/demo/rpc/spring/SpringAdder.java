@@ -1,7 +1,6 @@
 package org.kin.kinrpc.demo.rpc.spring;
 
-import org.kin.kinrpc.demo.rpc.*;
-import org.kin.kinrpc.spring.KinRpcService;
+import org.kin.kinrpc.boot.KinRpcService;
 
 import java.util.concurrent.Future;
 

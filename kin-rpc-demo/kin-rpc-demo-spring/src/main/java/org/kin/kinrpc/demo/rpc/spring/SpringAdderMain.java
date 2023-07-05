@@ -1,6 +1,6 @@
 package org.kin.kinrpc.demo.rpc.spring;
 
-import org.kin.kinrpc.spring.EnableKinRpc;
+import org.kin.kinrpc.boot.EnableKinRpc;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
