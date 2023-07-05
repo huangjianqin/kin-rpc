@@ -1,8 +1,8 @@
 package org.kin.kinrpc.executor;
 
+import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.StringUtils;
-import org.kin.kinrpc.RpcException;
 import org.kin.kinrpc.config.ExecutorConfig;
 
 import java.util.HashMap;
@@ -22,14 +22,13 @@ public class ExecutorHelper {
      */
     private static final Map<String, ManagedExecutor> EXECUTOR_MAP = new HashMap<>();
 
-    // TODO: 2023/7/3 恢复
-//    static {
-//        JvmCloseCleaner.instance().add(() -> {
-//            for (ManagedExecutor executor : EXECUTOR_MAP.values()) {
-//                executor.shutdown();
-//            }
-//        });
-//    }
+    static {
+        JvmCloseCleaner.instance().add(() -> {
+            for (ManagedExecutor executor : EXECUTOR_MAP.values()) {
+                executor.shutdown();
+            }
+        });
+    }
 
     /**
      * 获取服务线程池
@@ -44,7 +43,7 @@ public class ExecutorHelper {
             //复用已注册的线程池
             ManagedExecutor executor = EXECUTOR_MAP.get(name);
             if (Objects.isNull(executor)) {
-                throw new RpcException(String.format("can not find executor with name '%s'", name));
+                throw new IllegalArgumentException(new ExecutorNotFoundException(name));
             }
 
             return executor;
@@ -63,7 +62,7 @@ public class ExecutorHelper {
      */
     public static synchronized void registerExecutor(String name, ManagedExecutor executor) {
         if (EXECUTOR_MAP.containsKey(name)) {
-            throw new RpcException(String.format("executor name with '%s' has registered", name));
+            throw new IllegalArgumentException(String.format("executor name with '%s' has registered", name));
         }
 
         EXECUTOR_MAP.put(name, wrapExecutor(name, executor));
@@ -90,12 +89,12 @@ public class ExecutorHelper {
         }
 
         if (EXECUTOR_MAP.containsKey(name)) {
-            throw new RpcException(String.format("executor name with '%s' has registered", name));
+            throw new IllegalArgumentException(String.format("executor name with '%s' has registered", name));
         }
 
         ExecutorFactory executorFactory = ExtensionLoader.getExtension(ExecutorFactory.class, config.getType());
         if (Objects.isNull(executorFactory)) {
-            throw new RpcException(String.format("can not find executor factory for type '%s'", config.getType()));
+            throw new IllegalArgumentException(String.format("can not find executor factory for type '%s'", config.getType()));
         }
 
         ManagedExecutor executor = wrapExecutor(name, executorFactory.create(config));

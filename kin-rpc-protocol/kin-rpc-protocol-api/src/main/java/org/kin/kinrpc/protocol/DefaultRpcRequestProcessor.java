@@ -33,15 +33,15 @@ public class DefaultRpcRequestProcessor extends RpcRequestProcessor {
      */
     public synchronized void register(RpcService<?> rpcService) {
         ServiceConfig<?> config = rpcService.getConfig();
-        String gsv = config.getService();
-        int serviceId = GsvUtils.serviceId(gsv);
+        String service = config.getService();
+        int serviceId = GsvUtils.serviceId(service);
 
         //copy
         IntObjectMap<RpcService<?>> rpcServiceMap = new IntObjectHashMap<>(this.rpcServiceMap.size() + 1);
         rpcServiceMap.putAll(this.rpcServiceMap);
 
         if (rpcServiceMap.containsKey(serviceId)) {
-            throw new RpcException("service has been registered, gsv = " + gsv);
+            throw new RpcException(String.format("service '%s' has been registered", service));
         }
 
         rpcServiceMap.put(serviceId, rpcService);
@@ -92,6 +92,7 @@ public class DefaultRpcRequestProcessor extends RpcRequestProcessor {
         if (request.isTimeout()) {
             //仅仅warning
             log.warn("process rpc request timeout, request={}", request);
+            return;
         }
 
         //invoke

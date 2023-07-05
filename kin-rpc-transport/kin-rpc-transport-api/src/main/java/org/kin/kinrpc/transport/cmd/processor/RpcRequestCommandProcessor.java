@@ -16,7 +16,7 @@ public class RpcRequestCommandProcessor implements CommandProcessor<RpcRequestCo
 
     @Override
     public void process(RemotingContext context, RpcRequestCommand command) {
-        int timeout = command.getTimeout();
+        long timeout = command.getTimeout();
         long requestId = command.getId();
         if(timeout > 0 && System.currentTimeMillis() > timeout){
             String errorMsg = String.format("rpc request is timeout(%d), id=%d, from=%s", timeout, requestId, context.address());

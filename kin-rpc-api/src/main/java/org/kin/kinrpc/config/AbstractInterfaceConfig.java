@@ -51,7 +51,6 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
             return;
         }
 
-        check(registries.size() > 0, "registry config must be config at least one");
         for (RegistryConfig registryConfig : registries) {
             registryConfig.checkValid();
         }

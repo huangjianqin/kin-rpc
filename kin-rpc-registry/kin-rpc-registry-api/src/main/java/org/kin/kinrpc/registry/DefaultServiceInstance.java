@@ -88,4 +88,17 @@ public class DefaultServiceInstance implements ServiceInstance {
     public int hashCode() {
         return Objects.hash(serviceId, host, port);
     }
+
+    @Override
+    public String toString() {
+        return "DefaultServiceInstance{" +
+                "serviceId=" + serviceId +
+                ", service='" + service + '\'' +
+                ", scheme='" + scheme + '\'' +
+                ", host='" + host + '\'' +
+                ", port=" + port +
+                ", metadata=" + metadata +
+                ", weight=" + weight +
+                '}';
+    }
 }

@@ -29,13 +29,24 @@ public final class Serializations {
     }
 
     /**
-     * 判断{@code  code}对应的序列化实现是否存在当前classpath
+     * 判断code为{@code  code}的序列化实现是否存在当前classpath
      *
      * @param code serialization code
      * @return true表示在当前classpath找到{@code  code}对应的序列化实现
      */
     public static boolean isSerializationExists(int code) {
         Serialization serialization = ExtensionLoader.getExtension(Serialization.class, code);
+        return Objects.nonNull(serialization);
+    }
+
+    /**
+     * 判断name为{@code  name}的序列化实现是否存在当前classpath
+     *
+     * @param name serialization name
+     * @return true表示在当前classpath找到{@code  code}对应的序列化实现
+     */
+    public static boolean isSerializationExists(String name) {
+        Serialization serialization = ExtensionLoader.getExtension(Serialization.class, name);
         return Objects.nonNull(serialization);
     }
 }

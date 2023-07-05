@@ -1,8 +1,6 @@
 package org.kin.kinrpc.transport.cmd.processor;
 
 import org.kin.kinrpc.transport.RemotingContext;
-import org.kin.kinrpc.transport.RemotingException;
-import org.kin.kinrpc.transport.cmd.HeartbeatCommand;
 import org.kin.kinrpc.transport.cmd.RpcResponseCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,16 +20,12 @@ public class RpcResponseCommandProcessor implements CommandProcessor<RpcResponse
         long requestId = command.getId();
         CompletableFuture<Object> future = context.removeRequestFuture(requestId);
         if (Objects.nonNull(future)) {
-            if(log.isDebugEnabled()){
+            if (log.isDebugEnabled()) {
                 log.debug("receive rpc response, id={}", requestId);
             }
 
-            if (command.isOk()) {
-                future.complete(command);
-            }
-            else{
-                future.completeExceptionally(new RemotingException(command.getResult().toString()));
-            }
+            // TODO: 是否合适
+            future.complete(command);
         }
         else{
             log.error("can not find rpc request future, id={}", requestId);

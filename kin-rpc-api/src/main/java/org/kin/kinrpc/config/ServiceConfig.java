@@ -22,12 +22,12 @@ public class ServiceConfig<T> extends AbstractInterfaceConfig<T, ServiceConfig<T
     /** 服务方法执行线程池 */
     private ExecutorConfig executor;
     /** 权重 */
-    private int weight;
+    private int weight = 1;
 
     /** 服务实例 */
     private T instance;
     /** bootstrap 类型 */
-    private String bootstrap = "kinrpc";
+    private String bootstrap = BootstrapType.DEFAULT.getName();
 
     //----------------------------------------------------------------动态变量, lazy init
     private transient ServiceBootstrap<T> serviceBootstrap;
@@ -56,8 +56,9 @@ public class ServiceConfig<T> extends AbstractInterfaceConfig<T, ServiceConfig<T
         if (Objects.nonNull(executor)) {
             executor.checkValid();
         }
+        check(weight > 0, "service weight must be config at least one");
         check(Objects.nonNull(instance), "service instance must be not null");
-        check(StringUtils.isNotBlank(bootstrap), "boostrap type must be not null");
+        check(StringUtils.isNotBlank(bootstrap), "service boostrap type must be not null");
 
         if (isJvmBootstrap()) {
             return;

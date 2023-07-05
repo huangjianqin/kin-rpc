@@ -55,7 +55,7 @@ public class DemoServiceConsumerBase {
         asyncInvoke(demoService.asyncRunWithError(), "asyncRunWithError");
 
         try {
-            Thread.sleep(5_000);
+            Thread.sleep(3_000);
         } catch (InterruptedException e) {
 
         }
@@ -96,7 +96,7 @@ public class DemoServiceConsumerBase {
         asyncInvoke(genericDemoService.asyncInvoke("asyncRunWithError"), "asyncRunWithError");
 
         try {
-            Thread.sleep(5_000);
+            Thread.sleep(3_000);
         } catch (InterruptedException e) {
 
         }

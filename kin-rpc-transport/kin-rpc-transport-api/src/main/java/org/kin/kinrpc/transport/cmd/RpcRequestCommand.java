@@ -39,7 +39,7 @@ public class RpcRequestCommand extends RequestCommand {
     public RpcRequestCommand(byte serializationCode,
                              int serviceId,
                              int handlerId,
-                             int timeout,
+                             long timeout,
                              Object[] params) {
         this(TransportConstants.VERSION, serializationCode, serviceId, handlerId, timeout, params);
     }
@@ -56,7 +56,7 @@ public class RpcRequestCommand extends RequestCommand {
                              byte serializationCode,
                              int serviceId,
                              int handlerId,
-                             int timeout,
+                             long timeout,
                              Object[] params) {
         super(CommandCodes.RPC_REQUEST, version, RequestIdGenerator.next(), serializationCode);
         setTimeout(timeout);

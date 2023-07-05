@@ -82,7 +82,7 @@ public class DemoServiceImpl implements DemoService {
 
     @Override
     public int delayRandom() {
-        int delay = 1500 + ThreadLocalRandom.current().nextInt(2_000);
+        int delay = 2500 + ThreadLocalRandom.current().nextInt(2_000);
         try {
             Thread.sleep(delay);
         } catch (InterruptedException e) {

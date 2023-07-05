@@ -62,10 +62,9 @@ public class RemotingContext{
      */
     public void writeResponseIfError(RemotingCommand command, String errorMsg){
         RemotingCommand respondCommand = null;
-        if(command instanceof RpcResponseCommand){
+        if (command instanceof RpcRequestCommand) {
             respondCommand = RpcResponseCommand.error(command, errorMsg);
-        }
-        else if(command instanceof MessageCommand){
+        } else if (command instanceof MessageCommand) {
             respondCommand = new MessageCommand((MessageCommand) command, new Error(errorMsg));
         }
 
@@ -82,10 +81,9 @@ public class RemotingContext{
      */
     private void writeResponseIfError(RemotingCommand command, String errorMsg, @Nonnull TransportOperationListener listener){
         RemotingCommand respondCommand = null;
-        if(command instanceof RpcResponseCommand){
+        if (command instanceof RpcRequestCommand) {
             respondCommand = RpcResponseCommand.error(command, errorMsg);
-        }
-        else if(command instanceof MessageCommand){
+        } else if (command instanceof MessageCommand) {
             respondCommand = new MessageCommand((MessageCommand) command, new Error(errorMsg));
         }
 

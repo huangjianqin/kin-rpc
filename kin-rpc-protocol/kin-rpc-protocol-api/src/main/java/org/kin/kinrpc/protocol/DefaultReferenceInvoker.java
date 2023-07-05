@@ -27,7 +27,7 @@ public class DefaultReferenceInvoker<T> implements ReferenceInvoker<T> {
 
     @Override
     public RpcResult invoke(Invocation invocation) {
-        Integer timeout = invocation.attachment(ReferenceConstants.TIMEOUT_KEY, 0);
+        Long timeout = invocation.attachment(ReferenceConstants.TIMEOUT_KEY, 0L);
         RpcRequestCommand command = new RpcRequestCommand(invocation.serializationCode(), invocation.serviceId(),
                 invocation.handlerId(), timeout, invocation.params());
 
@@ -54,7 +54,7 @@ public class DefaultReferenceInvoker<T> implements ReferenceInvoker<T> {
                             resultFuture.complete(response.getResult());
                         } else {
                             response.deserializeResult(String.class);
-                            resultFuture.completeExceptionally(new RpcBizException(String.format("rpc call fail, due to %s,invocation=%s", response.getResult(), invocation)));
+                            resultFuture.completeExceptionally(new ServerErrorException(String.format("rpc call fail, due to %s,invocation=%s", response.getResult(), invocation)));
                         }
                     } catch (Exception e) {
                         resultFuture.completeExceptionally(new RpcException("rpc call fail, invocation=" + invocation, t));
@@ -62,7 +62,7 @@ public class DefaultReferenceInvoker<T> implements ReferenceInvoker<T> {
                 } else {
                     resultFuture.completeExceptionally(new RpcException("rpc call fail, invocation=" + invocation, t));
                 }
-            }, ReferenceContext.EXECUTOR);
+            }, ReferenceContext.SCHEDULER);
         }
 
         return RpcResult.success(invocation, resultFuture);

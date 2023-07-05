@@ -8,7 +8,7 @@ public enum RegistryType {
     /** url直连 */
     DIRECT("direct"),
     /** zookeeper */
-    ZOOKEEPER("zookeeper"),
+    ZOOKEEPER("zk"),
     /** nacos */
     NACOS("nacos"),
     /** etcd */

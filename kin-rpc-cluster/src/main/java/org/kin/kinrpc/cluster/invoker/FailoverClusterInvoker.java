@@ -1,20 +1,19 @@
 package org.kin.kinrpc.cluster.invoker;
 
-import org.kin.kinrpc.InterceptorChain;
-import org.kin.kinrpc.Invocation;
-import org.kin.kinrpc.RpcException;
+import org.kin.kinrpc.*;
 import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
 import org.kin.kinrpc.cluster.router.Router;
 import org.kin.kinrpc.config.MethodConfig;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.constants.ReferenceConstants;
-import org.kin.kinrpc.protocol.RpcBizException;
+import org.kin.kinrpc.protocol.ServerErrorException;
 import org.kin.kinrpc.registry.directory.Directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -39,12 +38,8 @@ public class FailoverClusterInvoker<T> extends ClusterInvoker<T> {
             throw new IllegalStateException("can not find method config. invocation=" + invocation);
         }
 
-        int maxRetries = methodConfig.getRetries();
-        if (maxRetries < 0) {
-            //reset to 1, means just invoke one times
-            maxRetries = 1;
-        }
-        doInvoke(invocation, future, 1, maxRetries);
+        int maxTimes = Math.max(methodConfig.getRetries(), 0);
+        doInvoke(invocation, future, 1, maxTimes + 1, new HashSet<>());
     }
 
     /**
@@ -53,36 +48,44 @@ public class FailoverClusterInvoker<T> extends ClusterInvoker<T> {
      * @param invocation rpc call信息
      * @param future     completed future
      * @param curTimes   当前已执行次数, 从1开始
-     * @param maxRetries 最大重试次数
+     * @param maxTimes   最大执行次数
+     * @param excludes   调用失败的service instance
      */
     private void doInvoke(Invocation invocation,
                           CompletableFuture<Object> future,
                           int curTimes,
-                          int maxRetries) {
-        if (curTimes > maxRetries) {
-            future.completeExceptionally(new RpcException(String.format("rpc call fail after %d times, invocation=%s", maxRetries, invocation)));
+                          int maxTimes,
+                          Set<ServiceInstance> excludes) {
+        if (curTimes > maxTimes) {
+            future.completeExceptionally(new RpcException(String.format("rpc call fail after %d times, invocation=%s", maxTimes, invocation)));
             return;
         }
-        selectAttachOrThrow(invocation, Collections.emptyList());
-        doInterceptorChainInvoke(invocation).onFinish((r, t) -> {
-            if (log.isDebugEnabled()) {
-                log.debug("rpc call result after {} times retries. result={}, exception={}, invocation={}", curTimes, r, t, invocation);
-            }
-
-            if (Objects.isNull(t)) {
-                //success
-                future.complete(r);
-            } else {
-                //fail
-                log.warn("rpc call fail {} times, invocation={}, exception={}", curTimes, invocation, t);
-                if (!(t instanceof RpcBizException)) {
-                    //非服务方法调用异常, 重试
-                    onResetInvocation(invocation);
-                    doInvoke(invocation, future, curTimes + 1, maxRetries);
+        try {
+            selectAttachOrThrow(invocation, excludes);
+            doInterceptorChainInvoke(invocation).onFinish((r, t) -> {
+                if (Objects.isNull(t)) {
+                    //success
+                    future.complete(r);
                 } else {
-                    future.completeExceptionally(t);
+                    //fail
+                    log.warn("rpc call fail {} times, ready to retry rpc call, invocation={}, exception={}", curTimes, invocation, t);
+                    if (!(t instanceof ServerErrorException) && t instanceof RpcException) {
+                        //rpc异常(非服务方法执行异常), 才发起rpc异常重试
+                        ReferenceInvoker<T> invoker = invocation.attachment(ReferenceConstants.SELECTED_INVOKER_KEY);
+                        if (Objects.nonNull(invoker)) {
+                            excludes.add(invoker.serviceInstance());
+                        }
+                        onResetInvocation(invocation);
+                        doInvoke(invocation, future, curTimes + 1, maxTimes, excludes);
+                    } else {
+                        //其他异常
+                        future.completeExceptionally(t);
+                    }
                 }
-            }
-        });
+            });
+        } catch (Exception e) {
+            //其他异常
+            future.completeExceptionally(e);
+        }
     }
 }

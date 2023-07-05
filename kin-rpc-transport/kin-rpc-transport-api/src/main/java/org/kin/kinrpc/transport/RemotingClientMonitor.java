@@ -1,6 +1,7 @@
 package org.kin.kinrpc.transport;
 
 import org.kin.framework.collection.ConcurrentHashSet;
+import org.kin.framework.collection.Tuple;
 import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadPoolUtils;
 import org.kin.framework.utils.CollectionUtils;
@@ -83,7 +84,7 @@ public final class RemotingClientMonitor {
      * 心跳检查
      */
     private static void healthCheck() {
-        List<CompletableFuture<Void>> heartbeatFutures = new ArrayList<>();
+        List<Tuple<RemotingClientObserver, CompletableFuture<Void>>> heartbeatDataList = new ArrayList<>();
         for (RemotingClientObserver observer : CLIENT_OBSERVERS) {
             CompletableFuture<Void> heartbeatFuture = observer.heartbeat();
             heartbeatFuture.whenCompleteAsync((r, t) -> {
@@ -99,13 +100,19 @@ public final class RemotingClientMonitor {
                     }
                 }
             }, SCHEDULER);
-            heartbeatFutures.add(heartbeatFuture);
+            heartbeatDataList.add(new Tuple<>(observer, heartbeatFuture));
         }
 
-        if (CollectionUtils.isNonEmpty(heartbeatFutures)) {
+        if (CollectionUtils.isNonEmpty(heartbeatDataList)) {
             //定时调度心跳超时
             SCHEDULER.schedule(() -> {
-                for (CompletableFuture<Void> heartbeatFuture : heartbeatFutures) {
+                for (Tuple<RemotingClientObserver, CompletableFuture<Void>> tuple : heartbeatDataList) {
+                    RemotingClientObserver observer = tuple.first();
+                    if (observer.isTerminated()) {
+                        continue;
+                    }
+
+                    CompletableFuture<Void> heartbeatFuture = tuple.second();
                     if (heartbeatFuture.isDone()) {
                         continue;
                     }

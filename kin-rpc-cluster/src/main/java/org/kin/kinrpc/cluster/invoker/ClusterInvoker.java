@@ -2,6 +2,7 @@ package org.kin.kinrpc.cluster.invoker;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.SPI;
 import org.kin.kinrpc.*;
 import org.kin.kinrpc.cluster.InvokerNotFoundException;
@@ -41,7 +42,7 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
     /** 拦截器调用链 */
     private final InterceptorChain<T> interceptorChain;
     /** key -> 服务方法唯一id, 即handlerId, value -> 上一次服务调用成功的invoker */
-    private final Cache<Integer, Invoker<T>> stickyInvokerCache = CacheBuilder.newBuilder()
+    private final Cache<Integer, ReferenceInvoker<T>> stickyInvokerCache = CacheBuilder.newBuilder()
             //5分钟内没有任何访问即移除
             .expireAfterAccess(Duration.ofMinutes(5))
             .build();
@@ -60,9 +61,6 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
 
     @Override
     public final RpcResult invoke(Invocation invocation) {
-        if (log.isDebugEnabled()) {
-            log.debug("curTimes do invoke. invocation={}", invocation);
-        }
         CompletableFuture<Object> future = new CompletableFuture<>();
         RpcResult rpcResult = RpcResult.success(invocation, future);
         doInvoke(invocation, future);
@@ -70,7 +68,7 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
     }
 
     /**
-     * 真正的invoke逻辑实现
+     * 自定义invoke实现
      *
      * @param invocation rpc call信息
      * @param future     completed future
@@ -94,9 +92,12 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
         //1. check sticky
         MethodConfig methodConfig = invocation.attachment(ReferenceConstants.METHOD_CONFIG_KEY);
         if (Objects.nonNull(methodConfig) && methodConfig.isSticky()) {
-            Invoker<T> invoker = stickyInvokerCache.getIfPresent(invocation.handlerId());
+            ReferenceInvoker<T> invoker = stickyInvokerCache.getIfPresent(invocation.handlerId());
             if (Objects.nonNull(invoker)) {
-                return (ReferenceInvoker<T>) invocation;
+                if (log.isDebugEnabled()) {
+                    log.debug("reference invoker select finished, {}", invoker.serviceInstance());
+                }
+                return invoker;
             }
         }
 
@@ -107,6 +108,10 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
                 .collect(Collectors.toList());
         //3. route
         List<ReferenceInvoker<?>> routedInvokers = router.route(availableInvokers);
+        if (CollectionUtils.isEmpty(routedInvokers)) {
+            return null;
+        }
+
         //4. load balance
         ReferenceInvoker<?> loadBalancedInvoker = loadBalance.loadBalance(invocation, routedInvokers);
 
@@ -128,9 +133,8 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
      *
      * @param invocation rpc call信息
      * @param excludes   不包含的invoker实例
-     * @return 可用的invoker实例, 可能为null
      */
-    protected final ReferenceInvoker<T> selectAttachOrThrow(Invocation invocation, Collection<ServiceInstance> excludes) throws InvokerNotFoundException {
+    protected final void selectAttachOrThrow(Invocation invocation, Collection<ServiceInstance> excludes) throws InvokerNotFoundException {
         ReferenceInvoker<T> selected = select(invocation, excludes);
 
         if (Objects.nonNull(selected)) {
@@ -138,8 +142,6 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
         } else {
             throw new InvokerNotFoundException(invocation.handler());
         }
-
-        return selected;
     }
 
     /**
@@ -150,41 +152,48 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
      */
     protected final RpcResult doInterceptorChainInvoke(Invocation invocation) {
         if (log.isDebugEnabled()) {
-            log.debug("cluster invoker do interceptor chain invoke. invocation={}", invocation);
+            log.debug("{} do interceptor chain invoke. invocation={}", getClass().getSimpleName(), invocation);
         }
 
         try {
             RpcResult rpcResult = interceptorChain.invoke(invocation);
+            CompletableFuture<Object> future = new CompletableFuture<>();
             rpcResult.onFinish((r, t) -> {
                 MethodConfig methodConfig = invocation.attachment(ReferenceConstants.METHOD_CONFIG_KEY);
                 if (Objects.isNull(methodConfig) || !methodConfig.isSticky()) {
                     return;
                 }
 
-                //维护服务方法调用sticky
+                //维护服务方法调用invoker sticky
                 if (Objects.isNull(t)) {
-                    //success
-                    Invoker<T> invoker = invocation.attachment(ReferenceConstants.SELECTED_INVOKER_KEY);
+                    //rpc call success
+                    ReferenceInvoker<T> invoker = invocation.attachment(ReferenceConstants.SELECTED_INVOKER_KEY);
                     if (Objects.nonNull(invoker)) {
                         stickyInvokerCache.put(invocation.handlerId(), invoker);
                     }
                 } else {
+                    //rpc call fail
                     stickyInvokerCache.invalidate(invocation.handlerId());
                 }
-            });
-            return rpcResult;
+            }, future);
+            return RpcResult.success(invocation, future);
         } catch (Exception e) {
             return RpcResult.fail(invocation, e);
         }
     }
 
     /**
-     * 重置或清掉一次rpc call中的临时信息, 用于下次重试时, 重新赋值, 避免干扰
+     * 重置或清掉一次rpc call中的临时信息, 用于下次重试时, 重新attach, 避免干扰
      *
      * @param invocation rpc call信息
      */
     protected final void onResetInvocation(Invocation invocation) {
+        //保留method config
+        MethodConfig methodConfig = invocation.attachment(ReferenceConstants.METHOD_CONFIG_KEY);
+        //reset
         invocation.clear();
+        //recover retain
+        invocation.attach(ReferenceConstants.METHOD_CONFIG_KEY, methodConfig);
     }
 
     /**

@@ -21,7 +21,7 @@ public class MessageCommandProcessor implements CommandProcessor<MessageCommand>
 
     @Override
     public void process(RemotingContext context, MessageCommand command) {
-        int timeout = command.getTimeout();
+        long timeout = command.getTimeout();
         long requestId = command.getId();
         if(timeout > 0 && System.currentTimeMillis() > timeout){
             String errorMsg = String.format("message request is timeout(%d), id=%d, from=%s", timeout, requestId, context.address());

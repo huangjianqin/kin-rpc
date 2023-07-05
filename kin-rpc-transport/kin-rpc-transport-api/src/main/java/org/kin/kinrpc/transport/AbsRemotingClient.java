@@ -100,6 +100,11 @@ public abstract class AbsRemotingClient implements RemotingClient {
         public String getName() {
             return AbsRemotingClient.this.name;
         }
+
+        @Override
+        public boolean isTerminated() {
+            return terminated;
+        }
     };
     /** 是否terminated */
     private volatile boolean terminated;

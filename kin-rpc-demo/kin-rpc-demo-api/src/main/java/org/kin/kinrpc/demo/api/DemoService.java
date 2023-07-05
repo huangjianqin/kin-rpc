@@ -22,6 +22,7 @@ public interface DemoService {
 
     /**
      * 测试参数为{@link ByteBuf}
+     * todo 需要底层序列化支持
      */
     User find2(ByteBuf byteBuf);
 

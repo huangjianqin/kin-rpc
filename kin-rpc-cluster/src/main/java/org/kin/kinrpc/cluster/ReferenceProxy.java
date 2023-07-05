@@ -136,7 +136,7 @@ public final class ReferenceProxy implements InvocationHandler {
             handlerId = HandlerUtils.handlerId(service, uniqueName);
             methodMetadata = methodMetadataMap.get(handlerId);
             if (Objects.isNull(methodMetadata)) {
-                throw new RpcException("can not find valid method metadata for method, " + method);
+                throw new IllegalStateException("can not find valid method metadata for method, " + method);
             }
         }
 

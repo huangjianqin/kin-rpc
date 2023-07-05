@@ -34,7 +34,7 @@ public abstract class AbstractProtocol implements Protocol {
      * todo 同一remote server, 但一个reference需要使用ssl, 另外一个reference需要不使用ssl, 怎么处理
      * todo 同一remote server, 是否考虑需要client池
      */
-    private final ReferenceCountedCache<String, RemotingClient> clientCache = new ReferenceCountedCache<>((k, c) -> c.shutdown());
+    private final ReferenceCountedCache<String, RemotingClient> clientCache = new ReferenceCountedCache<>();
 
     @Override
     public final <T> Exporter<T> export(RpcService<T> rpcService, ServerConfig serverConfig) {
@@ -105,7 +105,7 @@ public abstract class AbstractProtocol implements Protocol {
     public final <T> ReferenceInvoker<T> refer(ServiceInstance instance, SslConfig sslConfig) {
         String address = instance.address();
         RemotingClient client = clientCache.get(address, () -> {
-            RemotingClient innerClient = warpClient(createClient(instance, sslConfig), address);
+            RemotingClient innerClient = wrapClient(createClient(instance, sslConfig), address);
             innerClient.connect();
             return innerClient;
         });
@@ -127,7 +127,7 @@ public abstract class AbstractProtocol implements Protocol {
      * @param address remote address
      * @return wrapped remoting client instance
      */
-    private RemotingClient warpClient(RemotingClient client, String address) {
+    private RemotingClient wrapClient(RemotingClient client, String address) {
         return new RemotingClient() {
             @Override
             public void connect() {
@@ -141,7 +141,9 @@ public abstract class AbstractProtocol implements Protocol {
 
             @Override
             public void shutdown() {
-                clientCache.release(address);
+                if (clientCache.release(address)) {
+                    client.shutdown();
+                }
             }
 
             @Override

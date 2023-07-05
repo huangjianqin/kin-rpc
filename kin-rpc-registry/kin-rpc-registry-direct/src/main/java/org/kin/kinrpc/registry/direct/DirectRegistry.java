@@ -82,7 +82,7 @@ public final class DirectRegistry extends AbstractRegistry {
                 return newDirectory;
             });
         } catch (ExecutionException e) {
-            throw new RpcException(e);
+            throw new RpcException(String.format("subscribe service '%s' fail", service), e.getCause());
         }
         return directory;
     }

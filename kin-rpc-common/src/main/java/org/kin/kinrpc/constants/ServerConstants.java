@@ -6,7 +6,7 @@ package org.kin.kinrpc.constants;
  */
 public final class ServerConstants {
     /** server默认端口 */
-    public static final int DEFAULT_SERVER_PORT = 16888;
+    public static final int DEFAULT_SERVER_PORT = 12888;
 
     private ServerConstants() {
     }

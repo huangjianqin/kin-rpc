@@ -17,9 +17,6 @@ import java.util.Objects;
  * @date 2023/6/16
  */
 public class ServerConfig extends AttachableConfig {
-    /** jvm协议, 单例 */
-    public static final ServerConfig JVM = ServerConfig.create(ProtocolType.JVM);
-
     /** 协议名 */
     private String protocol;
     /** 监听IP */
@@ -27,16 +24,12 @@ public class ServerConfig extends AttachableConfig {
     /** 监听端口 */
     private int port = ServerConstants.DEFAULT_SERVER_PORT;
     /** server端业务线程池大小, 默认是double cpu处理器数量, 队列长度为512的线程池 */
-    private ExecutorConfig executor = ExecutorConfig.create(ExecutorType.FIX)
+    private ExecutorConfig executor = ExecutorConfig.fix()
             .corePoolSize(SysUtils.CPU_NUM)
             .maxPoolSize(SysUtils.DOUBLE_CPU)
             .queueSize(1024);
     /** 服务connection ssl配置 */
     private SslConfig ssl;
-
-    public static ServerConfig create() {
-        return create(ProtocolType.KINRPC);
-    }
 
     public static ServerConfig create(String protocol) {
         return new ServerConfig().protocol(protocol);
@@ -50,16 +43,52 @@ public class ServerConfig extends AttachableConfig {
         return create(protocol).host(host).port(port);
     }
 
-    public static ServerConfig create(ProtocolType protocolType) {
+    private static ServerConfig create(ProtocolType protocolType) {
         return create(protocolType.getName());
     }
 
-    public static ServerConfig create(ProtocolType protocolType, int port) {
+    private static ServerConfig create(ProtocolType protocolType, int port) {
         return create(protocolType).port(port);
     }
 
-    public static ServerConfig create(ProtocolType protocolType, String host, int port) {
+    private static ServerConfig create(ProtocolType protocolType, String host, int port) {
         return create(protocolType).host(host).port(port);
+    }
+
+    public static ServerConfig kinrpc() {
+        return create(ProtocolType.KINRPC);
+    }
+
+    public static ServerConfig kinrpc(int port) {
+        return create(ProtocolType.KINRPC, port);
+    }
+
+    public static ServerConfig kinrpc(String host, int port) {
+        return create(ProtocolType.KINRPC, host, port);
+    }
+
+    public static ServerConfig grpc() {
+        return create(ProtocolType.GRPC);
+    }
+
+    public static ServerConfig grpc(int port) {
+        return create(ProtocolType.GRPC, port);
+    }
+
+    public static ServerConfig grpc(String host, int port) {
+        return create(ProtocolType.GRPC, host, port);
+    }
+
+    public static ServerConfig rsocket() {
+        return create(ProtocolType.RSOCKET);
+    }
+
+    public static ServerConfig rsocket(int port) {
+        return create(ProtocolType.RSOCKET, port);
+    }
+
+    public static ServerConfig rsocket(String host, int port) {
+        return create(ProtocolType.RSOCKET, host, port);
     }
 
     private ServerConfig() {
@@ -69,11 +98,8 @@ public class ServerConfig extends AttachableConfig {
     protected void checkValid() {
         super.checkValid();
         check(StringUtils.isNotBlank(protocol), "server protocol must be not blank");
-        if (!ProtocolType.JVM.getName().equalsIgnoreCase(protocol)) {
-            //非jvm协议
-            check(StringUtils.isNotBlank(host), "server host must be not blank");
-            check(port > 0, "server port must be greater than 0");
-        }
+        check(StringUtils.isNotBlank(host), "server host must be not blank");
+        check(port > 0, "server port must be greater than 0");
         if (Objects.nonNull(executor)) {
             executor.checkValid();
         }

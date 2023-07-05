@@ -41,7 +41,7 @@ public class ExecutorConfig extends AttachableConfig {
         return new ExecutorConfig().type(executor);
     }
 
-    public static ExecutorConfig create(ExecutorType executorType) {
+    private static ExecutorConfig create(ExecutorType executorType) {
         return create(executorType.getName());
     }
 

@@ -8,6 +8,8 @@ import org.kin.kinrpc.RpcException;
  */
 public class InvokerNotFoundException extends RpcException {
 
+    private static final long serialVersionUID = 2315174445588284519L;
+
     public InvokerNotFoundException(String handler) {
         super(String.format("can not find valid invoker(handler='%s')", handler));
     }

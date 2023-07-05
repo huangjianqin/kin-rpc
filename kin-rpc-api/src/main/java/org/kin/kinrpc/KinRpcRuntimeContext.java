@@ -1,5 +1,6 @@
 package org.kin.kinrpc;
 
+import org.kin.framework.JvmCloseCleaner;
 import org.kin.kinrpc.bootstrap.ReferenceBootstrap;
 import org.kin.kinrpc.bootstrap.ServiceBootstrap;
 
@@ -15,10 +16,9 @@ public final class KinRpcRuntimeContext {
     /** 已引用的服务代理 */
     private static final CopyOnWriteArraySet<ReferenceBootstrap<?>> REFERENCE_BOOTSTRAP_SET = new CopyOnWriteArraySet<>();
 
-    // TODO: 2023/7/3 恢复
-//    static {
-//        JvmCloseCleaner.instance().add(KinRpcRuntimeContext::shutdown);
-//    }
+    static {
+        JvmCloseCleaner.instance().add(KinRpcRuntimeContext::shutdown);
+    }
 
     private KinRpcRuntimeContext() {
     }

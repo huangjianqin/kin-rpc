@@ -20,7 +20,7 @@ import java.util.Objects;
 public class RegistryHelper {
     private static final Logger log = LoggerFactory.getLogger(RegistryHelper.class);
     /** 注册中心缓存 */
-    private static final ReferenceCountedCache<String, Registry> REGISTRY_CACHE = new ReferenceCountedCache<>((k, v) -> v.destroy());
+    private static final ReferenceCountedCache<String, Registry> REGISTRY_CACHE = new ReferenceCountedCache<>();
 
     // TODO: 2023/6/30 是否需要恢复
 //    static {
@@ -97,7 +97,9 @@ public class RegistryHelper {
 
             @Override
             public void destroy() {
-                releaseRegistry(config);
+                if (REGISTRY_CACHE.release(getCacheKey(config))) {
+                    registry.destroy();
+                }
             }
         };
     }
@@ -138,15 +140,6 @@ public class RegistryHelper {
         url.putParam(ServiceMetadataConstants.WEIGHT_KEY, serviceConfig.getWeight());
         url.putParam(ServiceMetadataConstants.SERIALIZATION_KEY, serviceConfig.getSerialization());
         return url;
-    }
-
-    /**
-     * 返回服务实例url, 不包含元数据
-     *
-     * @return 服务url string
-     */
-    public static String toSimpleUrlStr(ServiceInstance instance) {
-        return new Url(instance.scheme(), instance.host(), instance.port(), instance.service()).toString();
     }
 
     /**

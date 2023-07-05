@@ -41,4 +41,9 @@ public interface RemotingClientObserver {
      * @return client name
      */
     String getName();
+
+    /**
+     * 返回remoting client是否已经terminated
+     */
+    boolean isTerminated();
 }

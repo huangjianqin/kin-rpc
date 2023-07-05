@@ -30,7 +30,7 @@ public class ReferenceConfig<T> extends AbstractInterfaceConfig<T, ReferenceConf
     /** 服务connection ssl配置 */
     private SslConfig ssl;
     /** bootstrap 类型 */
-    private String bootstrap = "kinrpc";
+    private String bootstrap = BootstrapType.DEFAULT.getName();
 
     //----------------------------------------------------------------方法级配置, 如果方法没有特殊配置, 则取这个
     /**
@@ -82,10 +82,12 @@ public class ReferenceConfig<T> extends AbstractInterfaceConfig<T, ReferenceConf
             throw new IllegalConfigException(String.format("open generic, interface class must be org.kin.kinrpc.GenericService, but actually is %s", getInterfaceClass().getName()));
         }
 
+        check(getRegistries().size() > 0, "registry config must be config at least one");
+
         check(StringUtils.isNotBlank(cluster), "cluster must be not blank");
         check(StringUtils.isNotBlank(loadBalance), "loadBalance must be not blank");
         check(StringUtils.isNotBlank(router), "router must be not blank");
-        check(StringUtils.isNotBlank(bootstrap), "bootstrap must be not blank");
+        check(StringUtils.isNotBlank(bootstrap), "reference bootstrap must be not blank");
 
         check(rpcTimeout > 0, "global method rpc call timeout must be greater than 0");
         check(retries > 0, "global method rpc call retry times must be greater than 0");

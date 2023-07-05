@@ -13,7 +13,7 @@ import java.util.List;
  */
 public class RegistryConfig extends AttachableConfig {
     /** 默认注册中心地址分隔符 */
-    private static final String DEFAULT_ADDRESS_SEPARATOR = ";";
+    public static final String ADDRESS_SEPARATOR = ";";
     /** 注册中心类型 */
     private String type;
     /** 注册中心的地址, 如果有多个, 用分号分隔 */
@@ -27,11 +27,11 @@ public class RegistryConfig extends AttachableConfig {
         return create(type).address(address);
     }
 
-    public static RegistryConfig create(RegistryType type) {
+    private static RegistryConfig create(RegistryType type) {
         return create(type.getName());
     }
 
-    public static RegistryConfig create(RegistryType type, String address) {
+    private static RegistryConfig create(RegistryType type, String address) {
         return create(type.getName(), address);
     }
 
@@ -76,11 +76,11 @@ public class RegistryConfig extends AttachableConfig {
      * @return 替换后的注册中心地址
      */
     public String replaceSeparator(String separator) {
-        return address.replace(DEFAULT_ADDRESS_SEPARATOR, separator);
+        return address.replace(ADDRESS_SEPARATOR, separator);
     }
 
     public List<String> getAddressList() {
-        return Arrays.asList(address.split(DEFAULT_ADDRESS_SEPARATOR));
+        return Arrays.asList(address.split(ADDRESS_SEPARATOR));
     }
 
     //setter && getter

@@ -11,7 +11,7 @@ public abstract class RequestCommand extends RemotingCommand {
     private static final long serialVersionUID = 6116244388809293027L;
 
     /** 请求超时时间 */
-    private int timeout;
+    private long timeout;
 
     /** 请求到达时间 */
     private transient long arriveTime = System.currentTimeMillis();
@@ -29,14 +29,14 @@ public abstract class RequestCommand extends RemotingCommand {
     @Override
     public void serialize(ByteBuf out) {
         /*
-         * 变长int(1-5): request timeout
+         * 变长long(1-9): request timeout
          */
-        VarIntUtils.writeRawVarInt32(out, timeout);
+        VarIntUtils.writeRawVarInt64(out, timeout);
     }
 
     @Override
     public void deserialize0(ByteBuf in) {
-        timeout = VarIntUtils.readRawVarInt32(in);
+        timeout = VarIntUtils.readRawVarInt64(in);
     }
 
     /**
@@ -55,11 +55,11 @@ public abstract class RequestCommand extends RemotingCommand {
     }
 
     //setter && getter
-    public int getTimeout() {
+    public long getTimeout() {
         return timeout;
     }
 
-    public void setTimeout(int timeout) {
+    public void setTimeout(long timeout) {
         this.timeout = timeout;
     }
 

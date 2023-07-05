@@ -70,7 +70,7 @@ public class DefaultDirectory implements Directory {
             return;
         }
 
-        ReferenceContext.EXECUTOR.execute(this::doDiscover);
+        ReferenceContext.SCHEDULER.execute(this::doDiscover);
     }
 
     /**
@@ -121,10 +121,10 @@ public class DefaultDirectory implements Directory {
 
         List<String> oldInstanceUrls = oldInvokers.stream()
                 .map(ReferenceInvoker::serviceInstance)
-                .map(RegistryHelper::toSimpleUrlStr)
+                .map(RegistryHelper::toUrlStr)
                 .collect(Collectors.toList());
         List<String> discoverInstanceUrls = serviceInstances.stream()
-                .map(RegistryHelper::toSimpleUrlStr)
+                .map(RegistryHelper::toUrlStr)
                 .collect(Collectors.toList());
 
         log.info("directory(service={}) discover start, oldInstances={}, discoverInstances={}", service(), oldInstanceUrls, discoverInstanceUrls);
@@ -196,7 +196,7 @@ public class DefaultDirectory implements Directory {
 
         List<String> validInstanceUrls = validInvokers.stream()
                 .map(ReferenceInvoker::serviceInstance)
-                .map(RegistryHelper::toSimpleUrlStr)
+                .map(RegistryHelper::toUrlStr)
                 .collect(Collectors.toList());
 
         log.info("directory(service={}) discover finished, validInstances={}", service(), validInstanceUrls);
