@@ -11,6 +11,8 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
+ * service bootstrap抽象父类
+ *
  * @author huangjianqin
  * @date 2023/6/20
  */

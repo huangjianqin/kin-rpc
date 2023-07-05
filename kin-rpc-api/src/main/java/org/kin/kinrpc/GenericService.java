@@ -5,7 +5,7 @@ import reactor.core.publisher.Mono;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * 泛化服务
+ * 泛化服务接口
  *
  * @author huangjianqin
  * @date 2020/11/16

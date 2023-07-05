@@ -22,11 +22,6 @@ public class RegistryHelper {
     /** 注册中心缓存 */
     private static final ReferenceCountedCache<String, Registry> REGISTRY_CACHE = new ReferenceCountedCache<>();
 
-    // TODO: 2023/6/30 是否需要恢复
-//    static {
-//        JvmCloseCleaner.instance().add(REGISTRY_CACHE::clear);
-//    }
-
     private RegistryHelper() {
     }
 

@@ -12,6 +12,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * reference上下文, 定义reference共享实例数据
+ *
  * @author huangjianqin
  * @date 2023/6/25
  */

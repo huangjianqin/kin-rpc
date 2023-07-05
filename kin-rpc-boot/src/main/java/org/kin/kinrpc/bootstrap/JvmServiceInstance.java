@@ -6,10 +6,13 @@ import org.kin.kinrpc.config.ProtocolType;
 import java.util.Map;
 
 /**
+ * jvm模式下的服务实例信息
+ *
  * @author huangjianqin
  * @date 2023/7/2
  */
 public class JvmServiceInstance implements ServiceInstance {
+    /** 服务唯一标识 */
     private final String service;
 
     public JvmServiceInstance(String service) {

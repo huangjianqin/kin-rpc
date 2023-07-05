@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 单service多server场景下, 仅对外暴露单个{@link Exporter}实现
+ * 适用于单service多server场景下, 仅对外暴露单个{@link Exporter}实现场景
  *
  * @author huangjianqin
  * @date 2023/6/30

@@ -7,6 +7,8 @@ import java.lang.reflect.Method;
 import java.util.concurrent.CompletableFuture;
 
 /**
+ * 泛化方法元数据, 该元数据并不是通过解析{@link Method}得到的, 而是通过{@link GenericService}接口方法参数获取
+ *
  * @author huangjianqin
  * @date 2023/7/1
  */

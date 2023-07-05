@@ -10,7 +10,7 @@ import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.config.SslConfig;
 import org.kin.kinrpc.executor.ManagedExecutor;
-import org.kin.kinrpc.transport.AbsRemotingServer;
+import org.kin.kinrpc.transport.AbstractRemotingServer;
 import org.kin.kinrpc.transport.TransportException;
 import org.kin.kinrpc.transport.grpc.interceptor.DefaultServerInterceptor;
 import org.kin.kinrpc.utils.GsvUtils;
@@ -32,7 +32,7 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2023/6/8
  */
-public class GrpcServer extends AbsRemotingServer {
+public class GrpcServer extends AbstractRemotingServer {
     private static final Logger log = LoggerFactory.getLogger(GrpcServer.class);
 
     /** grpc server */

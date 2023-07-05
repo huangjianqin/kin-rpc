@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.util.NetUtil;
 import org.kin.kinrpc.config.SslConfig;
 import org.kin.kinrpc.executor.ManagedExecutor;
-import org.kin.kinrpc.transport.AbsRemotingServer;
+import org.kin.kinrpc.transport.AbstractRemotingServer;
 import org.kin.kinrpc.transport.ChannelContext;
 import org.kin.kinrpc.transport.TransportOperationListener;
 import org.kin.transport.netty.ChannelOperationListener;
@@ -25,7 +25,7 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2023/6/3
  */
-public class KinRpcServer extends AbsRemotingServer {
+public class KinRpcServer extends AbstractRemotingServer {
     private static final Logger log = LoggerFactory.getLogger(KinRpcServer.class);
 
     /** tcp server transport config */

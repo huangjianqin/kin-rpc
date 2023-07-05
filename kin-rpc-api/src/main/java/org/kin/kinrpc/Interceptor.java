@@ -1,7 +1,7 @@
 package org.kin.kinrpc;
 
 /**
- * 服务调用拦截器, client和server共用
+ * 服务方法调用拦截器, client和server共用
  *
  * @author huangjianqin
  * @date 2023/6/19
@@ -18,6 +18,7 @@ public interface Interceptor {
 
     /**
      * rpc response时触发
+     * user可以通过{@code response}修改服务调用结果
      *
      * @param invocation rpc call信息
      * @param response   rpc response

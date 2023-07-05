@@ -10,6 +10,8 @@ import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
 /**
+ * 默认的服务方法元数据, 通过解析{@link Method}得到的
+ *
  * @author huangjianqin
  * @date 2023/7/1
  */

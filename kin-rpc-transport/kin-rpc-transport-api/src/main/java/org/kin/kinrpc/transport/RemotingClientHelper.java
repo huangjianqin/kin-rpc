@@ -4,12 +4,12 @@ import javax.annotation.Nullable;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * todo 命名优化
+ * 目的是{@link RemotingClient}不对外暴露这些接口, 这些接口仅仅提供给{@link RemotingClientHealthManager}使用
  *
  * @author huangjianqin
  * @date 2023/6/21
  */
-public interface RemotingClientObserver {
+public interface RemotingClientHelper {
     /**
      * 发送心跳
      *

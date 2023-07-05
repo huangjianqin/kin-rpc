@@ -9,6 +9,8 @@ import org.kin.kinrpc.config.ReferenceConfig;
 import java.lang.reflect.Proxy;
 
 /**
+ * reference bootstrap for create service reference base on proxy
+ *
  * @author huangjianqin
  * @date 2023/7/2
  */

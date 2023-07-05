@@ -7,6 +7,8 @@ import org.kin.framework.utils.SysUtils;
 import java.util.Objects;
 
 /**
+ * kin rpc app 上下文
+ *
  * @author huangjianqin
  * @date 2023/6/12
  */

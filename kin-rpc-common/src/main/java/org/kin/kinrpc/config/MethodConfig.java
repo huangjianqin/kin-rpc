@@ -12,7 +12,7 @@ import org.kin.kinrpc.constants.ReferenceConstants;
 public class MethodConfig extends AbstractConfig {
     /**
      * 方法名称
-     * todo 暂时无法做到重载方法的配置
+     * 不支持方法重载
      */
     private String name;
     /**

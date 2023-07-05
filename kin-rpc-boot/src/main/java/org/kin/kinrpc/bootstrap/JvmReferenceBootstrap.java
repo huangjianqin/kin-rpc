@@ -8,6 +8,8 @@ import org.kin.kinrpc.protocol.Protocol;
 import org.kin.kinrpc.protocol.Protocols;
 
 /**
+ * reference boostrap for jvm
+ *
  * @author huangjianqin
  * @date 2023/7/2
  */

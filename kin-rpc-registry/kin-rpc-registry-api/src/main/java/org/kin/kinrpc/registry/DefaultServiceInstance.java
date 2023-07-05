@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
+ * 基于注册中心服务发现的服务实例信息
+ *
  * @author huangjianqin
  * @date 2023/6/27
  */

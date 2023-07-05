@@ -1,6 +1,8 @@
 package org.kin.kinrpc;
 
 /**
+ * 非法配置异常
+ *
  * @author huangjianqin
  * @date 2023/6/30
  */

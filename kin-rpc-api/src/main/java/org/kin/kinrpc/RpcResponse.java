@@ -1,6 +1,8 @@
 package org.kin.kinrpc;
 
 /**
+ * remoting service服务方法调用结果, 用于{@link Interceptor#onResponse(Invocation, RpcResponse)}
+ *
  * @author huangjianqin
  * @date 2023/7/3
  */

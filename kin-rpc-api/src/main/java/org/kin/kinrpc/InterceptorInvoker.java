@@ -3,7 +3,7 @@ package org.kin.kinrpc;
 import java.util.Objects;
 
 /**
- * 基于{@link Interceptor}的{@link Invoker}实现
+ * 执行{@link Interceptor#intercept(Invoker, Invocation)}的{@link Invoker}实现
  *
  * @author huangjianqin
  * @date 2023/6/19

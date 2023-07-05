@@ -7,7 +7,7 @@ import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.config.SslConfig;
 import org.kin.kinrpc.executor.ManagedExecutor;
-import org.kin.kinrpc.transport.AbsRemotingServer;
+import org.kin.kinrpc.transport.AbstractRemotingServer;
 import org.kin.transport.netty.utils.SslUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +22,7 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2023/6/8
  */
-public class RSocketServer extends AbsRemotingServer {
+public class RSocketServer extends AbstractRemotingServer {
     private static final Logger log = LoggerFactory.getLogger(RSocketServer.class);
 
     /** ssl配置 */

@@ -5,6 +5,8 @@ import org.kin.framework.collection.AttachmentMap;
 import java.util.Arrays;
 
 /**
+ * 服务调用上下文信息
+ *
  * @author huangjianqin
  * @date 2023/6/19
  */

@@ -14,6 +14,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 /**
+ * rpc相关通过工具方法
+ *
  * @author huangjianqin
  * @date 2023/6/19
  */

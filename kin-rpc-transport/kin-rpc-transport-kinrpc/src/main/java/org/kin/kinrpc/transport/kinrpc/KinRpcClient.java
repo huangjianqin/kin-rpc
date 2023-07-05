@@ -2,7 +2,7 @@ package org.kin.kinrpc.transport.kinrpc;
 
 import io.netty.util.NetUtil;
 import org.kin.kinrpc.config.SslConfig;
-import org.kin.kinrpc.transport.AbsRemotingClient;
+import org.kin.kinrpc.transport.AbstractRemotingClient;
 import org.kin.kinrpc.transport.cmd.HeartbeatCommand;
 import org.kin.kinrpc.transport.cmd.RemotingCommand;
 import org.kin.kinrpc.transport.cmd.RequestCommand;
@@ -25,7 +25,7 @@ import java.util.function.Predicate;
  * @author huangjianqin
  * @date 2023/6/3
  */
-public class KinRpcClient extends AbsRemotingClient {
+public class KinRpcClient extends AbstractRemotingClient {
     private static final Logger log = LoggerFactory.getLogger(KinRpcClient.class);
     /** unhealth exception */
     private static final Predicate<Throwable> UNHEALTH_EXCEPTION = t -> t instanceof IOException;

@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * 多注册中心场景下, 仅对外暴露单个{@link Directory}实现
+ * 适用于多注册中心场景下, 仅对外暴露单个{@link Directory}实现
  *
  * @author huangjianqin
  * @date 2023/6/25

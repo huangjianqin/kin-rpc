@@ -23,8 +23,8 @@ import java.util.function.Predicate;
  * @author huangjianqin
  * @date 2023/6/21
  */
-public final class RemotingClientMonitor {
-    private static final Logger log = LoggerFactory.getLogger(RemotingClientMonitor.class);
+public final class RemotingClientHealthManager {
+    private static final Logger log = LoggerFactory.getLogger(RemotingClientHealthManager.class);
 
     /** remoting client健康检查scheduler */
     private static final ScheduledThreadPoolExecutor SCHEDULER = ThreadPoolUtils.newScheduledThreadPool("remoting-client-monitor", true,
@@ -40,75 +40,75 @@ public final class RemotingClientMonitor {
     private static final int RECONNECT_INTERVAL;
 
     /** 所有remoting client实例 */
-    private static final Set<RemotingClientObserver> CLIENT_OBSERVERS = new ConcurrentHashSet<>();
+    private static final Set<RemotingClientHelper> CLIENT_HELPERS = new ConcurrentHashSet<>();
     /** unhealthy remoting client实例 */
-    private static final Set<RemotingClientObserver> UNHEALTH_CLIENT_OBSERVERS = new ConcurrentHashSet<>();
+    private static final Set<RemotingClientHelper> UNHEALTH_CLIENT_HELPERS = new ConcurrentHashSet<>();
 
     static {
         //心跳超时时间
         HEARTBEAT_TIMEOUT = SysUtils.getIntSysProperty("kinrpc.transport.heartbeat.timeout", 3000);
         //心跳间隔
         int heartbeatRate = SysUtils.getIntSysProperty("kinrpc.transport.heartbeat.rate", 5000);
-        SCHEDULER.scheduleAtFixedRate(RemotingClientMonitor::healthCheck, heartbeatRate, heartbeatRate, TimeUnit.MILLISECONDS);
+        SCHEDULER.scheduleAtFixedRate(RemotingClientHealthManager::healthCheck, heartbeatRate, heartbeatRate, TimeUnit.MILLISECONDS);
         //重连超时时间
         RECONNECT_TIMEOUT = SysUtils.getIntSysProperty("kinrpc.transport.reconnect.timeout", 3000);
         //重连间隔时间
         RECONNECT_INTERVAL = SysUtils.getIntSysProperty("kinrpc.transport.reconnect.interval", 10_000);
     }
 
-    private RemotingClientMonitor() {
+    private RemotingClientHealthManager() {
     }
 
     /**
      * 新增remoting client
      *
-     * @param clientObserver remoting client observer
+     * @param clientHelper remoting client helper
      */
-    public static void addClient(RemotingClientObserver clientObserver) {
-        UNHEALTH_CLIENT_OBSERVERS.remove(clientObserver);
-        CLIENT_OBSERVERS.add(clientObserver);
-        clientObserver.toHealth();
+    public static void addClient(RemotingClientHelper clientHelper) {
+        UNHEALTH_CLIENT_HELPERS.remove(clientHelper);
+        CLIENT_HELPERS.add(clientHelper);
+        clientHelper.toHealth();
     }
 
     /**
      * 移除remoting client
      *
-     * @param clientObserver remoting client observer
+     * @param clientHelper remoting client helper
      */
-    public static void removeClient(RemotingClientObserver clientObserver) {
-        CLIENT_OBSERVERS.remove(clientObserver);
-        UNHEALTH_CLIENT_OBSERVERS.remove(clientObserver);
+    public static void removeClient(RemotingClientHelper clientHelper) {
+        CLIENT_HELPERS.remove(clientHelper);
+        UNHEALTH_CLIENT_HELPERS.remove(clientHelper);
     }
 
     /**
      * 心跳检查
      */
     private static void healthCheck() {
-        List<Tuple<RemotingClientObserver, CompletableFuture<Void>>> heartbeatDataList = new ArrayList<>();
-        for (RemotingClientObserver observer : CLIENT_OBSERVERS) {
-            CompletableFuture<Void> heartbeatFuture = observer.heartbeat();
+        List<Tuple<RemotingClientHelper, CompletableFuture<Void>>> heartbeatDataList = new ArrayList<>();
+        for (RemotingClientHelper helper : CLIENT_HELPERS) {
+            CompletableFuture<Void> heartbeatFuture = helper.heartbeat();
             heartbeatFuture.whenCompleteAsync((r, t) -> {
                 //心跳失败
                 if (Objects.nonNull(t)) {
                     if (t instanceof CompletionException) {
                         t = t.getCause();
                     }
-                    onHeartbeatFail(observer, t);
+                    onHeartbeatFail(helper, t);
                 } else {
                     if (log.isDebugEnabled()) {
-                        log.debug("{} receive heartbeat ack", observer.getName());
+                        log.debug("{} receive heartbeat ack", helper.getName());
                     }
                 }
             }, SCHEDULER);
-            heartbeatDataList.add(new Tuple<>(observer, heartbeatFuture));
+            heartbeatDataList.add(new Tuple<>(helper, heartbeatFuture));
         }
 
         if (CollectionUtils.isNonEmpty(heartbeatDataList)) {
             //定时调度心跳超时
             SCHEDULER.schedule(() -> {
-                for (Tuple<RemotingClientObserver, CompletableFuture<Void>> tuple : heartbeatDataList) {
-                    RemotingClientObserver observer = tuple.first();
-                    if (observer.isTerminated()) {
+                for (Tuple<RemotingClientHelper, CompletableFuture<Void>> tuple : heartbeatDataList) {
+                    RemotingClientHelper helper = tuple.first();
+                    if (helper.isTerminated()) {
                         continue;
                     }
 
@@ -125,90 +125,90 @@ public final class RemotingClientMonitor {
     /**
      * request异常也算上unhealth
      *
-     * @param observer remoting client observer
-     * @param t        request exception
+     * @param helper remoting client helper
+     * @param t      request exception
      */
-    public static void onRequestFail(RemotingClientObserver observer, Throwable t) {
-        SCHEDULER.execute(() -> onTransportOperationFail(observer, t, "send request"));
+    public static void onRequestFail(RemotingClientHelper helper, Throwable t) {
+        SCHEDULER.execute(() -> onTransportOperationFail(helper, t, "send request"));
     }
 
     /**
      * heartbeat异常也算上unhealth
      *
-     * @param observer remoting client observer
+     * @param helper remoting client helper
      * @param t        request exception
      */
-    public static void onHeartbeatFail(RemotingClientObserver observer, Throwable t) {
-        onTransportOperationFail(observer, t, "send heartbeat");
+    public static void onHeartbeatFail(RemotingClientHelper helper, Throwable t) {
+        onTransportOperationFail(helper, t, "send heartbeat");
     }
 
     /**
      * connect异常也算上unhealth
      *
-     * @param observer remoting client observer
+     * @param helper remoting client helper
      * @param t        request exception
      */
-    public static void onConnectFail(RemotingClientObserver observer, Throwable t) {
-        SCHEDULER.execute(() -> onTransportOperationFail(observer, t, "connect to remote"));
+    public static void onConnectFail(RemotingClientHelper helper, Throwable t) {
+        SCHEDULER.execute(() -> onTransportOperationFail(helper, t, "connect to remote"));
     }
 
     /**
      * transport层异常也算上unhealth
      *
-     * @param observer remoting client observer
+     * @param helper remoting client helper
      * @param t        request exception
      */
-    private static void onTransportOperationFail(RemotingClientObserver observer, Throwable t, String opr) {
+    private static void onTransportOperationFail(RemotingClientHelper helper, Throwable t, String opr) {
         if (!UNHEALTH_EXCEPTION.test(t)) {
             return;
         }
 
-        log.error("{} {} fail, try to reconnect to remote", observer.getName(), opr, t);
-        reconnect(observer);
+        log.error("{} {} fail, try to reconnect to remote", helper.getName(), opr, t);
+        reconnect(helper);
     }
 
     /**
      * remote挂了或者强制关闭client时, 尝试重连
      *
-     * @param observer remoting client observer
+     * @param helper remoting client helper
      */
-    public static void onClientTerminated(RemotingClientObserver observer) {
+    public static void onClientTerminated(RemotingClientHelper helper) {
         SCHEDULER.execute(() -> {
-            log.error("remote down or remote force close {} connection, try to reconnect to remote", observer.getName());
-            reconnect(observer);
+            log.error("remote down or remote force close {} connection, try to reconnect to remote", helper.getName());
+            reconnect(helper);
         });
     }
 
     /**
      * remoting client reconnect
      *
-     * @param observer remoting client
+     * @param helper remoting client helper
      */
-    private static void reconnect(RemotingClientObserver observer) {
-        CLIENT_OBSERVERS.remove(observer);
-        UNHEALTH_CLIENT_OBSERVERS.add(observer);
-        observer.toUnhealth();
-        reconnect(observer, 0);
+    private static void reconnect(RemotingClientHelper helper) {
+        CLIENT_HELPERS.remove(helper);
+        UNHEALTH_CLIENT_HELPERS.add(helper);
+        helper.toUnhealth();
+        reconnect(helper, 0);
     }
 
     /**
      * remoting client reconnect
      *
-     * @param observer remoting client
+     * @param helper remoting client helper
      * @param times    reconnected times
      */
-    private static void reconnect(RemotingClientObserver observer, int times) {
-        if (!UNHEALTH_CLIENT_OBSERVERS.contains(observer)) {
+    private static void reconnect(RemotingClientHelper helper, int times) {
+        if (!UNHEALTH_CLIENT_HELPERS.contains(helper)) {
             return;
         }
 
-        CompletableFuture<Void> reconnectFuture = observer.reconnect();
+        CompletableFuture<Void> reconnectFuture = helper.reconnect();
         if (Objects.isNull(reconnectFuture)) {
             return;
         }
 
         reconnectFuture.whenCompleteAsync((r, t) -> {
-            onReconnectComplete(observer, t, times + 1);
+            onReconnectComplete(helper, t, times + 1);
         }, SCHEDULER);
         SCHEDULER.schedule(() -> {
             if (reconnectFuture.isDone()) {
@@ -221,20 +221,20 @@ public final class RemotingClientMonitor {
     /**
      * remoting client reconnect complete
      *
-     * @param observer remoting client
+     * @param helper remoting client helper
      * @param t        reconnect exception
      * @param times    reconnected times
      */
-    private static void onReconnectComplete(RemotingClientObserver observer, Throwable t, int times) {
+    private static void onReconnectComplete(RemotingClientHelper helper, Throwable t, int times) {
         if (Objects.isNull(t)) {
             //reconnect success
-            addClient(observer);
+            addClient(helper);
         } else {
             //reconnect fail
-            log.error("{} reconnect fail {} times, retry to reconnect", observer.getName(), times, t);
+            log.error("{} reconnect fail {} times, retry to reconnect", helper.getName(), times, t);
             //线性递增
             int delay = Math.min((times) * 1000, RECONNECT_INTERVAL);
-            SCHEDULER.schedule(() -> reconnect(observer, times), delay, TimeUnit.MILLISECONDS);
+            SCHEDULER.schedule(() -> reconnect(helper, times), delay, TimeUnit.MILLISECONDS);
         }
     }
 }

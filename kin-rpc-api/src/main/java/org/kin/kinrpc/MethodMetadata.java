@@ -4,8 +4,6 @@ import java.lang.reflect.Method;
 
 /**
  * 服务方法元数据
- * todo     目前还不能支持重载, 是否需要支持自定义rpc method name
- *
  * @author huangjianqin
  * @date 2023/6/19
  */

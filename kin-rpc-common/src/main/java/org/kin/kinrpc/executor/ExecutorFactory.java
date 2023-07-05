@@ -4,8 +4,6 @@ import org.kin.framework.utils.SPI;
 import org.kin.kinrpc.config.ExecutorConfig;
 
 /**
- * 服务调用线程池
- *
  * @author huangjianqin
  * @date 2021/4/20
  */

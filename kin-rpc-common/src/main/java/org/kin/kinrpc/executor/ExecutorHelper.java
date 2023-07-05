@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * 服务调用线程池管理
+ * executor helper, 管理executor生命周期, 也允许user注册自定义executor
  *
  * @author huangjianqin
  * @date 2023/3/1

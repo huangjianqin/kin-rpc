@@ -9,7 +9,7 @@ import io.rsocket.util.ByteBufPayload;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.config.SslConfig;
-import org.kin.kinrpc.transport.AbsRemotingClient;
+import org.kin.kinrpc.transport.AbstractRemotingClient;
 import org.kin.kinrpc.transport.cmd.HeartbeatCommand;
 import org.kin.kinrpc.transport.cmd.RemotingCommand;
 import org.kin.kinrpc.transport.cmd.RequestCommand;
@@ -30,7 +30,7 @@ import java.util.concurrent.CompletableFuture;
  * @author huangjianqin
  * @date 2023/6/8
  */
-public class RSocketClient extends AbsRemotingClient {
+public class RSocketClient extends AbstractRemotingClient {
     private static final Logger log = LoggerFactory.getLogger(RSocketClient.class);
 
     /** ssl配置 */

@@ -7,6 +7,7 @@ import java.util.function.BiConsumer;
 
 /**
  * {@link Invoker#invoke(Invocation)}返回值
+ * 服务方法调用结果,
  *
  * @author huangjianqin
  * @date 2023/2/26

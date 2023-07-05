@@ -1,6 +1,6 @@
 package org.kin.kinrpc.transport.rsocket;
 
-import org.kin.kinrpc.transport.AbsRequestProcessor;
+import org.kin.kinrpc.transport.AbstractRequestProcessor;
 import org.kin.kinrpc.transport.RequestContext;
 import org.kin.kinrpc.transport.RpcRequestProcessor;
 import org.kin.kinrpc.transport.cmd.RpcRequestCommand;
@@ -23,7 +23,7 @@ public class RSocketServerTest {
                         requestContext.writeResponse("Welcome to rpc");
                     }
                 })
-                .registerRequestProcessor(new AbsRequestProcessor<String>() {
+                .registerRequestProcessor(new AbstractRequestProcessor<String>() {
                     @Override
                     public void process(RequestContext requestContext, String request) {
                         System.out.println(request);

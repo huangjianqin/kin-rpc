@@ -7,6 +7,8 @@ import org.kin.kinrpc.bootstrap.ServiceBootstrap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
+ * kinrpc运行时上下, 维护服务定义和服务引用信息
+ *
  * @author huangjianqin
  * @date 2023/6/30
  */

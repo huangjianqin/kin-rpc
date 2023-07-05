@@ -10,6 +10,8 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 /**
+ * 默认{@link ReferenceInvoker}实现, 基于{@link RemotingClient}发起服务调用
+ *
  * @author huangjianqin
  * @date 2023/6/28
  */

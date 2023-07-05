@@ -24,8 +24,8 @@ import java.util.concurrent.TimeUnit;
  * @author huangjianqin
  * @date 2023/6/7
  */
-public abstract class AbsRemotingClient implements RemotingClient {
-    private static final Logger log = LoggerFactory.getLogger(AbsRemotingClient.class);
+public abstract class AbstractRemotingClient implements RemotingClient {
+    private static final Logger log = LoggerFactory.getLogger(AbstractRemotingClient.class);
 
     /** remoting codec */
     protected final RemotingCodec codec = new RemotingCodec();
@@ -49,18 +49,18 @@ public abstract class AbsRemotingClient implements RemotingClient {
         @Nullable
         @Override
         public CompletableFuture<Object> removeRequestFuture(long requestId) {
-            return AbsRemotingClient.this.removeRequestFuture(requestId);
+            return AbstractRemotingClient.this.removeRequestFuture(requestId);
         }
     };
     /** client是否可用 */
     protected volatile boolean available;
     /** reconnect signal */
     private volatile CompletableFuture<Void> reconnectSignal;
-    /** remoting client observer */
-    private final RemotingClientObserver observer = new RemotingClientObserver() {
+    /** remoting client helper */
+    private final RemotingClientHelper helper = new RemotingClientHelper() {
         @Override
         public CompletableFuture<Void> heartbeat() {
-            return AbsRemotingClient.this.heartbeat();
+            return AbstractRemotingClient.this.heartbeat();
         }
 
         @Override
@@ -76,7 +76,7 @@ public abstract class AbsRemotingClient implements RemotingClient {
         @Nullable
         @Override
         public CompletableFuture<Void> reconnect() {
-            synchronized (AbsRemotingClient.this) {
+            synchronized (AbstractRemotingClient.this) {
                 if (isTerminated()) {
                     return null;
                 }
@@ -91,14 +91,14 @@ public abstract class AbsRemotingClient implements RemotingClient {
 
                 log.warn("{} start to reconnect", getName());
                 reconnectSignal = new CompletableFuture<>();
-                AbsRemotingClient.this.onReconnect();
+                AbstractRemotingClient.this.onReconnect();
                 return reconnectSignal;
             }
         }
 
         @Override
         public String getName() {
-            return AbsRemotingClient.this.name;
+            return AbstractRemotingClient.this.name;
         }
 
         @Override
@@ -111,7 +111,7 @@ public abstract class AbsRemotingClient implements RemotingClient {
     /** client name */
     private final String name;
 
-    protected AbsRemotingClient(String host, int port) {
+    protected AbstractRemotingClient(String host, int port) {
         this.host = host;
         this.port = port;
         this.remoteAddress = new InetSocketAddress(host, port);
@@ -153,7 +153,7 @@ public abstract class AbsRemotingClient implements RemotingClient {
         if (!isReconnecting()) {
             //connect success
             log.info("{} connect to {} success", name(), remoteAddress());
-            RemotingClientMonitor.addClient(observer);
+            RemotingClientHealthManager.addClient(helper);
         } else {
             //reconnect success
             log.info("{} reconnect to {} success", name(), remoteAddress());
@@ -172,7 +172,7 @@ public abstract class AbsRemotingClient implements RemotingClient {
         if (!isReconnecting()) {
             log.error("{} connect to {} fail", name(), remoteAddress(), t);
             available = false;
-            RemotingClientMonitor.onConnectFail(observer, t);
+            RemotingClientHealthManager.onConnectFail(helper, t);
         } else {
             //重连中, 交给monitor继续重试
             onReconnectFail(t);
@@ -193,7 +193,7 @@ public abstract class AbsRemotingClient implements RemotingClient {
         }
 
         available = false;
-        RemotingClientMonitor.onRequestFail(observer, t);
+        RemotingClientHealthManager.onRequestFail(helper, t);
     }
 
     /**
@@ -240,7 +240,7 @@ public abstract class AbsRemotingClient implements RemotingClient {
         log.info("{} connection closed", name());
 
         //remote down or remote force close connection
-        RemotingClientMonitor.onClientTerminated(observer);
+        RemotingClientHealthManager.onClientTerminated(helper);
     }
 
     @Override
@@ -252,7 +252,7 @@ public abstract class AbsRemotingClient implements RemotingClient {
         terminated = true;
         onShutdown();
 
-        RemotingClientMonitor.removeClient(observer);
+        RemotingClientHealthManager.removeClient(helper);
     }
 
     /**
@@ -321,7 +321,6 @@ public abstract class AbsRemotingClient implements RemotingClient {
     }
 
     //getter
-
     /**
      * 返回remote address
      *

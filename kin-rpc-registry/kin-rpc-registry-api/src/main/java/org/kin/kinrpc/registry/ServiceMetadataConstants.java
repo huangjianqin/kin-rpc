@@ -1,6 +1,8 @@
 package org.kin.kinrpc.registry;
 
 /**
+ * 服务元数据常量
+ *
  * @author huangjianqin
  * @date 2023/6/27
  */

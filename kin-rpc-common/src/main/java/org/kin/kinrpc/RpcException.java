@@ -1,7 +1,7 @@
 package org.kin.kinrpc;
 
 /**
- * rpc相关异常封装
+ * rpc异常
  *
  * @author huangjianqin
  * @date 2023/2/26

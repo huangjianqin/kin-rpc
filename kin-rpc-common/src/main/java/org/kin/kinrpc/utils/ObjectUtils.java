@@ -3,6 +3,8 @@ package org.kin.kinrpc.utils;
 import java.util.Objects;
 
 /**
+ * {@link Object}方法工具类
+ *
  * @author huangjianqin
  * @date 2023/7/4
  */

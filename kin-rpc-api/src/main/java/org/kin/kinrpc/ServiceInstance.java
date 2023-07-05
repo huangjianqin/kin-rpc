@@ -6,7 +6,7 @@ import org.kin.kinrpc.utils.GsvUtils;
 import java.util.Map;
 
 /**
- * service信息
+ * service实例信息
  * !!!其实现类也必须要实现{@link Object#equals(Object)}和{@link Object#hashCode()}
  *
  * @author huangjianqin

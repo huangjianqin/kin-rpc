@@ -9,7 +9,7 @@ import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.config.SslConfig;
-import org.kin.kinrpc.transport.AbsRemotingClient;
+import org.kin.kinrpc.transport.AbstractRemotingClient;
 import org.kin.kinrpc.transport.TransportException;
 import org.kin.kinrpc.transport.cmd.*;
 import org.kin.transport.netty.utils.SslUtils;
@@ -27,7 +27,7 @@ import java.util.concurrent.ExecutionException;
  * @author huangjianqin
  * @date 2023/6/8
  */
-public class GrpcClient extends AbsRemotingClient {
+public class GrpcClient extends AbstractRemotingClient {
     private static final Logger log = LoggerFactory.getLogger(GrpcClient.class);
 
     /** ssl配置 */

@@ -20,6 +20,9 @@ import org.slf4j.LoggerFactory;
 import java.util.Objects;
 
 /**
+ * 默认rpc request处理实现
+ * 管理{@link RpcService}
+ *
  * @author huangjianqin
  * @date 2023/6/19
  */
@@ -113,7 +116,7 @@ public class DefaultRpcRequestProcessor extends RpcRequestProcessor {
 
     /**
      * 服务方法调用
-     * !!!在invoker#invoker线程执行
+     * !!!一般是在服务调用线程执行, 如果服务方法自定义异步执行逻辑, 那么就会在该异步执行线程执行
      *
      * @param requestContext rpc request context
      * @param request        rpc request

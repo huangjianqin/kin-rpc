@@ -3,6 +3,8 @@ package org.kin.kinrpc.executor;
 import java.util.concurrent.Executor;
 
 /**
+ * 支持shutdown的{@link Executor}接口定义
+ *
  * @author huangjianqin
  * @date 2023/6/19
  */

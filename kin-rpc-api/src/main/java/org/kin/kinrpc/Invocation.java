@@ -4,7 +4,7 @@ import org.kin.framework.collection.AttachmentSupport;
 
 /**
  * {@link Invoker#invoke(Invocation)}参数
- * rpc call相关元数据
+ * 服务调用上下文信息
  *
  * @author huangjianqin
  * @date 2023/2/26

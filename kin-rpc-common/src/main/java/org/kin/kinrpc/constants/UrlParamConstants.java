@@ -1,6 +1,8 @@
 package org.kin.kinrpc.constants;
 
 /**
+ * url参数字段key定义
+ *
  * @author huangjianqin
  * @date 2023/6/18
  */

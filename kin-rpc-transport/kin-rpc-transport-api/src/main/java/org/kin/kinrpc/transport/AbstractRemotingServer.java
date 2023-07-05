@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
  * @author huangjianqin
  * @date 2023/6/4
  */
-public abstract class AbsRemotingServer implements RemotingServer {
+public abstract class AbstractRemotingServer implements RemotingServer {
     /** remoting codec */
     protected final RemotingCodec codec = new RemotingCodec();
     /** remoting processor */
@@ -31,7 +31,7 @@ public abstract class AbsRemotingServer implements RemotingServer {
     /** listen port */
     protected final int port;
 
-    protected AbsRemotingServer(String host, int port, @Nullable ManagedExecutor executor) {
+    protected AbstractRemotingServer(String host, int port, @Nullable ManagedExecutor executor) {
         Preconditions.checkArgument(port > 0, "server port must be greater than 0");
         if (StringUtils.isBlank(host)) {
             host = NetUtils.getLocalhostIp();

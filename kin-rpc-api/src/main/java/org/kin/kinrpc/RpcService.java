@@ -21,7 +21,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
- * rpc服务封装
+ * rpc服务, 所有服务方法调用最终都会由该类发起调用
  *
  * @author huangjianqin
  * @date 2023/2/27
