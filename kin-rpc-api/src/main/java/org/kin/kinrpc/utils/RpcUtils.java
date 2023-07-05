@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -84,11 +85,15 @@ public final class RpcUtils {
      *
      * @return 异常
      */
-    public static Throwable normalizeException(Throwable source) {
-        if (source instanceof ExecutionException) {
-            source = source.getCause();
+    public static Throwable normalizeException(Throwable throwable) {
+        if (throwable instanceof ExecutionException) {
+            throwable = throwable.getCause();
         }
 
-        return source;
+        if (throwable instanceof CompletionException) {
+            throwable = throwable.getCause();
+        }
+
+        return throwable;
     }
 }

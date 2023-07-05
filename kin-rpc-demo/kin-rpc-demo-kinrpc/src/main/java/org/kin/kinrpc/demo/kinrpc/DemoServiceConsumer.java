@@ -47,7 +47,7 @@ public class DemoServiceConsumer extends DemoServiceConsumerBase {
                 .app(ApplicationConfig.create("kinrpc-demo-kinrpc-consumer"))
                 .cluster(ClusterType.FAILOVER)
                 .method(MethodConfig.create("asyncFind").timeout(4000))
-                .method(MethodConfig.create("delayRandom").sticky().retries(1))
+                .method(MethodConfig.create("delayRandom").sticky().retries(2))
                 .interceptor(new LogInterceptor(false));
 
         ReferenceConfig<GenericService> genericReferenceConfig = ReferenceConfig.create(GenericService.class)
@@ -57,7 +57,7 @@ public class DemoServiceConsumer extends DemoServiceConsumerBase {
                 .app(ApplicationConfig.create("kinrpc-demo-kinrpc-generic-consumer"))
                 .cluster(ClusterType.FAILOVER)
                 .method(MethodConfig.create("asyncFind").timeout(4000))
-                .method(MethodConfig.create("delayRandom").sticky())
+                .method(MethodConfig.create("delayRandom").sticky().retries(2))
                 .interceptor(new LogInterceptor(false));
 
         try {

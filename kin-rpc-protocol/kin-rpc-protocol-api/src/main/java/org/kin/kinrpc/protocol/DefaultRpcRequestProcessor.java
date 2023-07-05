@@ -3,7 +3,10 @@ package org.kin.kinrpc.protocol;
 import io.netty.util.collection.IntCollections;
 import io.netty.util.collection.IntObjectHashMap;
 import io.netty.util.collection.IntObjectMap;
-import org.kin.kinrpc.*;
+import org.kin.kinrpc.MethodMetadata;
+import org.kin.kinrpc.RpcException;
+import org.kin.kinrpc.RpcInvocation;
+import org.kin.kinrpc.RpcService;
 import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.constants.ServiceConstants;
 import org.kin.kinrpc.transport.RequestContext;
@@ -91,7 +94,7 @@ public class DefaultRpcRequestProcessor extends RpcRequestProcessor {
 
         if (request.isTimeout()) {
             //仅仅warning
-            log.warn("process rpc request timeout, request={}", request);
+            log.warn("rpc request timeout before process, request={}", request);
             return;
         }
 
@@ -100,8 +103,8 @@ public class DefaultRpcRequestProcessor extends RpcRequestProcessor {
                 request.getParams(), methodMetadata, request.getSerializationCode());
         invocation.attach(ServiceConstants.TIMEOUT_KEY, request.getTimeout());
         try {
-            RpcResult rpcResult = rpcService.invoke(invocation);
-            rpcResult.onFinish((r, t) -> onFinish(requestContext, request, invocation.isOneWay(), r, t));
+            rpcService.invoke(invocation)
+                    .onFinish((r, t) -> onFinish(requestContext, request, invocation.isOneWay(), r, t));
         } catch (Exception e) {
             log.error("process rpc request fail, request= {}", request, e);
             requestContext.writeResponseIfError(new RpcException("process rpc request fail", e));
@@ -125,7 +128,8 @@ public class DefaultRpcRequestProcessor extends RpcRequestProcessor {
                           Throwable t) {
         if (request.isTimeout()) {
             //仅仅warning
-            log.warn("process rpc request timeout, request={}", request);
+            log.warn("process rpc request timeout after process finish, request={}", request);
+            return;
         }
 
         if (Objects.isNull(t)) {

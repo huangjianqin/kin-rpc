@@ -63,10 +63,13 @@ public final class RpcCallInvoker<T> implements Invoker<T> {
             invocation.attach(ReferenceConstants.TIMEOUT_KEY, now + timeoutMs);
         }
 
-        RpcResult rpcResult = invoker.invoke(invocation);
+        if (log.isDebugEnabled()) {
+            log.debug("{} send rpc call. invocation={}", getClass().getSimpleName(), invocation);
+        }
+
         Future<?> outerTimeoutFuture = timeoutFuture;
-        rpcResult.onFinishAsync((r, t) -> onRpcCallResponse(invocation, r, t, outerTimeoutFuture, future), ReferenceContext.SCHEDULER);
-        return RpcResult.success(invocation, future);
+        return invoker.invoke(invocation)
+                .onFinishAsync((r, t) -> onRpcCallResponse(invocation, r, t, outerTimeoutFuture, future), future, ReferenceContext.SCHEDULER);
     }
 
     /**
@@ -83,6 +86,10 @@ public final class RpcCallInvoker<T> implements Invoker<T> {
                                    @Nullable Throwable t,
                                    @Nullable Future<?> timeoutFuture,
                                    CompletableFuture<Object> future) {
+        if (future.isDone()) {
+            return;
+        }
+
         if (log.isDebugEnabled()) {
             log.debug("rpc call response. result={}, exception={}, invocation={}", result, t, invocation);
         }

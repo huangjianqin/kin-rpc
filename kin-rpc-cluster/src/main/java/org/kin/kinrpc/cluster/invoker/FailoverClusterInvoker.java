@@ -8,6 +8,7 @@ import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.constants.ReferenceConstants;
 import org.kin.kinrpc.protocol.ServerErrorException;
 import org.kin.kinrpc.registry.directory.Directory;
+import org.kin.kinrpc.utils.RpcUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,6 +68,8 @@ public class FailoverClusterInvoker<T> extends ClusterInvoker<T> {
                     //success
                     future.complete(r);
                 } else {
+                    t = RpcUtils.normalizeException(t);
+
                     //fail
                     log.warn("rpc call fail {} times, ready to retry rpc call, invocation={}, exception={}", curTimes, invocation, t);
                     if (!(t instanceof ServerErrorException) && t instanceof RpcException) {

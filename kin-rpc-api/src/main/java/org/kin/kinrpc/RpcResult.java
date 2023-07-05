@@ -18,7 +18,7 @@ public final class RpcResult {
     /** rpc call 元数据 */
     private final Invocation invocation;
     /** invoke返回的future */
-    private final CompletableFuture<Object> resultFuture;
+    private CompletableFuture<Object> resultFuture;
 
     public static RpcResult success(Invocation invocation, CompletableFuture<Object> resultFuture) {
         return new RpcResult(invocation, resultFuture);
@@ -55,8 +55,9 @@ public final class RpcResult {
      *
      * @param callback 回调方法
      */
-    public CompletableFuture<Object> onFinish(BiConsumer<Object, Throwable> callback) {
-        return resultFuture.whenComplete(callback);
+    public RpcResult onFinish(BiConsumer<Object, Throwable> callback) {
+        resultFuture = resultFuture.whenComplete(callback);
+        return this;
     }
 
     /**
@@ -65,29 +66,36 @@ public final class RpcResult {
      * @param callback 回调方法
      * @param executor 回调方法执行线程
      */
-    public CompletableFuture<Object> onFinishAsync(BiConsumer<Object, Throwable> callback,
-                                                   Executor executor) {
-        return resultFuture.whenCompleteAsync(callback, executor);
+    public RpcResult onFinishAsync(BiConsumer<Object, Throwable> callback,
+                                   Executor executor) {
+        resultFuture = resultFuture.whenCompleteAsync(callback, executor);
+        return this;
     }
 
     /**
      * 当invoke结果返回时, complete {@code future}
+     * !!! 注意, {@code future}会覆盖{@link #resultFuture}
      *
      * @param future 回调方法
      */
-    public CompletableFuture<Object> onFinish(CompletableFuture<Object> future) {
-        return resultFuture.whenComplete((r, t) -> completeFuture(r, t, future));
+    public RpcResult onFinish(CompletableFuture<Object> future) {
+        resultFuture.whenComplete((r, t) -> completeFuture(r, t, future));
+        resultFuture = future;
+        return this;
     }
 
     /**
      * 当invoke结果返回时, complete {@code future}
+     * !!! 注意, {@code future}会覆盖{@link #resultFuture}
      *
      * @param future   回调方法
      * @param executor 回调方法执行线程
      */
-    public CompletableFuture<Object> onFinishAsync(CompletableFuture<Object> future,
-                                                   Executor executor) {
-        return resultFuture.whenCompleteAsync((r, t) -> completeFuture(r, t, future), executor);
+    public RpcResult onFinishAsync(CompletableFuture<Object> future,
+                                   Executor executor) {
+        resultFuture.whenCompleteAsync((r, t) -> completeFuture(r, t, future), executor);
+        resultFuture = future;
+        return this;
     }
 
     /**
@@ -109,35 +117,41 @@ public final class RpcResult {
 
     /**
      * 当invoke结果返回时, 执行{@code callback}, 然后complete {@code future}
+     * !!! 注意, {@code future}会覆盖{@link #resultFuture}
      *
      * @param callback 回调方法
-     * @param future 回调方法
+     * @param future   回调方法
      */
-    public CompletableFuture<Object> onFinish(BiConsumer<Object, Throwable> callback,
-                                              CompletableFuture<Object> future) {
-        return resultFuture.whenComplete((r, t) -> callbackAndCompleteFuture(callback, r, t, future));
+    public RpcResult onFinish(BiConsumer<Object, Throwable> callback,
+                              CompletableFuture<Object> future) {
+        resultFuture.whenComplete((r, t) -> callbackAndCompleteFuture(callback, r, t, future));
+        resultFuture = future;
+        return this;
     }
 
     /**
      * 当invoke结果返回时, 执行{@code callback}, 然后complete {@code future}
+     * !!! 注意, {@code future}会覆盖{@link #resultFuture}
      *
-     * @param callback   回调方法
+     * @param callback 回调方法
      * @param future   回调方法
      * @param executor 回调方法执行线程
      */
-    public CompletableFuture<Object> onFinishAsync(BiConsumer<Object, Throwable> callback,
-                                                   CompletableFuture<Object> future,
-                                                   Executor executor) {
-        return resultFuture.whenCompleteAsync((r, t) -> callbackAndCompleteFuture(callback, r, t, future), executor);
+    public RpcResult onFinishAsync(BiConsumer<Object, Throwable> callback,
+                                   CompletableFuture<Object> future,
+                                   Executor executor) {
+        resultFuture.whenCompleteAsync((r, t) -> callbackAndCompleteFuture(callback, r, t, future), executor);
+        resultFuture = future;
+        return this;
     }
 
     /**
      * 执行{@code callback}, 然后complete {@code future}
      *
      * @param callback 回调方法
-     * @param result rpc call结果
-     * @param t      rpc call执行异常
-     * @param future 需要complete的future
+     * @param result   rpc call结果
+     * @param t        rpc call执行异常
+     * @param future   需要complete的future
      */
     private void callbackAndCompleteFuture(BiConsumer<Object, Throwable> callback,
                                            Object result,
@@ -148,5 +162,10 @@ public final class RpcResult {
         } finally {
             completeFuture(result, t, future);
         }
+    }
+
+    //getter
+    public Invocation getInvocation() {
+        return invocation;
     }
 }

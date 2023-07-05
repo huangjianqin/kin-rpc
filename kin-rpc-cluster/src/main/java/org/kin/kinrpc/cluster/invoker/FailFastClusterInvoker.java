@@ -32,10 +32,6 @@ public class FailFastClusterInvoker<T> extends ClusterInvoker<T> {
     protected void doInvoke(Invocation invocation, CompletableFuture<Object> future) {
         selectAttachOrThrow(invocation, Collections.emptyList());
         RpcResult rpcResult = doInterceptorChainInvoke(invocation);
-        rpcResult.onFinish((r, t) -> {
-            if (log.isDebugEnabled()) {
-                log.debug("rpc call result. result={}, exception={}, invocation={}", r, t, invocation);
-            }
-        }, future);
+        rpcResult.onFinish(future);
     }
 }

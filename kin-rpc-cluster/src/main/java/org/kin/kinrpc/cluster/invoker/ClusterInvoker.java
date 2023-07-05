@@ -156,27 +156,25 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
         }
 
         try {
-            RpcResult rpcResult = interceptorChain.invoke(invocation);
-            CompletableFuture<Object> future = new CompletableFuture<>();
-            rpcResult.onFinish((r, t) -> {
-                MethodConfig methodConfig = invocation.attachment(ReferenceConstants.METHOD_CONFIG_KEY);
-                if (Objects.isNull(methodConfig) || !methodConfig.isSticky()) {
-                    return;
-                }
+            return interceptorChain.invoke(invocation)
+                    .onFinish((r, t) -> {
+                        MethodConfig methodConfig = invocation.attachment(ReferenceConstants.METHOD_CONFIG_KEY);
+                        if (Objects.isNull(methodConfig) || !methodConfig.isSticky()) {
+                            return;
+                        }
 
-                //维护服务方法调用invoker sticky
-                if (Objects.isNull(t)) {
-                    //rpc call success
-                    ReferenceInvoker<T> invoker = invocation.attachment(ReferenceConstants.SELECTED_INVOKER_KEY);
-                    if (Objects.nonNull(invoker)) {
-                        stickyInvokerCache.put(invocation.handlerId(), invoker);
-                    }
-                } else {
-                    //rpc call fail
-                    stickyInvokerCache.invalidate(invocation.handlerId());
-                }
-            }, future);
-            return RpcResult.success(invocation, future);
+                        //维护服务方法调用invoker sticky
+                        if (Objects.isNull(t)) {
+                            //rpc call success
+                            ReferenceInvoker<T> invoker = invocation.attachment(ReferenceConstants.SELECTED_INVOKER_KEY);
+                            if (Objects.nonNull(invoker)) {
+                                stickyInvokerCache.put(invocation.handlerId(), invoker);
+                            }
+                        } else {
+                            //rpc call fail
+                            stickyInvokerCache.invalidate(invocation.handlerId());
+                        }
+                    });
         } catch (Exception e) {
             return RpcResult.fail(invocation, e);
         }
