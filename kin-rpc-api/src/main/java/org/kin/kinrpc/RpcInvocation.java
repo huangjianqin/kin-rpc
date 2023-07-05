@@ -19,19 +19,15 @@ public class RpcInvocation extends AttachmentMap implements Invocation {
     private final Object[] params;
     /** 服务方法元数据 */
     private final MethodMetadata methodMetadata;
-    /** 序列化类型code */
-    private final byte serializationCode;
 
     public RpcInvocation(int serviceId,
                          String service,
                          Object[] params,
-                         MethodMetadata methodMetadata,
-                         byte serializationCode) {
+                         MethodMetadata methodMetadata) {
         this.serviceId = serviceId;
         this.service = service;
         this.params = params;
         this.methodMetadata = methodMetadata;
-        this.serializationCode = serializationCode;
     }
 
     @Override
@@ -89,11 +85,6 @@ public class RpcInvocation extends AttachmentMap implements Invocation {
         return methodMetadata.isObjectMethod();
     }
 
-    @Override
-    public byte serializationCode() {
-        return serializationCode;
-    }
-
     //getter
     public MethodMetadata getMethodMetadata() {
         return methodMetadata;
@@ -106,7 +97,6 @@ public class RpcInvocation extends AttachmentMap implements Invocation {
                 ", service='" + service + '\'' +
                 ", params=" + Arrays.deepToString(params) +
                 ", methodMetadata=" + methodMetadata +
-                ", serializationCode=" + serializationCode +
                 ", attachments=" + attachments() +
                 '}';
     }

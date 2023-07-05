@@ -86,13 +86,6 @@ public interface Invocation extends AttachmentSupport {
     boolean isObjectMethod();
 
     /**
-     * 返回序列化类型code
-     *
-     * @return 序列化类型code
-     */
-    byte serializationCode();
-
-    /**
      * 返回值是否为空
      *
      * @return true表示返回值为空

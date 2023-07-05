@@ -1,6 +1,7 @@
 package org.kin.kinrpc.registry;
 
 import org.kin.kinrpc.ServiceInstance;
+import org.kin.kinrpc.ServiceMetadataConstants;
 import org.kin.kinrpc.utils.GsvUtils;
 
 import java.util.Collections;

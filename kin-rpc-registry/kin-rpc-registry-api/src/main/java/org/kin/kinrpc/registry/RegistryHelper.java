@@ -3,6 +3,7 @@ package org.kin.kinrpc.registry;
 import org.kin.framework.cache.ReferenceCountedCache;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.kinrpc.ServiceInstance;
+import org.kin.kinrpc.ServiceMetadataConstants;
 import org.kin.kinrpc.common.Url;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.RegistryConfig;

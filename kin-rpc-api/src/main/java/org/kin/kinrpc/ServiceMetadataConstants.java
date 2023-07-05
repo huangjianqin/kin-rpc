@@ -1,4 +1,4 @@
-package org.kin.kinrpc.registry;
+package org.kin.kinrpc;
 
 /**
  * 服务元数据常量

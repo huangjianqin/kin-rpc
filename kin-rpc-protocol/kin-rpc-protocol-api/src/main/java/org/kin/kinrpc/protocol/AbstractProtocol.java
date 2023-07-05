@@ -6,6 +6,7 @@ import org.kin.kinrpc.ReferenceInvoker;
 import org.kin.kinrpc.RpcService;
 import org.kin.kinrpc.ServiceInstance;
 import org.kin.kinrpc.config.ExecutorConfig;
+import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.ServerConfig;
 import org.kin.kinrpc.config.SslConfig;
 import org.kin.kinrpc.executor.ExecutorHelper;
@@ -102,14 +103,15 @@ public abstract class AbstractProtocol implements Protocol {
     }
 
     @Override
-    public final <T> ReferenceInvoker<T> refer(ServiceInstance instance, SslConfig sslConfig) {
+    public final <T> ReferenceInvoker<T> refer(ReferenceConfig<T> referenceConfig,
+                                               ServiceInstance instance) {
         String address = instance.address();
         RemotingClient client = clientCache.get(address, () -> {
-            RemotingClient innerClient = wrapClient(createClient(instance, sslConfig), address);
+            RemotingClient innerClient = wrapClient(createClient(instance, referenceConfig.getSsl()), address);
             innerClient.connect();
             return innerClient;
         });
-        return new DefaultReferenceInvoker<>(instance, client);
+        return new DefaultReferenceInvoker<>(referenceConfig, instance, client);
     }
 
     /**

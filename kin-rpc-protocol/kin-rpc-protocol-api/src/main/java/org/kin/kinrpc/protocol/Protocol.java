@@ -5,8 +5,8 @@ import org.kin.kinrpc.Exporter;
 import org.kin.kinrpc.ReferenceInvoker;
 import org.kin.kinrpc.RpcService;
 import org.kin.kinrpc.ServiceInstance;
+import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.ServerConfig;
-import org.kin.kinrpc.config.SslConfig;
 
 /**
  * 传输层协议, 目前仅仅支持kinrpc(自研, 基于netty), grpc, protobuf
@@ -29,12 +29,12 @@ public interface Protocol {
     /**
      * reference service
      *
-     * @param instance service instance
-     * @apiNote sslConfig   ssl config
-     * @param <T>      service interface
+     * @param referenceConfig reference config
+     * @param instance        service instance
+     * @param <T>             service interface
      * @return {@link  ReferenceInvoker}实例
      */
-    <T> ReferenceInvoker<T> refer(ServiceInstance instance, SslConfig sslConfig);
+    <T> ReferenceInvoker<T> refer(ReferenceConfig<T> referenceConfig, ServiceInstance instance);
 
     /**
      * 释放占用资源

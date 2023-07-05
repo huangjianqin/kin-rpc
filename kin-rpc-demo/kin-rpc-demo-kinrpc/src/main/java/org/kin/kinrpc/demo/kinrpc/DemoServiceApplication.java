@@ -9,6 +9,6 @@ import org.kin.kinrpc.demo.api.RemoteServiceApplication;
  */
 public class DemoServiceApplication extends RemoteServiceApplication {
     public static void main(String[] args) {
-        export(ServerConfig.grpc(Integer.parseInt(args[0])));
+        export(ServerConfig.kinrpc(Integer.parseInt(args[0])));
     }
 }

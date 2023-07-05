@@ -1,10 +1,14 @@
 package org.kin.kinrpc.protocol;
 
+import org.kin.framework.utils.ExtensionLoader;
+import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.*;
+import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.constants.ReferenceConstants;
 import org.kin.kinrpc.transport.RemotingClient;
 import org.kin.kinrpc.transport.cmd.RpcRequestCommand;
 import org.kin.kinrpc.transport.cmd.RpcResponseCommand;
+import org.kin.serialization.Serialization;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -20,17 +24,26 @@ public class DefaultReferenceInvoker<T> implements ReferenceInvoker<T> {
     private final ServiceInstance instance;
     /** remoting client */
     private final RemotingClient client;
+    /** 服务端支持的序列化code */
+    private final Byte serializationCode;
 
-    public DefaultReferenceInvoker(ServiceInstance instance,
+    public DefaultReferenceInvoker(ReferenceConfig<T> config,
+                                   ServiceInstance instance,
                                    RemotingClient client) {
         this.instance = instance;
         this.client = client;
+        String serialization = instance.metadata(ServiceMetadataConstants.SERIALIZATION_KEY);
+        if (StringUtils.isBlank(serialization)) {
+            serialization = config.getSerialization();
+        }
+        this.serializationCode = (byte) ExtensionLoader.getExtensionCode(Serialization.class, serialization);
     }
 
     @Override
     public RpcResult invoke(Invocation invocation) {
         Long timeout = invocation.attachment(ReferenceConstants.TIMEOUT_KEY, 0L);
-        RpcRequestCommand command = new RpcRequestCommand(invocation.serializationCode(), invocation.serviceId(),
+
+        RpcRequestCommand command = new RpcRequestCommand(this.serializationCode, invocation.serviceId(),
                 invocation.handlerId(), timeout, invocation.params());
 
         CompletableFuture<Object> resultFuture = new CompletableFuture<>();

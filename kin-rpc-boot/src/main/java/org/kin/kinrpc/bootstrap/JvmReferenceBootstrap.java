@@ -22,7 +22,7 @@ public class JvmReferenceBootstrap<T> extends ProxyReferenceBootstrap<T> {
     public T doRefer() {
         //创建reference invoker
         Protocol protocol = Protocols.getByName(ProtocolType.JVM.getName());
-        ReferenceInvoker<T> referenceInvoker = protocol.refer(new JvmServiceInstance(config.getService()), null);
+        ReferenceInvoker<T> referenceInvoker = protocol.refer(config, new JvmServiceInstance(config.getService()));
 
         //创建interceptor chain
         InterceptorChain<T> chain = InterceptorChain.create(config, referenceInvoker);

@@ -28,5 +28,10 @@
             <groupId>net.bytebuddy</groupId>
             <artifactId>byte-buddy</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-serialization-jsonb</artifactId>
+        </dependency>
     </dependencies>
 </project>

@@ -8,13 +8,12 @@ import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.ReferenceContext;
 import org.kin.kinrpc.ReferenceInvoker;
 import org.kin.kinrpc.ServiceInstance;
+import org.kin.kinrpc.ServiceMetadataConstants;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.protocol.Protocol;
 import org.kin.kinrpc.protocol.Protocols;
 import org.kin.kinrpc.registry.RegistryHelper;
-import org.kin.kinrpc.registry.ServiceMetadataConstants;
 import org.kin.kinrpc.transport.cmd.Serializations;
-import org.kin.serialization.Serialization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -133,12 +132,11 @@ public class DefaultDirectory implements Directory {
         serviceInstances = serviceInstances.stream().filter(si -> {
             String serialization = si.metadata(ServiceMetadataConstants.SERIALIZATION_KEY);
             if (StringUtils.isNotBlank(serialization) &&
-                    Serializations.isSerializationExists(ExtensionLoader.getExtensionCode(Serialization.class, serialization))) {
-                return true;
-            } else {
+                    !Serializations.isSerializationExists(serialization)) {
                 log.warn("directory(service={}) ignore service instance due to serialization not found, {}", service(), si);
                 return false;
             }
+            return true;
         }).filter(si -> {
             String schema = si.metadata(ServiceMetadataConstants.SCHEMA_KEY);
             if (StringUtils.isNotBlank(schema) &&
@@ -179,7 +177,7 @@ public class DefaultDirectory implements Directory {
 
             ReferenceInvoker<?> referenceInvoker = null;
             try {
-                referenceInvoker = protocol.refer(instance, config.getSsl());
+                referenceInvoker = protocol.refer(config, instance);
             } catch (Throwable throwable) {
                 log.error("fail to create reference invoker, instance = {}", instance);
             }

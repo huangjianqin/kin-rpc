@@ -14,7 +14,7 @@ public final class GsvUtils {
     }
 
     /**
-     * group/serviceName:version
+     * group:serviceName:version
      *
      * @return 服务唯一标识
      */
@@ -25,7 +25,7 @@ public final class GsvUtils {
         length += 2;
         StringBuilder buf = new StringBuilder(length);
         if (StringUtils.isNotEmpty(group)) {
-            buf.append(group).append('/');
+            buf.append(group).append(':');
         }
         buf.append(serviceName);
         if (StringUtils.isNotEmpty(version)) {

@@ -4,8 +4,8 @@ import com.google.common.base.Preconditions;
 import org.kin.framework.collection.CopyOnWriteMap;
 import org.kin.framework.utils.Extension;
 import org.kin.kinrpc.*;
+import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.ServerConfig;
-import org.kin.kinrpc.config.SslConfig;
 import org.kin.kinrpc.protocol.Protocol;
 
 import java.util.Map;
@@ -47,7 +47,7 @@ public class JvmProtocol implements Protocol {
     }
 
     @Override
-    public <T> ReferenceInvoker<T> refer(ServiceInstance instance, SslConfig sslConfig) {
+    public <T> ReferenceInvoker<T> refer(ReferenceConfig<T> referenceConfig, ServiceInstance instance) {
         return new JvmReferenceInvoker<>(instance);
     }
 
