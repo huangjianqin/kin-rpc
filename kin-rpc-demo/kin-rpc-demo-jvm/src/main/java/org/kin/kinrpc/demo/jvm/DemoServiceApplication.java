@@ -10,7 +10,7 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2023/7/4
  */
-public class DemoServiceApplication extends DemoServiceConsumerBase {
+public class DemoServiceApplication extends ServiceConsumer {
     private static ServiceConfig<DemoService> serviceConfig;
 
     public static void main(String[] args) throws InterruptedException {

@@ -16,7 +16,7 @@ import java.util.concurrent.CompletableFuture;
  * @author huangjianqin
  * @date 2023/7/2
  */
-public class DemoServiceConsumerBase {
+public class ServiceConsumer {
     private static final int DELAY_RANDOM_TIMES = 5;
 
     protected static void invokeDemoService(DemoService demoService) {
