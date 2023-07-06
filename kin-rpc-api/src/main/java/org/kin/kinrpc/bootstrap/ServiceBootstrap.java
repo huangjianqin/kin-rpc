@@ -1,6 +1,7 @@
 package org.kin.kinrpc.bootstrap;
 
 import org.kin.framework.utils.SPI;
+import org.kin.kinrpc.KinRpcAppContext;
 import org.kin.kinrpc.KinRpcRuntimeContext;
 import org.kin.kinrpc.config.ServiceConfig;
 import org.slf4j.Logger;
@@ -8,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -44,6 +46,20 @@ public abstract class ServiceBootstrap<T> {
         if (!state.compareAndSet(INIT_STATE, EXPORTED_STATE)) {
             return;
         }
+
+        long delay = config.getDelay();
+        if (delay > 0) {
+            log.info("service '{}' will auto export after {} ms", config.getService(), delay);
+            KinRpcAppContext.SCHEDULER.schedule(this::export0, delay, TimeUnit.MILLISECONDS);
+        } else {
+            export0();
+        }
+    }
+
+    /**
+     * 发布服务
+     */
+    private void export0() {
         String service = config.getService();
         if (EXPORTED_SERVICES.contains(service)) {
             log.warn("service '{}' has been exported before, " +

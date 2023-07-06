@@ -5,6 +5,7 @@ import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.config.ExecutorConfig;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -24,7 +25,7 @@ public class ExecutorHelper {
 
     static {
         JvmCloseCleaner.instance().add(() -> {
-            for (ManagedExecutor executor : EXECUTOR_MAP.values()) {
+            for (ManagedExecutor executor : new ArrayList<>(EXECUTOR_MAP.values())) {
                 executor.shutdown();
             }
         });

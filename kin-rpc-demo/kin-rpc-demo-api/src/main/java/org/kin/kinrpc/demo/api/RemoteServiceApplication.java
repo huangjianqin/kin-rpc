@@ -22,9 +22,13 @@ public class RemoteServiceApplication {
                     .executor(ExecutorConfig.fix())
                     .weight(1)
                     .filter(new LogFilter(true))
+                    .delay(3000)
                     .export();
 
             System.in.read();
+
+            Thread.sleep(2_000);
+            System.exit(0);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
