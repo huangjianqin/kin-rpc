@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 真正发起rpc call request的{@link Invoker}实现
- * 往往是interceptor chain最后一个invoker
+ * 往往是filter chain最后一个invoker
  *
  * @author huangjianqin
  * @date 2023/6/26
@@ -101,7 +101,7 @@ public final class RpcCallInvoker<T> implements Invoker<T> {
         invocation.attach(ReferenceConstants.RPC_CALL_FINISH_TIME_KEY, System.currentTimeMillis());
 
         RpcResponse rpcResponse = new RpcResponse(result, t);
-        InterceptorChain<T> chain = invocation.attachment(ReferenceConstants.INTERCEPTOR_CHAIN);
+        FilterChain<T> chain = invocation.attachment(ReferenceConstants.FILTER_CHAIN);
         if (Objects.nonNull(chain)) {
             chain.onResponse(invocation, rpcResponse);
         }

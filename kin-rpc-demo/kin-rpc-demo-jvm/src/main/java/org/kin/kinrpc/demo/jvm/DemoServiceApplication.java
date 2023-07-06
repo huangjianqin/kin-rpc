@@ -34,7 +34,7 @@ public class DemoServiceApplication extends ServiceConsumer {
                 .app(ApplicationConfig.create("kinrpc-demo-jvm-provider"))
                 .executor(ExecutorConfig.fix())
                 .weight(1)
-                .interceptor(new LogInterceptor(true))
+                .filter(new LogFilter(true))
                 .export();
     }
 
@@ -44,7 +44,7 @@ public class DemoServiceApplication extends ServiceConsumer {
                 .serviceName(Constants.DEMO_SERVICE_NAME)
                 .app(ApplicationConfig.create("kinrpc-demo-jvm-consumer"))
                 .method(MethodConfig.create("asyncFind").timeout(4000))
-                .interceptor(new LogInterceptor(false));
+                .filter(new LogFilter(false));
         try {
             DemoService demoService = referenceConfig.refer();
             invokeDemoService(demoService);
@@ -59,7 +59,7 @@ public class DemoServiceApplication extends ServiceConsumer {
                 .serviceName(Constants.DEMO_SERVICE_NAME)
                 .app(ApplicationConfig.create("kinrpc-demo-jvm-generic-consumer"))
                 .method(MethodConfig.create("asyncFind").timeout(4000))
-                .interceptor(new LogInterceptor(false));
+                .filter(new LogFilter(false));
         try {
             GenericService genericDemoService = genericReferenceConfig.refer();
             invokeGenericDemoService(genericDemoService);

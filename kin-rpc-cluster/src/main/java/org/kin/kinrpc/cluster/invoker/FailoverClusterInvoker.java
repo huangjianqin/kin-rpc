@@ -28,8 +28,8 @@ public class FailoverClusterInvoker<T> extends ClusterInvoker<T> {
                                   Directory directory,
                                   Router router,
                                   LoadBalance loadBalance,
-                                  InterceptorChain<T> interceptorChain) {
-        super(config, directory, router, loadBalance, interceptorChain);
+                                  FilterChain<T> filterChain) {
+        super(config, directory, router, loadBalance, filterChain);
     }
 
     @Override
@@ -63,7 +63,7 @@ public class FailoverClusterInvoker<T> extends ClusterInvoker<T> {
         }
         try {
             selectAttachOrThrow(invocation, excludes);
-            doInterceptorChainInvoke(invocation).onFinish((r, t) -> {
+            invokeFilterChain(invocation).onFinish((r, t) -> {
                 if (Objects.isNull(t)) {
                     //success
                     future.complete(r);

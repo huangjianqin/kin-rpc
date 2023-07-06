@@ -21,7 +21,7 @@ public class RemoteServiceApplication {
                     .app(ApplicationConfig.create("kinrpc-demo-kinrpc-provider"))
                     .executor(ExecutorConfig.fix())
                     .weight(1)
-                    .interceptor(new LogInterceptor(true))
+                    .filter(new LogFilter(true))
                     .export();
 
             System.in.read();

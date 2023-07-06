@@ -43,7 +43,7 @@ public class RemoteServiceConsumer extends ServiceConsumer {
                 .cluster(ClusterType.FAILOVER)
                 .method(MethodConfig.create("asyncFind").timeout(4000))
                 .method(MethodConfig.create("delayRandom").sticky().retries(2))
-                .interceptor(new LogInterceptor(false));
+                .filter(new LogFilter(false));
 
         ReferenceConfig<GenericService> genericReferenceConfig = ReferenceConfig.create(GenericService.class)
                 .generic()
@@ -53,7 +53,7 @@ public class RemoteServiceConsumer extends ServiceConsumer {
                 .cluster(ClusterType.FAILOVER)
                 .method(MethodConfig.create("asyncFind").timeout(4000))
                 .method(MethodConfig.create("delayRandom").sticky().retries(2))
-                .interceptor(new LogInterceptor(false));
+                .filter(new LogFilter(false));
 
         try {
             DemoService demoService = referenceConfig.refer();

@@ -1,20 +1,20 @@
 package org.kin.kinrpc;
 
 /**
- * 服务方法调用拦截器, client和server共用
+ * rpc call filter
  *
  * @author huangjianqin
  * @date 2023/6/19
  */
-public interface Interceptor {
+public interface Filter {
     /**
-     * 拦截rpc call
+     * rpc call过滤
      *
-     * @param invoker    拦截器调用链中下一个{@link Invoker}实例
+     * @param invoker    filter chain中下一个{@link Invoker}实例
      * @param invocation 服务调用信息
      * @return 服务调用结果
      */
-    RpcResult intercept(Invoker<?> invoker, Invocation invocation);
+    RpcResult invoke(Invoker<?> invoker, Invocation invocation);
 
     /**
      * rpc response时触发
@@ -29,7 +29,7 @@ public interface Interceptor {
     }
 
     /**
-     * 拦截优先级, 数值越大, 优先级越低
+     * 优先级, 数值越大, 优先级越低
      *
      * @return 优先级
      */

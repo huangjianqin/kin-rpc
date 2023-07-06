@@ -25,8 +25,8 @@ public final class ReferenceConstants {
     public static final String TIMEOUT_KEY = "timeout";
     /** loadbalance, 可能为null */
     public static final String LOADBALANCE = "loadbalance";
-    /** interceptor chain */
-    public static final String INTERCEPTOR_CHAIN = "interceptorChain";
+    /** filter chain */
+    public static final String FILTER_CHAIN = "filterChain";
 
     private ReferenceConstants() {
     }

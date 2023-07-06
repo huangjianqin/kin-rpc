@@ -1,7 +1,7 @@
 package org.kin.kinrpc.bootstrap;
 
 import org.kin.framework.utils.ExtensionLoader;
-import org.kin.kinrpc.InterceptorChain;
+import org.kin.kinrpc.FilterChain;
 import org.kin.kinrpc.Invoker;
 import org.kin.kinrpc.cluster.invoker.ClusterInvoker;
 import org.kin.kinrpc.cluster.invoker.RpcCallInvoker;
@@ -34,8 +34,8 @@ public class DefaultReferenceBootstrap<T> extends ProxyReferenceBootstrap<T> {
     @SuppressWarnings("unchecked")
     @Override
     public T doRefer() {
-        //创建interceptor chain
-        InterceptorChain<T> chain = InterceptorChain.create(config, (Invoker<T>) RpcCallInvoker.INSTANCE);
+        //创建filter chain
+        FilterChain<T> chain = FilterChain.create(config, (Invoker<T>) RpcCallInvoker.INSTANCE);
 
         //创建loadbalance
         LoadBalance loadBalance = ExtensionLoader.getExtension(LoadBalance.class, config.getLoadBalance());

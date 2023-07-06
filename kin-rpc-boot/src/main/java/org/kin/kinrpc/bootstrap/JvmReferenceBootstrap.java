@@ -1,6 +1,6 @@
 package org.kin.kinrpc.bootstrap;
 
-import org.kin.kinrpc.InterceptorChain;
+import org.kin.kinrpc.FilterChain;
 import org.kin.kinrpc.ReferenceInvoker;
 import org.kin.kinrpc.config.ProtocolType;
 import org.kin.kinrpc.config.ReferenceConfig;
@@ -24,8 +24,8 @@ public class JvmReferenceBootstrap<T> extends ProxyReferenceBootstrap<T> {
         Protocol protocol = Protocols.getByName(ProtocolType.JVM.getName());
         ReferenceInvoker<T> referenceInvoker = protocol.refer(config, new JvmServiceInstance(config.getService()));
 
-        //创建interceptor chain
-        InterceptorChain<T> chain = InterceptorChain.create(config, referenceInvoker);
+        //创建filter chain
+        FilterChain<T> chain = FilterChain.create(config, referenceInvoker);
 
         return createProxy(chain);
     }

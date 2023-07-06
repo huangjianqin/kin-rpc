@@ -1,6 +1,6 @@
 package org.kin.kinrpc.cluster.invoker;
 
-import org.kin.kinrpc.InterceptorChain;
+import org.kin.kinrpc.FilterChain;
 import org.kin.kinrpc.Invocation;
 import org.kin.kinrpc.RpcResult;
 import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
@@ -24,14 +24,14 @@ public class FailFastClusterInvoker<T> extends ClusterInvoker<T> {
                                   Directory directory,
                                   Router router,
                                   LoadBalance loadBalance,
-                                  InterceptorChain<T> interceptorChain) {
-        super(config, directory, router, loadBalance, interceptorChain);
+                                  FilterChain<T> filterChain) {
+        super(config, directory, router, loadBalance, filterChain);
     }
 
     @Override
     protected void doInvoke(Invocation invocation, CompletableFuture<Object> future) {
         selectAttachOrThrow(invocation, Collections.emptyList());
-        RpcResult rpcResult = doInterceptorChainInvoke(invocation);
+        RpcResult rpcResult = invokeFilterChain(invocation);
         rpcResult.onFinish(future);
     }
 }

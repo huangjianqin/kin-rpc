@@ -39,8 +39,8 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
     private final Router router;
     /** 负载均衡策略 */
     private final LoadBalance loadBalance;
-    /** 拦截器调用链 */
-    private final InterceptorChain<T> interceptorChain;
+    /** filter chain */
+    private final FilterChain<T> filterChain;
     /** key -> 服务方法唯一id, 即handlerId, value -> 上一次服务调用成功的invoker */
     private final Cache<Integer, ReferenceInvoker<T>> stickyInvokerCache = CacheBuilder.newBuilder()
             //5分钟内没有任何访问即移除
@@ -51,12 +51,12 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
                              Directory directory,
                              Router router,
                              LoadBalance loadBalance,
-                             InterceptorChain<T> interceptorChain) {
+                             FilterChain<T> filterChain) {
         this.config = config;
         this.directory = directory;
         this.router = router;
         this.loadBalance = loadBalance;
-        this.interceptorChain = interceptorChain;
+        this.filterChain = filterChain;
     }
 
     @Override
@@ -145,18 +145,18 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
     }
 
     /**
-     * 执行拦截器调用链
+     * invoke filter chain
      *
      * @param invocation rpc call信息
      * @return rpc call result
      */
-    protected final RpcResult doInterceptorChainInvoke(Invocation invocation) {
+    protected final RpcResult invokeFilterChain(Invocation invocation) {
         if (log.isDebugEnabled()) {
-            log.debug("{} do interceptor chain invoke. invocation={}", getClass().getSimpleName(), invocation);
+            log.debug("{} invoke filter chain. invocation={}", getClass().getSimpleName(), invocation);
         }
 
         try {
-            return interceptorChain.invoke(invocation)
+            return filterChain.invoke(invocation)
                     .onFinish((r, t) -> {
                         MethodConfig methodConfig = invocation.attachment(ReferenceConstants.METHOD_CONFIG_KEY);
                         if (Objects.isNull(methodConfig) || !methodConfig.isSticky()) {

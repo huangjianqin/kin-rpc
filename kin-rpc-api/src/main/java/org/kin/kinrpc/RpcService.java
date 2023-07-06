@@ -30,7 +30,7 @@ public class RpcService<T> implements Invoker<T> {
     private static final Logger log = LoggerFactory.getLogger(RpcService.class);
 
     private final ServiceConfig<T> config;
-    private final InterceptorChain<T> chain;
+    private final FilterChain<T> chain;
     /** 服务方法元数据 */
     private final IntObjectMap<RpcHandler> rpcHandlerMap;
     /** 服务调用线程池 */
@@ -40,9 +40,9 @@ public class RpcService<T> implements Invoker<T> {
 
     public RpcService(ServiceConfig<T> config) {
         this.config = config;
-        //create interceptor chain
+        //创建filter chain
         Invoker<T> invoker = this::doInvoke;
-        this.chain = InterceptorChain.create(config, invoker);
+        this.chain = FilterChain.create(config, invoker);
 
         //create rpc handler
         IntObjectHashMap<RpcHandler> rpcHandlerMap = new IntObjectHashMap<>();

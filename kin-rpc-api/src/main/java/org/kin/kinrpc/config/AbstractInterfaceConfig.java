@@ -1,7 +1,7 @@
 package org.kin.kinrpc.config;
 
 import org.kin.framework.utils.StringUtils;
-import org.kin.kinrpc.Interceptor;
+import org.kin.kinrpc.Filter;
 import org.kin.kinrpc.utils.GsvUtils;
 
 import java.util.*;
@@ -25,9 +25,8 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
     private String version = "0.1.0.0";
     /** 默认序列化方式 */
     private String serialization = SerializationType.JSON.getName();
-    // TODO: 2023/6/20 spring通过bean name查询 interceptor来添加
-    /** 服务调用拦截器列表 */
-    private List<Interceptor> interceptors = new ArrayList<>();
+    /** filter list */
+    private List<Filter> filters = new ArrayList<>();
 
     //----------------------------------------------------------------动态变量, lazy init
     /** 返回服务唯一标识 */
@@ -180,20 +179,20 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
         return serialization(serializationType.getName());
     }
 
-    public List<Interceptor> getInterceptors() {
-        return interceptors;
+    public List<Filter> getFilters() {
+        return filters;
     }
 
-    public IC interceptor(Interceptor interceptor) {
-        return interceptors(Collections.singletonList(interceptor));
+    public IC filter(Filter filter) {
+        return filters(Collections.singletonList(filter));
     }
 
-    public IC interceptors(Interceptor... interceptors) {
-        return interceptors(Arrays.asList(interceptors));
+    public IC filters(Filter... filters) {
+        return filters(Arrays.asList(filters));
     }
 
-    public IC interceptors(List<Interceptor> interceptors) {
-        this.interceptors.addAll(interceptors);
+    public IC filters(List<Filter> filters) {
+        this.filters.addAll(filters);
         return castThis();
     }
 
