@@ -2,6 +2,7 @@ package org.kin.kinrpc.demo.api;
 
 import io.netty.buffer.ByteBuf;
 import org.kin.kinrpc.AsyncContext;
+import org.kin.kinrpc.RpcContext;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
@@ -113,6 +114,11 @@ public class DemoServiceImpl implements DemoService {
     }
 
     @Override
+    public User asyncFind2(String name, int age) {
+        return find(name, age);
+    }
+
+    @Override
     public Mono<User> reactiveFind(String name, int age) {
         return Mono.delay(Duration.ofMillis(ThreadLocalRandom.current().nextLong(3_000)))
                 .flatMap(t -> {
@@ -148,5 +154,10 @@ public class DemoServiceImpl implements DemoService {
         CompletableFuture<Void> future = new CompletableFuture<>();
         future.completeExceptionally(new UnsupportedOperationException());
         return future;
+    }
+
+    @Override
+    public void printAttachments() {
+        System.out.println(RpcContext.attachments());
     }
 }

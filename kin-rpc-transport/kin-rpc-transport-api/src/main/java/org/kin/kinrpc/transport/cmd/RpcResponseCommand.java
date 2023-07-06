@@ -53,7 +53,7 @@ public class RpcResponseCommand extends RemotingCommand {
     }
 
     @Override
-    public void serialize(ByteBuf out) {
+    public void serializePayload(ByteBuf out) {
         /*
          * byte: response status
          * bytes(other): rpc call result

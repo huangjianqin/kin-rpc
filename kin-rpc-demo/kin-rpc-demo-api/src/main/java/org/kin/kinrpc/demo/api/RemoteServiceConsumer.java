@@ -30,9 +30,9 @@ public class RemoteServiceConsumer extends ServiceConsumer {
 //        );
 
         String address = String.join(RegistryConfig.ADDRESS_SEPARATOR,
-                "kinrpc://127.0.0.1:13000/kinrpc:demo:0.1.0.0?schema=kinrpc&serialization=json&weight=1",
-                "kinrpc://127.0.0.1:13100/kinrpc:demo:0.1.0.0?schema=kinrpc&serialization=json&weight=2",
-                "kinrpc://127.0.0.1:13200/kinrpc:demo:0.1.0.0?schema=kinrpc&serialization=json&weight=3"
+                "kinrpc://127.0.0.1:13000/kinrpc:demo:0.1.0.0?schema=kinrpc&serialization=json&weight=1"
+//                "kinrpc://127.0.0.1:13100/kinrpc:demo:0.1.0.0?schema=kinrpc&serialization=json&weight=2",
+//                "kinrpc://127.0.0.1:13200/kinrpc:demo:0.1.0.0?schema=kinrpc&serialization=json&weight=3"
 //                "kinrpc://127.0.0.1:13300/kinrpc/demo:0.1.0.0?schema=kinrpc&serialization=json&weight=4"
         );
         RegistryConfig registryConfig = RegistryConfig.direct(address);
@@ -43,6 +43,7 @@ public class RemoteServiceConsumer extends ServiceConsumer {
                 .cluster(ClusterType.FAILOVER)
                 .method(MethodConfig.create("asyncFind").timeout(4000))
                 .method(MethodConfig.create("delayRandom").sticky().retries(2))
+                .method(MethodConfig.create("asyncFind2").async())
                 .filter(new LogFilter(false));
 
         ReferenceConfig<GenericService> genericReferenceConfig = ReferenceConfig.create(GenericService.class)
@@ -53,6 +54,7 @@ public class RemoteServiceConsumer extends ServiceConsumer {
                 .cluster(ClusterType.FAILOVER)
                 .method(MethodConfig.create("asyncFind").timeout(4000))
                 .method(MethodConfig.create("delayRandom").sticky().retries(2))
+                .method(MethodConfig.create("asyncFind2").async())
                 .filter(new LogFilter(false));
 
         try {

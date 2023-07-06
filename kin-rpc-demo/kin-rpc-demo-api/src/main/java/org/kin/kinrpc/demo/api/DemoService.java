@@ -1,6 +1,7 @@
 package org.kin.kinrpc.demo.api;
 
 import io.netty.buffer.ByteBuf;
+import org.kin.kinrpc.RpcContext;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -50,6 +51,11 @@ public interface DemoService {
     CompletableFuture<User> asyncFind(String name, int age);
 
     /**
+     * 测试使用{@link RpcContext#future()}
+     */
+    User asyncFind2(String name, int age);
+
+    /**
      * 测试返回{@link Mono}
      */
     Mono<User> reactiveFind(String name, int age);
@@ -63,4 +69,6 @@ public interface DemoService {
      * 异步主动抛异常
      */
     CompletableFuture<Void> asyncRunWithError();
+
+    void printAttachments();
 }

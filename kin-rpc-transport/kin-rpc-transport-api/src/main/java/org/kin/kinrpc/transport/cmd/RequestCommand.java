@@ -27,7 +27,7 @@ public abstract class RequestCommand extends RemotingCommand {
     }
 
     @Override
-    public void serialize(ByteBuf out) {
+    public void serializePayload(ByteBuf out) {
         /*
          * 变长long(1-9): request timeout
          */

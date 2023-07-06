@@ -45,6 +45,8 @@ public class DefaultReferenceInvoker<T> implements ReferenceInvoker<T> {
 
         RpcRequestCommand command = new RpcRequestCommand(this.serializationCode, invocation.serviceId(),
                 invocation.handlerId(), timeout, invocation.params());
+        //setup server attachment
+        command.setMetadata(invocation.getServerAttachments());
 
         CompletableFuture<Object> resultFuture = new CompletableFuture<>();
         if (invocation.isVoid()) {
@@ -72,7 +74,7 @@ public class DefaultReferenceInvoker<T> implements ReferenceInvoker<T> {
                             resultFuture.completeExceptionally(new ServerErrorException(String.format("rpc call fail, due to %s,invocation=%s", response.getResult(), invocation)));
                         }
                     } catch (Exception e) {
-                        resultFuture.completeExceptionally(new RpcException("rpc call fail, invocation=" + invocation, t));
+                        resultFuture.completeExceptionally(new RpcException("rpc call fail, invocation=" + invocation, e));
                     }
                 } else {
                     resultFuture.completeExceptionally(new RpcException("rpc call fail, invocation=" + invocation, t));

@@ -1,8 +1,11 @@
 package org.kin.kinrpc;
 
 import org.kin.framework.collection.AttachmentMap;
+import org.kin.framework.utils.CollectionUtils;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * 服务调用上下文信息
@@ -17,16 +20,20 @@ public class RpcInvocation extends AttachmentMap implements Invocation {
     private final String service;
     /** 方法参数实例 */
     private final Object[] params;
+    /** 发送给server的attachments */
+    private final Map<String, String> serverAttachments;
     /** 服务方法元数据 */
     private final MethodMetadata methodMetadata;
 
     public RpcInvocation(int serviceId,
                          String service,
                          Object[] params,
+                         Map<String, String> serverAttachments,
                          MethodMetadata methodMetadata) {
         this.serviceId = serviceId;
         this.service = service;
         this.params = params;
+        this.serverAttachments = CollectionUtils.isNonEmpty(serverAttachments) ? serverAttachments : Collections.emptyMap();
         this.methodMetadata = methodMetadata;
     }
 
@@ -85,6 +92,11 @@ public class RpcInvocation extends AttachmentMap implements Invocation {
         return methodMetadata.isObjectMethod();
     }
 
+    @Override
+    public Map<String, String> getServerAttachments() {
+        return serverAttachments;
+    }
+
     //getter
     public MethodMetadata getMethodMetadata() {
         return methodMetadata;
@@ -96,6 +108,7 @@ public class RpcInvocation extends AttachmentMap implements Invocation {
                 "serviceId=" + serviceId +
                 ", service='" + service + '\'' +
                 ", params=" + Arrays.deepToString(params) +
+                ", serverAttachments=" + serverAttachments +
                 ", methodMetadata=" + methodMetadata +
                 ", attachments=" + attachments() +
                 '}';

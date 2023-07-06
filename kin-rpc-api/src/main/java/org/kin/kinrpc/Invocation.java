@@ -2,6 +2,8 @@ package org.kin.kinrpc;
 
 import org.kin.framework.collection.AttachmentSupport;
 
+import java.util.Map;
+
 /**
  * {@link Invoker#invoke(Invocation)}参数
  * 服务调用上下文信息
@@ -93,4 +95,11 @@ public interface Invocation extends AttachmentSupport {
     default boolean isVoid() {
         return Void.class.equals(returnType());
     }
+
+    /**
+     * 返回发送给server的attachments
+     *
+     * @return attachments
+     */
+    Map<String, String> getServerAttachments();
 }

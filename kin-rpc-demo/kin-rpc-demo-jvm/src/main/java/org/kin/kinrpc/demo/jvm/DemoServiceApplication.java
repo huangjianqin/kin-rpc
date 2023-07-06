@@ -44,6 +44,7 @@ public class DemoServiceApplication extends ServiceConsumer {
                 .serviceName(Constants.DEMO_SERVICE_NAME)
                 .app(ApplicationConfig.create("kinrpc-demo-jvm-consumer"))
                 .method(MethodConfig.create("asyncFind").timeout(4000))
+                .method(MethodConfig.create("asyncFind2").async())
                 .filter(new LogFilter(false));
         try {
             DemoService demoService = referenceConfig.refer();
@@ -59,6 +60,7 @@ public class DemoServiceApplication extends ServiceConsumer {
                 .serviceName(Constants.DEMO_SERVICE_NAME)
                 .app(ApplicationConfig.create("kinrpc-demo-jvm-generic-consumer"))
                 .method(MethodConfig.create("asyncFind").timeout(4000))
+                .method(MethodConfig.create("asyncFind2").async())
                 .filter(new LogFilter(false));
         try {
             GenericService genericDemoService = genericReferenceConfig.refer();

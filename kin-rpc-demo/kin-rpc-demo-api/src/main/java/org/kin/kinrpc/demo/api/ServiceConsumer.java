@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.GenericService;
+import org.kin.kinrpc.RpcContext;
 import org.kin.kinrpc.transport.cmd.BytebufUtils;
 
 import java.nio.charset.StandardCharsets;
@@ -53,6 +54,20 @@ public class ServiceConsumer {
         invoke("findWithAsyncContext", () -> demoService.findWithAsyncContext("A", 1));
         invoke("findWithAsyncContext", () -> demoService.findWithAsyncContext("A", 11));
         asyncInvoke(demoService.asyncRunWithError(), "asyncRunWithError");
+        asyncInvoke(() -> demoService.asyncFind2("A", 1), "asyncFind2");
+        asyncInvoke(() -> demoService.asyncFind2("A", 11), "asyncFind2");
+        RpcContext.attach("A", "1");
+        RpcContext.attach("B", "1");
+        invoke("printAttachments", () -> {
+            demoService.printAttachments();
+            return "";
+        });
+        RpcContext.attach("B", "2");
+        RpcContext.attach("C", "2");
+        invoke("printAttachments", () -> {
+            demoService.printAttachments();
+            return "";
+        });
 
         try {
             Thread.sleep(3_000);
@@ -80,7 +95,7 @@ public class ServiceConsumer {
         invoke("exists", () -> genericDemoService.invoke("exists", Boolean.class, "B", 2));
         invoke("exists", () -> genericDemoService.invoke("exists", Boolean.class, "B", 21));
         invoke("concat", () -> genericDemoService.invoke("concat", String.class, "prefix-", "abc".getBytes(StandardCharsets.UTF_8)));
-        invoke("throwException", () -> {
+        invoke("runWithError", () -> {
             genericDemoService.invoke("runWithError");
             return "";
         });
@@ -94,6 +109,20 @@ public class ServiceConsumer {
         invoke("findWithAsyncContext", () -> genericDemoService.invoke("findWithAsyncContext", User.class, "A", 1));
         invoke("findWithAsyncContext", () -> genericDemoService.invoke("findWithAsyncContext", User.class, "A", 11));
         asyncInvoke(genericDemoService.asyncInvoke("asyncRunWithError"), "asyncRunWithError");
+        asyncInvoke(() -> genericDemoService.invoke("asyncFind2", User.class, "A", 1), "asyncFind2");
+        asyncInvoke(() -> genericDemoService.invoke("asyncFind2", User.class, "A", 11), "asyncFind2");
+        RpcContext.attach("A", "3");
+        RpcContext.attach("B", "3");
+        invoke("printAttachments", () -> {
+            genericDemoService.invoke("printAttachments");
+            return "";
+        });
+        RpcContext.attach("B", "4");
+        RpcContext.attach("C", "4");
+        invoke("printAttachments", () -> {
+            genericDemoService.invoke("printAttachments");
+            return "";
+        });
 
         try {
             Thread.sleep(3_000);
@@ -124,5 +153,16 @@ public class ServiceConsumer {
                 invoke(message, () -> ExceptionUtils.getExceptionDesc(t));
             }
         });
+    }
+
+    private static void asyncInvoke(Runnable task,
+                                    String message) {
+        try {
+            task.run();
+            Object ret = RpcContext.future().get();
+            invoke(message, ret::toString);
+        } catch (Exception e) {
+            invoke(message, () -> ExceptionUtils.getExceptionDesc(e));
+        }
     }
 }

@@ -46,55 +46,55 @@ public class RemotingCodec {
          * unsigned byte: version
          * signed var long: command id, usually request id
          * short: flag(4bit serialization code; )
-         * var int: data len
-         * var int: headers len
-         * bytes(data len): data(depend on actual command)
-         * bytes(headers len): headers(Map<String, String>)
+         * var int: payload len
+         * var int: metadata len
+         * bytes(payload len): payload(depend on actual command)
+         * bytes(metadata len): metadata(Map<String, String>)
          */
         ByteBuf out = adaptiveHandle.allocate(allocator);
-        ByteBuf dataOut = null;
-        ByteBuf headersOut = null;
+        ByteBuf payloadOut = null;
+        ByteBuf metadataOut = null;
         try {
             out.writeByte(cmd.getCmdCode());
             out.writeByte(cmd.getVersion());
             VarIntUtils.writeRawVarInt64(out, cmd.getId(), true);
             out.writeShort(cmd.getFlag());
 
-            dataOut = adaptiveHandle.allocate(allocator);
-            cmd.serialize(dataOut);
+            payloadOut = adaptiveHandle.allocate(allocator);
+            cmd.serializePayload(payloadOut);
 
-            Map<String, String> headers = cmd.getHeaders();
-            if(CollectionUtils.isNonEmpty(headers)){
-                headersOut = adaptiveHandle.allocate(allocator);
-                for (Map.Entry<String, String> entry : headers.entrySet()) {
+            Map<String, String> metadata = cmd.getMetadata();
+            if (CollectionUtils.isNonEmpty(metadata)) {
+                metadataOut = adaptiveHandle.allocate(allocator);
+                for (Map.Entry<String, String> entry : metadata.entrySet()) {
                     String key = entry.getKey();
                     String value = entry.getValue();
 
-                    BytebufUtils.writeVarInt32String(headersOut, key);
-                    BytebufUtils.writeVarInt32String(headersOut, value);
+                    BytebufUtils.writeVarInt32String(metadataOut, key);
+                    BytebufUtils.writeVarInt32String(metadataOut, value);
                 }
             }
 
-            int dataLen = dataOut.readableBytes();
-            VarIntUtils.writeRawVarInt32(out, dataLen);
-            int headersLen = Objects.nonNull(headersOut) ? headersOut.readableBytes() : 0;
-            VarIntUtils.writeRawVarInt32(out, headersLen);
-            if(dataLen > 0){
-                out.writeBytes(dataOut);
+            int payloadLen = payloadOut.readableBytes();
+            VarIntUtils.writeRawVarInt32(out, payloadLen);
+            int metadataLen = Objects.nonNull(metadataOut) ? metadataOut.readableBytes() : 0;
+            VarIntUtils.writeRawVarInt32(out, metadataLen);
+            if (payloadLen > 0) {
+                out.writeBytes(payloadOut);
             }
-            if(headersLen > 0){
-                out.writeBytes(headersOut);
+            if (metadataLen > 0) {
+                out.writeBytes(metadataOut);
             }
         } catch (Exception e) {
             ReferenceCountUtil.safeRelease(out);
             throw new CodecException("remoting codec encode fail", e);
         } finally {
-            if (Objects.nonNull(dataOut)) {
-                ReferenceCountUtil.safeRelease(dataOut);
+            if (Objects.nonNull(payloadOut)) {
+                ReferenceCountUtil.safeRelease(payloadOut);
             }
 
-            if (Objects.nonNull(headersOut)) {
-                ReferenceCountUtil.safeRelease(headersOut);
+            if (Objects.nonNull(metadataOut)) {
+                ReferenceCountUtil.safeRelease(metadataOut);
             }
         }
 
@@ -111,33 +111,33 @@ public class RemotingCodec {
             throw new CodecException("input byte buffer is empty");
         }
 
-        try{
+        try {
             short cmdCode = in.readUnsignedByte();
             RemotingCommand command = CommandHelper.createCommandByCode(cmdCode);
             command.setVersion(in.readUnsignedByte());
             command.setId(VarIntUtils.readRawVarInt64(in, true));
             command.setFlag(in.readShort());
 
-            int dataLen = VarIntUtils.readRawVarInt32(in);
-            int headersLen = VarIntUtils.readRawVarInt32(in);
-            command.setPayload(in.retainedSlice(in.readerIndex(), dataLen));
+            int payloadLen = VarIntUtils.readRawVarInt32(in);
+            int metadataLen = VarIntUtils.readRawVarInt32(in);
+            command.setPayload(in.retainedSlice(in.readerIndex(), payloadLen));
 
-            command.deserialize();
+            command.deserializePayload();
 
             //skip data payload
-            in.readerIndex(in.readerIndex() + dataLen);
+            in.readerIndex(in.readerIndex() + payloadLen);
 
-            Map<String, String> headers = Collections.emptyMap();
-            if(headersLen > 0){
-                headers = new HashMap<>();
-                while(in.readableBytes() > 0) {
+            Map<String, String> metadata = Collections.emptyMap();
+            if (metadataLen > 0) {
+                metadata = new HashMap<>();
+                while (in.readableBytes() > 0) {
                     String key = BytebufUtils.readVarInt32String(in);
                     String value = BytebufUtils.readVarInt32String(in);
 
-                    headers.put(key, value);
+                    metadata.put(key, value);
                 }
             }
-            command.setHeaders(headers);
+            command.setMetadata(metadata);
 
             return command;
         }catch (Exception e) {

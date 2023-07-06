@@ -5,7 +5,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.util.ReferenceCountUtil;
 import org.kin.serialization.Serialization;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
@@ -33,10 +32,10 @@ public abstract class RemotingCommand implements Serializable {
     private short flag;
     /** serialization code */
     private byte serializationCode;
-    /** data payload, 一般{@link #deserialize()}为会set为null */
+    /** data payload, 一般{@link #deserializePayload()}为会set为null */
     private ByteBuf payload = Unpooled.EMPTY_BUFFER;
-    /** command headers */
-    private Map<String, String> headers = Collections.emptyMap();
+    /** command metadata */
+    private Map<String, String> metadata = Collections.emptyMap();
 
     protected RemotingCommand() {
     }
@@ -48,15 +47,16 @@ public abstract class RemotingCommand implements Serializable {
     }
 
     /**
-     * 序列化data
+     * 序列化payload
+     *
      * @param out write out byte buffer
      */
-    public abstract void serialize(ByteBuf out);
+    public abstract void serializePayload(ByteBuf out);
 
     /**
-     * 反序列化data payload
+     * 反序列化payload payload
      */
-    public final void deserialize() {
+    public final void deserializePayload() {
         if (Objects.isNull(payload)) {
             //已经反序列化了
             return;
@@ -64,15 +64,15 @@ public abstract class RemotingCommand implements Serializable {
 
         try {
             deserialize0(payload);
-        }finally {
+        } finally {
             ReferenceCountUtil.safeRelease(payload);
             setPayload(null);
         }
     }
 
     /**
-     * 反序列化data payload
-     * @param payload   data payload
+     * 反序列化payload payload
+     * @param payload   payload payload
      */
     protected abstract void deserialize0(ByteBuf payload);
 
@@ -105,13 +105,8 @@ public abstract class RemotingCommand implements Serializable {
         return payload;
     }
 
-    public final Map<String, String> getHeaders() {
-        return headers;
-    }
-
-    @Nullable
-    public final String getHeader(String key) {
-        return headers.get(key);
+    public final Map<String, String> getMetadata() {
+        return metadata;
     }
 
     public void setVersion(short version) {
@@ -133,14 +128,14 @@ public abstract class RemotingCommand implements Serializable {
 
     public void setSerializationCode(byte serializationCode) {
         this.serializationCode = serializationCode;
-        this.flag = (short) (flag | (((short)serializationCode) << FLAG_SERIALIZATION_SHIFT));
+        this.flag = (short) (flag | (((short) serializationCode) << FLAG_SERIALIZATION_SHIFT));
     }
 
     public void setPayload(ByteBuf payload) {
         this.payload = payload;
     }
 
-    public void setHeaders(Map<String, String> headers) {
-        this.headers = headers;
+    public void setMetadata(Map<String, String> metadata) {
+        this.metadata = metadata;
     }
 }

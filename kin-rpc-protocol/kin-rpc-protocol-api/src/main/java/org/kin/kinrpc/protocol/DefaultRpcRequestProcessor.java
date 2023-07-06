@@ -103,7 +103,7 @@ public class DefaultRpcRequestProcessor extends RpcRequestProcessor {
 
         //invoke
         RpcInvocation invocation = new RpcInvocation(serviceId, rpcService.service(),
-                request.getParams(), methodMetadata);
+                request.getParams(), request.getMetadata(), methodMetadata);
         invocation.attach(ServiceConstants.TIMEOUT_KEY, request.getTimeout());
         try {
             rpcService.invoke(invocation)

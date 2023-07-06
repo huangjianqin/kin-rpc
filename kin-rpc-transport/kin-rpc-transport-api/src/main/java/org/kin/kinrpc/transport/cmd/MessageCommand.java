@@ -55,8 +55,8 @@ public final class MessageCommand extends RequestCommand {
     }
 
     @Override
-    public void serialize(ByteBuf out) {
-        super.serialize(out);
+    public void serializePayload(ByteBuf out) {
+        super.serializePayload(out);
         /*
          * short(2): receiver identity len
          * bytes(identity len): receiver identity content

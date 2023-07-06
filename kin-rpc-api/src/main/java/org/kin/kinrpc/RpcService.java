@@ -131,6 +131,8 @@ public class RpcService<T> implements Invoker<T> {
                            Invocation invocation,
                            CompletableFuture<Object> future) {
         try {
+            //关联rpc context与attachments
+            RpcContext.attachMany(invocation.getServerAttachments());
             Object ret = doInvoke1(rpcHandler, invocation);
             CompletableFuture<Object> invokeFuture = wrapFuture(ret);
             invokeFuture.whenComplete((r, t) -> {

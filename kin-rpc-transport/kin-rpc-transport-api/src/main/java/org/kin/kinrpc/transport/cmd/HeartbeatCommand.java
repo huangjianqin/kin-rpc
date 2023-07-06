@@ -22,7 +22,7 @@ public final class HeartbeatCommand extends RemotingCommand {
     }
 
     @Override
-    public void serialize(ByteBuf byteBuf) {
+    public void serializePayload(ByteBuf byteBuf) {
         //do nothing
     }
 

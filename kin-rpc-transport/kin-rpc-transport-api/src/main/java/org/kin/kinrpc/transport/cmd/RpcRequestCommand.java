@@ -66,8 +66,8 @@ public class RpcRequestCommand extends RequestCommand {
     }
 
     @Override
-    public void serialize(ByteBuf out) {
-        super.serialize(out);
+    public void serializePayload(ByteBuf out) {
+        super.serializePayload(out);
         /*
          * 变长int(1-5): serviceId
          * 变长int(1-5): handlerId
