@@ -1,10 +1,9 @@
 package org.kin.kinrpc;
 
 import org.kin.framework.collection.AttachmentMap;
-import org.kin.framework.utils.CollectionUtils;
 
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -33,7 +32,7 @@ public class RpcInvocation extends AttachmentMap implements Invocation {
         this.serviceId = serviceId;
         this.service = service;
         this.params = params;
-        this.serverAttachments = CollectionUtils.isNonEmpty(serverAttachments) ? serverAttachments : Collections.emptyMap();
+        this.serverAttachments = new HashMap<>(serverAttachments);
         this.methodMetadata = methodMetadata;
     }
 

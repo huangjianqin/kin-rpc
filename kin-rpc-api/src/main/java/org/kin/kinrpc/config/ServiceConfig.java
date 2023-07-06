@@ -23,13 +23,14 @@ public class ServiceConfig<T> extends AbstractInterfaceConfig<T, ServiceConfig<T
     private ExecutorConfig executor;
     /** 权重 */
     private int weight = 1;
-
     /** 服务实例 */
     private T instance;
     /** bootstrap 类型 */
     private String bootstrap = BootstrapType.DEFAULT.getName();
     /** 延迟发布, 毫秒 */
     private long delay;
+    /** 是否开启token校验 */
+    private String token = "";
 
     //----------------------------------------------------------------动态变量, lazy init
     private transient ServiceBootstrap<T> serviceBootstrap;
@@ -176,6 +177,15 @@ public class ServiceConfig<T> extends AbstractInterfaceConfig<T, ServiceConfig<T
         return this;
     }
 
+    public String getToken() {
+        return token;
+    }
+
+    public ServiceConfig<T> token(String token) {
+        this.token = token;
+        return this;
+    }
+
     @Override
     public String toString() {
         return "ServiceConfig{" +
@@ -186,6 +196,7 @@ public class ServiceConfig<T> extends AbstractInterfaceConfig<T, ServiceConfig<T
                 ", instance=" + instance +
                 ", bootstrap='" + bootstrap + '\'' +
                 ", delay=" + delay +
+                ", token=" + token +
                 '}';
     }
 }

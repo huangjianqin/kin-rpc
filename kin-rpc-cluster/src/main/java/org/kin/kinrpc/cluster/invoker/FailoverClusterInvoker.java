@@ -6,7 +6,6 @@ import org.kin.kinrpc.cluster.router.Router;
 import org.kin.kinrpc.config.MethodConfig;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.constants.ReferenceConstants;
-import org.kin.kinrpc.protocol.ServerErrorException;
 import org.kin.kinrpc.registry.directory.Directory;
 import org.kin.kinrpc.utils.RpcUtils;
 import org.slf4j.Logger;

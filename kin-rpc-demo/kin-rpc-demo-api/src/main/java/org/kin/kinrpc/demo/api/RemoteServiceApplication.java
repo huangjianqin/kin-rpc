@@ -23,6 +23,7 @@ public class RemoteServiceApplication {
                     .weight(1)
                     .filter(new LogFilter(true))
                     .delay(3000)
+                    .token("123456")
                     .export();
 
             System.in.read();

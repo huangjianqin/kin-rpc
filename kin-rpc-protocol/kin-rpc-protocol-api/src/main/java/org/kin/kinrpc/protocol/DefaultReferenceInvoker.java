@@ -5,11 +5,13 @@ import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.*;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.constants.ReferenceConstants;
+import org.kin.kinrpc.constants.ServerAttachmentConstants;
 import org.kin.kinrpc.transport.RemotingClient;
 import org.kin.kinrpc.transport.cmd.RpcRequestCommand;
 import org.kin.kinrpc.transport.cmd.RpcResponseCommand;
 import org.kin.serialization.Serialization;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -45,8 +47,10 @@ public class DefaultReferenceInvoker<T> implements ReferenceInvoker<T> {
 
         RpcRequestCommand command = new RpcRequestCommand(this.serializationCode, invocation.serviceId(),
                 invocation.handlerId(), timeout, invocation.params());
-        //setup server attachment
-        command.setMetadata(invocation.getServerAttachments());
+        //bind server attachment
+        Map<String, String> serverAttachments = invocation.getServerAttachments();
+        addTokenIfExists(serverAttachments);
+        command.setMetadata(serverAttachments);
 
         CompletableFuture<Object> resultFuture = new CompletableFuture<>();
         if (invocation.isVoid()) {
@@ -83,6 +87,20 @@ public class DefaultReferenceInvoker<T> implements ReferenceInvoker<T> {
         }
 
         return RpcResult.success(invocation, resultFuture);
+    }
+
+    /**
+     * 将token信息绑定到server attachment
+     *
+     * @param serverAttachments server attachment
+     */
+    private void addTokenIfExists(Map<String, String> serverAttachments) {
+        String token = instance.metadata(ServiceMetadataConstants.TOKEN_KEY);
+        if (StringUtils.isBlank(token)) {
+            return;
+        }
+
+        serverAttachments.put(ServerAttachmentConstants.TOKEN_KEY, token);
     }
 
     @Override

@@ -1,6 +1,4 @@
-package org.kin.kinrpc.protocol;
-
-import org.kin.kinrpc.RpcException;
+package org.kin.kinrpc;
 
 /**
  * rpc服务方法执行异常, 即server端返回的异常

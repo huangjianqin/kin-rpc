@@ -14,6 +14,8 @@ public final class ServiceMetadataConstants {
     public static final String WEIGHT_KEY = "weight";
     /** 服务序列化方式 */
     public static final String SERIALIZATION_KEY = "serialization";
+    /** service token */
+    public static final String TOKEN_KEY = "token";
 
     private ServiceMetadataConstants() {
     }

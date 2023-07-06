@@ -17,6 +17,7 @@ import org.kin.kinrpc.utils.GsvUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -102,8 +103,9 @@ public class DefaultRpcRequestProcessor extends RpcRequestProcessor {
         }
 
         //invoke
+        Map<String, String> metadata = request.getMetadata();
         RpcInvocation invocation = new RpcInvocation(serviceId, rpcService.service(),
-                request.getParams(), request.getMetadata(), methodMetadata);
+                request.getParams(), metadata, methodMetadata);
         invocation.attach(ServiceConstants.TIMEOUT_KEY, request.getTimeout());
         try {
             rpcService.invoke(invocation)

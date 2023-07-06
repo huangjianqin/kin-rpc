@@ -5,8 +5,10 @@ import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
 import org.kin.framework.proxy.MethodDefinition;
 import org.kin.framework.proxy.Proxys;
 import org.kin.framework.utils.ExceptionUtils;
+import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.config.ExecutorConfig;
 import org.kin.kinrpc.config.ServiceConfig;
+import org.kin.kinrpc.constants.ServerAttachmentConstants;
 import org.kin.kinrpc.executor.ExecutorHelper;
 import org.kin.kinrpc.executor.ManagedExecutor;
 import org.kin.kinrpc.utils.RpcUtils;
@@ -17,6 +19,7 @@ import reactor.core.publisher.Mono;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -37,6 +40,8 @@ public class RpcService<T> implements Invoker<T> {
     private final ManagedExecutor executor;
     /** 是否terminated */
     private volatile boolean terminated;
+    /** service token */
+    private final String token;
 
     public RpcService(ServiceConfig<T> config) {
         this.config = config;
@@ -71,6 +76,19 @@ public class RpcService<T> implements Invoker<T> {
             executor = ExecutorHelper.getOrCreateExecutor(executorConfig, service);
         }
         this.executor = executor;
+
+        String token = config.getToken();
+        if (StringUtils.isNotBlank(token)) {
+            if ("true".equalsIgnoreCase(token)) {
+                //自动生成token
+                this.token = UUID.randomUUID().toString();
+            } else {
+                //user配置的token
+                this.token = token;
+            }
+        } else {
+            this.token = null;
+        }
     }
 
     @Override
@@ -80,6 +98,11 @@ public class RpcService<T> implements Invoker<T> {
         }
 
         try {
+            String token = invocation.getServerAttachments().remove(ServerAttachmentConstants.TOKEN_KEY);
+            if (StringUtils.isNotBlank(this.token) && !this.token.equals(token)) {
+                throw new AuthorizationException(String.format("check service '%s' token authorization fail", invocation.service()));
+            }
+
             CompletableFuture<Object> future = new CompletableFuture<>();
             if (Objects.nonNull(executor)) {
                 //如果服务执行线程池队列已满, 则抛出RejectedExecutionException, 捕获异常后, 直接返回rpc result
