@@ -63,7 +63,7 @@ public class RegistryConfig extends AttachableConfig {
     }
 
     @Override
-    protected void checkValid() {
+    public void checkValid() {
         super.checkValid();
         check(StringUtils.isNotBlank(type), "registry type must be not blank");
         check(StringUtils.isNotBlank(address), "registry address must be not blank");

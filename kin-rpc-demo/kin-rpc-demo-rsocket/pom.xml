@@ -20,7 +20,7 @@
 
         <dependency>
             <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-transport-rsocket</artifactId>
+            <artifactId>kin-rpc-protocol-rsocket</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

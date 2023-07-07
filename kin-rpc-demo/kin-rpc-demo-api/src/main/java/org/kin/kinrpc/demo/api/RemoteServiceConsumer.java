@@ -1,6 +1,7 @@
 package org.kin.kinrpc.demo.api;
 
 import org.kin.kinrpc.GenericService;
+import org.kin.kinrpc.bootstrap.KinRpcBootstrap;
 import org.kin.kinrpc.config.*;
 
 /**
@@ -31,10 +32,10 @@ public class RemoteServiceConsumer extends ServiceConsumer {
 //        );
 
         String address = String.join(RegistryConfig.ADDRESS_SEPARATOR,
-                "kinrpc://127.0.0.1:13000/kinrpc:demo:0.1.0.0?schema=kinrpc&serialization=json&weight=1&token=123456"
-//                "kinrpc://127.0.0.1:13100/kinrpc:demo:0.1.0.0?schema=kinrpc&serialization=json&weight=2&token=123456",
-//                "kinrpc://127.0.0.1:13200/kinrpc:demo:0.1.0.0?schema=kinrpc&serialization=json&weight=3&token=123456"
-//                "kinrpc://127.0.0.1:13300/kinrpc/demo:0.1.0.0?schema=kinrpc&serialization=json&weight=4&token=123456"
+                protocol + "://127.0.0.1:13000/kinrpc:demo:0.1.0.0?schema=kinrpc&serialization=json&weight=1&token=123456"
+//                protocol+ "://127.0.0.1:13100/kinrpc:demo:0.1.0.0?schema=kinrpc&serialization=json&weight=2&token=123456",
+//                protocol+ "://127.0.0.1:13200/kinrpc:demo:0.1.0.0?schema=kinrpc&serialization=json&weight=3&token=123456"
+//                protocol+ "://127.0.0.1:13300/kinrpc/demo:0.1.0.0?schema=kinrpc&serialization=json&weight=4&token=123456"
         );
         RegistryConfig registryConfig = RegistryConfig.direct(address);
         ReferenceConfig<DemoService> referenceConfig = ReferenceConfig.create(DemoService.class)
@@ -76,6 +77,55 @@ public class RemoteServiceConsumer extends ServiceConsumer {
         } finally {
             referenceConfig.unRefer();
             genericReferenceConfig.unRefer();
+        }
+
+        try {
+            System.in.read();
+            Thread.sleep(2_000);
+            System.out.println("force application exit>>>");
+            System.exit(0);
+        } catch (Exception e) {
+            //do nothing
+        }
+    }
+
+    /**
+     * 使用{@link org.kin.kinrpc.bootstrap.KinRpcBootstrap}获取服务引用
+     */
+    public static void invoke2(String appNamePrefix, String protocol) {
+        String address = String.join(RegistryConfig.ADDRESS_SEPARATOR,
+                protocol + "://127.0.0.1:13000/kinrpc:demo:0.1.0.0?schema=kinrpc&serialization=json&weight=1&token=123456"
+//                protocol+ "://127.0.0.1:13100/kinrpc:demo:0.1.0.0?schema=kinrpc&serialization=json&weight=2&token=123456",
+//                protocol+ "://127.0.0.1:13200/kinrpc:demo:0.1.0.0?schema=kinrpc&serialization=json&weight=3&token=123456"
+//                protocol+ "://127.0.0.1:13300/kinrpc/demo:0.1.0.0?schema=kinrpc&serialization=json&weight=4&token=123456"
+        );
+
+        KinRpcBootstrap.instance()
+                .registries(RegistryConfig.direct(address))
+                .app(ApplicationConfig.create(appNamePrefix + "-consumer"))
+                .consumer(ConsumerConfig.create()
+                        .cluster(ClusterType.FAILOVER)
+                        .rpcTimeout(2000)
+                        .retries(4)
+                        .filter(new LogFilter(false)))
+                .reference(ReferenceConfig.create(DemoService.class)
+                        .serviceName(Constants.DEMO_SERVICE_NAME)
+                        .method(MethodConfig.create("asyncFind").timeout(3000))
+                        .method(MethodConfig.create("delayRandom").sticky().retries(2))
+                        .method(MethodConfig.create("asyncFind2").async()))
+                .start();
+
+        try {
+            DemoService demoService = KinRpcBootstrap.instance().reference(DemoService.class);
+            // TODO: 2023/7/4 需要等待directory建立invoker
+            System.in.read();
+            Thread.sleep(2_000);
+            invokeDemoService(demoService);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        } finally {
+            KinRpcBootstrap.instance().destroy();
         }
 
         try {

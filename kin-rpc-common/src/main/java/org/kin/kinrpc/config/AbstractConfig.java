@@ -13,7 +13,7 @@ public abstract class AbstractConfig implements Config {
     /**
      * 检查配置合法性
      */
-    protected void checkValid() {
+    public void checkValid() {
         //default do nothing
     }
 
@@ -32,7 +32,7 @@ public abstract class AbstractConfig implements Config {
     /**
      * 缺省配置, 设置默认值
      */
-    protected void setUpDefaultConfig() {
+    public void initDefaultConfig() {
         //default do nothing
     }
 }

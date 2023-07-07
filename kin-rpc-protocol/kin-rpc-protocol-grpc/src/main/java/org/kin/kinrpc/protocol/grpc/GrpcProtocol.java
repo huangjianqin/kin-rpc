@@ -1,4 +1,4 @@
-package org.kin.kinrpc.transport.grpc;
+package org.kin.kinrpc.protocol.grpc;
 
 import org.kin.framework.utils.Extension;
 import org.kin.kinrpc.MethodMetadata;
@@ -10,6 +10,8 @@ import org.kin.kinrpc.executor.ManagedExecutor;
 import org.kin.kinrpc.protocol.AbstractProtocol;
 import org.kin.kinrpc.transport.RemotingClient;
 import org.kin.kinrpc.transport.RemotingServer;
+import org.kin.kinrpc.transport.grpc.GrpcClient;
+import org.kin.kinrpc.transport.grpc.GrpcServer;
 
 import javax.annotation.Nullable;
 import java.util.List;

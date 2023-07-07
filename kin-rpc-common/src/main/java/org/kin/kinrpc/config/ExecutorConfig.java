@@ -1,10 +1,9 @@
 package org.kin.kinrpc.config;
 
 import org.kin.framework.utils.StringUtils;
-import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.utils.ObjectUtils;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Objects;
 
 /**
  * 服务处理线程配置, 一般用于服务处理线程隔离
@@ -13,18 +12,18 @@ import java.util.concurrent.TimeUnit;
  * @date 2023/6/16
  */
 public class ExecutorConfig extends AttachableConfig {
-    /** executor name */
+    /** executor name, 如果user不指定, 则跟service唯一标识和server唯一标识有关 */
     private String name;
     /** 服务处理线程类型 */
     private String type;
     /** core thread size, 默认为cpu处理器数量 */
-    private int corePoolSize = SysUtils.getSuitableThreadNum();
+    private Integer corePoolSize;
     /** max thread size, 默认为{@link Integer#MAX_VALUE} */
-    private int maxPoolSize = Integer.MAX_VALUE;
+    private Integer maxPoolSize;
     /** thread pool keepAliveTime, default 60s */
-    private int alive = (int) TimeUnit.SECONDS.toMillis(60);
+    private Integer alive;
     /** thread pool's queue size */
-    private int queueSize = 256;
+    private Integer queueSize;
 
     /**
      * 复用executor
@@ -81,7 +80,7 @@ public class ExecutorConfig extends AttachableConfig {
     }
 
     @Override
-    protected void checkValid() {
+    public void checkValid() {
         super.checkValid();
         check(StringUtils.isNotBlank(type), "executor type must be not blank");
         check(corePoolSize > 0, "executor corePoolSize must be greater than 0");
@@ -89,6 +88,26 @@ public class ExecutorConfig extends AttachableConfig {
         check(maxPoolSize >= corePoolSize, "executor maxPoolSize must be greater and equal than corePoolSize");
         check(alive > 0, "executor alive time must be greater than 0");
         check(queueSize > 0, "executor queue size must be greater than 0");
+    }
+
+    @Override
+    public void initDefaultConfig() {
+        super.initDefaultConfig();
+        if (Objects.isNull(corePoolSize)) {
+            corePoolSize = DefaultConfig.DEFAULT_EXECUTOR_CORE_POOL_SIZE;
+        }
+
+        if (Objects.isNull(maxPoolSize)) {
+            maxPoolSize = DefaultConfig.DEFAULT_EXECUTOR_MAX_POOL_SIZE;
+        }
+
+        if (Objects.isNull(alive)) {
+            alive = DefaultConfig.DEFAULT_EXECUTOR_ALIVE;
+        }
+
+        if (Objects.isNull(queueSize)) {
+            queueSize = DefaultConfig.DEFAULT_EXECUTOR_QUEUE_SIZE;
+        }
     }
 
     //setter && getter

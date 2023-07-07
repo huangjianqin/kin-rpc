@@ -2,7 +2,6 @@ package org.kin.kinrpc.config;
 
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.Filter;
-import org.kin.kinrpc.utils.GsvUtils;
 
 import java.util.*;
 
@@ -10,40 +9,28 @@ import java.util.*;
  * @author huangjianqin
  * @date 2023/6/16
  */
-public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceConfig<T, IC>> extends AttachableConfig {
+public abstract class AbstractInterfaceConfig<IC extends AbstractInterfaceConfig<IC>> extends AttachableConfig {
     /** 应用配置 */
     private ApplicationConfig app;
     /** 注册中心配置 */
     private final List<RegistryConfig> registries = new ArrayList<>();
-    /** 接口 */
-    private Class<T> interfaceClass;
     /** 服务所属组 */
-    private String group = "kinrpc";
-    /** 服务名 */
-    private String serviceName;
+    private String group;
     /** 版本号 */
-    private String version = "0.1.0.0";
+    private String version;
     /** 默认序列化方式 */
-    private String serialization = SerializationType.JSON.getName();
+    private String serialization;
     /** filter list */
-    private List<Filter> filters = new ArrayList<>();
-
-    //----------------------------------------------------------------动态变量, lazy init
-    /** 返回服务唯一标识 */
-    private transient String service;
-    /** 返回服务唯一id */
-    private transient int serviceId;
+    private final List<Filter> filters = new ArrayList<>();
 
     protected AbstractInterfaceConfig() {
     }
 
     @Override
-    protected void checkValid() {
+    public void checkValid() {
         super.checkValid();
         check(Objects.nonNull(app), "app config must be not null");
-        check(Objects.nonNull(interfaceClass), "interface class be not null");
         check(StringUtils.isNotBlank(group), "group be not blank");
-        check(StringUtils.isNotBlank(serviceName), "service name be not blank");
         check(StringUtils.isNotBlank(version), "version be not blank");
         check(StringUtils.isNotBlank(serialization), "serialization type be not blank");
         if (isJvmBootstrap()) {
@@ -55,43 +42,33 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
         }
     }
 
-    /**
-     * 缺省配置, 设置默认值
-     */
     @Override
-    protected void setUpDefaultConfig() {
-        if (StringUtils.isBlank(getServiceName())) {
-            serviceName(getInterfaceClass().getSimpleName());
+    public void initDefaultConfig() {
+        super.initDefaultConfig();
+        if (Objects.nonNull(app)) {
+            app.initDefaultConfig();
+        }
+
+        for (RegistryConfig registry : registries) {
+            registry.initDefaultConfig();
+        }
+
+        if (Objects.isNull(group)) {
+            group = DefaultConfig.DEFAULT_GROUP;
+        }
+
+        if (Objects.isNull(version)) {
+            version = DefaultConfig.DEFAULT_VERSION;
+        }
+
+        if (Objects.isNull(serialization)) {
+            serialization = DefaultConfig.DEFAULT_SERIALIZATION;
         }
     }
 
     @SuppressWarnings("unchecked")
     protected IC castThis() {
         return (IC) this;
-    }
-
-    /**
-     * 返回服务唯一标识
-     *
-     * @return 服务唯一标识
-     */
-    public String getService() {
-        if (Objects.isNull(service)) {
-            service = GsvUtils.service(group, serviceName, version);
-        }
-        return service;
-    }
-
-    /**
-     * 返回服务唯一id
-     *
-     * @return 服务唯一id
-     */
-    public int getServiceId() {
-        if (serviceId == 0) {
-            serviceId = GsvUtils.serviceId(getService());
-        }
-        return serviceId;
     }
 
     /**
@@ -130,30 +107,12 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
         return castThis();
     }
 
-    public Class<T> getInterfaceClass() {
-        return interfaceClass;
-    }
-
-    protected IC interfaceClass(Class<T> interfaceClass) {
-        this.interfaceClass = interfaceClass;
-        return castThis();
-    }
-
     public String getGroup() {
         return group;
     }
 
     public IC group(String group) {
         this.group = group;
-        return castThis();
-    }
-
-    public String getServiceName() {
-        return serviceName;
-    }
-
-    public IC serviceName(String serviceName) {
-        this.serviceName = serviceName;
         return castThis();
     }
 
@@ -200,12 +159,6 @@ public abstract class AbstractInterfaceConfig<T, IC extends AbstractInterfaceCon
     public String toString() {
         return "app=" + app +
                 ", registries=" + registries +
-                ", interfaceClass=" + interfaceClass +
-                ", group='" + group + '\'' +
-                ", serviceName='" + serviceName + '\'' +
-                ", version='" + version + '\'' +
-                ", serialization='" + serialization + '\'' +
-                ", service='" + service + '\'' +
-                ", serviceId=" + serviceId;
+                ", serialization='" + serialization + '\'';
     }
 }

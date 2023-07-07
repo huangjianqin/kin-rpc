@@ -1,4 +1,4 @@
-package org.kin.kinrpc.transport.rsocket;
+package org.kin.kinrpc.protocol.rsocket;
 
 import org.kin.framework.utils.Extension;
 import org.kin.kinrpc.ServiceInstance;
@@ -8,6 +8,8 @@ import org.kin.kinrpc.executor.ManagedExecutor;
 import org.kin.kinrpc.protocol.AbstractProtocol;
 import org.kin.kinrpc.transport.RemotingClient;
 import org.kin.kinrpc.transport.RemotingServer;
+import org.kin.kinrpc.transport.rsocket.RSocketClient;
+import org.kin.kinrpc.transport.rsocket.RSocketServer;
 
 import javax.annotation.Nullable;
 

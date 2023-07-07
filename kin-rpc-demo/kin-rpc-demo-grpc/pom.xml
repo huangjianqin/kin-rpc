@@ -20,7 +20,7 @@
 
         <dependency>
             <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-transport-grpc</artifactId>
+            <artifactId>kin-rpc-protocol-grpc</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

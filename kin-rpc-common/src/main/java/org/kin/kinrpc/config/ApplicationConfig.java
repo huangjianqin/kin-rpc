@@ -20,7 +20,7 @@ public class ApplicationConfig extends AbstractConfig {
     }
 
     @Override
-    protected void checkValid() {
+    public void checkValid() {
         super.checkValid();
         check(StringUtils.isNotBlank(appName), "appName must be not blank");
     }

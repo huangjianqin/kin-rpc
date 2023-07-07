@@ -44,7 +44,7 @@ public class FilterChain<T> extends DelegateInvoker<T> {
         return invokerChain;
     }
 
-    public static <T> FilterChain<T> create(AbstractInterfaceConfig<T, ?> config, Invoker<T> lastInvoker) {
+    public static <T> FilterChain<T> create(AbstractInterfaceConfig<?> config, Invoker<T> lastInvoker) {
         return new FilterChain<>(lastInvoker, config.getFilters());
     }
 

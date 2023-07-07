@@ -2,8 +2,6 @@ package org.kin.kinrpc.config;
 
 import org.kin.framework.utils.NetUtils;
 import org.kin.framework.utils.StringUtils;
-import org.kin.framework.utils.SysUtils;
-import org.kin.kinrpc.constants.ServerConstants;
 import org.kin.kinrpc.utils.ObjectUtils;
 
 import java.util.Objects;
@@ -20,14 +18,11 @@ public class ServerConfig extends AttachableConfig {
     /** 协议名 */
     private String protocol;
     /** 监听IP */
-    private String host = NetUtils.getLocalhostIp();
+    private String host;
     /** 监听端口 */
-    private int port = ServerConstants.DEFAULT_SERVER_PORT;
+    private Integer port;
     /** server端业务线程池大小, 默认是double cpu处理器数量, 队列长度为512的线程池 */
-    private ExecutorConfig executor = ExecutorConfig.fix()
-            .corePoolSize(SysUtils.CPU_NUM)
-            .maxPoolSize(SysUtils.DOUBLE_CPU)
-            .queueSize(1024);
+    private ExecutorConfig executor;
     /** 服务connection ssl配置 */
     private SslConfig ssl;
 
@@ -95,13 +90,31 @@ public class ServerConfig extends AttachableConfig {
     }
 
     @Override
-    protected void checkValid() {
+    public void checkValid() {
         super.checkValid();
         check(StringUtils.isNotBlank(protocol), "server protocol must be not blank");
         check(StringUtils.isNotBlank(host), "server host must be not blank");
         check(port > 0, "server port must be greater than 0");
         if (Objects.nonNull(executor)) {
             executor.checkValid();
+        }
+    }
+
+    @Override
+    public void initDefaultConfig() {
+        super.initDefaultConfig();
+        if (Objects.isNull(host)) {
+            host = DefaultConfig.DEFAULT_SERVER_HOST;
+        }
+
+        if (Objects.isNull(port)) {
+            port = DefaultConfig.DEFAULT_SERVER_PORT;
+        }
+
+        if (Objects.nonNull(executor)) {
+            executor.initDefaultConfig();
+        } else {
+            executor = DefaultConfig.DEFAULT_SERVER_EXECUTOR;
         }
     }
 

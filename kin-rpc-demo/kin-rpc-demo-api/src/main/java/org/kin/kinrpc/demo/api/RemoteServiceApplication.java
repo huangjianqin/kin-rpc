@@ -1,9 +1,7 @@
 package org.kin.kinrpc.demo.api;
 
-import org.kin.kinrpc.config.ApplicationConfig;
-import org.kin.kinrpc.config.ExecutorConfig;
-import org.kin.kinrpc.config.ServerConfig;
-import org.kin.kinrpc.config.ServiceConfig;
+import org.kin.kinrpc.bootstrap.KinRpcBootstrap;
+import org.kin.kinrpc.config.*;
 
 import java.util.Objects;
 
@@ -36,6 +34,37 @@ public class RemoteServiceApplication {
             if (Objects.nonNull(serviceConfig)) {
                 serviceConfig.unExport();
             }
+        }
+    }
+
+    /**
+     * 使用{@link KinRpcBootstrap}发布服务
+     */
+    public static void export2(ServerConfig... servers) {
+        try {
+            KinRpcBootstrap.instance()
+                    .app(ApplicationConfig.create("kinrpc-demo-kinrpc-provider"))
+                    .provider(ProviderConfig.create()
+                            .servers(servers)
+                            .executor(ExecutorConfig.fix())
+                            .weight(1)
+                            .filter(new LogFilter(true))
+                            .delay(3000)
+                            .token("123456"))
+                    .service(ServiceConfig.create(DemoService.class, new DemoServiceImpl())
+                            .serviceName(Constants.DEMO_SERVICE_NAME)
+                            .weight(2))
+                    .start();
+
+            System.in.read();
+
+            Thread.sleep(2_000);
+            System.exit(0);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            KinRpcBootstrap.instance()
+                    .destroy();
         }
     }
 }

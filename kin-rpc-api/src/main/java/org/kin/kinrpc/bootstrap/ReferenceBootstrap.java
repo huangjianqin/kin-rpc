@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @SPI(alias = "referenceBootstrap", singleton = false)
 public abstract class ReferenceBootstrap<T> {
-    private static final Logger log = LoggerFactory.getLogger(ServiceBootstrap.class);
+    private static final Logger log = LoggerFactory.getLogger(ReferenceBootstrap.class);
     /** 已引用的服务gsv */
     private static final Set<String> REFERENCED_SERVICES = new CopyOnWriteArraySet<>();
     /** 初始状态 */

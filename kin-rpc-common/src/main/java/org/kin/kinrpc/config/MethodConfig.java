@@ -1,7 +1,8 @@
 package org.kin.kinrpc.config;
 
 import org.kin.framework.utils.StringUtils;
-import org.kin.kinrpc.constants.ReferenceConstants;
+
+import java.util.Objects;
 
 /**
  * 服务方法配置, 如果不配置, 则直接取reference config
@@ -15,16 +16,14 @@ public class MethodConfig extends AbstractConfig {
      * 不支持方法重载
      */
     private String name;
-    /**
-     * rpc call timeout(ms)
-     */
-    private int timeout = ReferenceConstants.DEFAULT_RPC_CALL_TIMEOUT;
+    /** rpc call timeout(ms) */
+    private Integer timeout;
     /** 失败后重试次数 */
-    private int retries = ReferenceConstants.DEFAULT_RETRY_TIMES;
+    private Integer retries;
     /** 是否异步调用 */
-    private boolean async;
+    private Boolean async;
     /** 是否服务调用粘黏 */
-    private boolean sticky;
+    private Boolean sticky;
 
     public static MethodConfig create(String name) {
         return new MethodConfig().name(name);
@@ -34,10 +33,30 @@ public class MethodConfig extends AbstractConfig {
     }
 
     @Override
-    protected void checkValid() {
+    public void checkValid() {
         super.checkValid();
         check(StringUtils.isNotBlank(name), "method name must be not blank");
         check(timeout > 0, "method rpc call timeout must be greater than 0");
+    }
+
+    @Override
+    public void initDefaultConfig() {
+        super.initDefaultConfig();
+        if (Objects.isNull(timeout)) {
+            timeout = DefaultConfig.DEFAULT_METHOD_TIMEOUT;
+        }
+
+        if (Objects.isNull(retries)) {
+            retries = DefaultConfig.DEFAULT_METHOD_RETRIES;
+        }
+
+        if (Objects.isNull(async)) {
+            async = DefaultConfig.DEFAULT_METHOD_ASYNC;
+        }
+
+        if (Objects.isNull(sticky)) {
+            sticky = DefaultConfig.DEFAULT_METHOD_STICKY;
+        }
     }
 
     //setter && getter
