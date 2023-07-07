@@ -1,56 +1,45 @@
 package org.kin.kinrpc.boot;
 
-import org.kin.kinrpc.conf.ProtocolType;
-import org.kin.kinrpc.rpc.common.Constants;
-import org.kin.kinrpc.serialization.SerializationType;
-import org.kin.transport.netty.CompressionType;
 import org.springframework.stereotype.Service;
 
 import java.lang.annotation.*;
 
 /**
- * 配置的含义请看{@link org.kin.kinrpc.conf.ServiceConfig}
+ * kinrpc服务定义
+ * service端:
+ * 支持覆盖全局的server, registry url
+ * 支持覆盖全局的excutor
+ * 支持覆盖全局的group, version, serialization
  *
  * @author huangjianqin
  * @date 2020/12/6
+ * @see org.kin.kinrpc.config.ServerConfig
  */
 @Documented
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Service
 public @interface KinRpcService {
-    String appName() default "";
-
-    String host() default "0.0.0.0";
-
-    int port() default 0;
-
     /**
      * 服务接口
      */
-    Class<?> value();
+    Class<?> interfaceClass();
+
+    String group() default "kinrpc";
 
     String serviceName() default "";
 
     String version() default "0.1.0.0";
 
-    SerializationType serializationType() default SerializationType.KRYO;
+    String serialization() default "0";
 
-    int serializationCode() default 0;
+    String[] servers() default {};
+    // TODO: 2023/7/5 ssl
 
-    boolean byteCodeEnhance() default true;
+    // TODO: 2023/7/5 executor
+    int weight();
 
-    boolean actorLike() default false;
+    String[] registries() default {};
 
-    CompressionType compressionType() default CompressionType.NONE;
 
-    boolean parallelism() default true;
-
-    int tps() default Constants.PROVIDER_DEFAULT_TPS;
-
-    ProtocolType protocolType() default ProtocolType.KINRPC;
-
-    boolean ssl() default false;
-
-    Attachment[] attachment() default {};
 }
