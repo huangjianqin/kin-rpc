@@ -34,7 +34,7 @@ public abstract class AbstractRemotingServer implements RemotingServer {
     protected AbstractRemotingServer(String host, int port, @Nullable ManagedExecutor executor) {
         Preconditions.checkArgument(port > 0, "server port must be greater than 0");
         if (StringUtils.isBlank(host)) {
-            host = NetUtils.getLocalhostIp();
+            host = NetUtils.getLocalhost4Ip();
         }
         this.host = host;
         this.port = port;

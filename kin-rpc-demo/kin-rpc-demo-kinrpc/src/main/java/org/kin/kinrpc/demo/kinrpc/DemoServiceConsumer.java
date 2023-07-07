@@ -9,6 +9,6 @@ import org.kin.kinrpc.demo.api.RemoteServiceConsumer;
  */
 public class DemoServiceConsumer extends RemoteServiceConsumer {
     public static void main(String[] args) {
-        invoke("kinrpc-demo-kinrpc", ProtocolType.KINRPC.getName());
+        invoke2("kinrpc-demo-kinrpc", ProtocolType.KINRPC.getName());
     }
 }

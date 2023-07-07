@@ -15,6 +15,7 @@ import java.util.Arrays;
 public class GrpcServerTest {
     public static void main(String[] args) throws IOException {
         GrpcServer server = new GrpcServer(19999);
+        server.registerService(0, 0);
         server.registerRequestProcessor(new RpcRequestProcessor() {
                     @Override
                     public void process(RequestContext requestContext, RpcRequestCommand request) {

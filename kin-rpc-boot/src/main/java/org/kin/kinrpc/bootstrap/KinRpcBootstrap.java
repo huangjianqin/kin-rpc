@@ -46,6 +46,8 @@ public final class KinRpcBootstrap {
      * @see #block()
      */
     private final Condition blockCondition = blockLock.newCondition();
+    /** 当前是否已{@link #block()} */
+    private boolean block = false;
     /** 状态 */
     private final AtomicInteger state = new AtomicInteger(INIT_STATE);
 
@@ -138,14 +140,16 @@ public final class KinRpcBootstrap {
 
         for (ServiceConfig<?> serviceConfig : services) {
             //尝试从bootstrap或provider获取配置
-            setUpServiceConfig(serviceConfig, providerMap.get(serviceConfig.getGroup()));
+            String group = serviceConfig.getGroup();
+            setUpServiceConfig(serviceConfig, providerMap.get(Objects.nonNull(group) ? group : ""));
             //初始化service默认配置
             serviceConfig.initDefaultConfig();
         }
 
         for (ReferenceConfig<?> referenceConfig : references) {
             //尝试从bootstrap或consumer获取配置
-            setUpReferenceConfig(referenceConfig, consumerMap.get(referenceConfig.getGroup()));
+            String group = referenceConfig.getGroup();
+            setUpReferenceConfig(referenceConfig, consumerMap.get(Objects.nonNull(group) ? group : ""));
             //初始化reference默认配置
             referenceConfig.initDefaultConfig();
         }
@@ -161,7 +165,7 @@ public final class KinRpcBootstrap {
         setUpConfigIfNotExists(service::group, service::getGroup, provider, ProviderConfig::getGroup, this::getGroup);
         setUpConfigIfNotExists(service::version, service::getVersion, provider, ProviderConfig::getVersion, this::getVersion);
         setUpConfigIfNotExists(service::serialization, service::getSerialization, provider, ProviderConfig::getSerialization, this::getSerialization);
-        setUpConfigIfNotExists(service::registries, service::getRegistries, provider, ProviderConfig::getRegistries);
+        setUpConfigIfNotExists(service::registries, service::getRegistries, provider, ProviderConfig::getRegistries, this::getRegistries);
         setUpConfigIfNotExists(service::filters, service::getFilters, provider, ProviderConfig::getFilters);
 
         //service
@@ -191,7 +195,7 @@ public final class KinRpcBootstrap {
         setUpConfigIfNotExists(reference::group, reference::getGroup, consumer, ConsumerConfig::getGroup, this::getGroup);
         setUpConfigIfNotExists(reference::version, reference::getVersion, consumer, ConsumerConfig::getVersion, this::getVersion);
         setUpConfigIfNotExists(reference::serialization, reference::getSerialization, consumer, ConsumerConfig::getSerialization, this::getSerialization);
-        setUpConfigIfNotExists(reference::registries, reference::getRegistries, consumer, ConsumerConfig::getRegistries);
+        setUpConfigIfNotExists(reference::registries, reference::getRegistries, consumer, ConsumerConfig::getRegistries, this::getRegistries);
         setUpConfigIfNotExists(reference::filters, reference::getFilters, consumer, ConsumerConfig::getFilters);
 
         //reference
@@ -256,23 +260,49 @@ public final class KinRpcBootstrap {
                                                 Function<PC, T> c2VGetter,
                                                 @Nullable Supplier<T> c3VGetter) {
         T c1V = c1VGetter.get();
-        if (Objects.nonNull(c1V)) {
+        if (!isNullOrEmpty(c1V)) {
             return;
         }
 
         //没有c1V
-        T c2V = c2VGetter.apply(c2);
-        if (Objects.nonNull(c2V)) {
+        T c2V = Objects.nonNull(c2) ? c2VGetter.apply(c2) : null;
+        if (!isNullOrEmpty(c2V)) {
             setter.accept(c2V);
             return;
         }
 
         //没有c2V
         T c3V = Objects.nonNull(c3VGetter) ? c3VGetter.get() : null;
-        if (Objects.nonNull(c3V)) {
+        if (!isNullOrEmpty(c3V)) {
             setter.accept(c3V);
             return;
         }
+    }
+
+    /**
+     * 判断{@code obj}是否为null, 如果{@code obj}是集合或map, 判断是否null或空
+     *
+     * @param obj 实例
+     * @return true表示{@code obj}为null, 空集合或者空map
+     */
+    private boolean isNullOrEmpty(Object obj) {
+        if (Objects.isNull(obj)) {
+            return true;
+        }
+
+        if (obj.getClass().isArray() && CollectionUtils.isEmpty(((Object[]) obj))) {
+            return true;
+        }
+
+        if (obj instanceof Collection && CollectionUtils.isEmpty(((Collection<?>) obj))) {
+            return true;
+        }
+
+        if (obj instanceof Map && CollectionUtils.isEmpty(((Map<?, ?>) obj))) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -398,7 +428,10 @@ public final class KinRpcBootstrap {
         //notify block
         blockLock.lock();
         try {
-            blockCondition.notifyAll();
+            if (block) {
+                block = false;
+                blockCondition.notifyAll();
+            }
         } finally {
             blockLock.unlock();
         }
@@ -408,12 +441,16 @@ public final class KinRpcBootstrap {
      * block current thread, and never release
      */
     public void block() {
+        checkTerminated();
         blockLock.lock();
         try {
-            try {
-                blockCondition.await();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+            while (!block) {
+                try {
+                    block = true;
+                    blockCondition.await();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
             }
         } finally {
             blockLock.unlock();
@@ -429,6 +466,8 @@ public final class KinRpcBootstrap {
      */
     @SuppressWarnings("unchecked")
     public <T> T reference(String service) {
+        checkTerminated();
+
         if (!service2Reference.containsKey(service)) {
             throw new IllegalArgumentException(String.format("can not find service reference for service '%s'", service));
         }
@@ -444,6 +483,8 @@ public final class KinRpcBootstrap {
      */
     @SuppressWarnings("unchecked")
     public <T> T reference(Class<?> interfaceClass) {
+        checkTerminated();
+
         if (GenericService.class.equals(interfaceClass)) {
             throw new IllegalArgumentException("please use KinRpcBootstrap#reference(String) method to find generic service reference");
         }
@@ -455,12 +496,30 @@ public final class KinRpcBootstrap {
     }
 
     /**
-     * 检查bootstrap状态
+     * 修改配置前的检查
      */
-    private void checkState() {
+    private void checkBeforeModify() {
         if (state.get() > INIT_STATE) {
             throw new IllegalStateException("please modify bootstrap before start");
         }
+    }
+
+    /**
+     * 检查bootstrap状态
+     */
+    private void checkTerminated() {
+        if (isTerminated()) {
+            throw new IllegalStateException("bootstrap is terminated");
+        }
+    }
+
+    /**
+     * 判断当前状态是否{@link #TERMINATED_STATE}
+     *
+     * @return true标识已terminated
+     */
+    private boolean isTerminated() {
+        return state.get() == TERMINATED_STATE;
     }
 
     //setter && getter
@@ -469,12 +528,12 @@ public final class KinRpcBootstrap {
     }
 
     public KinRpcBootstrap app(String app) {
-        checkState();
+        checkBeforeModify();
         return app(ApplicationConfig.create(app));
     }
 
     public KinRpcBootstrap app(ApplicationConfig app) {
-        checkState();
+        checkBeforeModify();
         this.app = app;
         return this;
     }
@@ -484,17 +543,17 @@ public final class KinRpcBootstrap {
     }
 
     public KinRpcBootstrap registry(RegistryConfig registry) {
-        checkState();
+        checkBeforeModify();
         return registries(Collections.singletonList(registry));
     }
 
     public KinRpcBootstrap registries(RegistryConfig... registries) {
-        checkState();
+        checkBeforeModify();
         return registries(Arrays.asList(registries));
     }
 
     public KinRpcBootstrap registries(List<RegistryConfig> registries) {
-        checkState();
+        checkBeforeModify();
         this.registries.addAll(registries);
         return this;
     }
@@ -504,7 +563,7 @@ public final class KinRpcBootstrap {
     }
 
     public KinRpcBootstrap group(String group) {
-        checkState();
+        checkBeforeModify();
         this.group = group;
         return this;
     }
@@ -514,7 +573,7 @@ public final class KinRpcBootstrap {
     }
 
     public KinRpcBootstrap version(String version) {
-        checkState();
+        checkBeforeModify();
         this.version = version;
         return this;
     }
@@ -524,7 +583,7 @@ public final class KinRpcBootstrap {
     }
 
     public KinRpcBootstrap serialization(String serialization) {
-        checkState();
+        checkBeforeModify();
         this.serialization = serialization;
         return this;
     }
@@ -538,7 +597,7 @@ public final class KinRpcBootstrap {
     }
 
     public KinRpcBootstrap provider(ProviderConfig provider) {
-        checkState();
+        checkBeforeModify();
         String group = provider.getGroup();
         if (StringUtils.isBlank(group)) {
             group = "";
@@ -556,7 +615,7 @@ public final class KinRpcBootstrap {
     }
 
     public KinRpcBootstrap consumer(ConsumerConfig consumer) {
-        checkState();
+        checkBeforeModify();
         String group = consumer.getGroup();
         if (StringUtils.isBlank(group)) {
             group = "";
@@ -566,13 +625,13 @@ public final class KinRpcBootstrap {
     }
 
     public KinRpcBootstrap service(ServiceConfig<?> service) {
-        checkState();
+        checkBeforeModify();
         services.add(service);
         return this;
     }
 
     public KinRpcBootstrap reference(ReferenceConfig<?> reference) {
-        checkState();
+        checkBeforeModify();
         references.add(reference);
         return this;
     }

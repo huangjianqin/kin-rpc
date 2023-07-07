@@ -118,7 +118,7 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
         return castThis();
     }
 
-    public int getWeight() {
+    public Integer getWeight() {
         return weight;
     }
 
@@ -127,7 +127,7 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
         return castThis();
     }
 
-    public long getDelay() {
+    public Long getDelay() {
         return delay;
     }
 

@@ -43,7 +43,7 @@ public class RSocketClient extends AbstractRemotingClient {
     }
 
     public RSocketClient(int port, SslConfig sslConfig) {
-        this(NetUtils.getLocalhostIp(), port, sslConfig);
+        this(NetUtils.getLocalhost4Ip(), port, sslConfig);
     }
 
     public RSocketClient(String host, int port, @Nullable SslConfig sslConfig) {

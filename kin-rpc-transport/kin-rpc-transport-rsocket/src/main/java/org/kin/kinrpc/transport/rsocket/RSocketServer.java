@@ -41,7 +41,7 @@ public class RSocketServer extends AbstractRemotingServer {
     public RSocketServer(int port,
                          ManagedExecutor executor,
                          SslConfig sslConfig) {
-        this(NetUtils.getLocalhostIp(), port, executor, sslConfig);
+        this(NetUtils.getLocalhost4Ip(), port, executor, sslConfig);
     }
 
     public RSocketServer(String host, int port,

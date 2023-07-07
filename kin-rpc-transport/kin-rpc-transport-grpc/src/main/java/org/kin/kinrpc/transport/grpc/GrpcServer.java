@@ -54,7 +54,7 @@ public class GrpcServer extends AbstractRemotingServer {
     public GrpcServer(int port,
                       ManagedExecutor executor,
                       SslConfig sslConfig) {
-        this(NetUtils.getLocalhostIp(), port, executor, sslConfig);
+        this(NetUtils.getLocalhost4Ip(), port, executor, sslConfig);
     }
 
     public GrpcServer(String host, int port,

@@ -40,7 +40,7 @@ public final class DefaultConfig {
 
 
     /** @see ServerConfig#getHost() */
-    public static final String DEFAULT_SERVER_HOST = NetUtils.getLocalhostIp();
+    public static final String DEFAULT_SERVER_HOST = NetUtils.getLocalhost4Ip();
     /** @see ServerConfig#getPort() */
     public static final Integer DEFAULT_SERVER_PORT = 12888;
     /** @see ServerConfig#getExecutor() */

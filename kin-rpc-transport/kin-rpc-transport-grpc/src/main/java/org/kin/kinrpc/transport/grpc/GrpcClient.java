@@ -45,7 +45,7 @@ public class GrpcClient extends AbstractRemotingClient {
     }
 
     public GrpcClient(int port, SslConfig sslConfig) {
-        this(NetUtils.getLocalhostIp(), port, sslConfig);
+        this(NetUtils.getLocalhost4Ip(), port, sslConfig);
     }
 
     public GrpcClient(String host, int port, @Nullable SslConfig sslConfig) {

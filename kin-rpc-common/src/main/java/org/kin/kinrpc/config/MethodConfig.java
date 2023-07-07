@@ -69,7 +69,7 @@ public class MethodConfig extends AbstractConfig {
         return this;
     }
 
-    public int getTimeout() {
+    public Integer getTimeout() {
         return timeout;
     }
 
@@ -78,7 +78,7 @@ public class MethodConfig extends AbstractConfig {
         return this;
     }
 
-    public int getRetries() {
+    public Integer getRetries() {
         return retries;
     }
 
@@ -92,7 +92,7 @@ public class MethodConfig extends AbstractConfig {
         return this;
     }
 
-    public boolean isAsync() {
+    public Boolean isAsync() {
         return async;
     }
 
@@ -106,7 +106,7 @@ public class MethodConfig extends AbstractConfig {
         return this;
     }
 
-    public boolean isSticky() {
+    public Boolean isSticky() {
         return sticky;
     }
 

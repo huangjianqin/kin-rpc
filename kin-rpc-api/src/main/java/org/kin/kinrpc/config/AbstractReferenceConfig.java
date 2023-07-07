@@ -137,7 +137,7 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
         return router(routerType.getName());
     }
 
-    public boolean isGeneric() {
+    public Boolean isGeneric() {
         return generic;
     }
 
@@ -150,7 +150,7 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
         return castThis();
     }
 
-    public int getRpcTimeout() {
+    public Integer getRpcTimeout() {
         return rpcTimeout;
     }
 
@@ -159,7 +159,7 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
         return castThis();
     }
 
-    public int getRetries() {
+    public Integer getRetries() {
         return retries;
     }
 
@@ -168,7 +168,7 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
         return castThis();
     }
 
-    public boolean isAsync() {
+    public Boolean isAsync() {
         return async;
     }
 
@@ -181,7 +181,7 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
         return castThis();
     }
 
-    public boolean isSticky() {
+    public Boolean isSticky() {
         return sticky;
     }
 

@@ -9,6 +9,6 @@ import org.kin.kinrpc.demo.api.RemoteServiceConsumer;
  */
 public class DemoServiceConsumer extends RemoteServiceConsumer {
     public static void main(String[] args) {
-        invoke("kinrpc-demo-rsocket", ProtocolType.RSOCKET.getName());
+        invoke2("kinrpc-demo-rsocket", ProtocolType.RSOCKET.getName());
     }
 }

@@ -13,6 +13,7 @@ import org.kin.kinrpc.registry.directory.Directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -132,7 +133,6 @@ public class RegistryHelper {
                 serverConfig.getHost(),
                 serverConfig.getPort(),
                 serviceConfig.getService());
-        url.putParam(ServiceMetadataConstants.SCHEMA_KEY, serverConfig.getProtocol());
         url.putParam(ServiceMetadataConstants.WEIGHT_KEY, serviceConfig.getWeight());
         url.putParam(ServiceMetadataConstants.SERIALIZATION_KEY, serviceConfig.getSerialization());
         return url;
@@ -156,6 +156,8 @@ public class RegistryHelper {
      */
     public static ServiceInstance parseUrl(String urlStr) {
         Url url = Url.of(urlStr);
-        return new DefaultServiceInstance(url.getPath(), url.getHost(), url.getPort(), url.getParams());
+        Map<String, String> params = url.getParams();
+        params.put(ServiceMetadataConstants.SCHEMA_KEY, url.getProtocol());
+        return new DefaultServiceInstance(url.getPath(), url.getHost(), url.getPort(), params);
     }
 }

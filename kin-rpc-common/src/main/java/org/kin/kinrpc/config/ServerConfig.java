@@ -137,7 +137,7 @@ public class ServerConfig extends AttachableConfig {
         return this;
     }
 
-    public int getPort() {
+    public Integer getPort() {
         return port;
     }
 
