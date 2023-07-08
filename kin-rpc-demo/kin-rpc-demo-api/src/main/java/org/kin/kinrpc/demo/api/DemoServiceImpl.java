@@ -1,8 +1,11 @@
 package org.kin.kinrpc.demo.api;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.util.ReferenceCountUtil;
 import org.kin.kinrpc.AsyncContext;
 import org.kin.kinrpc.RpcContext;
+import org.kin.kinrpc.transport.cmd.BytebufUtils;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
@@ -53,12 +56,18 @@ public class DemoServiceImpl implements DemoService {
     }
 
     @Override
-    public User find2(ByteBuf byteBuf) {
-        short len = byteBuf.readShort();
-        byte[] bytes = new byte[len];
-        byteBuf.readBytes(bytes);
-        String name = new String(bytes, StandardCharsets.UTF_8);
-        return find(name, byteBuf.readByte());
+    public ByteBuf find2(ByteBuf byteBuf) {
+        try {
+            String name = BytebufUtils.readShortString(byteBuf);
+            User user = find(name, byteBuf.readByte());
+
+            ByteBuf buffer = Unpooled.buffer();
+            BytebufUtils.writeShortString(buffer, user.getName());
+            buffer.writeByte(user.getAge());
+            return buffer;
+        } finally {
+            ReferenceCountUtil.safeRelease(byteBuf);
+        }
     }
 
     @Override

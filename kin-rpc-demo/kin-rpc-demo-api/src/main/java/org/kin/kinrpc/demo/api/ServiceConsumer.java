@@ -28,13 +28,13 @@ public class ServiceConsumer {
             ByteBuf byteBuf = Unpooled.buffer();
             BytebufUtils.writeShortString(byteBuf, "A");
             byteBuf.writeByte(1);
-            return demoService.find2(byteBuf);
+            return readUserByteBuf(demoService.find2(byteBuf));
         });
         invoke("find2", () -> {
             ByteBuf byteBuf = Unpooled.buffer();
             BytebufUtils.writeShortString(byteBuf, "A");
             byteBuf.writeByte(10);
-            return demoService.find2(byteBuf);
+            return readUserByteBuf(demoService.find2(byteBuf));
 
         });
         invoke("exists", () -> demoService.exists("B", 2));
@@ -84,13 +84,13 @@ public class ServiceConsumer {
             ByteBuf byteBuf = Unpooled.buffer();
             BytebufUtils.writeShortString(byteBuf, "A");
             byteBuf.writeByte(1);
-            return genericDemoService.invoke("find2", User.class, byteBuf);
+            return readUserByteBuf(genericDemoService.invoke("find2", ByteBuf.class, byteBuf));
         });
         invoke("find2", () -> {
             ByteBuf byteBuf = Unpooled.buffer();
             BytebufUtils.writeShortString(byteBuf, "A");
             byteBuf.writeByte(10);
-            return genericDemoService.invoke("find2", User.class, byteBuf);
+            return readUserByteBuf(genericDemoService.invoke("find2", ByteBuf.class, byteBuf));
         });
         invoke("exists", () -> genericDemoService.invoke("exists", Boolean.class, "B", 2));
         invoke("exists", () -> genericDemoService.invoke("exists", Boolean.class, "B", 21));
@@ -164,5 +164,11 @@ public class ServiceConsumer {
         } catch (Exception e) {
             invoke(message, () -> ExceptionUtils.getExceptionDesc(e));
         }
+    }
+
+    private static User readUserByteBuf(ByteBuf byteBuf) {
+        String name = BytebufUtils.readShortString(byteBuf);
+        byte age = byteBuf.readByte();
+        return User.of(name, age);
     }
 }

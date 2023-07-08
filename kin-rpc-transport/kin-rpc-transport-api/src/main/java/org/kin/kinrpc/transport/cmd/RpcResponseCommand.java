@@ -61,7 +61,17 @@ public class RpcResponseCommand extends RemotingCommand {
 
         out.writeByte(status.getCode());
         if (Objects.nonNull(result)) {
-            out.writeBytes(getSerialization().serialize(result));
+            if (result instanceof ByteBuf) {
+                //支持返回值为ByteBuf
+                ByteBuf byteBuf = (ByteBuf) result;
+                try {
+                    out.writeBytes(byteBuf);
+                } finally {
+                    ReferenceCountUtil.safeRelease(byteBuf);
+                }
+            } else {
+                out.writeBytes(getSerialization().serialize(result));
+            }
         }
     }
 
@@ -79,7 +89,12 @@ public class RpcResponseCommand extends RemotingCommand {
     public void deserializeResult(Class<?> resultType) {
         try{
             if (resultPayload.readableBytes() > 0) {
-                result = getSerialization().deserialize(resultPayload, resultType);
+                if (ByteBuf.class.isAssignableFrom(resultType)) {
+                    //支持返回值为ByteBuf, user要负责release bytebuf
+                    result = resultPayload.retain();
+                } else {
+                    result = getSerialization().deserialize(resultPayload, resultType);
+                }
             } else {
                 result = null;
             }

@@ -75,7 +75,17 @@ public class RpcRequestCommand extends RequestCommand {
          */
         VarIntUtils.writeRawVarInt32(out, serviceId);
         VarIntUtils.writeRawVarInt32(out, handlerId);
-        getSerialization().serialize(out, params);
+        if (params.length == 1 && params[0] instanceof ByteBuf) {
+            //支持参数为Bytebuf, 但参数长度必须为1
+            ByteBuf byteBuf = (ByteBuf) params[0];
+            try {
+                out.writeBytes(byteBuf);
+            } finally {
+                ReferenceCountUtil.safeRelease(byteBuf);
+            }
+        } else {
+            getSerialization().serialize(out, params);
+        }
     }
 
     @Override
@@ -99,7 +109,12 @@ public class RpcRequestCommand extends RequestCommand {
     public void deserializeParams(Class<?>... paramTypes) {
         try {
             if (paramsPayload.readableBytes() > 1) {
-                params = getSerialization().deserialize(paramsPayload, paramTypes);
+                if (paramTypes.length == 1 && ByteBuf.class.isAssignableFrom(paramTypes[0])) {
+                    //支持参数为Bytebuf, 但参数长度必须为1, user要负责release bytebuf
+                    params = new Object[]{paramsPayload.retain()};
+                } else {
+                    params = getSerialization().deserialize(paramsPayload, paramTypes);
+                }
             } else {
                 params = EMPTY_PARAMS;
             }
