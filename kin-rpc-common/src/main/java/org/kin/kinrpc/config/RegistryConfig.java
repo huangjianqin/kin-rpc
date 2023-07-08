@@ -14,6 +14,8 @@ import java.util.List;
 public class RegistryConfig extends AttachableConfig {
     /** 默认注册中心地址分隔符 */
     public static final String ADDRESS_SEPARATOR = ";";
+    /** 注册中心alias, 默认是{@link #type} + '#' + {@link #address} */
+    private String name;
     /** 注册中心类型 */
     private String type;
     /** 注册中心的地址, 如果有多个, 用分号分隔 */
@@ -23,7 +25,7 @@ public class RegistryConfig extends AttachableConfig {
         return new RegistryConfig().type(type);
     }
 
-    public static RegistryConfig create(String type, String address){
+    public static RegistryConfig create(String type, String address) {
         return create(type).address(address);
     }
 
@@ -84,6 +86,15 @@ public class RegistryConfig extends AttachableConfig {
     }
 
     //setter && getter
+    public String getName() {
+        return name;
+    }
+
+    public RegistryConfig name(String name) {
+        this.name = name;
+        return this;
+    }
+
     public String getType() {
         return type;
     }
@@ -105,6 +116,7 @@ public class RegistryConfig extends AttachableConfig {
     @Override
     public String toString() {
         return "RegistryConfig{" +
+                "name='" + name + '\'' +
                 "type='" + type + '\'' +
                 ", address='" + address + '\'' +
                 '}';

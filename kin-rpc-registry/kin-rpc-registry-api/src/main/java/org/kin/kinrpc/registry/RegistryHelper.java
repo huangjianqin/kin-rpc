@@ -2,6 +2,7 @@ package org.kin.kinrpc.registry;
 
 import org.kin.framework.cache.ReferenceCountedCache;
 import org.kin.framework.utils.ExtensionLoader;
+import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.ServiceInstance;
 import org.kin.kinrpc.ServiceMetadataConstants;
 import org.kin.kinrpc.common.Url;
@@ -33,8 +34,13 @@ public class RegistryHelper {
      * @param config 注册中心配置
      * @return 注册中心缓存key
      */
-    private static String getCacheKey(RegistryConfig config) {
-        return config.getType() + "#" + config.getAddress();
+    public static String getAlias(RegistryConfig config) {
+        String name = config.getName();
+        if (StringUtils.isNotBlank(name)) {
+            return name;
+        } else {
+            return config.getType() + "#" + config.getAddress();
+        }
     }
 
     /**
@@ -44,7 +50,7 @@ public class RegistryHelper {
      * @return {@link Registry}实例
      */
     public static synchronized Registry getRegistry(RegistryConfig config) {
-        String key = getCacheKey(config);
+        String key = getAlias(config);
         return REGISTRY_CACHE.get(key, () -> {
             String type = config.getType();
             RegistryFactory registryFactory = ExtensionLoader.getExtension(RegistryFactory.class, type);
@@ -94,7 +100,7 @@ public class RegistryHelper {
 
             @Override
             public void destroy() {
-                if (REGISTRY_CACHE.release(getCacheKey(config))) {
+                if (REGISTRY_CACHE.release(getAlias(config))) {
                     registry.destroy();
                 }
             }
@@ -107,7 +113,7 @@ public class RegistryHelper {
      * @param config 注册中心配置
      */
     public static synchronized void releaseRegistry(RegistryConfig config) {
-        REGISTRY_CACHE.release(getCacheKey(config));
+        REGISTRY_CACHE.release(getAlias(config));
     }
 
     /**
