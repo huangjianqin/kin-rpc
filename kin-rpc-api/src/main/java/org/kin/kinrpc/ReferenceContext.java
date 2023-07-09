@@ -38,9 +38,7 @@ public final class ReferenceContext {
 
     static {
         //hook
-        JvmCloseCleaner.instance().add(() -> {
-            SCHEDULER.shutdown();
-        });
+        JvmCloseCleaner.instance().add(() -> SCHEDULER.shutdown());
     }
 
     private ReferenceContext() {

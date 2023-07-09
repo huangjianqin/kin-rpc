@@ -18,7 +18,7 @@ public abstract class AbstractInterfaceConfig<IC extends AbstractInterfaceConfig
     private String group;
     /** 版本号 */
     private String version;
-    /** 默认序列化方式 */
+    /** 序列化方式 */
     private String serialization;
     /** filter list */
     private final List<Filter> filters = new ArrayList<>();

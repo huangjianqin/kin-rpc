@@ -14,7 +14,12 @@ import java.util.List;
 public class RegistryConfig extends AttachableConfig {
     /** 默认注册中心地址分隔符 */
     public static final String ADDRESS_SEPARATOR = ";";
-    /** 注册中心alias, 默认是{@link #type} + '#' + {@link #address} */
+    /**
+     * 注册中心alias, 默认是{@link #type} + '#' + {@link #address}
+     * 适用于引用全局配置的注册中心配置
+     *
+     * @see org.kin.kinrpc.bootstrap.KinRpcBootstrap
+     */
     private String name;
     /** 注册中心类型 */
     private String type;

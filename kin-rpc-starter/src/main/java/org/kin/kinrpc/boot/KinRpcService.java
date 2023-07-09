@@ -1,15 +1,14 @@
 package org.kin.kinrpc.boot;
 
+import org.kin.kinrpc.config.DefaultConfig;
+import org.kin.kinrpc.config.ExecutorConfig;
+import org.kin.kinrpc.config.RegistryConfig;
 import org.springframework.stereotype.Service;
 
 import java.lang.annotation.*;
 
 /**
- * kinrpc服务定义
- * service端:
- * 支持覆盖全局的server, registry url
- * 支持覆盖全局的excutor
- * 支持覆盖全局的group, version, serialization
+ * kinrpc服务标识
  *
  * @author huangjianqin
  * @date 2020/12/6
@@ -20,26 +19,36 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Service
 public @interface KinRpcService {
-    /**
-     * 服务接口
-     */
+    /** 服务接口 */
     Class<?> interfaceClass();
 
-    String group() default "kinrpc";
+    /** 服务所属组 */
+    String group() default DefaultConfig.DEFAULT_GROUP;
 
+    /** 服务名 */
     String serviceName() default "";
 
-    String version() default "0.1.0.0";
+    /** 版本号 */
+    String version() default DefaultConfig.DEFAULT_VERSION;
 
-    String serialization() default "0";
+    /** 序列化方式 */
+    String serialization() default DefaultConfig.DEFAULT_SERIALIZATION;
 
+
+    /** 传输层配置 */
     String[] servers() default {};
-    // TODO: 2023/7/5 ssl
 
-    // TODO: 2023/7/5 executor
-    int weight();
+    /** service executor name, 即{@link ExecutorConfig#getName()} */
+    String executor() default "";
 
+
+    /** 权重 */
+    int weight() default DefaultConfig.DEFAULT_SERVICE_WEIGHT;
+
+    /** 注册中心name, 即{@link RegistryConfig#getName()} */
     String[] registries() default {};
 
+    String token() default "";
 
+    String[] filter() default {};
 }

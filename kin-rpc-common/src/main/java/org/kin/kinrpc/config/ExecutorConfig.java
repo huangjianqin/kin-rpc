@@ -12,7 +12,12 @@ import java.util.Objects;
  * @date 2023/6/16
  */
 public class ExecutorConfig extends AttachableConfig {
-    /** executor name, 如果user不指定, 则跟service唯一标识和server唯一标识有关 */
+    /**
+     * executor name, 如果user不指定, 则跟service唯一标识和server唯一标识有关
+     * 一般用于引用自定义executor
+     *
+     * @see org.kin.kinrpc.executor.ExecutorHelper
+     */
     private String name;
     /** 服务处理线程类型 */
     private String type;

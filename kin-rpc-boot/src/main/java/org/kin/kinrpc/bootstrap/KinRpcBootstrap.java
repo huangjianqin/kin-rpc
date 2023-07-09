@@ -2,6 +2,7 @@ package org.kin.kinrpc.bootstrap;
 
 import org.kin.framework.collection.AttachmentMap;
 import org.kin.framework.utils.CollectionUtils;
+import org.kin.framework.utils.NetUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.GenericService;
 import org.kin.kinrpc.IllegalConfigException;
@@ -70,6 +71,8 @@ public final class KinRpcBootstrap {
     private final List<ServiceConfig<?>> services = new ArrayList<>();
     /** 服务引用配置 */
     private final List<ReferenceConfig<?>> references = new ArrayList<>();
+
+    //--------------------------------------------------------------------------------cache
     /**
      * 服务引用缓存
      * key -> 服务唯一标识, value -> 服务引用代理实例
@@ -335,10 +338,19 @@ public final class KinRpcBootstrap {
      */
     private void checkConfig() {
         Set<String> exportServices = new HashSet<>();
+        Set<String> listenHostPort = new HashSet<>();
         for (ServiceConfig<?> serviceConfig : services) {
             serviceConfig.checkValid();
             if (!exportServices.add(serviceConfig.getService())) {
                 throw new IllegalConfigException("more than one service config for service '%s'");
+            }
+
+            //检查所有server config监听的host:port是否冲突
+            for (ServerConfig serverConfig : serviceConfig.getServers()) {
+                String ipPort = NetUtils.getIpPort(serverConfig.getHost(), serverConfig.getPort());
+                if (!listenHostPort.add(ipPort)) {
+                    throw new IllegalConfigException(String.format("listen host and port conflict, '%s'", ipPort));
+                }
             }
         }
 

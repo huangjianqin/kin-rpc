@@ -27,8 +27,8 @@ public final class RemotingClientHealthManager {
     private static final Logger log = LoggerFactory.getLogger(RemotingClientHealthManager.class);
 
     /** remoting client健康检查scheduler */
-    private static final ScheduledThreadPoolExecutor SCHEDULER = ThreadPoolUtils.newScheduledThreadPool("remoting-client-monitor", true,
-            SysUtils.CPU_NUM, new SimpleThreadFactory("remoting-client-monitor", true),
+    private static final ScheduledThreadPoolExecutor SCHEDULER = ThreadPoolUtils.newScheduledThreadPool("remoting-client-health", true,
+            SysUtils.CPU_NUM, new SimpleThreadFactory("remoting-client-health", true),
             new ThreadPoolExecutor.CallerRunsPolicy());
     /** unhealth exception */
     private static final Predicate<Throwable> UNHEALTH_EXCEPTION = t -> !(t instanceof RemotingException) && !(t instanceof CodecException);

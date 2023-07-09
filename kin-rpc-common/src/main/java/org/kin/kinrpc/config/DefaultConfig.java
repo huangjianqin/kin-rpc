@@ -16,7 +16,7 @@ public final class DefaultConfig {
     /** 默认版本号 */
     public static final String DEFAULT_VERSION = "0.1.0.0";
     /** 默认序列化方式 */
-    public static final String DEFAULT_SERIALIZATION = SerializationType.JSON.getName();
+    public static final String DEFAULT_SERIALIZATION = "json";
 
 
     /** @see MethodConfig#getTimeout() */
@@ -45,7 +45,7 @@ public final class DefaultConfig {
     public static final Integer DEFAULT_SERVER_PORT = 12888;
     /** @see ServerConfig#getExecutor() */
     public static final ExecutorConfig DEFAULT_SERVER_EXECUTOR = ExecutorConfig.fix()
-            .corePoolSize(SysUtils.CPU_NUM)
+            .corePoolSize(SysUtils.DOUBLE_CPU)
             .maxPoolSize(SysUtils.DOUBLE_CPU)
             .queueSize(1024);
 
