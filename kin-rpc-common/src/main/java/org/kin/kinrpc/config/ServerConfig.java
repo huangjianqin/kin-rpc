@@ -5,6 +5,7 @@ import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.utils.ObjectUtils;
 
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * server配置
@@ -14,7 +15,12 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2023/6/16
  */
-public class ServerConfig extends AttachableConfig {
+public class ServerConfig extends SharableConfig<ServerConfig> {
+    /** 默认id生成 */
+    private static final AtomicInteger DEFAULT_ID_GEN = new AtomicInteger();
+    /** 默认id前缀 */
+    private static final String DEFAULT_ID_PREFIX = ServerConfig.class.getSimpleName() + "-";
+
     /** 协议名 */
     private String protocol;
     /** 监听IP */
@@ -25,6 +31,16 @@ public class ServerConfig extends AttachableConfig {
     private ExecutorConfig executor;
     /** 服务connection ssl配置 */
     private SslConfig ssl;
+
+    /**
+     * 复用{@link ServerConfig}实例
+     *
+     * @param id server config id
+     * @return {@link ServerConfig}实例
+     */
+    public static ServerConfig fromId(String id) {
+        return new ServerConfig().id(id);
+    }
 
     public static ServerConfig create(String protocol) {
         return new ServerConfig().protocol(protocol);
@@ -118,6 +134,11 @@ public class ServerConfig extends AttachableConfig {
         }
     }
 
+    @Override
+    protected String genDefaultId() {
+        return DEFAULT_ID_PREFIX + DEFAULT_ID_GEN.incrementAndGet();
+    }
+
     //setter && getter
     public String getProtocol() {
         return protocol;
@@ -171,6 +192,7 @@ public class ServerConfig extends AttachableConfig {
     @Override
     public String toString() {
         return "ServerConfig{" +
+                super.toString() +
                 "protocol='" + protocol + '\'' +
                 ObjectUtils.toStringIfPredicate(StringUtils.isNotBlank(host), ", host='" + host + '\'') +
                 ", port=" + port +

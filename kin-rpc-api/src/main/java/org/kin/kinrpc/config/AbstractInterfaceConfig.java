@@ -2,6 +2,7 @@ package org.kin.kinrpc.config;
 
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.Filter;
+import org.kin.kinrpc.IllegalConfigException;
 
 import java.util.*;
 
@@ -13,7 +14,7 @@ public abstract class AbstractInterfaceConfig<IC extends AbstractInterfaceConfig
     /** 应用配置 */
     private ApplicationConfig app;
     /** 注册中心配置 */
-    private final List<RegistryConfig> registries = new ArrayList<>();
+    private List<RegistryConfig> registries = new ArrayList<>();
     /** 服务所属组 */
     private String group;
     /** 版本号 */
@@ -67,7 +68,7 @@ public abstract class AbstractInterfaceConfig<IC extends AbstractInterfaceConfig
     }
 
     @SuppressWarnings("unchecked")
-    protected IC castThis() {
+    protected final IC castThis() {
         return (IC) this;
     }
 
@@ -92,6 +93,13 @@ public abstract class AbstractInterfaceConfig<IC extends AbstractInterfaceConfig
 
     public List<RegistryConfig> getRegistries() {
         return registries;
+    }
+
+    public void setRegistries(List<RegistryConfig> registries) {
+        if (Objects.isNull(registries)) {
+            throw new IllegalConfigException("registries can not be null");
+        }
+        this.registries = registries;
     }
 
     public IC registry(RegistryConfig registry) {

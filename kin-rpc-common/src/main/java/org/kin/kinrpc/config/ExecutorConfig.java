@@ -4,6 +4,7 @@ import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.utils.ObjectUtils;
 
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 服务处理线程配置, 一般用于服务处理线程隔离
@@ -11,7 +12,12 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2023/6/16
  */
-public class ExecutorConfig extends AttachableConfig {
+public class ExecutorConfig extends SharableConfig<ExecutorConfig> {
+    /** 默认id生成 */
+    private static final AtomicInteger DEFAULT_ID_GEN = new AtomicInteger();
+    /** 默认id前缀 */
+    private static final String DEFAULT_ID_PREFIX = ExecutorConfig.class.getSimpleName() + "-";
+
     /**
      * executor name, 如果user不指定, 则跟service唯一标识和server唯一标识有关
      * 一般用于引用自定义executor
@@ -39,6 +45,16 @@ public class ExecutorConfig extends AttachableConfig {
      */
     public static ExecutorConfig fromExists(String name) {
         return new ExecutorConfig().name(name);
+    }
+
+    /**
+     * 复用{@link ExecutorConfig}实例
+     *
+     * @param id executor config id
+     * @return {@link ExecutorConfig}实例
+     */
+    public static ExecutorConfig fromId(String id) {
+        return new ExecutorConfig().id(id);
     }
 
     public static ExecutorConfig create(String executor) {
@@ -115,6 +131,11 @@ public class ExecutorConfig extends AttachableConfig {
         }
     }
 
+    @Override
+    protected String genDefaultId() {
+        return DEFAULT_ID_PREFIX + DEFAULT_ID_GEN.incrementAndGet();
+    }
+
     //setter && getter
     public String getName() {
         return name;
@@ -173,6 +194,7 @@ public class ExecutorConfig extends AttachableConfig {
     @Override
     public String toString() {
         return "ExecutorConfig{" +
+                super.toString() +
                 ObjectUtils.toStringIfPredicate(StringUtils.isNotBlank(name), "name='" + name + '\'') +
                 ", type='" + type + '\'' +
                 ", corePoolSize=" + corePoolSize +

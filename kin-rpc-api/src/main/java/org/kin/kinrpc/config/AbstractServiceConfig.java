@@ -2,6 +2,7 @@ package org.kin.kinrpc.config;
 
 import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.StringUtils;
+import org.kin.kinrpc.IllegalConfigException;
 import org.kin.kinrpc.utils.ObjectUtils;
 
 import java.util.*;
@@ -13,7 +14,7 @@ import java.util.*;
 public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<ASC>>
         extends AbstractInterfaceConfig<ASC> {
     /** 传输层配置 */
-    private final List<ServerConfig> servers = new ArrayList<>();
+    private List<ServerConfig> servers = new ArrayList<>();
     /** 服务方法执行线程池 */
     private ExecutorConfig executor;
     /** 权重 */
@@ -76,6 +77,13 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
     //setter && getter
     public List<ServerConfig> getServers() {
         return servers;
+    }
+
+    public void setServers(List<ServerConfig> servers) {
+        if (Objects.isNull(servers)) {
+            throw new IllegalConfigException("servers can not be null");
+        }
+        this.servers = servers;
     }
 
     public ASC jvm() {

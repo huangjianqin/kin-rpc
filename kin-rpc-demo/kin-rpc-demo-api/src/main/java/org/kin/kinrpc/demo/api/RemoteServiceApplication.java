@@ -44,9 +44,10 @@ public class RemoteServiceApplication {
         try {
             KinRpcBootstrap.instance()
                     .app(ApplicationConfig.create("kinrpc-demo-kinrpc-provider"))
+                    .servers(servers)
+                    .executor(ExecutorConfig.fix().id(Constants.SERVICE_EXECUTOR_CONFIG_ID))
                     .provider(ProviderConfig.create()
-                            .servers(servers)
-                            .executor(ExecutorConfig.fix())
+                            .executor(ExecutorConfig.fromId(Constants.SERVICE_EXECUTOR_CONFIG_ID))
                             .weight(1)
                             .filter(new LogFilter(true))
                             .delay(3000)

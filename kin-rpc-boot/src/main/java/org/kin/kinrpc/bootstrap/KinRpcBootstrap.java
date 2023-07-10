@@ -1,5 +1,7 @@
 package org.kin.kinrpc.bootstrap;
 
+import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder;
 import org.kin.framework.collection.AttachmentMap;
 import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.NetUtils;
@@ -55,22 +57,19 @@ public final class KinRpcBootstrap {
     //---------------------------------------------------------------------------config
     /** 应用配置 */
     private ApplicationConfig app;
-    /** 注册中心配置 */
-    private final List<RegistryConfig> registries = new ArrayList<>();
+    /** 全局配置 */
+    private final Multimap<Class<?>, Config> configs = MultimapBuilder.hashKeys().linkedListValues().build();
+    /**
+     * {@link SharableConfig}, {@link SharableConfig#getId()} -> 全局配置
+     * 其他, 自定义key -> 全局配置
+     */
+    private final Map<Class<?>, Map<String, Config>> configMap = new HashMap<>();
     /** 服务所属组 */
     private String group;
     /** 版本号 */
     private String version;
     /** 默认序列化方式 */
     private String serialization;
-    /** provider config */
-    private final Map<String, ProviderConfig> providerMap = new HashMap<>();
-    /** consumer config */
-    private final Map<String, ConsumerConfig> consumerMap = new HashMap<>();
-    /** 服务配置 */
-    private final List<ServiceConfig<?>> services = new ArrayList<>();
-    /** 服务引用配置 */
-    private final List<ReferenceConfig<?>> references = new ArrayList<>();
 
     //--------------------------------------------------------------------------------cache
     /**
@@ -109,7 +108,7 @@ public final class KinRpcBootstrap {
         }
 
         //配置预处理
-        setUpConfig();
+        initConfig();
 
         //配置检查
         checkConfig();
@@ -125,34 +124,73 @@ public final class KinRpcBootstrap {
     }
 
     /**
-     * 配置预处理, 按优先级进行覆盖 service/reference config -> provider/consumer config -> bootstrap config
+     * 配置预处理
+     * 填充全局默认配置, 维护{@link #configMap}映射关系
+     * 按优先级进行覆盖 service/reference config -> provider/consumer config -> bootstrap config
      */
-    private void setUpConfig() {
+    private void initConfig() {
         //初始化bootstrap默认配置
-        initDefaultConfig();
+        if (Objects.nonNull(app)) {
+            app.initDefaultConfig();
+        }
 
-        //初始化provider默认配置
-        for (ProviderConfig providerConfig : providerMap.values()) {
+        for (RegistryConfig registryConfig : getConfigs(RegistryConfig.class)) {
+            registryConfig.initDefaultConfig();
+            putConfig(registryConfig.getId(), registryConfig);
+        }
+
+        for (ExecutorConfig executorConfig : getConfigs(ExecutorConfig.class)) {
+            executorConfig.initDefaultConfig();
+            putConfig(executorConfig.getId(), executorConfig);
+        }
+
+        for (ServerConfig serverConfig : getConfigs(ServerConfig.class)) {
+            resolveReferConfig(ExecutorConfig.class, serverConfig::getExecutor, serverConfig::executor, SharableConfig::getId);
+            serverConfig.initDefaultConfig();
+
+            putConfig(serverConfig.getId(), serverConfig);
+        }
+
+        for (ProviderConfig providerConfig : getConfigs(ProviderConfig.class)) {
+            String group = providerConfig.getGroup();
+            putConfig(Objects.nonNull(group) ? group : "", providerConfig);
+
+            resolveServiceReferConfig(providerConfig);
             providerConfig.initDefaultConfig();
         }
 
-        //初始化consumer默认配置
-        for (ConsumerConfig consumerConfig : consumerMap.values()) {
+        for (ConsumerConfig consumerConfig : getConfigs(ConsumerConfig.class)) {
+            String group = consumerConfig.getGroup();
+            putConfig(Objects.nonNull(group) ? group : "", consumerConfig);
+
+            resolveReferenceReferConfig(consumerConfig);
             consumerConfig.initDefaultConfig();
         }
 
-        for (ServiceConfig<?> serviceConfig : services) {
+        if (Objects.isNull(group)) {
+            group = DefaultConfig.DEFAULT_GROUP;
+        }
+
+        if (Objects.isNull(version)) {
+            version = DefaultConfig.DEFAULT_VERSION;
+        }
+
+        if (Objects.isNull(serialization)) {
+            serialization = DefaultConfig.DEFAULT_SERIALIZATION;
+        }
+
+        for (ServiceConfig<?> serviceConfig : getConfigs(ServiceConfig.class)) {
             //尝试从bootstrap或provider获取配置
             String group = serviceConfig.getGroup();
-            setUpServiceConfig(serviceConfig, providerMap.get(Objects.nonNull(group) ? group : ""));
+            setUpServiceConfig(serviceConfig, getConfig(ProviderConfig.class, Objects.nonNull(group) ? group : ""));
             //初始化service默认配置
             serviceConfig.initDefaultConfig();
         }
 
-        for (ReferenceConfig<?> referenceConfig : references) {
+        for (ReferenceConfig<?> referenceConfig : getConfigs(ReferenceConfig.class)) {
             //尝试从bootstrap或consumer获取配置
             String group = referenceConfig.getGroup();
-            setUpReferenceConfig(referenceConfig, consumerMap.get(Objects.nonNull(group) ? group : ""));
+            setUpReferenceConfig(referenceConfig, getConfig(ConsumerConfig.class, Objects.nonNull(group) ? group : ""));
             //初始化reference默认配置
             referenceConfig.initDefaultConfig();
         }
@@ -161,76 +199,150 @@ public final class KinRpcBootstrap {
     /**
      * 服务配置预处理
      */
-    private void setUpServiceConfig(ServiceConfig<?> service,
+    private void setUpServiceConfig(ServiceConfig<?> serviceConfig,
                                     @Nullable ProviderConfig provider) {
+        //处理引用配置
+        resolveServiceReferConfig(serviceConfig);
+
         //interface
-        setUpConfigIfNotExists(service::app, service::getApp, provider, ProviderConfig::getApp, this::getApp);
-        setUpConfigIfNotExists(service::group, service::getGroup, provider, ProviderConfig::getGroup, this::getGroup);
-        setUpConfigIfNotExists(service::version, service::getVersion, provider, ProviderConfig::getVersion, this::getVersion);
-        setUpConfigIfNotExists(service::serialization, service::getSerialization, provider, ProviderConfig::getSerialization, this::getSerialization);
-        setUpConfigIfNotExists(service::registries, service::getRegistries, provider, ProviderConfig::getRegistries, this::getRegistries);
-        setUpConfigIfNotExists(service::filters, service::getFilters, provider, ProviderConfig::getFilters);
+        setUpConfigIfNotExists(serviceConfig::app, serviceConfig::getApp, provider, ProviderConfig::getApp, this::getApp);
+        setUpConfigIfNotExists(serviceConfig::group, serviceConfig::getGroup, provider, ProviderConfig::getGroup, this::getGroup);
+        setUpConfigIfNotExists(serviceConfig::version, serviceConfig::getVersion, provider, ProviderConfig::getVersion, this::getVersion);
+        setUpConfigIfNotExists(serviceConfig::serialization, serviceConfig::getSerialization, provider, ProviderConfig::getSerialization, this::getSerialization);
+        setUpConfigIfNotExists(serviceConfig::registries, serviceConfig::getRegistries, provider, ProviderConfig::getRegistries, this::getRegistries);
+        setUpConfigIfNotExists(serviceConfig::servers, serviceConfig::getServers, provider, ProviderConfig::getServers, this::getServers);
+        setUpConfigIfNotExists(serviceConfig::filters, serviceConfig::getFilters, provider, ProviderConfig::getFilters);
 
         //service
-        setUpConfigIfNotExists(service::servers, service::getServers, provider, ProviderConfig::getServers);
-        setUpConfigIfNotExists(service::executor, service::getExecutor, provider, ProviderConfig::getExecutor);
-        setUpConfigIfNotExists(service::weight, service::getWeight, provider, ProviderConfig::getWeight);
-        setUpConfigIfNotExists(service::bootstrap, service::getBootstrap, provider, ProviderConfig::getBootstrap);
-        setUpConfigIfNotExists(service::delay, service::getDelay, provider, ProviderConfig::getDelay);
-        setUpConfigIfNotExists(service::token, service::getToken, provider, ProviderConfig::getToken);
+        setUpConfigIfNotExists(serviceConfig::servers, serviceConfig::getServers, provider, ProviderConfig::getServers);
+        setUpConfigIfNotExists(serviceConfig::executor, serviceConfig::getExecutor, provider, ProviderConfig::getExecutor);
+        setUpConfigIfNotExists(serviceConfig::weight, serviceConfig::getWeight, provider, ProviderConfig::getWeight);
+        setUpConfigIfNotExists(serviceConfig::bootstrap, serviceConfig::getBootstrap, provider, ProviderConfig::getBootstrap);
+        setUpConfigIfNotExists(serviceConfig::delay, serviceConfig::getDelay, provider, ProviderConfig::getDelay);
+        setUpConfigIfNotExists(serviceConfig::token, serviceConfig::getToken, provider, ProviderConfig::getToken);
 
         //attachment
         if (Objects.nonNull(provider)) {
             AttachmentMap attachmentMap = new AttachmentMap(provider.attachments());
             //overwrite
-            attachmentMap.attachMany(service.attachments());
-            service.attachMany(attachmentMap);
+            attachmentMap.attachMany(serviceConfig.attachments());
+            serviceConfig.attachMany(attachmentMap);
         }
     }
 
     /**
      * 服务引用配置预处理
      */
-    private void setUpReferenceConfig(ReferenceConfig<?> reference,
+    private void setUpReferenceConfig(ReferenceConfig<?> referenceConfig,
                                       @Nullable ConsumerConfig consumer) {
+        //处理引用配置
+        resolveReferenceReferConfig(referenceConfig);
+
         //interface
-        setUpConfigIfNotExists(reference::app, reference::getApp, consumer, ConsumerConfig::getApp, this::getApp);
-        setUpConfigIfNotExists(reference::group, reference::getGroup, consumer, ConsumerConfig::getGroup, this::getGroup);
-        setUpConfigIfNotExists(reference::version, reference::getVersion, consumer, ConsumerConfig::getVersion, this::getVersion);
-        setUpConfigIfNotExists(reference::serialization, reference::getSerialization, consumer, ConsumerConfig::getSerialization, this::getSerialization);
-        setUpConfigIfNotExists(reference::registries, reference::getRegistries, consumer, ConsumerConfig::getRegistries, this::getRegistries);
-        setUpConfigIfNotExists(reference::filters, reference::getFilters, consumer, ConsumerConfig::getFilters);
+        setUpConfigIfNotExists(referenceConfig::app, referenceConfig::getApp, consumer, ConsumerConfig::getApp, this::getApp);
+        setUpConfigIfNotExists(referenceConfig::group, referenceConfig::getGroup, consumer, ConsumerConfig::getGroup, this::getGroup);
+        setUpConfigIfNotExists(referenceConfig::version, referenceConfig::getVersion, consumer, ConsumerConfig::getVersion, this::getVersion);
+        setUpConfigIfNotExists(referenceConfig::serialization, referenceConfig::getSerialization, consumer, ConsumerConfig::getSerialization, this::getSerialization);
+        setUpConfigIfNotExists(referenceConfig::registries, referenceConfig::getRegistries, consumer, ConsumerConfig::getRegistries, this::getRegistries);
+        setUpConfigIfNotExists(referenceConfig::filters, referenceConfig::getFilters, consumer, ConsumerConfig::getFilters);
 
         //reference
-        setUpConfigIfNotExists(reference::cluster, reference::getCluster, consumer, ConsumerConfig::getCluster);
-        setUpConfigIfNotExists(reference::loadBalance, reference::getLoadBalance, consumer, ConsumerConfig::getLoadBalance);
-        setUpConfigIfNotExists(reference::router, reference::getRouter, consumer, ConsumerConfig::getRouter);
-        setUpConfigIfNotExists(reference::generic, reference::isGeneric, consumer, ConsumerConfig::isGeneric);
-        setUpConfigIfNotExists(reference::ssl, reference::getSsl, consumer, ConsumerConfig::getSsl);
-        setUpConfigIfNotExists(reference::bootstrap, reference::getBootstrap, consumer, ConsumerConfig::getBootstrap);
-        setUpConfigIfNotExists(reference::rpcTimeout, reference::getRpcTimeout, consumer, ConsumerConfig::getRpcTimeout);
-        setUpConfigIfNotExists(reference::retries, reference::getRetries, consumer, ConsumerConfig::getRetries);
-        setUpConfigIfNotExists(reference::async, reference::isAsync, consumer, ConsumerConfig::isAsync);
-        setUpConfigIfNotExists(reference::sticky, reference::isSticky, consumer, ConsumerConfig::isSticky);
+        setUpConfigIfNotExists(referenceConfig::cluster, referenceConfig::getCluster, consumer, ConsumerConfig::getCluster);
+        setUpConfigIfNotExists(referenceConfig::loadBalance, referenceConfig::getLoadBalance, consumer, ConsumerConfig::getLoadBalance);
+        setUpConfigIfNotExists(referenceConfig::router, referenceConfig::getRouter, consumer, ConsumerConfig::getRouter);
+        setUpConfigIfNotExists(referenceConfig::generic, referenceConfig::isGeneric, consumer, ConsumerConfig::isGeneric);
+        setUpConfigIfNotExists(referenceConfig::ssl, referenceConfig::getSsl, consumer, ConsumerConfig::getSsl);
+        setUpConfigIfNotExists(referenceConfig::bootstrap, referenceConfig::getBootstrap, consumer, ConsumerConfig::getBootstrap);
+        setUpConfigIfNotExists(referenceConfig::rpcTimeout, referenceConfig::getRpcTimeout, consumer, ConsumerConfig::getRpcTimeout);
+        setUpConfigIfNotExists(referenceConfig::retries, referenceConfig::getRetries, consumer, ConsumerConfig::getRetries);
+        setUpConfigIfNotExists(referenceConfig::async, referenceConfig::isAsync, consumer, ConsumerConfig::isAsync);
+        setUpConfigIfNotExists(referenceConfig::sticky, referenceConfig::isSticky, consumer, ConsumerConfig::isSticky);
 
         //attachment
         if (Objects.nonNull(consumer)) {
             AttachmentMap attachmentMap = new AttachmentMap(consumer.attachments());
             //overwrite
-            attachmentMap.attachMany(reference.attachments());
-            reference.attachMany(attachmentMap);
+            attachmentMap.attachMany(referenceConfig.attachments());
+            referenceConfig.attachMany(attachmentMap);
         }
     }
 
     /**
-     * 当{@code t}非null时, 值用{@code func}并返回R, 否则返回null
+     * 处理服务配置中的引用配置
+     *
+     * @param serviceConfig 服务配置
      */
-    private <T, R> R getIfNonNull(T t, Function<T, R> func) {
-        if (Objects.nonNull(t)) {
-            return func.apply(t);
+    private void resolveServiceReferConfig(AbstractServiceConfig<?> serviceConfig) {
+        resolveReferConfigs(RegistryConfig.class, serviceConfig::getRegistries, serviceConfig::setRegistries, SharableConfig::getId);
+        resolveReferConfigs(ServerConfig.class, serviceConfig::getServers, serviceConfig::setServers, SharableConfig::getId);
+        resolveReferConfig(ExecutorConfig.class, serviceConfig::getExecutor, serviceConfig::executor, SharableConfig::getId);
+        for (ServerConfig serverConfig : serviceConfig.getServers()) {
+            resolveReferConfig(ExecutorConfig.class, serverConfig::getExecutor, serverConfig::executor, SharableConfig::getId);
+        }
+    }
+
+    /**
+     * 处理服务引用配置中的引用配置
+     *
+     * @param referenceConfig 服务引用配置
+     */
+    private void resolveReferenceReferConfig(AbstractReferenceConfig<?> referenceConfig) {
+        resolveReferConfigs(RegistryConfig.class, referenceConfig::getRegistries, referenceConfig::setRegistries, SharableConfig::getId);
+    }
+
+    /**
+     * 批量替换引用配置
+     */
+    private <C extends SharableConfig<C>> void resolveReferConfigs(Class<C> configClass,
+                                                                   Supplier<List<C>> getter,
+                                                                   Consumer<List<C>> setter,
+                                                                   Function<C, String> keyGetter) {
+        List<C> configs = getter.get();
+        if (CollectionUtils.isEmpty(configs)) {
+            return;
         }
 
-        return null;
+        List<C> finalConfigs = new ArrayList<>(configs.size());
+        for (C config : configs) {
+            String id = config.getId();
+            if (StringUtils.isBlank(id)) {
+                finalConfigs.add(config);
+            } else {
+                String key = keyGetter.apply(config);
+                C referConfig = getConfig(configClass, key);
+                if (Objects.isNull(referConfig)) {
+                    throw new IllegalConfigException(String.format("can not find '%s' with key = '%s'", configClass.getName(), key));
+                }
+
+                finalConfigs.add(referConfig);
+            }
+        }
+
+        setter.accept(finalConfigs);
+    }
+
+    /**
+     * 替换单个引用配置
+     */
+    private <C extends SharableConfig<C>> void resolveReferConfig(Class<C> configClass,
+                                                                  Supplier<C> getter,
+                                                                  Consumer<C> setter,
+                                                                  Function<C, String> keyGetter) {
+        C config = getter.get();
+        if (Objects.isNull(config)) {
+            return;
+        }
+
+        String id = config.getId();
+        if (StringUtils.isNotBlank(id)) {
+            String key = keyGetter.apply(config);
+            C referConfig = getConfig(configClass, key);
+            if (Objects.isNull(referConfig)) {
+                throw new IllegalConfigException(String.format("can not find '%s' with key = '%s'", configClass.getName(), key));
+            }
+
+            setter.accept(referConfig);
+        }
     }
 
     /**
@@ -263,20 +375,20 @@ public final class KinRpcBootstrap {
                                                 Function<PC, T> c2VGetter,
                                                 @Nullable Supplier<T> c3VGetter) {
         T c1V = c1VGetter.get();
-        if (!isNullOrEmpty(c1V)) {
+        if (isNonNull(c1V)) {
             return;
         }
 
         //没有c1V
         T c2V = Objects.nonNull(c2) ? c2VGetter.apply(c2) : null;
-        if (!isNullOrEmpty(c2V)) {
+        if (isNonNull(c2V)) {
             setter.accept(c2V);
             return;
         }
 
         //没有c2V
         T c3V = Objects.nonNull(c3VGetter) ? c3VGetter.get() : null;
-        if (!isNullOrEmpty(c3V)) {
+        if (isNonNull(c3V)) {
             setter.accept(c3V);
             return;
         }
@@ -288,49 +400,24 @@ public final class KinRpcBootstrap {
      * @param obj 实例
      * @return true表示{@code obj}为null, 空集合或者空map
      */
-    private boolean isNullOrEmpty(Object obj) {
+    private boolean isNonNull(Object obj) {
         if (Objects.isNull(obj)) {
-            return true;
+            return false;
         }
 
         if (obj.getClass().isArray() && CollectionUtils.isEmpty(((Object[]) obj))) {
-            return true;
+            return false;
         }
 
         if (obj instanceof Collection && CollectionUtils.isEmpty(((Collection<?>) obj))) {
-            return true;
+            return false;
         }
 
         if (obj instanceof Map && CollectionUtils.isEmpty(((Map<?, ?>) obj))) {
-            return true;
+            return false;
         }
 
-        return false;
-    }
-
-    /**
-     * 填充bootstrap默认配置
-     */
-    private void initDefaultConfig() {
-        if (Objects.nonNull(app)) {
-            app.initDefaultConfig();
-        }
-
-        for (RegistryConfig registry : registries) {
-            registry.initDefaultConfig();
-        }
-
-        if (Objects.isNull(group)) {
-            group = DefaultConfig.DEFAULT_GROUP;
-        }
-
-        if (Objects.isNull(version)) {
-            version = DefaultConfig.DEFAULT_VERSION;
-        }
-
-        if (Objects.isNull(serialization)) {
-            serialization = DefaultConfig.DEFAULT_SERIALIZATION;
-        }
+        return true;
     }
 
     /**
@@ -339,7 +426,7 @@ public final class KinRpcBootstrap {
     private void checkConfig() {
         Set<String> exportServices = new HashSet<>();
         Set<String> listenHostPort = new HashSet<>();
-        for (ServiceConfig<?> serviceConfig : services) {
+        for (ServiceConfig<?> serviceConfig : getConfigs(ServiceConfig.class)) {
             serviceConfig.checkValid();
             if (!exportServices.add(serviceConfig.getService())) {
                 throw new IllegalConfigException("more than one service config for service '%s'");
@@ -355,7 +442,7 @@ public final class KinRpcBootstrap {
         }
 
         Set<String> referServices = new HashSet<>();
-        for (ReferenceConfig<?> referenceConfig : references) {
+        for (ReferenceConfig<?> referenceConfig : getConfigs(ReferenceConfig.class)) {
             referenceConfig.checkValid();
             if (!referServices.add(referenceConfig.getService())) {
                 throw new IllegalConfigException("more than one reference config for service '%s'");
@@ -367,11 +454,12 @@ public final class KinRpcBootstrap {
      * 初始化注册中心
      */
     private void initRegistries() {
-        if (CollectionUtils.isNonEmpty(registries)) {
+        List<RegistryConfig> registryConfigs = getConfigs(RegistryConfig.class);
+        if (CollectionUtils.isNonEmpty(registryConfigs)) {
             return;
         }
 
-        for (RegistryConfig registryConfig : registries) {
+        for (RegistryConfig registryConfig : registryConfigs) {
             RegistryHelper.getRegistry(registryConfig);
         }
     }
@@ -379,13 +467,15 @@ public final class KinRpcBootstrap {
     /**
      * 发布服务
      */
+    @SuppressWarnings("rawtypes")
     private void exportServices() {
-        if (CollectionUtils.isEmpty(services)) {
+        List<ServiceConfig> serviceConfigs = getConfigs(ServiceConfig.class);
+        if (CollectionUtils.isEmpty(serviceConfigs)) {
             return;
         }
 
         List<ServiceConfig<?>> nonDelayServices = new ArrayList<>();
-        for (ServiceConfig<?> serviceConfig : services) {
+        for (ServiceConfig<?> serviceConfig : serviceConfigs) {
             long delay = serviceConfig.getDelay();
             if (delay > 0) {
                 //先发布延迟发布的服务
@@ -404,12 +494,14 @@ public final class KinRpcBootstrap {
     /**
      * 服务引用
      */
+    @SuppressWarnings("rawtypes")
     private void referServices() {
-        if (CollectionUtils.isEmpty(references)) {
+        List<ReferenceConfig> referenceConfigs = getConfigs(ReferenceConfig.class);
+        if (CollectionUtils.isEmpty(referenceConfigs)) {
             return;
         }
 
-        for (ReferenceConfig<?> referenceConfig : references) {
+        for (ReferenceConfig<?> referenceConfig : referenceConfigs) {
             Class<?> interfaceClass = referenceConfig.getInterfaceClass();
             String service = referenceConfig.getService();
             Object proxy = referenceConfig.refer();
@@ -429,11 +521,11 @@ public final class KinRpcBootstrap {
             return;
         }
 
-        for (ReferenceConfig<?> referenceConfig : references) {
+        for (ReferenceConfig<?> referenceConfig : getConfigs(ReferenceConfig.class)) {
             referenceConfig.unRefer();
         }
 
-        for (ServiceConfig<?> serviceConfig : services) {
+        for (ServiceConfig<?> serviceConfig : getConfigs(ServiceConfig.class)) {
             serviceConfig.unExport();
         }
 
@@ -534,6 +626,58 @@ public final class KinRpcBootstrap {
         return state.get() == TERMINATED_STATE;
     }
 
+    /**
+     * 添加配置
+     *
+     * @param c 配置
+     */
+    private void addConfig(Config c) {
+        Class<? extends Config> configClass = c.getClass();
+        configs.put(configClass, c);
+    }
+
+    /**
+     * 批量添加配置
+     *
+     * @param cs 配置列表
+     */
+    private <C extends Config> void addConfigs(Collection<C> cs) {
+        for (Config c : cs) {
+            addConfig(c);
+        }
+    }
+
+    /**
+     * 返回{@code configClass}类型配置
+     *
+     * @return 配置列表
+     */
+    @SuppressWarnings("unchecked")
+    private <C extends Config> List<C> getConfigs(Class<C> configClass) {
+        return (List<C>) new ArrayList<>(configs.get(configClass));
+    }
+
+    /**
+     * 返回{@code configClass}类型和{@code key}映射的配置
+     *
+     * @return 配置
+     */
+    @SuppressWarnings("unchecked")
+    @Nullable
+    private <C extends Config> C getConfig(Class<C> configClass, String key) {
+        return (C) configMap.get(configClass).get(key);
+    }
+
+    /**
+     * 添加配置映射
+     *
+     * @param c 配置
+     */
+    private void putConfig(String key, Config c) {
+        Map<String, Config> k2Config = configMap.computeIfAbsent(c.getClass(), k -> new HashMap<>());
+        k2Config.put(key, c);
+    }
+
     //setter && getter
     public ApplicationConfig getApp() {
         return app;
@@ -551,7 +695,7 @@ public final class KinRpcBootstrap {
     }
 
     public List<RegistryConfig> getRegistries() {
-        return registries;
+        return getConfigs(RegistryConfig.class);
     }
 
     public KinRpcBootstrap registry(RegistryConfig registry) {
@@ -566,7 +710,7 @@ public final class KinRpcBootstrap {
 
     public KinRpcBootstrap registries(List<RegistryConfig> registries) {
         checkBeforeModify();
-        this.registries.addAll(registries);
+        addConfigs(registries);
         return this;
     }
 
@@ -600,51 +744,93 @@ public final class KinRpcBootstrap {
         return this;
     }
 
-    public ProviderConfig getProvider() {
-        return getProvider("");
-    }
-
-    public ProviderConfig getProvider(String group) {
-        return providerMap.get(group);
+    public List<ProviderConfig> getProviders() {
+        return getConfigs(ProviderConfig.class);
     }
 
     public KinRpcBootstrap provider(ProviderConfig provider) {
+        return providers(provider);
+    }
+
+    public KinRpcBootstrap providers(ProviderConfig... providers) {
         checkBeforeModify();
-        String group = provider.getGroup();
-        if (StringUtils.isBlank(group)) {
-            group = "";
-        }
-        providerMap.put(group, provider);
+        return providers(Arrays.asList(providers));
+    }
+
+    public KinRpcBootstrap providers(List<ProviderConfig> providers) {
+        checkBeforeModify();
+        addConfigs(providers);
         return this;
     }
 
-    public ConsumerConfig getConsumer() {
-        return getConsumer("");
-    }
-
-    public ConsumerConfig getConsumer(String group) {
-        return consumerMap.get(group);
+    public List<ConsumerConfig> getConsumers() {
+        return getConfigs(ConsumerConfig.class);
     }
 
     public KinRpcBootstrap consumer(ConsumerConfig consumer) {
+        return consumers(consumer);
+    }
+
+    public KinRpcBootstrap consumers(ConsumerConfig... consumers) {
         checkBeforeModify();
-        String group = consumer.getGroup();
-        if (StringUtils.isBlank(group)) {
-            group = "";
-        }
-        consumerMap.put(group, consumer);
+        return consumers(Arrays.asList(consumers));
+    }
+
+    public KinRpcBootstrap consumers(List<ConsumerConfig> consumers) {
+        checkBeforeModify();
+        addConfigs(consumers);
         return this;
     }
 
     public KinRpcBootstrap service(ServiceConfig<?> service) {
         checkBeforeModify();
-        services.add(service);
+        addConfig(service);
         return this;
     }
 
     public KinRpcBootstrap reference(ReferenceConfig<?> reference) {
         checkBeforeModify();
-        references.add(reference);
+        addConfig(reference);
+        return this;
+    }
+
+    public List<ServerConfig> getServers() {
+        return getConfigs(ServerConfig.class);
+    }
+
+    public KinRpcBootstrap server(ServerConfig server) {
+        checkBeforeModify();
+        return servers(Collections.singletonList(server));
+    }
+
+    public KinRpcBootstrap servers(ServerConfig... servers) {
+        checkBeforeModify();
+        return servers(Arrays.asList(servers));
+    }
+
+    public KinRpcBootstrap servers(List<ServerConfig> servers) {
+        checkBeforeModify();
+        addConfigs(servers);
+        return this;
+    }
+
+    public List<ExecutorConfig> getExecutors() {
+        return getConfigs(ExecutorConfig.class);
+    }
+
+    public KinRpcBootstrap executor(ExecutorConfig executor) {
+        checkBeforeModify();
+        return executors(Collections.singletonList(executor));
+    }
+
+    public KinRpcBootstrap executors(ExecutorConfig... executors) {
+        checkBeforeModify();
+        return executors(Arrays.asList(executors));
+    }
+
+    public KinRpcBootstrap executors(List<ExecutorConfig> executors) {
+        checkBeforeModify();
+        addConfigs(executors);
         return this;
     }
 }
