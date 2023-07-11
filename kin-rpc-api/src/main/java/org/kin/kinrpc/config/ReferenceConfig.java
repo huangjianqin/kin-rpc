@@ -9,6 +9,7 @@ import org.kin.kinrpc.utils.GsvUtils;
 
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * 服务引用配置
@@ -22,7 +23,7 @@ public final class ReferenceConfig<T> extends AbstractReferenceConfig<ReferenceC
     /** 服务名 */
     private String serviceName;
     /** 服务方法配置 */
-    private final List<MethodConfig> methods = new ArrayList<>();
+    private final List<MethodConfig> handlers = new ArrayList<>();
 
     //----------------------------------------------------------------动态变量, lazy init
     /** 返回服务唯一标识 */
@@ -30,6 +31,10 @@ public final class ReferenceConfig<T> extends AbstractReferenceConfig<ReferenceC
     /** 返回服务唯一id */
     private transient int serviceId;
     private transient ReferenceBootstrap<T> referenceBootstrap;
+    /** 用于阻塞获取proxy */
+    private transient CountDownLatch latch = new CountDownLatch(1);
+    /** 服务引用代理 */
+    private transient volatile T proxy;
 
     public static <T> ReferenceConfig<T> create(Class<T> interfaceClass) {
         return new ReferenceConfig<T>().interfaceClass(interfaceClass);
@@ -57,7 +62,7 @@ public final class ReferenceConfig<T> extends AbstractReferenceConfig<ReferenceC
         }
 
         if (!isGeneric()) {
-            for (MethodConfig methodConfig : methods) {
+            for (MethodConfig methodConfig : handlers) {
                 methodConfig.checkValid();
 
                 //检查方法名是否合法
@@ -79,7 +84,7 @@ public final class ReferenceConfig<T> extends AbstractReferenceConfig<ReferenceC
             serviceName(getInterfaceClass().getSimpleName());
         }
 
-        for (MethodConfig method : methods) {
+        for (MethodConfig method : handlers) {
             method.initDefaultConfig();
         }
     }
@@ -122,7 +127,11 @@ public final class ReferenceConfig<T> extends AbstractReferenceConfig<ReferenceC
             referenceBootstrap = ExtensionLoader.getExtension(ReferenceBootstrap.class, getBootstrap(), this);
         }
 
-        return referenceBootstrap.refer();
+        proxy = referenceBootstrap.refer();
+        if (Objects.nonNull(latch)) {
+            latch.countDown();
+        }
+        return proxy;
     }
 
     /**
@@ -134,6 +143,26 @@ public final class ReferenceConfig<T> extends AbstractReferenceConfig<ReferenceC
         }
 
         referenceBootstrap.unRefer();
+        //help gc
+        proxy = null;
+    }
+
+    /**
+     * 返回服务引用proxy
+     *
+     * @return 服务引用proxy
+     */
+    public T get() {
+        if (Objects.nonNull(latch)) {
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                latch = null;
+            }
+        }
+        return proxy;
     }
 
     //setter && getter
@@ -155,21 +184,21 @@ public final class ReferenceConfig<T> extends AbstractReferenceConfig<ReferenceC
         return castThis();
     }
 
-    public List<MethodConfig> getMethods() {
-        return methods;
+    public List<MethodConfig> getHandlers() {
+        return handlers;
     }
 
-    public ReferenceConfig<T> method(MethodConfig method) {
-        this.methods.add(method);
+    public ReferenceConfig<T> handler(MethodConfig handler) {
+        this.handlers.add(handler);
         return this;
     }
 
-    public ReferenceConfig<T> methods(MethodConfig... methods) {
-        return methods(Arrays.asList(methods));
+    public ReferenceConfig<T> handlers(MethodConfig... handlers) {
+        return handlers(Arrays.asList(handlers));
     }
 
-    public ReferenceConfig<T> methods(Collection<MethodConfig> methods) {
-        this.methods.addAll(methods);
+    public ReferenceConfig<T> handlers(Collection<MethodConfig> handlers) {
+        this.handlers.addAll(handlers);
         return this;
     }
 
@@ -180,7 +209,7 @@ public final class ReferenceConfig<T> extends AbstractReferenceConfig<ReferenceC
                 ", interfaceClass=" + interfaceClass +
                 ", service='" + service + '\'' +
                 ", serviceId=" + serviceId +
-                ", methods=" + methods +
+                ", handlers=" + handlers +
                 '}';
     }
 }

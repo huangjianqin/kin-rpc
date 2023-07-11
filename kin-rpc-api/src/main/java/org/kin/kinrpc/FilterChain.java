@@ -45,6 +45,7 @@ public class FilterChain<T> extends DelegateInvoker<T> {
     }
 
     public static <T> FilterChain<T> create(AbstractInterfaceConfig<?> config, Invoker<T> lastInvoker) {
+        // TODO: 2023/7/10 加载内置filter, 某些功能支持需要通过filter实现, 但我们不需要user手动配置, 同时filter还需要init
         return new FilterChain<>(lastInvoker, config.getFilters());
     }
 

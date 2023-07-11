@@ -153,6 +153,32 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
         return castThis();
     }
 
+    //----------------------
+    public AbstractServiceConfig<ASC> setExecutor(ExecutorConfig executor) {
+        this.executor = executor;
+        return this;
+    }
+
+    public AbstractServiceConfig<ASC> setWeight(Integer weight) {
+        this.weight = weight;
+        return this;
+    }
+
+    public AbstractServiceConfig<ASC> setBootstrap(String bootstrap) {
+        this.bootstrap = bootstrap;
+        return this;
+    }
+
+    public AbstractServiceConfig<ASC> setDelay(Long delay) {
+        this.delay = delay;
+        return this;
+    }
+
+    public AbstractServiceConfig<ASC> setToken(String token) {
+        this.token = token;
+        return this;
+    }
+
     @Override
     public String toString() {
         return super.toString() +

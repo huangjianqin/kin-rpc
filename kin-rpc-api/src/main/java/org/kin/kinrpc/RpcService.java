@@ -271,7 +271,9 @@ public class RpcService<T> implements Invoker<T> {
             return;
         }
         terminated = true;
-        executor.shutdown();
+        if (Objects.nonNull(executor)) {
+            executor.shutdown();
+        }
     }
 
     //getter

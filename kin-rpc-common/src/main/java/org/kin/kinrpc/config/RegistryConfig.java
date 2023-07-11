@@ -18,7 +18,7 @@ public class RegistryConfig extends SharableConfig<RegistryConfig> {
     /** 默认id生成 */
     private static final AtomicInteger DEFAULT_ID_GEN = new AtomicInteger();
     /** 默认id前缀 */
-    private static final String DEFAULT_ID_PREFIX = RegistryConfig.class.getSimpleName() + "-";
+    private static final String DEFAULT_ID_PREFIX = "$" + RegistryConfig.class.getSimpleName() + "-";
 
     /**
      * 注册中心alias, 默认是{@link #type} + '#' + {@link #address}
@@ -137,12 +137,28 @@ public class RegistryConfig extends SharableConfig<RegistryConfig> {
         return this;
     }
 
+    //----------------------
+    public RegistryConfig setName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    public RegistryConfig setType(String type) {
+        this.type = type;
+        return this;
+    }
+
+    public RegistryConfig setAddress(String address) {
+        this.address = address;
+        return this;
+    }
+
     @Override
     public String toString() {
         return "RegistryConfig{" +
                 super.toString() +
-                "name='" + name + '\'' +
-                "type='" + type + '\'' +
+                ", name='" + name + '\'' +
+                ", type='" + type + '\'' +
                 ", address='" + address + '\'' +
                 '}';
     }

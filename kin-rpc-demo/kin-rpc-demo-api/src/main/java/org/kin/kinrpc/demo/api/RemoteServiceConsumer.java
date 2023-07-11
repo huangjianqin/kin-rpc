@@ -43,9 +43,9 @@ public class RemoteServiceConsumer extends ServiceConsumer {
                 .serviceName(Constants.DEMO_SERVICE_NAME)
                 .app(ApplicationConfig.create(appNamePrefix + "-consumer"))
                 .cluster(ClusterType.FAILOVER)
-                .method(MethodConfig.create("asyncFind").timeout(4000))
-                .method(MethodConfig.create("delayRandom").sticky().retries(2))
-                .method(MethodConfig.create("asyncFind2").async())
+                .handler(MethodConfig.create("asyncFind").timeout(4000))
+                .handler(MethodConfig.create("delayRandom").sticky().retries(2))
+                .handler(MethodConfig.create("asyncFind2").async())
                 .filter(new LogFilter(false));
 
         ReferenceConfig<GenericService> genericReferenceConfig = ReferenceConfig.create(GenericService.class)
@@ -54,16 +54,14 @@ public class RemoteServiceConsumer extends ServiceConsumer {
                 .serviceName(Constants.DEMO_SERVICE_NAME)
                 .app(ApplicationConfig.create(appNamePrefix + "-generic-consumer"))
                 .cluster(ClusterType.FAILOVER)
-                .method(MethodConfig.create("asyncFind").timeout(4000))
-                .method(MethodConfig.create("delayRandom").sticky().retries(2))
-                .method(MethodConfig.create("asyncFind2").async())
+                .handler(MethodConfig.create("asyncFind").timeout(4000))
+                .handler(MethodConfig.create("delayRandom").sticky().retries(2))
+                .handler(MethodConfig.create("asyncFind2").async())
                 .filter(new LogFilter(false));
 
         try {
             DemoService demoService = referenceConfig.refer();
-            // TODO: 2023/7/4 需要等待directory建立invoker
             System.in.read();
-            Thread.sleep(2_000);
             invokeDemoService(demoService);
 
             System.out.println("------------------------------------------------------------------------------------------------------------------------------------");
@@ -81,7 +79,6 @@ public class RemoteServiceConsumer extends ServiceConsumer {
 
         try {
             System.in.read();
-            Thread.sleep(2_000);
             System.out.println("force application exit>>>");
             System.exit(0);
         } catch (Exception e) {
@@ -110,16 +107,14 @@ public class RemoteServiceConsumer extends ServiceConsumer {
                         .filter(new LogFilter(false)))
                 .reference(ReferenceConfig.create(DemoService.class)
                         .serviceName(Constants.DEMO_SERVICE_NAME)
-                        .method(MethodConfig.create("asyncFind").timeout(3000))
-                        .method(MethodConfig.create("delayRandom").sticky().retries(2))
-                        .method(MethodConfig.create("asyncFind2").async()))
+                        .handler(MethodConfig.create("asyncFind").timeout(3000))
+                        .handler(MethodConfig.create("delayRandom").sticky().retries(2))
+                        .handler(MethodConfig.create("asyncFind2").async()))
                 .start();
 
         try {
             DemoService demoService = KinRpcBootstrap.instance().reference(DemoService.class);
-            // TODO: 2023/7/4 需要等待directory建立invoker
             System.in.read();
-            Thread.sleep(2_000);
             invokeDemoService(demoService);
         } catch (Exception e) {
             e.printStackTrace();
@@ -130,7 +125,6 @@ public class RemoteServiceConsumer extends ServiceConsumer {
 
         try {
             System.in.read();
-            Thread.sleep(2_000);
             System.out.println("force application exit>>>");
             System.exit(0);
         } catch (Exception e) {

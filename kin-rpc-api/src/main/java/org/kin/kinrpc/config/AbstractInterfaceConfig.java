@@ -22,7 +22,7 @@ public abstract class AbstractInterfaceConfig<IC extends AbstractInterfaceConfig
     /** 序列化方式 */
     private String serialization;
     /** filter list */
-    private final List<Filter> filters = new ArrayList<>();
+    private transient final List<Filter> filters = new ArrayList<>();
 
     protected AbstractInterfaceConfig() {
     }
@@ -161,6 +161,22 @@ public abstract class AbstractInterfaceConfig<IC extends AbstractInterfaceConfig
     public IC filters(List<Filter> filters) {
         this.filters.addAll(filters);
         return castThis();
+    }
+
+    //----------------------
+    public AbstractInterfaceConfig<IC> setGroup(String group) {
+        this.group = group;
+        return this;
+    }
+
+    public AbstractInterfaceConfig<IC> setVersion(String version) {
+        this.version = version;
+        return this;
+    }
+
+    public AbstractInterfaceConfig<IC> setSerialization(String serialization) {
+        this.serialization = serialization;
+        return this;
     }
 
     @Override

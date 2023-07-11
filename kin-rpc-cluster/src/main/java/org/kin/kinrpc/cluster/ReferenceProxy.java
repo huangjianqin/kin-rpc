@@ -69,8 +69,8 @@ public final class ReferenceProxy implements InvocationHandler {
             this.methodMetadataMap.putAll(methodMetadataMap);
         }
         //方法级
-        IntObjectHashMap<MethodConfig> methodConfigMap = new IntObjectHashMap<>(config.getMethods().size());
-        for (MethodConfig method : config.getMethods()) {
+        IntObjectHashMap<MethodConfig> methodConfigMap = new IntObjectHashMap<>(config.getHandlers().size());
+        for (MethodConfig method : config.getHandlers()) {
             methodConfigMap.put(HandlerUtils.handlerId(this.service, method.getName()), method);
         }
         this.methodConfigMap = methodConfigMap;

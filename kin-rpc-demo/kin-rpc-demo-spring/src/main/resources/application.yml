@@ -1,8 +1,0 @@
-spring:
-  application:
-    name: kinrpc-demo
-
-#kin:
-#  rpc:
-#    zookeeper:
-#      address: 0.0.0.0:2181

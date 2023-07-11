@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
  */
 public interface RemotingClient {
     /**
-     * remote connect
+     * remote connect, block util connect success or fail
      */
     void connect();
 

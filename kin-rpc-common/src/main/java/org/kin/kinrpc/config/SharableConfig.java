@@ -47,6 +47,10 @@ public abstract class SharableConfig<C extends SharableConfig<C>> extends Attach
         return castThis();
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
     @Override
     public String toString() {
         return "id='" + id + '\'';

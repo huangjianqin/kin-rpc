@@ -15,12 +15,11 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
+ * {@link RemotingClient}抽象, 支持心跳健康检查, 自动重连
+ *
  * @author huangjianqin
  * @date 2023/6/7
  */
@@ -110,6 +109,8 @@ public abstract class AbstractRemotingClient implements RemotingClient {
     private volatile boolean terminated;
     /** client name */
     private final String name;
+    /** 用于阻塞等待首次连接完成 */
+    private volatile CountDownLatch firstConnWaiter = new CountDownLatch(1);
 
     protected AbstractRemotingClient(String host, int port) {
         this.host = host;
@@ -130,6 +131,15 @@ public abstract class AbstractRemotingClient implements RemotingClient {
     public final void connect() {
         checkTerminated();
         onConnect();
+
+        //等待连接完成
+        if (Objects.nonNull(firstConnWaiter)) {
+            try {
+                firstConnWaiter.await();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 
     /**
@@ -145,37 +155,55 @@ public abstract class AbstractRemotingClient implements RemotingClient {
     /**
      * connect success
      */
-    protected final synchronized void onConnectSuccess() {
+    protected final void onConnectSuccess() {
         if (isTerminated()) {
             return;
         }
 
-        if (!isReconnecting()) {
-            //connect success
-            log.info("{} connect to {} success", name(), remoteAddress());
-            RemotingClientHealthManager.addClient(helper);
-        } else {
-            //reconnect success
-            log.info("{} reconnect to {} success", name(), remoteAddress());
-            onReconnectSuccess();
+        try {
+            synchronized (this) {
+                if (!isReconnecting()) {
+                    //connect success
+                    log.info("{} connect to {} success", name(), remoteAddress());
+                    RemotingClientHealthManager.addClient(helper);
+                } else {
+                    //reconnect success
+                    log.info("{} reconnect to {} success", name(), remoteAddress());
+                    onReconnectSuccess();
+                }
+            }
+        } finally {
+            if (Objects.nonNull(firstConnWaiter)) {
+                firstConnWaiter.countDown();
+                firstConnWaiter = null;
+            }
         }
     }
 
     /**
      * connect fail
      */
-    protected final synchronized void onConnectFail(Throwable t) {
+    protected final void onConnectFail(Throwable t) {
         if (isTerminated()) {
             return;
         }
 
-        if (!isReconnecting()) {
-            log.error("{} connect to {} fail", name(), remoteAddress(), t);
-            available = false;
-            RemotingClientHealthManager.onConnectFail(helper, t);
-        } else {
-            //重连中, 交给monitor继续重试
-            onReconnectFail(t);
+        try {
+            synchronized (this) {
+                if (!isReconnecting()) {
+                    log.error("{} connect to {} fail", name(), remoteAddress(), t);
+                    available = false;
+                    RemotingClientHealthManager.onConnectFail(helper, t);
+                } else {
+                    //重连中, 交给monitor继续重试
+                    onReconnectFail(t);
+                }
+            }
+        } finally {
+            if (Objects.nonNull(firstConnWaiter)) {
+                firstConnWaiter.countDown();
+                firstConnWaiter = null;
+            }
         }
     }
 
@@ -321,6 +349,7 @@ public abstract class AbstractRemotingClient implements RemotingClient {
     }
 
     //getter
+
     /**
      * 返回remote address
      *

@@ -19,7 +19,7 @@ public class ServerConfig extends SharableConfig<ServerConfig> {
     /** 默认id生成 */
     private static final AtomicInteger DEFAULT_ID_GEN = new AtomicInteger();
     /** 默认id前缀 */
-    private static final String DEFAULT_ID_PREFIX = ServerConfig.class.getSimpleName() + "-";
+    private static final String DEFAULT_ID_PREFIX = "$" + ServerConfig.class.getSimpleName() + "-";
 
     /** 协议名 */
     private String protocol;
@@ -189,11 +189,37 @@ public class ServerConfig extends SharableConfig<ServerConfig> {
         return this;
     }
 
+    //----------------------
+    public ServerConfig setProtocol(String protocol) {
+        this.protocol = protocol;
+        return this;
+    }
+
+    public ServerConfig setHost(String host) {
+        this.host = host;
+        return this;
+    }
+
+    public ServerConfig setPort(Integer port) {
+        this.port = port;
+        return this;
+    }
+
+    public ServerConfig setExecutor(ExecutorConfig executor) {
+        this.executor = executor;
+        return this;
+    }
+
+    public ServerConfig setSsl(SslConfig ssl) {
+        this.ssl = ssl;
+        return this;
+    }
+
     @Override
     public String toString() {
         return "ServerConfig{" +
                 super.toString() +
-                "protocol='" + protocol + '\'' +
+                ", protocol='" + protocol + '\'' +
                 ObjectUtils.toStringIfPredicate(StringUtils.isNotBlank(host), ", host='" + host + '\'') +
                 ", port=" + port +
                 ObjectUtils.toStringIfNonNull(executor, ", executor=" + executor) +

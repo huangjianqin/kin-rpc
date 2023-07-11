@@ -16,7 +16,7 @@ public class ExecutorConfig extends SharableConfig<ExecutorConfig> {
     /** 默认id生成 */
     private static final AtomicInteger DEFAULT_ID_GEN = new AtomicInteger();
     /** 默认id前缀 */
-    private static final String DEFAULT_ID_PREFIX = ExecutorConfig.class.getSimpleName() + "-";
+    private static final String DEFAULT_ID_PREFIX = "$" + ExecutorConfig.class.getSimpleName() + "-";
 
     /**
      * executor name, 如果user不指定, 则跟service唯一标识和server唯一标识有关
@@ -191,11 +191,42 @@ public class ExecutorConfig extends SharableConfig<ExecutorConfig> {
         return this;
     }
 
+    //----------------------
+    public ExecutorConfig setName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    public ExecutorConfig setType(String type) {
+        this.type = type;
+        return this;
+    }
+
+    public ExecutorConfig setCorePoolSize(Integer corePoolSize) {
+        this.corePoolSize = corePoolSize;
+        return this;
+    }
+
+    public ExecutorConfig setMaxPoolSize(Integer maxPoolSize) {
+        this.maxPoolSize = maxPoolSize;
+        return this;
+    }
+
+    public ExecutorConfig setAlive(Integer alive) {
+        this.alive = alive;
+        return this;
+    }
+
+    public ExecutorConfig setQueueSize(Integer queueSize) {
+        this.queueSize = queueSize;
+        return this;
+    }
+
     @Override
     public String toString() {
         return "ExecutorConfig{" +
                 super.toString() +
-                ObjectUtils.toStringIfPredicate(StringUtils.isNotBlank(name), "name='" + name + '\'') +
+                ObjectUtils.toStringIfPredicate(StringUtils.isNotBlank(name), ", name='" + name + '\'') +
                 ", type='" + type + '\'' +
                 ", corePoolSize=" + corePoolSize +
                 ", maxPoolSize=" + maxPoolSize +

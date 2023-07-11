@@ -113,7 +113,7 @@ public final class KinRpcBootstrap {
         //配置检查
         checkConfig();
 
-        //初始化注册中心
+        //初始化全局配置, 包括注册中心, server, executor
         initRegistries();
 
         //服务发布
@@ -136,24 +136,24 @@ public final class KinRpcBootstrap {
 
         for (RegistryConfig registryConfig : getConfigs(RegistryConfig.class)) {
             registryConfig.initDefaultConfig();
-            putConfig(registryConfig.getId(), registryConfig);
+            putConfig(registryConfig.getId(), RegistryConfig.class, registryConfig);
         }
 
         for (ExecutorConfig executorConfig : getConfigs(ExecutorConfig.class)) {
             executorConfig.initDefaultConfig();
-            putConfig(executorConfig.getId(), executorConfig);
+            putConfig(executorConfig.getId(), ExecutorConfig.class, executorConfig);
         }
 
         for (ServerConfig serverConfig : getConfigs(ServerConfig.class)) {
             resolveReferConfig(ExecutorConfig.class, serverConfig::getExecutor, serverConfig::executor, SharableConfig::getId);
             serverConfig.initDefaultConfig();
 
-            putConfig(serverConfig.getId(), serverConfig);
+            putConfig(serverConfig.getId(), ServerConfig.class, serverConfig);
         }
 
         for (ProviderConfig providerConfig : getConfigs(ProviderConfig.class)) {
             String group = providerConfig.getGroup();
-            putConfig(Objects.nonNull(group) ? group : "", providerConfig);
+            putConfig(Objects.nonNull(group) ? group : "", ProviderConfig.class, providerConfig);
 
             resolveServiceReferConfig(providerConfig);
             providerConfig.initDefaultConfig();
@@ -161,7 +161,7 @@ public final class KinRpcBootstrap {
 
         for (ConsumerConfig consumerConfig : getConfigs(ConsumerConfig.class)) {
             String group = consumerConfig.getGroup();
-            putConfig(Objects.nonNull(group) ? group : "", consumerConfig);
+            putConfig(Objects.nonNull(group) ? group : "", ConsumerConfig.class, consumerConfig);
 
             resolveReferenceReferConfig(consumerConfig);
             consumerConfig.initDefaultConfig();
@@ -182,7 +182,11 @@ public final class KinRpcBootstrap {
         for (ServiceConfig<?> serviceConfig : getConfigs(ServiceConfig.class)) {
             //尝试从bootstrap或provider获取配置
             String group = serviceConfig.getGroup();
-            setUpServiceConfig(serviceConfig, getConfig(ProviderConfig.class, Objects.nonNull(group) ? group : ""));
+            ProviderConfig providerConfig = getConfig(ProviderConfig.class, group);
+            if (Objects.isNull(providerConfig)) {
+                providerConfig = getConfig(ProviderConfig.class, "");
+            }
+            setUpServiceConfig(serviceConfig, providerConfig);
             //初始化service默认配置
             serviceConfig.initDefaultConfig();
         }
@@ -190,7 +194,11 @@ public final class KinRpcBootstrap {
         for (ReferenceConfig<?> referenceConfig : getConfigs(ReferenceConfig.class)) {
             //尝试从bootstrap或consumer获取配置
             String group = referenceConfig.getGroup();
-            setUpReferenceConfig(referenceConfig, getConfig(ConsumerConfig.class, Objects.nonNull(group) ? group : ""));
+            ConsumerConfig consumerConfig = getConfig(ConsumerConfig.class, group);
+            if (Objects.isNull(consumerConfig)) {
+                consumerConfig = getConfig(ConsumerConfig.class, "");
+            }
+            setUpReferenceConfig(referenceConfig, consumerConfig);
             //初始化reference默认配置
             referenceConfig.initDefaultConfig();
         }
@@ -425,7 +433,7 @@ public final class KinRpcBootstrap {
      */
     private void checkConfig() {
         Set<String> exportServices = new HashSet<>();
-        Set<String> listenHostPort = new HashSet<>();
+        Map<String, String> listenHostPort2Protocol = new HashMap<>();
         for (ServiceConfig<?> serviceConfig : getConfigs(ServiceConfig.class)) {
             serviceConfig.checkValid();
             if (!exportServices.add(serviceConfig.getService())) {
@@ -434,18 +442,24 @@ public final class KinRpcBootstrap {
 
             //检查所有server config监听的host:port是否冲突
             for (ServerConfig serverConfig : serviceConfig.getServers()) {
+                String protocol = serverConfig.getProtocol();
                 String ipPort = NetUtils.getIpPort(serverConfig.getHost(), serverConfig.getPort());
-                if (!listenHostPort.add(ipPort)) {
-                    throw new IllegalConfigException(String.format("listen host and port conflict, '%s'", ipPort));
+
+                if (listenHostPort2Protocol.containsKey(ipPort) &&
+                        !protocol.equals(listenHostPort2Protocol.get(ipPort))) {
+                    throw new IllegalConfigException(String.format("host and port conflict, different protocol listen on same host and port, '%s'", ipPort));
                 }
+
+                listenHostPort2Protocol.put(ipPort, protocol);
             }
         }
 
         Set<String> referServices = new HashSet<>();
         for (ReferenceConfig<?> referenceConfig : getConfigs(ReferenceConfig.class)) {
             referenceConfig.checkValid();
-            if (!referServices.add(referenceConfig.getService())) {
-                throw new IllegalConfigException("more than one reference config for service '%s'");
+            String service = referenceConfig.getService();
+            if (!referServices.add(service)) {
+                throw new IllegalConfigException(String.format("more than one reference config for service '%s'", service));
             }
         }
     }
@@ -631,8 +645,7 @@ public final class KinRpcBootstrap {
      *
      * @param c 配置
      */
-    private void addConfig(Config c) {
-        Class<? extends Config> configClass = c.getClass();
+    private void addConfig(Class<? extends Config> configClass, Config c) {
         configs.put(configClass, c);
     }
 
@@ -641,9 +654,10 @@ public final class KinRpcBootstrap {
      *
      * @param cs 配置列表
      */
-    private <C extends Config> void addConfigs(Collection<C> cs) {
+    private <C extends Config> void addConfigs(Class<? extends Config> configClass,
+                                               Collection<C> cs) {
         for (Config c : cs) {
-            addConfig(c);
+            addConfig(configClass, c);
         }
     }
 
@@ -665,6 +679,14 @@ public final class KinRpcBootstrap {
     @SuppressWarnings("unchecked")
     @Nullable
     private <C extends Config> C getConfig(Class<C> configClass, String key) {
+        if (Objects.isNull(key)) {
+            return null;
+        }
+
+        if (!configMap.containsKey(configClass)) {
+            return null;
+        }
+
         return (C) configMap.get(configClass).get(key);
     }
 
@@ -673,8 +695,8 @@ public final class KinRpcBootstrap {
      *
      * @param c 配置
      */
-    private void putConfig(String key, Config c) {
-        Map<String, Config> k2Config = configMap.computeIfAbsent(c.getClass(), k -> new HashMap<>());
+    private void putConfig(String key, Class<?> configClass, Config c) {
+        Map<String, Config> k2Config = configMap.computeIfAbsent(configClass, k -> new HashMap<>());
         k2Config.put(key, c);
     }
 
@@ -710,7 +732,7 @@ public final class KinRpcBootstrap {
 
     public KinRpcBootstrap registries(List<RegistryConfig> registries) {
         checkBeforeModify();
-        addConfigs(registries);
+        addConfigs(RegistryConfig.class, registries);
         return this;
     }
 
@@ -759,7 +781,7 @@ public final class KinRpcBootstrap {
 
     public KinRpcBootstrap providers(List<ProviderConfig> providers) {
         checkBeforeModify();
-        addConfigs(providers);
+        addConfigs(ProviderConfig.class, providers);
         return this;
     }
 
@@ -778,19 +800,19 @@ public final class KinRpcBootstrap {
 
     public KinRpcBootstrap consumers(List<ConsumerConfig> consumers) {
         checkBeforeModify();
-        addConfigs(consumers);
+        addConfigs(ConsumerConfig.class, consumers);
         return this;
     }
 
     public KinRpcBootstrap service(ServiceConfig<?> service) {
         checkBeforeModify();
-        addConfig(service);
+        addConfig(ServiceConfig.class, service);
         return this;
     }
 
     public KinRpcBootstrap reference(ReferenceConfig<?> reference) {
         checkBeforeModify();
-        addConfig(reference);
+        addConfig(ReferenceConfig.class, reference);
         return this;
     }
 
@@ -810,7 +832,7 @@ public final class KinRpcBootstrap {
 
     public KinRpcBootstrap servers(List<ServerConfig> servers) {
         checkBeforeModify();
-        addConfigs(servers);
+        addConfigs(ServerConfig.class, servers);
         return this;
     }
 
@@ -830,7 +852,7 @@ public final class KinRpcBootstrap {
 
     public KinRpcBootstrap executors(List<ExecutorConfig> executors) {
         checkBeforeModify();
-        addConfigs(executors);
+        addConfigs(ExecutorConfig.class, executors);
         return this;
     }
 }

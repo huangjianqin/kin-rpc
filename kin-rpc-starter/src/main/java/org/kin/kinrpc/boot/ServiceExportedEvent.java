@@ -1,16 +1,18 @@
 package org.kin.kinrpc.boot;
 
-import org.kin.kinrpc.conf.ServiceConfig;
+import org.kin.kinrpc.config.ServiceConfig;
 import org.springframework.context.ApplicationEvent;
 
 /**
  * kinrpc service exported event
+ * todo
  *
  * @author huangjianqin
  * @date 2020/12/12
  */
 public final class ServiceExportedEvent extends ApplicationEvent {
-    private final ServiceConfig serviceConfig;
+    /** 服务配置 */
+    private final ServiceConfig<?> serviceConfig;
 
     public ServiceExportedEvent(ServiceConfig serviceConfig, Object source) {
         super(source);
@@ -18,7 +20,6 @@ public final class ServiceExportedEvent extends ApplicationEvent {
     }
 
     //getter
-
     public ServiceConfig getServiceConfig() {
         return serviceConfig;
     }

@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: kinrpc-demo-springboot-consumer
+server:
+  port: 14001
+kinrpc:
+  registry:
+    address: "kinrpc://127.0.0.1:13000/kinrpc:demo:0.1.0.0?serialization=json&weight=1&token=123456"
+    type: "direct"
+  consumer:
+    cluster: "failover"
+    rpc-timeout: 2000
+    retries: 4
+    filter-beans: "logFilter"

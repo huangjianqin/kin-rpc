@@ -13,6 +13,6 @@ public class ConsumerConfig extends AbstractReferenceConfig<ConsumerConfig> {
 
     }
 
-    private ConsumerConfig() {
+    protected ConsumerConfig() {
     }
 }

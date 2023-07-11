@@ -13,6 +13,6 @@ public class ProviderConfig extends AbstractServiceConfig<ProviderConfig> {
 
     }
 
-    private ProviderConfig() {
+    protected ProviderConfig() {
     }
 }

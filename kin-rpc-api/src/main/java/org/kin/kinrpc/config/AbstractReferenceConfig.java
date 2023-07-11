@@ -217,6 +217,69 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
         return castThis();
     }
 
+    //----------------------
+    public AbstractReferenceConfig<ARC> setCluster(String cluster) {
+        this.cluster = cluster;
+        return this;
+    }
+
+    public AbstractReferenceConfig<ARC> setLoadBalance(String loadBalance) {
+        this.loadBalance = loadBalance;
+        return this;
+    }
+
+    public AbstractReferenceConfig<ARC> setRouter(String router) {
+        this.router = router;
+        return this;
+    }
+
+    public Boolean getGeneric() {
+        return generic;
+    }
+
+    public AbstractReferenceConfig<ARC> setGeneric(Boolean generic) {
+        this.generic = generic;
+        return this;
+    }
+
+    public AbstractReferenceConfig<ARC> setSsl(SslConfig ssl) {
+        this.ssl = ssl;
+        return this;
+    }
+
+    public AbstractReferenceConfig<ARC> setBootstrap(String bootstrap) {
+        this.bootstrap = bootstrap;
+        return this;
+    }
+
+    public AbstractReferenceConfig<ARC> setRpcTimeout(Integer rpcTimeout) {
+        this.rpcTimeout = rpcTimeout;
+        return this;
+    }
+
+    public AbstractReferenceConfig<ARC> setRetries(Integer retries) {
+        this.retries = retries;
+        return this;
+    }
+
+    public Boolean getAsync() {
+        return async;
+    }
+
+    public AbstractReferenceConfig<ARC> setAsync(Boolean async) {
+        this.async = async;
+        return this;
+    }
+
+    public Boolean getSticky() {
+        return sticky;
+    }
+
+    public AbstractReferenceConfig<ARC> setSticky(Boolean sticky) {
+        this.sticky = sticky;
+        return this;
+    }
+
     @Override
     public String toString() {
         return super.toString() +

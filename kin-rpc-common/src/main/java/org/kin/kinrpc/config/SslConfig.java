@@ -88,6 +88,32 @@ public class SslConfig implements Config {
         return this;
     }
 
+    //----------------------
+    public SslConfig setCertFile(File certFile) {
+        this.certFile = certFile;
+        return this;
+    }
+
+    public SslConfig setCertKeyFile(File certKeyFile) {
+        this.certKeyFile = certKeyFile;
+        return this;
+    }
+
+    public SslConfig setCertKeyPassword(String certKeyPassword) {
+        this.certKeyPassword = certKeyPassword;
+        return this;
+    }
+
+    public SslConfig setCaFile(File caFile) {
+        this.caFile = caFile;
+        return this;
+    }
+
+    public SslConfig setFingerprintFile(File fingerprintFile) {
+        this.fingerprintFile = fingerprintFile;
+        return this;
+    }
+
     @Override
     public String toString() {
         return "SslConfig{" +

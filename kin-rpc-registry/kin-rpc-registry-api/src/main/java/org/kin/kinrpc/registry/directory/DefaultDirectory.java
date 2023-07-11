@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -36,6 +37,8 @@ public class DefaultDirectory implements Directory {
     private final AtomicBoolean discovering = new AtomicBoolean(false);
     /** 待处理的理服务发现实例列表 */
     private final Queue<List<ServiceInstance>> discoverQueue = new MpscUnboundedAtomicArrayQueue<>(8);
+    /** 用于调用{@link #list()}阻塞等待首次服务发现完成 */
+    private volatile CountDownLatch firstDiscoverWaiter = new CountDownLatch(1);
     private volatile boolean stopped;
 
     public DefaultDirectory(ReferenceConfig<?> config) {
@@ -54,6 +57,15 @@ public class DefaultDirectory implements Directory {
         if (stopped) {
             return Collections.emptyList();
         }
+
+        if (Objects.nonNull(firstDiscoverWaiter)) {
+            try {
+                firstDiscoverWaiter.await();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+
         return getActiveInvokers();
     }
 
@@ -104,6 +116,11 @@ public class DefaultDirectory implements Directory {
                 if (Objects.isNull(discoverQueue.peek())) {
                     //reset discovering flag
                     discovering.compareAndSet(true, false);
+                    if (Objects.nonNull(firstDiscoverWaiter)) {
+                        firstDiscoverWaiter.countDown();
+                        firstDiscoverWaiter = null;
+                    }
+                    break;
                 } else {
                     //发现仍然有服务实例列表需要处理, 直接处理, 节省上下文切换
                 }
