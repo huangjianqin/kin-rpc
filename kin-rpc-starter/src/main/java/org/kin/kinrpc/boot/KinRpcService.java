@@ -2,12 +2,36 @@ package org.kin.kinrpc.boot;
 
 import org.kin.kinrpc.config.DefaultConfig;
 import org.kin.kinrpc.config.ServiceConfig;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import java.lang.annotation.*;
+import java.util.Map;
 
 /**
  * kinrpc服务标识
+ * 两种用法(推荐使用第一种):
+ * 1. 注解在服务实现类上
+ * <pre>
+ * &#64;KinRpcService(interfaceClass = HelloService.class)
+ * public class HelloServiceImpl implements HelloService {
+ *     ...
+ * }
+ * </pre>
+ * <p>
+ * 2. 在configuration class中注解在构造service bean方法上, 类似{@link Bean}
+ * <pre>
+ * &#64;Configuration
+ * class ServiceConfiguration {
+ *
+ *     &#64;KinRpcService(interfaceClass = HelloService.class)
+ *     public HelloService helloService(){
+ *         return new HelloServiceImpl();
+ *     }
+ * }
+ * </pre>
+ * <p>
+ * !!!注意修改属性名, 记得也要同步修改{@link KinRpcServiceBeanProcessor#addServiceConfig(Map, Object)}中使用到的属性名
  *
  * @author huangjianqin
  * @date 2020/12/6
@@ -16,9 +40,10 @@ import java.lang.annotation.*;
  * @see org.kin.kinrpc.bootstrap.KinRpcBootstrap#service(ServiceConfig)
  */
 @Documented
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Service
+@Bean
 public @interface KinRpcService {
     /** registry config id, also registry config bean name */
     String[] registries() default {};
@@ -36,7 +61,7 @@ public @interface KinRpcService {
     String serialization() default DefaultConfig.DEFAULT_SERIALIZATION;
 
     /** filter bean name */
-    String[] filter() default {};
+    String[] filters() default {};
 
 
     /** 服务接口 */

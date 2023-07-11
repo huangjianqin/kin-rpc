@@ -21,4 +21,9 @@ public class DemoServiceApplication {
     public LogFilter logFilter() {
         return new LogFilter(true);
     }
+
+//    @KinRpcService(interfaceClass = DemoService.class, serviceName = "demo")
+//    public DemoService demoService(){
+//        return new DemoServiceImpl();
+//    }
 }

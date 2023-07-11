@@ -21,8 +21,7 @@ import java.util.Map;
  *     private HelloService genericHelloService;
  * }
  * </pre>
- * 2. 在configuration class中使用{@link org.kin.kinrpc.config.ReferenceConfig}+{@link org.springframework.context.annotation.Bean}构建Reference并注册Bean,
- * 同时要求返回的Bean类型是{@link KinRpcReferenceBean}
+ * 2. 在configuration class中配合{@link org.springframework.context.annotation.Bean}构建Reference并注册bean, 同时要求返回的bean类型是{@link KinRpcReferenceBean}
  * <pre class="code">
  * &#64;Configuration
  * public class ReferenceConfiguration {
@@ -38,7 +37,7 @@ import java.util.Map;
  * }
  * </pre>
  * <p>
- * !!!注意修改属性名, 记得也要同步修改{@link KinRpcReferenceUtils#toReferenceConfig(ApplicationContext, Class, Map)}使用到的属性名
+ * !!!注意修改属性名, 记得也要同步修改{@link KinRpcReferenceUtils#toReferenceConfig(ApplicationContext, Class, Map)}中使用到的属性名
  *
  * @author huangjianqin
  * @date 2020/12/6
