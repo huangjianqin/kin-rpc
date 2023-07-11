@@ -53,14 +53,14 @@ public class KinRpcServiceBeanProcessor implements BeanPostProcessor, Applicatio
         if (beanDefinition instanceof AnnotatedBeanDefinition) {
             AnnotatedBeanDefinition annotatedBeanDefinition = (AnnotatedBeanDefinition) beanDefinition;
 
-            //从class获取@KinRpcService注解属性
+            //尝试从class获取@KinRpcService注解属性
             AnnotationMetadata metadata = annotatedBeanDefinition.getMetadata();
             Map<String, Object> annoAttrs = metadata.getAnnotationAttributes(KinRpcService.class.getName());
             if (CollectionUtils.isNonEmpty(annoAttrs)) {
                 addServiceConfig(annoAttrs, bean);
             }
 
-            //从工厂方法(@Bean)获取@KinRpcService注解属性
+            //尝试从工厂方法(@Bean)获取@KinRpcService注解属性
             MethodMetadata factoryMethodMetadata = annotatedBeanDefinition.getFactoryMethodMetadata();
             if (Objects.nonNull(factoryMethodMetadata)) {
                 annoAttrs = factoryMethodMetadata.getAnnotationAttributes(KinRpcService.class.getName());
@@ -76,57 +76,57 @@ public class KinRpcServiceBeanProcessor implements BeanPostProcessor, Applicatio
     /**
      * 注册service config
      *
-     * @param serviceAnno {@link KinRpcService}属性
+     * @param serviceAnnoAttrs {@link KinRpcService}属性
      */
     @SuppressWarnings("unchecked")
-    private void addServiceConfig(Map<String, Object> serviceAnno, Object bean) {
-        Class<? super Object> interfaceClass = (Class<? super Object>) serviceAnno.get("interfaceClass");
+    private void addServiceConfig(Map<String, Object> serviceAnnoAttrs, Object bean) {
+        Class<? super Object> interfaceClass = (Class<? super Object>) serviceAnnoAttrs.get("interfaceClass");
         ServiceConfig<?> serviceConfig = ServiceConfig.create(interfaceClass, bean)
-                .group((String) serviceAnno.get("group"))
-                .version((String) serviceAnno.get("version"))
-                .serialization((String) serviceAnno.get("serialization"))
-                .weight((Integer) serviceAnno.get("weight"));
+                .group((String) serviceAnnoAttrs.get("group"))
+                .version((String) serviceAnnoAttrs.get("version"))
+                .serialization((String) serviceAnnoAttrs.get("serialization"))
+                .weight((Integer) serviceAnnoAttrs.get("weight"));
 
-        String[] registries = (String[]) serviceAnno.get("registries");
+        String[] registries = (String[]) serviceAnnoAttrs.get("registries");
         if (CollectionUtils.isNonEmpty(registries)) {
             for (String registryConfigId : registries) {
                 serviceConfig.registries(RegistryConfig.fromId(registryConfigId));
             }
         }
 
-        String serviceName = (String) serviceAnno.get("serviceName");
+        String serviceName = (String) serviceAnnoAttrs.get("serviceName");
         if (StringUtils.isBlank(serviceName)) {
             serviceName = interfaceClass.getName();
         }
         serviceConfig.serviceName(serviceName);
 
-        String[] filters = (String[]) serviceAnno.get("filters");
+        String[] filters = (String[]) serviceAnnoAttrs.get("filters");
         if (CollectionUtils.isNonEmpty(filters)) {
             FilterUtils.addFilters(applicationContext, () -> Arrays.asList(filters), serviceConfig::filter);
         }
 
-        if ((Boolean) serviceAnno.get("jvm")) {
+        if ((Boolean) serviceAnnoAttrs.get("jvm")) {
             serviceConfig.jvm();
         }
 
-        String[] servers = (String[]) serviceAnno.get("servers");
+        String[] servers = (String[]) serviceAnnoAttrs.get("servers");
         if (CollectionUtils.isNonEmpty(servers)) {
             for (String serverConfigId : servers) {
                 serviceConfig.servers(ServerConfig.fromId(serverConfigId));
             }
         }
 
-        String executor = (String) serviceAnno.get("executor");
+        String executor = (String) serviceAnnoAttrs.get("executor");
         if (StringUtils.isNotBlank(executor)) {
             serviceConfig.executor(ExecutorConfig.fromId(executor));
         }
 
-        String token = (String) serviceAnno.get("token");
+        String token = (String) serviceAnnoAttrs.get("token");
         if (StringUtils.isNotBlank(token)) {
             serviceConfig.token(token);
         }
 
-        long delay = (long) serviceAnno.get("delay");
+        long delay = (long) serviceAnnoAttrs.get("delay");
         if (delay > 0) {
             serviceConfig.delay(delay);
         }

@@ -436,8 +436,9 @@ public final class KinRpcBootstrap {
         Map<String, String> listenHostPort2Protocol = new HashMap<>();
         for (ServiceConfig<?> serviceConfig : getConfigs(ServiceConfig.class)) {
             serviceConfig.checkValid();
-            if (!exportServices.add(serviceConfig.getService())) {
-                throw new IllegalConfigException("more than one service config for service '%s'");
+            String service = serviceConfig.getService();
+            if (!exportServices.add(service)) {
+                throw new IllegalConfigException(String.format("more than one service config for service '%s'", service));
             }
 
             //检查所有server config监听的host:port是否冲突
