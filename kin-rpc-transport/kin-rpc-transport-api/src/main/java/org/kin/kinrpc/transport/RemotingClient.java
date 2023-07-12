@@ -2,6 +2,8 @@ package org.kin.kinrpc.transport;
 
 import org.kin.kinrpc.transport.cmd.RequestCommand;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -24,6 +26,13 @@ public interface RemotingClient {
      * @return true表示client存活
      */
     boolean isAvailable();
+
+    /**
+     * 返回remote address
+     *
+     * @return remote address
+     */
+    String remoteAddress();
 
     /**
      * shutdown the client
@@ -111,5 +120,21 @@ public interface RemotingClient {
             }
             throw new RemotingException("request response fail", t);
         }
+    }
+
+    /**
+     * 添加{@link  RemotingClientStateObserver}实例
+     *
+     * @param observers client state observer collection
+     */
+    void addObservers(Collection<RemotingClientStateObserver> observers);
+
+    /**
+     * 添加{@link  RemotingClientStateObserver}实例
+     *
+     * @param observers client state observer collection
+     */
+    default void addObservers(RemotingClientStateObserver... observers) {
+        addObservers(Arrays.asList(observers));
     }
 }

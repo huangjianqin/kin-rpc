@@ -2,7 +2,7 @@ package org.kin.kinrpc.demo.message;
 
 import com.google.common.base.Stopwatch;
 import org.kin.framework.JvmCloseCleaner;
-import org.kin.kinrpc.message.core.*;
+import org.kin.kinrpc.message.*;
 
 import java.io.Serializable;
 import java.util.concurrent.CompletableFuture;
@@ -12,35 +12,35 @@ import java.util.concurrent.TimeUnit;
  * @author huangjianqin
  * @date 2020-06-13
  */
-public class RpcEndpointRefDemo extends RpcEndpoint {
-    public RpcEndpointRefDemo(RpcEnv rpcEnv) {
-        super(rpcEnv);
+public class ActorRefDemo extends Actor {
+    public ActorRefDemo(ActorEnv actorEnv) {
+        super(actorEnv);
     }
 
     public static void main(String[] args) throws InterruptedException {
-        RpcEnv rpcEnv = new RpcEnv("0.0.0.0", 16889);
-        rpcEnv.startServer();
+        ActorEnv actorEnv = new ActorEnv("0.0.0.0", 16889);
+        actorEnv.startServer();
         String name = "rpcEndpointRefDemo";
-        RpcEndpointRefDemo rpcEndpointRefDemo = new RpcEndpointRefDemo(rpcEnv);
-        rpcEnv.register(name, rpcEndpointRefDemo);
+        ActorRefDemo rpcEndpointRefDemo = new ActorRefDemo(actorEnv);
+        actorEnv.newActor(name, rpcEndpointRefDemo);
 
         JvmCloseCleaner.instance().add(() -> {
-            rpcEnv.unregister(name, rpcEndpointRefDemo);
-            rpcEnv.stop();
+            actorEnv.removeActor(name, rpcEndpointRefDemo);
+            actorEnv.destroy();
         });
 
-        RpcEndpointRef endpointRef = rpcEnv.createEndpointRef("0.0.0.0", 16888, "rpcEndpointDemo");
+        ActorRef endpointRef = actorEnv.actorOf("0.0.0.0", 16888, "rpcEndpointDemo");
 
         Stopwatch watcher = Stopwatch.createStarted();
         int count = 0;
         while (count < 100000) {
             try {
-                RpcEndpointRef self = rpcEndpointRefDemo.ref();
+                ActorRef self = rpcEndpointRefDemo.ref();
                 endpointRef.fireAndForget(new PrintMessage(++count + "", self));
-                CompletableFuture<RpcEndpointDemo.ReplyMessage> future = endpointRef.requestResponse(new AskMessage(++count + ""));
+                CompletableFuture<ActorDemo.ReplyMessage> future = endpointRef.requestResponse(new AskMessage(++count + ""));
                 System.out.println("ask with block >>>> " + future.get());
 
-                endpointRef.requestResponse(new AskMessage(++count + ""), new RpcCallback() {
+                endpointRef.requestResponse(new AskMessage(++count + ""), new MessageCallback() {
 
                     @Override
                     public <REQ extends Serializable, RESP extends Serializable> void onResponse(long requestId, REQ request, RESP response) {
@@ -85,12 +85,12 @@ public class RpcEndpointRefDemo extends RpcEndpoint {
         private static final long serialVersionUID = -1632194863001778858L;
 
         private String content;
-        private RpcEndpointRef from;
+        private ActorRef from;
 
         public PrintMessage() {
         }
 
-        public PrintMessage(String content, RpcEndpointRef from) {
+        public PrintMessage(String content, ActorRef from) {
             this.content = content;
             this.from = from;
         }
@@ -103,11 +103,11 @@ public class RpcEndpointRefDemo extends RpcEndpoint {
             this.content = content;
         }
 
-        public RpcEndpointRef getFrom() {
+        public ActorRef getFrom() {
             return from;
         }
 
-        public void setFrom(RpcEndpointRef from) {
+        public void setFrom(ActorRef from) {
             this.from = from;
         }
 

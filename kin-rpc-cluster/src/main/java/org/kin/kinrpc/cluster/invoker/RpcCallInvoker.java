@@ -52,6 +52,7 @@ public final class RpcCallInvoker<T> implements Invoker<T> {
         Future<?> timeoutFuture = null;
         if (timeoutMs > 0) {
             //async timeout
+            //这里没有统一纳管timeoutFuture, 一般超时时间都比较短, 待调度触发完成后, 有jvm回收
             timeoutFuture = ReferenceContext.SCHEDULER.schedule(() -> {
                 if (future.isDone()) {
                     //服务调用已有返回结果

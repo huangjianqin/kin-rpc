@@ -1,4 +1,4 @@
-package org.kin.kinrpc.message.core;
+package org.kin.kinrpc.message;
 
 /**
  * 线程安全的RpcEndpoint
@@ -6,9 +6,9 @@ package org.kin.kinrpc.message.core;
  * @author huangjianqin
  * @date 2020-06-16
  */
-public abstract class ThreadSafeRpcEndpoint extends RpcEndpoint {
-    public ThreadSafeRpcEndpoint(RpcEnv rpcEnv) {
-        super(rpcEnv);
+public abstract class ThreadSafeActor extends Actor {
+    public ThreadSafeActor(ActorEnv actorEnv) {
+        super(actorEnv);
     }
 
     @Override

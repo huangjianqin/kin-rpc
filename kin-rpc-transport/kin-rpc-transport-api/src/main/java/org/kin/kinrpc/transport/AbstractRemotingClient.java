@@ -13,9 +13,12 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.*;
+import java.util.function.Consumer;
 
 /**
  * {@link RemotingClient}抽象, 支持心跳健康检查, 自动重连
@@ -111,6 +114,8 @@ public abstract class AbstractRemotingClient implements RemotingClient {
     private final String name;
     /** 用于阻塞等待首次连接完成 */
     private volatile CountDownLatch firstConnWaiter = new CountDownLatch(1);
+    /** 已注册的remoting client state observer */
+    private final List<RemotingClientStateObserver> observers = new CopyOnWriteArrayList<>();
 
     protected AbstractRemotingClient(String host, int port) {
         this.host = host;
@@ -172,6 +177,8 @@ public abstract class AbstractRemotingClient implements RemotingClient {
                     onReconnectSuccess();
                 }
             }
+
+            fireStateObserver(o -> o.onConnectSuccess(this));
         } finally {
             if (Objects.nonNull(firstConnWaiter)) {
                 firstConnWaiter.countDown();
@@ -238,6 +245,8 @@ public abstract class AbstractRemotingClient implements RemotingClient {
 
         this.reconnectSignal = null;
         reconnectSignal.complete(null);
+
+        fireStateObserver(o -> o.onReconnectSuccess(this));
     }
 
     /**
@@ -269,6 +278,8 @@ public abstract class AbstractRemotingClient implements RemotingClient {
 
         //remote down or remote force close connection
         RemotingClientHealthManager.onClientTerminated(helper);
+
+        fireStateObserver(o -> o.onTerminated(this));
     }
 
     @Override
@@ -279,6 +290,10 @@ public abstract class AbstractRemotingClient implements RemotingClient {
 
         terminated = true;
         onShutdown();
+
+        for (CompletableFuture<Object> future : requestFutureMap.values()) {
+            future.completeExceptionally(new TransportException(String.format("%s has terminated", name())));
+        }
 
         RemotingClientHealthManager.removeClient(helper);
     }
@@ -348,14 +363,27 @@ public abstract class AbstractRemotingClient implements RemotingClient {
         return Objects.nonNull(reconnectSignal);
     }
 
-    //getter
+    @Override
+    public void addObservers(Collection<RemotingClientStateObserver> observers) {
+        this.observers.addAll(observers);
+    }
 
     /**
-     * 返回remote address
-     *
-     * @return remote address
+     * 触发client state observer响应action
      */
-    protected final String remoteAddress() {
+    private void fireStateObserver(Consumer<RemotingClientStateObserver> observerAction) {
+        for (RemotingClientStateObserver observer : observers) {
+            try {
+                observerAction.accept(observer);
+            } catch (Exception e) {
+                log.error("fire client state observer error", e);
+            }
+        }
+    }
+
+    //getter
+    @Override
+    public final String remoteAddress() {
         return host + ":" + port;
     }
 

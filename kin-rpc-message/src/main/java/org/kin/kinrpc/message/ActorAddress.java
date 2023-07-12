@@ -1,39 +1,37 @@
-package org.kin.kinrpc.message.core;
-
-import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
+package org.kin.kinrpc.message;
 
 import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * RpcEndpoint地址
+ * actor name + actor address
  *
  * @author huangjianqin
  * @date 2020-06-10
  */
-public final class RpcEndpointAddress implements Serializable {
+public final class ActorAddress implements Serializable {
     private static final long serialVersionUID = 5376277467578311383L;
 
-    /** rpc地址 */
-    private KinRpcAddress rpcAddress;
-    /** receiver name */
+    /** actor address */
+    private Address address;
+    /** actor name */
     private String name;
 
     //------------------------------------------------------------------------------------------------------------
-    public static RpcEndpointAddress of(KinRpcAddress rpcAddress, String name) {
-        RpcEndpointAddress endpointAddress = new RpcEndpointAddress();
-        endpointAddress.rpcAddress = rpcAddress;
+    public static ActorAddress of(Address address, String name) {
+        ActorAddress endpointAddress = new ActorAddress();
+        endpointAddress.address = address;
         endpointAddress.name = name;
         return endpointAddress;
     }
 
     //------------------------------------------------------------------------------------------------------------
-    public KinRpcAddress getRpcAddress() {
-        return rpcAddress;
+    public Address getAddress() {
+        return address;
     }
 
-    public void setRpcAddress(KinRpcAddress rpcAddress) {
-        this.rpcAddress = rpcAddress;
+    public void setAddress(Address address) {
+        this.address = address;
     }
 
     public String getName() {
@@ -52,20 +50,20 @@ public final class RpcEndpointAddress implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        RpcEndpointAddress that = (RpcEndpointAddress) o;
-        return Objects.equals(rpcAddress, that.rpcAddress) &&
+        ActorAddress that = (ActorAddress) o;
+        return Objects.equals(address, that.address) &&
                 Objects.equals(name, that.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(rpcAddress, name);
+        return Objects.hash(address, name);
     }
 
     @Override
     public String toString() {
-        return "RpcEndpointAddress{" +
-                "rpcAddress=" + rpcAddress.schema() +
+        return "ActorAddress{" +
+                "address=" + address +
                 ", name='" + name + '\'' +
                 '}';
     }

@@ -21,7 +21,7 @@ public class RSocketClientTest {
             rpcResponseCommand.deserializeResult(String.class);
             System.out.println(rpcResponseCommand.getResult());
 
-            MessageCommand messageCommand = new MessageCommand((byte) 4, "test", new String("Hello message"));
+            MessageCommand messageCommand = new MessageCommand((byte) 4, new String("Hello message"));
             String messageResponse = client.bRequestResponse(messageCommand);
             System.out.println(messageResponse);
 

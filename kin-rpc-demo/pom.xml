@@ -14,7 +14,7 @@
         <module>kin-rpc-demo-jvm</module>
         <module>kin-rpc-demo-grpc</module>
         <module>kin-rpc-demo-api</module>
-        <module>kin-rpc-demo-message</module>
+        <module>kin-rpc-demo-messagePayload</module>
         <module>kin-rpc-demo-rsocket</module>
         <module>kin-rpc-demo-provider-starter</module>
         <module>kin-rpc-demo-consumer-starter</module>

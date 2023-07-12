@@ -1,6 +1,7 @@
 package org.kin.kinrpc.protocol;
 
 import org.kin.framework.cache.ReferenceCountedCache;
+import org.kin.framework.utils.ExtensionLoader;
 import org.kin.kinrpc.Exporter;
 import org.kin.kinrpc.ReferenceInvoker;
 import org.kin.kinrpc.RpcService;
@@ -8,14 +9,13 @@ import org.kin.kinrpc.ServiceInstance;
 import org.kin.kinrpc.config.ExecutorConfig;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.ServerConfig;
-import org.kin.kinrpc.config.SslConfig;
 import org.kin.kinrpc.executor.ExecutorHelper;
 import org.kin.kinrpc.executor.ManagedExecutor;
 import org.kin.kinrpc.transport.RemotingClient;
 import org.kin.kinrpc.transport.RemotingServer;
+import org.kin.kinrpc.transport.Transport;
 import org.kin.kinrpc.transport.cmd.RequestCommand;
 
-import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -36,6 +36,13 @@ public abstract class AbstractProtocol implements Protocol {
      * todo 同一remote server, 是否考虑需要client池
      */
     private final ReferenceCountedCache<String, RemotingClient> clientCache = new ReferenceCountedCache<>();
+
+    /**
+     * 返回协议名
+     *
+     * @return 协议名
+     */
+    protected abstract String name();
 
     @Override
     public final <T> Exporter<T> export(RpcService<T> rpcService, ServerConfig serverConfig) {
@@ -69,22 +76,14 @@ public abstract class AbstractProtocol implements Protocol {
         String executorName = serverConfig.getAddress() + "-command-processor";
         ManagedExecutor executor = Objects.nonNull(executorConfig) ? ExecutorHelper.getOrCreateExecutor(executorConfig, executorName) : null;
 
-        RemotingServer server = createServer(serverConfig, executor);
+        Transport transport = ExtensionLoader.getExtension(Transport.class, name());
+        RemotingServer server = transport.createServer(serverConfig.getHost(), serverConfig.getPort(), executor, serverConfig.getSsl());
         DefaultRpcRequestProcessor rpcRequestProcessor = new DefaultRpcRequestProcessor();
         server.registerRequestProcessor(rpcRequestProcessor);
 
         server.start();
         return new RemotingServerContext(server, rpcRequestProcessor);
     }
-
-    /**
-     * 构造{@link RemotingServer}实例
-     *
-     * @param serverConfig server config
-     * @param executor     server command process executor
-     * @return {@link RemotingServer}实例
-     */
-    protected abstract RemotingServer createServer(ServerConfig serverConfig, @Nullable ManagedExecutor executor);
 
     /**
      * service export时触发
@@ -107,20 +106,13 @@ public abstract class AbstractProtocol implements Protocol {
                                                ServiceInstance instance) {
         String address = instance.address();
         RemotingClient client = clientCache.get(address, () -> {
-            RemotingClient innerClient = wrapClient(createClient(instance, referenceConfig.getSsl()), address);
+            Transport transport = ExtensionLoader.getExtension(Transport.class, name());
+            RemotingClient innerClient = wrapClient(transport.createClient(instance.host(), instance.port(), referenceConfig.getSsl()), address);
             innerClient.connect();
             return innerClient;
         });
         return new DefaultReferenceInvoker<>(referenceConfig, instance, client);
     }
-
-    /**
-     * 构造{@link RemotingClient}实例
-     *
-     * @param instance service instance
-     * @return {@link RemotingClient}实例
-     */
-    protected abstract RemotingClient createClient(ServiceInstance instance, SslConfig sslConfig);
 
     /**
      * 对{@link RemotingClient#shutdown()}进一步封装, 释放client引用, 而不是直接shutdown client

@@ -1,6 +1,7 @@
-package org.kin.kinrpc.message.core;
+package org.kin.kinrpc.message;
 
-import org.kin.kinrpc.transport.kinrpc.KinRpcAddress;
+import org.kin.kinrpc.transport.RemotingClient;
+import org.kin.kinrpc.transport.RemotingClientStateObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,28 +19,28 @@ import java.util.concurrent.Future;
 final class OutBox {
     private static final Logger log = LoggerFactory.getLogger(OutBox.class);
 
-    /** 接收方地址 */
-    private final KinRpcAddress address;
-    /** 所属rpc环境 */
-    private final RpcEnv rpcEnv;
-    /** 该OutBox邮箱绑定的client */
-    private TransportClient client;
+    /** remote address */
+    private final Address address;
+    /** actor env */
+    private final ActorEnv actorEnv;
+    /** remote client */
+    private MessageClient client;
     /** 待发送队列 */
     private final LinkedList<OutBoxMessage> pendingMessages = new LinkedList<>();
     private boolean isStopped;
     /** 是否正在发送消息 */
     private volatile boolean draining;
-    /** 客户端连接的Future */
+    /** client connect future */
     @SuppressWarnings("rawtypes")
     private Future clientConnectFuture;
 
-    OutBox(KinRpcAddress address, RpcEnv rpcEnv) {
+    OutBox(Address address, ActorEnv actorEnv) {
         this.address = address;
-        this.rpcEnv = rpcEnv;
+        this.actorEnv = actorEnv;
     }
 
     /**
-     * 发送消息, 本质上是消息入队, 并等待client发送
+     * 消息入队, 等待client发送
      */
     void pushMessage(OutBoxMessage outBoxMessage) {
         boolean dropped = false;
@@ -52,19 +53,19 @@ final class OutBox {
         }
 
         if (dropped) {
-            log.warn("drop message, because of outbox stopped >>>> {}", outBoxMessage);
+            log.warn("drop message, because of outbox stopped, {}", outBoxMessage);
         } else {
             if (draining) {
                 return;
             }
 
             //async
-            rpcEnv.commonExecutors.execute(OutBox.this::drainOutbox);
+            actorEnv.commonExecutors.execute(OutBox.this::drainOutbox);
         }
     }
 
     /**
-     * 消息真正发送的逻辑
+     * 发送消息
      */
     private void drainOutbox() {
         OutBoxMessage outBoxMessage;
@@ -99,7 +100,7 @@ final class OutBox {
 
         while (true) {
             try {
-                TransportClient client;
+                MessageClient client;
                 synchronized (this) {
                     if (!validClient()) {
                         return;
@@ -128,13 +129,13 @@ final class OutBox {
     }
 
     /**
-     * 校验client是否有效
+     * 校验client是否可用
      * 在对象锁内操作
      */
     private boolean validClient() {
         if (Objects.isNull(client)) {
             //没有连接好的客户端, 创建一个
-            clientConnect();
+            createClient();
             return false;
         }
 
@@ -146,41 +147,47 @@ final class OutBox {
     }
 
     /**
-     * 处理消息发送中遇到的异常
+     * 异常统一处理
      * 在对象锁内操作
      */
     private void handleException(Exception e) {
         log.error("", e);
-        synchronized (this) {
-            if (Objects.isNull(clientConnectFuture)) {
-                //移除该outbox
-                rpcEnv.removeOutBox(address);
+        if (Objects.isNull(clientConnectFuture)) {
+            synchronized (this) {
+                if (Objects.isNull(clientConnectFuture)) {
+                    //client还没连上, 可能是connect fail
+                    //移除该outbox
+                    actorEnv.removeOutBox(address);
+                }
             }
         }
     }
 
     /**
-     * 获取与该OutBox绑定的client
+     * 创建与该OutBox绑定的client
      * 在对象锁内操作
      */
-    private void clientConnect() {
+    private void createClient() {
         if (Objects.nonNull(clientConnectFuture)) {
             return;
         }
 
-        clientConnectFuture = rpcEnv.commonExecutors.submit(() -> {
+        clientConnectFuture = actorEnv.commonExecutors.submit(() -> {
             try {
-                TransportClient client = rpcEnv.getClient(address);
+                MessageClient client = actorEnv.getClient(address);
                 synchronized (OutBox.this) {
                     if (!isStopped) {
                         OutBox.this.client = client;
                         if (OutBox.this.client.isActive()) {
                             //很快连接上
-                            rpcEnv.commonExecutors.execute(OutBox.this::drainOutbox);
+                            actorEnv.commonExecutors.execute(OutBox.this::drainOutbox);
                         } else {
                             //很慢, 设置callback
-                            OutBox.this.client.updateConnectionInitCallback(() -> {
-                                rpcEnv.commonExecutors.execute(OutBox.this::drainOutbox);
+                            OutBox.this.client.setClientStateObserver(new RemotingClientStateObserver() {
+                                @Override
+                                public void onConnectSuccess(RemotingClient client) {
+                                    actorEnv.commonExecutors.execute(OutBox.this::drainOutbox);
+                                }
                             });
                         }
                     }
@@ -200,9 +207,9 @@ final class OutBox {
     }
 
     /**
-     * outbox stopped
+     * destroy outbox
      */
-    void stop() {
+    void destroy() {
         synchronized (this) {
             if (isStopped) {
                 return;

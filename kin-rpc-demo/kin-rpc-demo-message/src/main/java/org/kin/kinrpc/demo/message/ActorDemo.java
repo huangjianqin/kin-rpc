@@ -1,9 +1,9 @@
 package org.kin.kinrpc.demo.message;
 
 import org.kin.framework.JvmCloseCleaner;
-import org.kin.kinrpc.message.core.MessagePostContext;
-import org.kin.kinrpc.message.core.RpcEndpoint;
-import org.kin.kinrpc.message.core.RpcEnv;
+import org.kin.kinrpc.message.Actor;
+import org.kin.kinrpc.message.ActorEnv;
+import org.kin.kinrpc.message.MessagePostContext;
 
 import java.io.Serializable;
 
@@ -11,21 +11,21 @@ import java.io.Serializable;
  * @author huangjianqin
  * @date 2020-06-13
  */
-public class RpcEndpointDemo extends RpcEndpoint {
-    public RpcEndpointDemo(RpcEnv rpcEnv) {
-        super(rpcEnv);
+public class ActorDemo extends Actor {
+    public ActorDemo(ActorEnv actorEnv) {
+        super(actorEnv);
     }
 
     public static void main(String[] args) {
-        RpcEnv rpcEnv = new RpcEnv("0.0.0.0", 16888);
-        rpcEnv.startServer();
+        ActorEnv actorEnv = new ActorEnv("0.0.0.0", 16888);
+        actorEnv.startServer();
         String name = "rpcEndpointDemo";
-        RpcEndpointDemo rpcEndpointDemo = new RpcEndpointDemo(rpcEnv);
-        rpcEnv.register(name, rpcEndpointDemo);
+        ActorDemo rpcEndpointDemo = new ActorDemo(actorEnv);
+        actorEnv.newActor(name, rpcEndpointDemo);
 
         JvmCloseCleaner.instance().add(() -> {
-            rpcEnv.unregister(name, rpcEndpointDemo);
-            rpcEnv.stop();
+            actorEnv.removeActor(name, rpcEndpointDemo);
+            actorEnv.destroy();
         });
     }
 
@@ -43,11 +43,11 @@ public class RpcEndpointDemo extends RpcEndpoint {
     protected void onReceiveMessage(MessagePostContext context) {
         Serializable message = context.getMessage();
         System.out.println(message);
-        if (message instanceof RpcEndpointRefDemo.PrintMessage) {
+        if (message instanceof ActorRefDemo.PrintMessage) {
             //相当于创建client, send message
-            RpcEndpointRefDemo.PrintMessage printMessage = (RpcEndpointRefDemo.PrintMessage) message;
+            ActorRefDemo.PrintMessage printMessage = (ActorRefDemo.PrintMessage) message;
             printMessage.getFrom().fireAndForget(new ReplyMessage(context.getRequestId(), Integer.parseInt(printMessage.getContent())));
-        } else if (message instanceof RpcEndpointRefDemo.AskMessage) {
+        } else if (message instanceof ActorRefDemo.AskMessage) {
             //原路返回
             context.response(new ReplyMessage(context.getRequestId(), -1));
         }

@@ -3,30 +3,27 @@ package org.kin.kinrpc.protocol.grpc;
 import org.kin.framework.utils.Extension;
 import org.kin.kinrpc.MethodMetadata;
 import org.kin.kinrpc.RpcService;
-import org.kin.kinrpc.ServiceInstance;
-import org.kin.kinrpc.config.ServerConfig;
-import org.kin.kinrpc.config.SslConfig;
-import org.kin.kinrpc.executor.ManagedExecutor;
 import org.kin.kinrpc.protocol.AbstractProtocol;
-import org.kin.kinrpc.transport.RemotingClient;
 import org.kin.kinrpc.transport.RemotingServer;
-import org.kin.kinrpc.transport.grpc.GrpcClient;
 import org.kin.kinrpc.transport.grpc.GrpcServer;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.kin.kinrpc.protocol.grpc.GrpcProtocol.NAME;
 
 /**
  * @author huangjianqin
  * @date 2020/12/1
  */
-@Extension("grpc")
+@Extension(NAME)
 public final class GrpcProtocol extends AbstractProtocol {
+    /** 协议名 */
+    public static final String NAME = "grpc";
 
     @Override
-    protected RemotingServer createServer(ServerConfig serverConfig, @Nullable ManagedExecutor executor) {
-        return new GrpcServer(serverConfig.getHost(), serverConfig.getPort(), executor, serverConfig.getSsl());
+    protected String name() {
+        return NAME;
     }
 
     @Override
@@ -45,10 +42,5 @@ public final class GrpcProtocol extends AbstractProtocol {
         GrpcServer grpcServer = (GrpcServer) server;
         //remove grpc service descriptor
         grpcServer.unregisterService(service.serviceId());
-    }
-
-    @Override
-    protected RemotingClient createClient(ServiceInstance instance, SslConfig sslConfig) {
-        return new GrpcClient(instance.host(), instance.port(), sslConfig);
     }
 }
