@@ -3,6 +3,7 @@ package org.kin.kinrpc.bootstrap;
 import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadPoolUtils;
 import org.kin.framework.utils.SPI;
+import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.KinRpcRuntimeContext;
 import org.kin.kinrpc.config.ServiceConfig;
 import org.slf4j.Logger;
@@ -23,8 +24,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @SPI(alias = "serviceBootstrap", singleton = false)
 public abstract class ServiceBootstrap<T> {
-    protected static final ScheduledExecutorService DELAY_EXPORTER = ThreadPoolUtils.newScheduledThreadPool("kinrpc-delay-exporter", true,
-            2,
+    /** 延迟发布调度线程池 */
+    private static final ScheduledExecutorService DELAY_EXPORTER = ThreadPoolUtils.newScheduledThreadPool("kinrpc-delay-exporter", true,
+            SysUtils.CPU_NUM / 2 + 1,
             new SimpleThreadFactory("kinrpc-delay-exporter", true),
             new ThreadPoolExecutor.CallerRunsPolicy());
 
