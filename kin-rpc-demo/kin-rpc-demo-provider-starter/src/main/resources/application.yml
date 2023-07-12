@@ -17,3 +17,4 @@ kinrpc:
     filter-beans: "logFilter"
     delay: 3000
     token: "123456"
+  async-export-refer: true

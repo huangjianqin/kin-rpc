@@ -110,6 +110,7 @@ public class RemoteServiceConsumer extends ServiceConsumer {
                         .handler(MethodConfig.create("asyncFind").timeout(3000))
                         .handler(MethodConfig.create("delayRandom").sticky().retries(2))
                         .handler(MethodConfig.create("asyncFind2").async()))
+                .asyncExportRefer()
                 .start();
 
         try {

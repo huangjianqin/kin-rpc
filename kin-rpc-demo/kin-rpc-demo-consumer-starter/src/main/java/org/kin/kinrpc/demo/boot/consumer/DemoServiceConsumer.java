@@ -15,18 +15,9 @@ import org.springframework.stereotype.Component;
 public class DemoServiceConsumer extends RemoteServiceConsumer implements ApplicationRunner {
     @Autowired
     private DemoService demoService;
-//    @KinRpcReference(serviceName = "demo",
-//            generic = true,
-//            handlers = {@KinRpcHandler(name = "asyncFind"),
-//                    @KinRpcHandler(name = "delayRandom", sticky = true, retries = 2),
-//                    @KinRpcHandler(name = "asyncFind2", async = true),
-//            })
-//    private GenericService genericDemoService;
 
     @Override
-    public void run(ApplicationArguments args) throws Exception {
+    public void run(ApplicationArguments args) {
         invokeDemoService(demoService);
-
-//        invokeGenericDemoService(genericDemoService);
     }
 }

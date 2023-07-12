@@ -131,6 +131,11 @@ public class KinRpcServiceBeanProcessor implements BeanPostProcessor, Applicatio
             serviceConfig.delay(delay);
         }
 
+        boolean exportAsync = (boolean) serviceAnnoAttrs.get("exportAsync");
+        if (exportAsync) {
+            serviceConfig.exportAsync();
+        }
+
         KinRpcBootstrap.instance().service(serviceConfig);
     }
 }

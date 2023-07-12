@@ -12,3 +12,4 @@ kinrpc:
     rpc-timeout: 2000
     retries: 4
     filter-beans: "logFilter"
+  async-export-refer: true

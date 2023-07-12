@@ -3,16 +3,22 @@ package org.kin.kinrpc.bootstrap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import org.kin.framework.collection.AttachmentMap;
+import org.kin.framework.concurrent.SimpleThreadFactory;
+import org.kin.framework.concurrent.ThreadPoolUtils;
 import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.NetUtils;
 import org.kin.framework.utils.StringUtils;
+import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.GenericService;
 import org.kin.kinrpc.IllegalConfigException;
 import org.kin.kinrpc.config.*;
 import org.kin.kinrpc.registry.RegistryHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -28,6 +34,8 @@ import java.util.function.Supplier;
  * @date 2023/7/7
  */
 public final class KinRpcBootstrap {
+    private static final Logger log = LoggerFactory.getLogger(KinRpcBootstrap.class);
+
     /** 单例 */
     private static KinRpcBootstrap instance;
     /** 初始状态 */
@@ -53,6 +61,9 @@ public final class KinRpcBootstrap {
     private boolean block = false;
     /** 状态 */
     private final AtomicInteger state = new AtomicInteger(INIT_STATE);
+    /** async export or refer future */
+    private List<CompletableFuture<Void>> asyncExportReferFutures = new ArrayList<>();
+    private ExecutorService asyncExportReferExecutor;
 
     //---------------------------------------------------------------------------config
     /** 应用配置 */
@@ -70,6 +81,8 @@ public final class KinRpcBootstrap {
     private String version;
     /** 默认序列化方式 */
     private String serialization;
+    /** 标识是否异步export或refer */
+    private boolean asyncExportRefer;
 
     //--------------------------------------------------------------------------------cache
     /**
@@ -102,7 +115,7 @@ public final class KinRpcBootstrap {
     /**
      * boostrap start
      */
-    public void start() {
+    public synchronized void start() {
         if (!state.compareAndSet(INIT_STATE, STARTED_STATE)) {
             return;
         }
@@ -121,6 +134,8 @@ public final class KinRpcBootstrap {
 
         //服务引用
         referServices();
+
+        waitAsyncExportRefer();
     }
 
     /**
@@ -228,6 +243,7 @@ public final class KinRpcBootstrap {
         setUpConfigIfNotExists(serviceConfig::bootstrap, serviceConfig::getBootstrap, provider, ProviderConfig::getBootstrap);
         setUpConfigIfNotExists(serviceConfig::delay, serviceConfig::getDelay, provider, ProviderConfig::getDelay);
         setUpConfigIfNotExists(serviceConfig::token, serviceConfig::getToken, provider, ProviderConfig::getToken);
+        setUpConfigIfNotExists(serviceConfig::exportAsync, serviceConfig::isExportAsync, provider, ProviderConfig::isExportAsync);
 
         //attachment
         if (Objects.nonNull(provider)) {
@@ -494,7 +510,7 @@ public final class KinRpcBootstrap {
             long delay = serviceConfig.getDelay();
             if (delay > 0) {
                 //先发布延迟发布的服务
-                serviceConfig.export();
+                exportService(serviceConfig);
             } else {
                 nonDelayServices.add(serviceConfig);
             }
@@ -502,6 +518,18 @@ public final class KinRpcBootstrap {
 
         //后发布非延迟发布的服务
         for (ServiceConfig<?> serviceConfig : nonDelayServices) {
+            exportService(serviceConfig);
+        }
+    }
+
+    /**
+     * 发布服务
+     */
+    private void exportService(ServiceConfig<?> serviceConfig) {
+        if (isAsyncExportRefer()) {
+            CompletableFuture<Void> future = CompletableFuture.runAsync(serviceConfig::export, getAsyncExportReferExecutor());
+            asyncExportReferFutures.add(future);
+        } else {
             serviceConfig.export();
         }
     }
@@ -517,21 +545,34 @@ public final class KinRpcBootstrap {
         }
 
         for (ReferenceConfig<?> referenceConfig : referenceConfigs) {
-            Class<?> interfaceClass = referenceConfig.getInterfaceClass();
-            String service = referenceConfig.getService();
-            Object proxy = referenceConfig.refer();
-
-            if (!GenericService.class.equals(interfaceClass)) {
-                interface2Reference.put(interfaceClass, proxy);
+            if (isAsyncExportRefer()) {
+                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> referService(referenceConfig), getAsyncExportReferExecutor());
+                asyncExportReferFutures.add(future);
+            } else {
+                referService(referenceConfig);
             }
-            service2Reference.put(service, proxy);
         }
+    }
+
+    /**
+     * 服务引用
+     */
+    private void referService(ReferenceConfig<?> referenceConfig) {
+        Class<?> interfaceClass = referenceConfig.getInterfaceClass();
+        String service = referenceConfig.getService();
+
+        Object proxy = referenceConfig.refer();
+
+        if (!GenericService.class.equals(interfaceClass)) {
+            interface2Reference.put(interfaceClass, proxy);
+        }
+        service2Reference.put(service, proxy);
     }
 
     /**
      * boostrap destroy
      */
-    public void destroy() {
+    public synchronized void destroy() {
         if (!state.compareAndSet(STARTED_STATE, TERMINATED_STATE)) {
             return;
         }
@@ -701,6 +742,49 @@ public final class KinRpcBootstrap {
         k2Config.put(key, c);
     }
 
+    /**
+     * 返回async export or refer executor
+     *
+     * @return
+     */
+    private ExecutorService getAsyncExportReferExecutor() {
+        if (Objects.isNull(asyncExportReferExecutor)) {
+            asyncExportReferExecutor = ThreadPoolUtils.newThreadPool("kinrpc-asyncExportRefer-", false,
+                    SysUtils.DOUBLE_CPU, SysUtils.DOUBLE_CPU, 60, TimeUnit.SECONDS,
+                    new LinkedBlockingQueue<>(), new SimpleThreadFactory("kinrpc-asyncExportRefer-", true));
+        }
+        return asyncExportReferExecutor;
+    }
+
+    /**
+     * 等待async export or refer结束
+     */
+    private void waitAsyncExportRefer() {
+        if (CollectionUtils.isEmpty(asyncExportReferFutures)) {
+            return;
+        }
+
+        try {
+            try {
+                CompletableFuture.allOf(asyncExportReferFutures.toArray(new CompletableFuture<?>[]{}))
+                        .get();
+            } catch (Throwable e) {
+                if (e instanceof ExecutionException) {
+                    e = e.getCause();
+                }
+                log.error("async export or refer error", e);
+            }
+        } finally {
+            if (Objects.nonNull(asyncExportReferExecutor)) {
+                asyncExportReferExecutor.shutdown();
+                asyncExportReferExecutor = null;
+            }
+            asyncExportReferFutures.clear();
+            asyncExportReferFutures = null;
+            log.info("async export or refer finished");
+        }
+    }
+
     //setter && getter
     public ApplicationConfig getApp() {
         return app;
@@ -854,6 +938,15 @@ public final class KinRpcBootstrap {
     public KinRpcBootstrap executors(List<ExecutorConfig> executors) {
         checkBeforeModify();
         addConfigs(ExecutorConfig.class, executors);
+        return this;
+    }
+
+    public boolean isAsyncExportRefer() {
+        return asyncExportRefer;
+    }
+
+    public KinRpcBootstrap asyncExportRefer() {
+        this.asyncExportRefer = true;
         return this;
     }
 }

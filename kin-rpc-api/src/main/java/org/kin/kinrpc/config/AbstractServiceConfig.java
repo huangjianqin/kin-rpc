@@ -25,6 +25,8 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
     private Long delay;
     /** 是否开启token校验 */
     private String token;
+    /** 标识是否异步export */
+    private Boolean exportAsync;
 
     @Override
     public void checkValid() {
@@ -71,6 +73,10 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
 
         if (Objects.isNull(delay)) {
             delay = DefaultConfig.DEFAULT_SERVICE_DELAY;
+        }
+
+        if (Objects.isNull(exportAsync)) {
+            exportAsync = DefaultConfig.DEFAULT_SERVICE_EXPORT_ASYNC;
         }
     }
 
@@ -153,6 +159,19 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
         return castThis();
     }
 
+    public Boolean isExportAsync() {
+        return exportAsync;
+    }
+
+    public ASC exportAsync(boolean exportAsync) {
+        this.exportAsync = exportAsync;
+        return castThis();
+    }
+
+    public ASC exportAsync() {
+        return exportAsync(true);
+    }
+
     //----------------------
     public AbstractServiceConfig<ASC> setExecutor(ExecutorConfig executor) {
         this.executor = executor;
@@ -179,6 +198,10 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
         return this;
     }
 
+    public void setExportAsync(Boolean exportAsync) {
+        this.exportAsync = exportAsync;
+    }
+
     @Override
     public String toString() {
         return super.toString() +
@@ -187,6 +210,7 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
                 ", weight=" + weight +
                 ", bootstrap='" + bootstrap + '\'' +
                 ", delay=" + delay +
-                ", token=" + token;
+                ", token=" + token +
+                ", exportAsync=" + exportAsync;
     }
 }

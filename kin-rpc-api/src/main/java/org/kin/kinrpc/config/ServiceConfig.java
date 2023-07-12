@@ -10,6 +10,7 @@ import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ForkJoinPool;
 
 /**
  * 服务配置
@@ -96,8 +97,17 @@ public final class ServiceConfig<T> extends AbstractServiceConfig<ServiceConfig<
     /**
      * 发布服务
      */
-    @SuppressWarnings("unchecked")
     public synchronized ServiceConfig<T> export() {
+        if (isExportAsync()) {
+            ForkJoinPool.commonPool().execute(this::export0);
+        } else {
+            export0();
+        }
+        return this;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void export0() {
         initDefaultConfig();
         checkValid();
 
@@ -106,7 +116,6 @@ public final class ServiceConfig<T> extends AbstractServiceConfig<ServiceConfig<
         }
 
         serviceBootstrap.export();
-        return this;
     }
 
     /**

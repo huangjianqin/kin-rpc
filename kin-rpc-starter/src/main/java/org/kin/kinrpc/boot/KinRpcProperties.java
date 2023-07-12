@@ -14,6 +14,8 @@ import java.util.List;
 public class KinRpcProperties {
     /** 应用名 */
     private String appName;
+    /** 标识是否异步export或refer */
+    private boolean asyncExportRefer;
 
     /** 全局executor config */
     @NestedConfigurationProperty
@@ -138,6 +140,14 @@ public class KinRpcProperties {
 
     public void setConsumers(List<ConsumerProperty> consumers) {
         this.consumers = consumers;
+    }
+
+    public boolean isAsyncExportRefer() {
+        return asyncExportRefer;
+    }
+
+    public void setAsyncExportRefer(boolean asyncExportRefer) {
+        this.asyncExportRefer = asyncExportRefer;
     }
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------

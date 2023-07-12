@@ -58,6 +58,10 @@ public class KinRpcBootstrapApplicationListener implements ApplicationListener<A
         String appName = StringUtils.isNotBlank(properties.getAppName()) ? properties.getAppName() : springAppName;
         bootstrap.app(appName);
 
+        if (properties.isAsyncExportRefer()) {
+            bootstrap.asyncExportRefer();
+        }
+
         //combine
         List<ExecutorConfig> executors = new ArrayList<>(4);
         List<RegistryConfig> registries = new ArrayList<>(4);

@@ -55,6 +55,7 @@ public class RemoteServiceApplication {
                     .service(ServiceConfig.create(DemoService.class, new DemoServiceImpl())
                             .serviceName(Constants.DEMO_SERVICE_NAME)
                             .weight(2))
+                    .asyncExportRefer()
                     .start();
 
             System.in.read();

@@ -75,6 +75,7 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
             bootstrap = DefaultConfig.DEFAULT_REFERENCE_BOOTSTRAP;
         }
 
+
         if (Objects.isNull(rpcTimeout)) {
             rpcTimeout = DefaultConfig.DEFAULT_METHOD_TIMEOUT;
         }

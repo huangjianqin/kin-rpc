@@ -1,7 +1,8 @@
 package org.kin.kinrpc.bootstrap;
 
+import org.kin.framework.concurrent.SimpleThreadFactory;
+import org.kin.framework.concurrent.ThreadPoolUtils;
 import org.kin.framework.utils.SPI;
-import org.kin.kinrpc.KinRpcAppContext;
 import org.kin.kinrpc.KinRpcRuntimeContext;
 import org.kin.kinrpc.config.ServiceConfig;
 import org.slf4j.Logger;
@@ -9,6 +10,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -20,6 +23,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @SPI(alias = "serviceBootstrap", singleton = false)
 public abstract class ServiceBootstrap<T> {
+    protected static final ScheduledExecutorService DELAY_EXPORTER = ThreadPoolUtils.newScheduledThreadPool("kinrpc-delay-exporter", true,
+            2,
+            new SimpleThreadFactory("kinrpc-delay-exporter", true),
+            new ThreadPoolExecutor.CallerRunsPolicy());
+
     private static final Logger log = LoggerFactory.getLogger(ServiceBootstrap.class);
     /** 已发布的服务gsv */
     private static final Set<String> EXPORTED_SERVICES = new CopyOnWriteArraySet<>();
@@ -50,7 +58,7 @@ public abstract class ServiceBootstrap<T> {
         long delay = config.getDelay();
         if (delay > 0) {
             log.info("service '{}' will auto export after {} ms", config.getService(), delay);
-            KinRpcAppContext.SCHEDULER.schedule(this::export0, delay, TimeUnit.MILLISECONDS);
+            DELAY_EXPORTER.schedule(this::export0, delay, TimeUnit.MILLISECONDS);
         } else {
             export0();
         }

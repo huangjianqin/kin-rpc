@@ -84,4 +84,7 @@ public @interface KinRpcService {
 
     /** 延迟发布时间, 毫秒 */
     long delay() default 0L;
+
+    /** 标识是否异步export */
+    boolean exportAsync() default false;
 }
