@@ -5,10 +5,7 @@ import com.google.common.collect.MultimapBuilder;
 import org.kin.framework.collection.AttachmentMap;
 import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadPoolUtils;
-import org.kin.framework.utils.CollectionUtils;
-import org.kin.framework.utils.NetUtils;
-import org.kin.framework.utils.StringUtils;
-import org.kin.framework.utils.SysUtils;
+import org.kin.framework.utils.*;
 import org.kin.kinrpc.GenericService;
 import org.kin.kinrpc.IllegalConfigException;
 import org.kin.kinrpc.config.*;
@@ -63,6 +60,7 @@ public final class KinRpcBootstrap {
     private final AtomicInteger state = new AtomicInteger(INIT_STATE);
     /** async export or refer future */
     private List<CompletableFuture<Void>> asyncExportReferFutures = new ArrayList<>();
+    /** async export or refer executor */
     private ExecutorService asyncExportReferExecutor;
 
     //---------------------------------------------------------------------------config
@@ -83,7 +81,8 @@ public final class KinRpcBootstrap {
     private String serialization;
     /** 标识是否异步export或refer */
     private boolean asyncExportRefer;
-
+    /** 注册的{@link KinRpcBootstrapListener}实例信息 */
+    private final List<KinRpcBootstrapListener> kinRpcBootstrapListeners = new ArrayList<>();
     //--------------------------------------------------------------------------------cache
     /**
      * 服务引用缓存
@@ -110,6 +109,11 @@ public final class KinRpcBootstrap {
     }
 
     private KinRpcBootstrap() {
+        //加载通过spi注册的listener
+        List<KinRpcBootstrapListener> kinRpcBootstrapListeners = ExtensionLoader.getExtensions(KinRpcBootstrapListener.class);
+        if (CollectionUtils.isNonEmpty(kinRpcBootstrapListeners)) {
+            listeners(kinRpcBootstrapListeners);
+        }
     }
 
     /**
@@ -136,6 +140,14 @@ public final class KinRpcBootstrap {
         referServices();
 
         waitAsyncExportRefer();
+
+        for (KinRpcBootstrapListener listener : kinRpcBootstrapListeners) {
+            try {
+                listener.onStarted(this);
+            } catch (Exception e) {
+                log.error("KinRpcBootstrapListener#onStarted fail", e);
+            }
+        }
     }
 
     /**
@@ -585,6 +597,14 @@ public final class KinRpcBootstrap {
             serviceConfig.unExport();
         }
 
+        for (KinRpcBootstrapListener listener : kinRpcBootstrapListeners) {
+            try {
+                listener.onDestroyed(this);
+            } catch (Exception e) {
+                log.error("KinRpcBootstrapListener#onDestroyed fail", e);
+            }
+        }
+
         //notify block
         blockLock.lock();
         try {
@@ -864,7 +884,7 @@ public final class KinRpcBootstrap {
         return providers(Arrays.asList(providers));
     }
 
-    public KinRpcBootstrap providers(List<ProviderConfig> providers) {
+    public KinRpcBootstrap providers(Collection<ProviderConfig> providers) {
         checkBeforeModify();
         addConfigs(ProviderConfig.class, providers);
         return this;
@@ -883,7 +903,7 @@ public final class KinRpcBootstrap {
         return consumers(Arrays.asList(consumers));
     }
 
-    public KinRpcBootstrap consumers(List<ConsumerConfig> consumers) {
+    public KinRpcBootstrap consumers(Collection<ConsumerConfig> consumers) {
         checkBeforeModify();
         addConfigs(ConsumerConfig.class, consumers);
         return this;
@@ -915,7 +935,7 @@ public final class KinRpcBootstrap {
         return servers(Arrays.asList(servers));
     }
 
-    public KinRpcBootstrap servers(List<ServerConfig> servers) {
+    public KinRpcBootstrap servers(Collection<ServerConfig> servers) {
         checkBeforeModify();
         addConfigs(ServerConfig.class, servers);
         return this;
@@ -935,7 +955,7 @@ public final class KinRpcBootstrap {
         return executors(Arrays.asList(executors));
     }
 
-    public KinRpcBootstrap executors(List<ExecutorConfig> executors) {
+    public KinRpcBootstrap executors(Collection<ExecutorConfig> executors) {
         checkBeforeModify();
         addConfigs(ExecutorConfig.class, executors);
         return this;
@@ -947,6 +967,15 @@ public final class KinRpcBootstrap {
 
     public KinRpcBootstrap asyncExportRefer() {
         this.asyncExportRefer = true;
+        return this;
+    }
+
+    public KinRpcBootstrap listeners(KinRpcBootstrapListener... listeners) {
+        return listeners(Arrays.asList(listeners));
+    }
+
+    public KinRpcBootstrap listeners(Collection<KinRpcBootstrapListener> listeners) {
+        kinRpcBootstrapListeners.addAll(listeners);
         return this;
     }
 }

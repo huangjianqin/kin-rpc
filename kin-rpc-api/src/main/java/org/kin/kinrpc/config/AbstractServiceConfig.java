@@ -104,7 +104,7 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
         return servers(Arrays.asList(servers));
     }
 
-    public ASC servers(List<ServerConfig> servers) {
+    public ASC servers(Collection<ServerConfig> servers) {
         this.servers.addAll(servers);
         return castThis();
     }

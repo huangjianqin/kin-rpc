@@ -33,4 +33,9 @@ public class KinRpcAutoConfiguration {
     public KinRpcReferenceFieldProcessor kinRpcReferenceFieldProcessor() {
         return new KinRpcReferenceFieldProcessor();
     }
+
+    @Bean
+    public SpringKinRpcBootstrapListener springKinRpcBootstrapListener() {
+        return new SpringKinRpcBootstrapListener();
+    }
 }

@@ -4,6 +4,7 @@ import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.bootstrap.KinRpcBootstrap;
+import org.kin.kinrpc.bootstrap.KinRpcBootstrapListener;
 import org.kin.kinrpc.config.ExecutorConfig;
 import org.kin.kinrpc.config.RegistryConfig;
 import org.kin.kinrpc.config.ServerConfig;
@@ -15,9 +16,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.ContextStoppedEvent;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author huangjianqin
@@ -60,6 +59,13 @@ public class KinRpcBootstrapApplicationListener implements ApplicationListener<A
 
         if (properties.isAsyncExportRefer()) {
             bootstrap.asyncExportRefer();
+        }
+
+        //listener bean
+        Map<String, KinRpcBootstrapListener> kinRpcBootstrapListenerMap = applicationContext.getBeansOfType(KinRpcBootstrapListener.class);
+        Collection<KinRpcBootstrapListener> kinRpcBootstrapListeners = kinRpcBootstrapListenerMap.values();
+        if (CollectionUtils.isNonEmpty(kinRpcBootstrapListeners)) {
+            bootstrap.listeners(kinRpcBootstrapListeners);
         }
 
         //combine

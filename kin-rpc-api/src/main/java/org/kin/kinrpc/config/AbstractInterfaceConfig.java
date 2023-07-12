@@ -110,7 +110,7 @@ public abstract class AbstractInterfaceConfig<IC extends AbstractInterfaceConfig
         return registries(Arrays.asList(registries));
     }
 
-    public IC registries(List<RegistryConfig> registries) {
+    public IC registries(Collection<RegistryConfig> registries) {
         this.registries.addAll(registries);
         return castThis();
     }
