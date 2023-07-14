@@ -27,7 +27,7 @@ public final class ActorContext extends AttachmentMap {
     /** sender */
     private final ActorRef sender;
     /** receiver actor name */
-    private final ActorAddress toActorAddress;
+    private final ActorPath toActorPath;
     /** 消息 */
     private final Object message;
     /** 消息事件时间, 即到达receiver端但还未处理的时间 */
@@ -37,11 +37,11 @@ public final class ActorContext extends AttachmentMap {
 
     public ActorContext(ActorEnv actorEnv,
                         ActorRef sender,
-                        ActorAddress toActorAddress,
+                        ActorPath toActorPath,
                         Object message) {
         this.actorEnv = actorEnv;
         this.sender = sender;
-        this.toActorAddress = toActorAddress;
+        this.toActorPath = toActorPath;
         this.message = message;
     }
 
@@ -54,12 +54,12 @@ public final class ActorContext extends AttachmentMap {
         return sender;
     }
 
-    public ActorAddress getFromActorAddress() {
-        return sender.getActorAddress();
+    public ActorPath getFromActorPath() {
+        return sender.getActorPath();
     }
 
-    public ActorAddress getToActorAddress() {
-        return toActorAddress;
+    public ActorPath getToActorPath() {
+        return toActorPath;
     }
 
     public Object getMessage() {

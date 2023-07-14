@@ -13,7 +13,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public abstract class ActorRef {
     /** placeholder, means empty sender actor reference */
-    public static final ActorRef NO_SENDER = new ActorRef(ActorAddress.NO_SENDER) {
+    public static final ActorRef NO_SENDER = new ActorRef(ActorPath.NO_SENDER) {
     };
     /** completed future */
     private static final CompletableFuture<Object> COMPLETED_FUTURE = new CompletableFuture<>();
@@ -22,11 +22,11 @@ public abstract class ActorRef {
         COMPLETED_FUTURE.complete(null);
     }
 
-    /** refer actor address */
-    private final ActorAddress actorAddress;
+    /** refer actor path */
+    private final ActorPath actorPath;
 
-    protected ActorRef(ActorAddress actorAddress) {
-        this.actorAddress = actorAddress;
+    protected ActorRef(ActorPath actorPath) {
+        this.actorPath = actorPath;
     }
 
     /**
@@ -198,14 +198,18 @@ public abstract class ActorRef {
     }
 
     //getter
-    public final ActorAddress getActorAddress() {
-        return actorAddress;
+    public final ActorPath getActorPath() {
+        return actorPath;
+    }
+
+    public final boolean isLocal() {
+        return Address.LOCAL.equals(getActorPath().getAddress());
     }
 
     @Override
     public String toString() {
         return "ActorRef{" +
-                "actorAddress=" + actorAddress +
+                "actorPath=" + actorPath +
                 '}';
     }
 }

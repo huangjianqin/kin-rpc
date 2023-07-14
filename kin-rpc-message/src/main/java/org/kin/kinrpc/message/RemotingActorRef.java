@@ -12,7 +12,7 @@ import java.util.concurrent.CompletableFuture;
  * @author huangjianqin
  * @date 2023/7/14
  */
-final class RemotingActorRef extends JvmActorRef {
+final class RemotingActorRef extends ActorRef {
     private static final Logger log = LoggerFactory.getLogger(RemotingActorRef.class);
 
     /** remoting actor env */
@@ -23,17 +23,17 @@ final class RemotingActorRef extends JvmActorRef {
     /** receiver actor name */
     private String toActorName;
 
-    RemotingActorRef(ActorAddress actorAddress,
+    RemotingActorRef(ActorPath actorPath,
                      RemotingActorEnv actorEnv) {
-        super(actorAddress);
+        super(actorPath);
         this.actorEnv = actorEnv;
     }
 
-    RemotingActorRef(ActorAddress actorAddress,
+    RemotingActorRef(ActorPath actorPath,
                      RemotingActorEnv actorEnv,
                      RequestContext requestContext,
                      String toActorName) {
-        super(actorAddress);
+        super(actorPath);
         this.actorEnv = actorEnv;
         this.requestContext = requestContext;
         this.toActorName = toActorName;
@@ -53,7 +53,7 @@ final class RemotingActorRef extends JvmActorRef {
     }
 
     @Override
-    public synchronized void answer(Object message) {
+    public final synchronized void answer(Object message) {
         checkMessage(message);
 
         if (Objects.isNull(requestContext)) {
@@ -63,7 +63,7 @@ final class RemotingActorRef extends JvmActorRef {
 
         //限制只能answer一次
         MessagePayload responsePayload =
-                MessagePayload.answer(ActorAddress.of(actorEnv.getListenAddress(), toActorName), message);
+                MessagePayload.answer(ActorPath.of(actorEnv.getListenAddress(), toActorName), message);
         requestContext.writeMessageResponse(responsePayload);
         requestContext = null;
     }
@@ -71,7 +71,7 @@ final class RemotingActorRef extends JvmActorRef {
     @Override
     public void doTell(Object message, ActorRef sender) {
         checkMessage(message);
-        MessagePayload messagePayload = MessagePayload.tell(sender.getActorAddress(), this, message);
+        MessagePayload messagePayload = MessagePayload.tell(sender.getActorPath(), this, message);
         actorEnv.tell(messagePayload);
     }
 
@@ -79,7 +79,7 @@ final class RemotingActorRef extends JvmActorRef {
     @Override
     public <R> CompletableFuture<R> doAsk(Object message, ActorRef sender, long timeoutMs) {
         checkMessage(message);
-        MessagePayload messagePayload = MessagePayload.ask(sender.getActorAddress(), this, message, timeoutMs);
+        MessagePayload messagePayload = MessagePayload.ask(sender.getActorPath(), this, message, timeoutMs);
         return (CompletableFuture<R>) actorEnv.ask(messagePayload);
     }
 }

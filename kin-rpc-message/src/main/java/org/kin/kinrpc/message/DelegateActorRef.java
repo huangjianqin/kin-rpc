@@ -11,7 +11,7 @@ class DelegateActorRef extends ActorRef {
     private final ActorRef proxy;
 
     DelegateActorRef(ActorRef proxy) {
-        super(proxy.getActorAddress());
+        super(proxy.getActorPath());
         this.proxy = proxy;
     }
 

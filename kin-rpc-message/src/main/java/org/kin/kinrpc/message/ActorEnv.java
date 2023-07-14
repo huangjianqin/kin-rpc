@@ -79,7 +79,7 @@ public class ActorEnv {
             throw new IllegalStateException(String.format("actor '%s' has been registered", name));
         }
 
-        ActorRef actorRef = actorRefProvider.actorOf(this, ActorAddress.of(name));
+        ActorRef actorRef = actorRefProvider.actorOf(this, ActorPath.of(name));
         actor.internalInit(actorRef);
         actorRefMap.put(actor, actorRef);
         dispatcher.register(name, new ActorReceiver(this, actor), !actor.threadSafe());
@@ -118,7 +118,7 @@ public class ActorEnv {
     public ActorRef actorOf(Address address, String actorName) {
         checkTerminated();
 
-        return actorRefProvider.actorOf(this, ActorAddress.of(address, actorName));
+        return actorRefProvider.actorOf(this, ActorPath.of(address, actorName));
     }
 
     /**
@@ -160,10 +160,11 @@ public class ActorEnv {
      */
     void postMessage(ActorContext actorContext) {
         actorContext.setEventTime(System.currentTimeMillis());
-        dispatcher.postMessage(actorContext.getToActorAddress().getName(), actorContext);
+        dispatcher.postMessage(actorContext.getToActorPath().getName(), actorContext);
     }
 
     //-----------------------------------------------------------------------------
+    // TODO: 2023/7/14
     public static Builder builder() {
         return new Builder();
     }

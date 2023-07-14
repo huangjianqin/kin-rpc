@@ -55,8 +55,8 @@ public final class RemotingActorEnv extends ActorEnv {
                              SslConfig serverSslConfig,
                              SslConfig clientSslConfig) {
         super(parallelism,
-                (ActorRefProvider<RemotingActorEnv>) (actorEnv, actorAddress) ->
-                        new RemotingActorRef(actorAddress, actorEnv));
+                (ActorRefProvider<RemotingActorEnv>) (actorEnv, actorPath) ->
+                        new RemotingActorRef(actorPath, actorEnv));
 
         if (ProtocolType.JVM.equals(protocolType)) {
             throw new UnsupportedOperationException();
@@ -117,12 +117,12 @@ public final class RemotingActorEnv extends ActorEnv {
     protected void doDestroy() {
         super.doDestroy();
         //移除outbox 及 client
-        for (Address rpcAddress : outBoxes.keySet()) {
-            removeOutBox(rpcAddress);
+        for (Address address : outBoxes.keySet()) {
+            removeOutBox(address);
         }
 
-        for (Address rpcAddress : clients.keySet()) {
-            removeClient(rpcAddress);
+        for (Address address : clients.keySet()) {
+            removeClient(address);
         }
 
         //关闭server
@@ -209,14 +209,14 @@ public final class RemotingActorEnv extends ActorEnv {
 
         ActorRef sender;
         if (Objects.isNull(requestContext)) {
-            sender = new JvmActorRef(payload.getFromActorAddress());
+            sender = new LocalActorRef(payload.getFromActorAddress(), this);
         } else {
             sender = new RemotingActorRef(payload.getFromActorAddress(), RemotingActorEnv.this,
                     requestContext, payload.getToActorName());
         }
         ActorContext actorContext =
                 new ActorContext(RemotingActorEnv.this, sender,
-                        ActorAddress.of(payload.getToActorName()), payload.getMessage());
+                        ActorPath.of(payload.getToActorName()), payload.getMessage());
         RemotingActorEnv.this.postMessage(actorContext);
     }
 

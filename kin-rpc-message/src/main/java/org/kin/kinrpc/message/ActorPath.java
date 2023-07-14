@@ -4,34 +4,34 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * actor name + actor address
+ * actor name + address
  *
  * @author huangjianqin
  * @date 2020-06-10
  */
-public final class ActorAddress implements Serializable {
+public final class ActorPath implements Serializable {
     private static final long serialVersionUID = 5376277467578311383L;
 
-    /** 不指向任何actor的{@link ActorAddress}实例 */
-    public static final ActorAddress NO_SENDER = of(Address.of("", -1), "");
+    /** 不指向任何actor的{@link ActorPath}实例 */
+    public static final ActorPath NO_SENDER = of(Address.of("", -1), "");
 
     /** address */
     private Address address;
     /** actor name */
     private String name;
 
-    private ActorAddress() {
+    private ActorPath() {
     }
 
     //------------------------------------------------------------------------------------------------------------
-    public static ActorAddress of(Address address, String name) {
-        ActorAddress actorAddress = new ActorAddress();
-        actorAddress.address = address;
-        actorAddress.name = name;
-        return actorAddress;
+    public static ActorPath of(Address address, String name) {
+        ActorPath actorPath = new ActorPath();
+        actorPath.address = address;
+        actorPath.name = name;
+        return actorPath;
     }
 
-    public static ActorAddress of(String name) {
+    public static ActorPath of(String name) {
         return of(Address.LOCAL, name);
     }
 
@@ -60,7 +60,7 @@ public final class ActorAddress implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        ActorAddress that = (ActorAddress) o;
+        ActorPath that = (ActorPath) o;
         return Objects.equals(address, that.address) &&
                 Objects.equals(name, that.name);
     }
@@ -72,7 +72,7 @@ public final class ActorAddress implements Serializable {
 
     @Override
     public String toString() {
-        return "ActorAddress{" +
+        return "ActorPath{" +
                 "address=" + address +
                 ", name='" + name + '\'' +
                 '}';

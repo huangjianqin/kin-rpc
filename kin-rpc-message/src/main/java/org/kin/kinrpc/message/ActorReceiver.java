@@ -46,8 +46,8 @@ final class ActorReceiver extends Receiver<ActorContext> {
 
         if (log.isDebugEnabled()) {
             log.debug("receive message from {} to {}, eventTime={}, handleTime={}, message={}",
-                    context.getFromActorAddress(),
-                    context.getToActorAddress(),
+                    context.getFromActorPath(),
+                    context.getToActorPath(),
                     context.getEventTime(),
                     context.getHandleTime(),
                     context.getMessage()

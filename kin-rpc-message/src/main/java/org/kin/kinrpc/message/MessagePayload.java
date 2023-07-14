@@ -12,7 +12,7 @@ final class MessagePayload implements Serializable {
     private static final long serialVersionUID = -7580281019273609173L;
 
     /** sender actor address */
-    private ActorAddress fromActorAddress;
+    private ActorPath fromActorPath;
     /** receiver actor name */
     private String toActorName;
     /** 请求超时结束时间 */
@@ -29,24 +29,24 @@ final class MessagePayload implements Serializable {
     /**
      * request ignore response
      */
-    static MessagePayload tell(ActorAddress fromActorAddress, ActorRef to, Object message) {
-        return ask(fromActorAddress, to, message, true, 0);
+    static MessagePayload tell(ActorPath fromActorPath, ActorRef to, Object message) {
+        return ask(fromActorPath, to, message, true, 0);
     }
 
     /**
      * request
      */
-    static MessagePayload ask(ActorAddress fromActorAddress, ActorRef to, Object message, long timeout) {
-        return ask(fromActorAddress, to, message, false, timeout);
+    static MessagePayload ask(ActorPath fromActorPath, ActorRef to, Object message, long timeout) {
+        return ask(fromActorPath, to, message, false, timeout);
     }
 
     /**
      * request
      */
-    private static MessagePayload ask(ActorAddress fromActorAddress, ActorRef to, Object message, boolean ignoreResponse, long timeout) {
+    private static MessagePayload ask(ActorPath fromActorPath, ActorRef to, Object message, boolean ignoreResponse, long timeout) {
         MessagePayload payload = new MessagePayload();
-        payload.fromActorAddress = fromActorAddress;
-        payload.toActorName = to.getActorAddress().getName();
+        payload.fromActorPath = fromActorPath;
+        payload.toActorName = to.getActorPath().getName();
         payload.timeout = timeout;
         payload.message = message;
         payload.to = to;
@@ -57,9 +57,9 @@ final class MessagePayload implements Serializable {
     /**
      * response
      */
-    static MessagePayload answer(ActorAddress fromActorAddress, Object message) {
+    static MessagePayload answer(ActorPath fromActorPath, Object message) {
         MessagePayload payload = new MessagePayload();
-        payload.fromActorAddress = fromActorAddress;
+        payload.fromActorPath = fromActorPath;
         payload.toActorName = "";
         payload.message = message;
         return payload;
@@ -69,12 +69,12 @@ final class MessagePayload implements Serializable {
     }
 
     //setter && getter
-    public ActorAddress getFromActorAddress() {
-        return fromActorAddress;
+    public ActorPath getFromActorAddress() {
+        return fromActorPath;
     }
 
-    public void setFromActorAddress(ActorAddress fromActorAddress) {
-        this.fromActorAddress = fromActorAddress;
+    public void setFromActorAddress(ActorPath fromActorPath) {
+        this.fromActorPath = fromActorPath;
     }
 
     public String getToActorName() {
@@ -94,7 +94,7 @@ final class MessagePayload implements Serializable {
     }
 
     public Address getToAddress() {
-        return to.getActorAddress().getAddress();
+        return to.getActorPath().getAddress();
     }
 
     public boolean isIgnoreResponse() {
@@ -112,7 +112,7 @@ final class MessagePayload implements Serializable {
     @Override
     public String toString() {
         return "MessagePayload{" +
-                "fromActorAddress=" + fromActorAddress +
+                "fromActorPath=" + fromActorPath +
                 ", toActorName='" + toActorName + '\'' +
                 ", message=" + message +
                 ", to=" + to +

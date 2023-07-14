@@ -14,6 +14,11 @@ class FutureActorRef extends DelegateActorRef {
         super(proxy);
     }
 
+    @Override
+    public final void answer(Object message) {
+        future.complete(message);
+    }
+
     //getter
     CompletableFuture<Object> getFuture() {
         return future;
