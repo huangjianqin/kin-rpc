@@ -11,23 +11,43 @@ import java.io.Serializable;
 final class MessagePayload implements Serializable {
     private static final long serialVersionUID = -7580281019273609173L;
 
-    /** sender address */
-    private Address fromAddress;
+    /** sender actor address */
+    private ActorAddress fromActorAddress;
     /** receiver actor name */
-    private String actorName;
+    private String toActorName;
+    /** 请求超时结束时间 */
+    private long timeout;
     /** 消息 */
     private Serializable message;
 
+    //----------------------------------------------tmp
+    /** receiver actor */
     private transient ActorRef to;
+    /** 是否忽略返回值, 即fire and forget */
     private transient boolean ignoreResponse;
+
+    /**
+     * request ignore response
+     */
+    static MessagePayload requestAndForget(ActorAddress fromActorAddress, ActorRef to, Serializable message) {
+        return request(fromActorAddress, to, message, true, 0);
+    }
 
     /**
      * request
      */
-    static MessagePayload request(Address from, ActorRef to, Serializable message, boolean ignoreResponse) {
+    static MessagePayload request(ActorAddress fromActorAddress, ActorRef to, Serializable message, long timeout) {
+        return request(fromActorAddress, to, message, false, timeout);
+    }
+
+    /**
+     * request
+     */
+    private static MessagePayload request(ActorAddress fromActorAddress, ActorRef to, Serializable message, boolean ignoreResponse, long timeout) {
         MessagePayload payload = new MessagePayload();
-        payload.fromAddress = from;
-        payload.actorName = to.getAddress().getName();
+        payload.fromActorAddress = fromActorAddress;
+        payload.toActorName = to.getActorAddress().getName();
+        payload.timeout = timeout;
         payload.message = message;
         payload.to = to;
         payload.ignoreResponse = ignoreResponse;
@@ -37,10 +57,10 @@ final class MessagePayload implements Serializable {
     /**
      * response
      */
-    static MessagePayload response(Address from, Serializable message) {
+    static MessagePayload response(ActorAddress fromActorAddress, Serializable message) {
         MessagePayload payload = new MessagePayload();
-        payload.fromAddress = from;
-        payload.actorName = "";
+        payload.fromActorAddress = fromActorAddress;
+        payload.toActorName = "";
         payload.message = message;
         return payload;
     }
@@ -49,20 +69,20 @@ final class MessagePayload implements Serializable {
     }
 
     //setter && getter
-    public Address getFromAddress() {
-        return fromAddress;
+    public ActorAddress getFromActorAddress() {
+        return fromActorAddress;
     }
 
-    public void setFromAddress(Address fromAddress) {
-        this.fromAddress = fromAddress;
+    public void setFromActorAddress(ActorAddress fromActorAddress) {
+        this.fromActorAddress = fromActorAddress;
     }
 
-    public String getActorName() {
-        return actorName;
+    public String getToActorName() {
+        return toActorName;
     }
 
-    public void setActorName(String actorName) {
-        this.actorName = actorName;
+    public void setToActorName(String toActorName) {
+        this.toActorName = toActorName;
     }
 
     public Serializable getMessage() {
@@ -74,19 +94,30 @@ final class MessagePayload implements Serializable {
     }
 
     public Address getToAddress() {
-        return to.getAddress().getAddress();
+        return to.getActorAddress().getAddress();
     }
 
     public boolean isIgnoreResponse() {
         return ignoreResponse;
     }
 
+    public long getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(long timeout) {
+        this.timeout = timeout;
+    }
+
     @Override
     public String toString() {
-        return "RpcMessage{" +
-                ", from=" + fromAddress +
-                ", actorName=" + actorName +
+        return "MessagePayload{" +
+                "fromActorAddress=" + fromActorAddress +
+                ", toActorName='" + toActorName + '\'' +
                 ", message=" + message +
+                ", to=" + to +
+                ", ignoreResponse=" + ignoreResponse +
+                ", timeout=" + timeout +
                 '}';
     }
 }

@@ -13,67 +13,75 @@ import java.util.concurrent.TimeUnit;
  * @date 2020-06-13
  */
 public class ActorRefDemo extends Actor {
-    public ActorRefDemo(ActorEnv actorEnv) {
-        super(actorEnv);
-    }
 
-    public static void main(String[] args) throws InterruptedException {
-        ActorEnv actorEnv = new ActorEnv("0.0.0.0", 16889);
-        actorEnv.startServer();
-        String name = "rpcEndpointRefDemo";
-        ActorRefDemo rpcEndpointRefDemo = new ActorRefDemo(actorEnv);
-        actorEnv.newActor(name, rpcEndpointRefDemo);
+    public static void main(String[] args) {
+        ActorEnv actorEnv = ActorEnv.builder().port(16889).build();
+        String name = "actorRefDemo";
+        ActorRefDemo actorRefDemo = new ActorRefDemo();
+        try {
+            actorEnv.newActor(name, actorRefDemo);
 
-        JvmCloseCleaner.instance().add(() -> {
-            actorEnv.removeActor(name, rpcEndpointRefDemo);
-            actorEnv.destroy();
-        });
+            JvmCloseCleaner.instance().add(actorEnv::destroy);
 
-        ActorRef endpointRef = actorEnv.actorOf("0.0.0.0", 16888, "rpcEndpointDemo");
+            ActorRef actorDemoRef = actorEnv.actorOf(Address.of(16888), "actorDemo");
 
-        Stopwatch watcher = Stopwatch.createStarted();
-        int count = 0;
-        while (count < 100000) {
-            try {
-                ActorRef self = rpcEndpointRefDemo.ref();
-                endpointRef.fireAndForget(new PrintMessage(++count + "", self));
-                CompletableFuture<ActorDemo.ReplyMessage> future = endpointRef.requestResponse(new AskMessage(++count + ""));
-                System.out.println("ask with block >>>> " + future.get());
+            Stopwatch watcher = Stopwatch.createStarted();
+            int count = 0;
+            while (count < 5) {
+                try {
+                    // TODO: 2023/7/13
+//                    actorDemoRef.fireAndForget(new PrintMessage(++count + ""));
+                    CompletableFuture<ActorDemo.ReplyMessage> future = actorDemoRef.requestResponse(new AskMessage(++count + ""));
+                    System.out.println("ask with block >>>> " + future.get());
 
-                endpointRef.requestResponse(new AskMessage(++count + ""), new MessageCallback() {
+                    actorDemoRef.requestResponse(new AskMessage(++count + ""), new MessageCallback() {
+                        @Override
+                        public <REQ extends Serializable, RESP extends Serializable> void onSuccess(REQ request, RESP response) {
+                            System.out.println("ask with timeout >>>> " + "~~~~~" + request + "~~~~~" + response);
+                        }
 
-                    @Override
-                    public <REQ extends Serializable, RESP extends Serializable> void onResponse(long requestId, REQ request, RESP response) {
-                        System.out.println("ask with timeout >>>> " + requestId + "~~~~~" + request + "~~~~~" + response);
-                    }
-
-                    @Override
-                    public void onException(Throwable e) {
-                        System.err.println("ask with timeout >>>> " + e);
-                    }
-                }, 3_000);
-            } catch (Exception e) {
-                System.err.println(e);
+                        @Override
+                        public void onFailure(Throwable e) {
+                            System.err.println("ask with timeout >>>> " + e);
+                        }
+                    }, 2_000);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
+            watcher.stop();
+            System.out.printf("结束, 耗时%d ms%n", watcher.elapsed(TimeUnit.MILLISECONDS));
+            Thread.sleep(3_000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            actorEnv.removeActor(name, actorRefDemo);
+            actorEnv.destroy();
         }
-        watcher.stop();
-        System.out.printf("结束, 耗时%d ms%n", watcher.elapsed(TimeUnit.MILLISECONDS));
         System.exit(0);
     }
 
     @Override
     protected void onStart() {
-        System.out.println("endpoint start");
+        System.out.println("actor start");
     }
 
     @Override
     protected void onStop() {
-        System.out.println("endpoint stop");
+        System.out.println("actor stop");
     }
 
     @Override
-    protected void onReceiveMessage(MessagePostContext context) {
-        System.out.println("receive >>>> " + context.getMessage());
+    protected Behaviors createBehaviors() {
+        return Behaviors.builder()
+                .interceptors((next, behavior, actorContext, message) -> {
+                    System.out.println("actorRefDemo intercept behavior, message=" + message);
+                    next.intercept(next, behavior, actorContext, message);
+                })
+                .behavior(ActorDemo.ReplyMessage.class, (ac, pm) -> {
+                    System.out.println("remote reply, " + pm.getContent());
+                })
+                .build();
     }
 
     @Override
@@ -85,14 +93,12 @@ public class ActorRefDemo extends Actor {
         private static final long serialVersionUID = -1632194863001778858L;
 
         private String content;
-        private ActorRef from;
 
         public PrintMessage() {
         }
 
-        public PrintMessage(String content, ActorRef from) {
+        public PrintMessage(String content) {
             this.content = content;
-            this.from = from;
         }
 
         public String getContent() {
@@ -103,19 +109,10 @@ public class ActorRefDemo extends Actor {
             this.content = content;
         }
 
-        public ActorRef getFrom() {
-            return from;
-        }
-
-        public void setFrom(ActorRef from) {
-            this.from = from;
-        }
-
         @Override
         public String toString() {
             return "PrintMessage{" +
                     "content='" + content + '\'' +
-                    ", rpcEndpointRef=" + from +
                     '}';
         }
     }

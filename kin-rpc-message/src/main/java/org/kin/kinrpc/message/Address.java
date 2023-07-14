@@ -14,17 +14,26 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2023/7/12
  */
-public class Address implements Serializable {
+public final class Address implements Serializable {
     private static final Logger log = LoggerFactory.getLogger(Address.class);
     private static final long serialVersionUID = 145033673996597409L;
 
+    /** {@link Address} for internal jvm address */
+    public static final Address JVM = Address.of("", -1);
+
+    /** host name */
     private String host;
+    /** port */
     private int port;
 
-    public Address() {
+    private Address() {
     }
 
     //------------------------------------------------------------------------------------------------------------
+    public static Address of(int port) {
+        return of(NetUtils.getLocalhost4Ip(), port);
+    }
+
     public static Address of(String host, int port) {
         Address address = new Address();
         address.host = host;

@@ -12,10 +12,12 @@ import org.kin.kinrpc.config.ServerConfig;
 import org.kin.kinrpc.executor.ExecutorHelper;
 import org.kin.kinrpc.executor.ManagedExecutor;
 import org.kin.kinrpc.transport.RemotingClient;
+import org.kin.kinrpc.transport.RemotingClientStateObserver;
 import org.kin.kinrpc.transport.RemotingServer;
 import org.kin.kinrpc.transport.Transport;
 import org.kin.kinrpc.transport.cmd.RequestCommand;
 
+import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -134,6 +136,11 @@ public abstract class AbstractProtocol implements Protocol {
             }
 
             @Override
+            public String remoteAddress() {
+                return client.remoteAddress();
+            }
+
+            @Override
             public void shutdown() {
                 if (clientCache.release(address)) {
                     client.shutdown();
@@ -148,6 +155,11 @@ public abstract class AbstractProtocol implements Protocol {
             @Override
             public CompletableFuture<Void> fireAndForget(RequestCommand command) {
                 return client.fireAndForget(command);
+            }
+
+            @Override
+            public void addObservers(Collection<RemotingClientStateObserver> observers) {
+                client.addObservers(observers);
             }
         };
     }

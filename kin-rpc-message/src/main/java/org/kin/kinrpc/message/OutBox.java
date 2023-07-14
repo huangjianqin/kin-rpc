@@ -41,6 +41,8 @@ final class OutBox {
 
     /**
      * 消息入队, 等待client发送
+     *
+     * @param outBoxMessage message which waiting to send
      */
     void pushMessage(OutBoxMessage outBoxMessage) {
         boolean dropped = false;
@@ -65,7 +67,7 @@ final class OutBox {
     }
 
     /**
-     * 发送消息
+     * 消息出兑, 即准备发送消息
      */
     private void drainOutbox() {
         OutBoxMessage outBoxMessage;
@@ -149,6 +151,8 @@ final class OutBox {
     /**
      * 异常统一处理
      * 在对象锁内操作
+     *
+     * @param e 异常
      */
     private void handleException(Exception e) {
         log.error("", e);

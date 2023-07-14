@@ -3,7 +3,6 @@ package org.kin.kinrpc.message;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 
 /**
  * 在{@link OutBox}中待发送的消息
@@ -16,15 +15,12 @@ final class OutBoxMessage {
     private final MessagePayload payload;
     /** 消息请求超时时间 */
     private final long timeoutMs;
-    /** callback */
-    private final MessageCallback callback;
     /** future */
     private final CompletableFuture<Serializable> userFuture;
 
-    public OutBoxMessage(MessagePayload payload) {
+    OutBoxMessage(MessagePayload payload) {
         this.payload = payload;
         this.timeoutMs = 0;
-        this.callback = null;
         this.userFuture = null;
     }
 
@@ -33,20 +29,13 @@ final class OutBoxMessage {
     OutBoxMessage(MessagePayload payload, CompletableFuture<? extends Serializable> userFuture, long timeoutMs) {
         this.payload = payload;
         this.timeoutMs = timeoutMs;
-        this.callback = null;
         this.userFuture = (CompletableFuture<Serializable>) userFuture;
-    }
-
-    /** 异步请求调用, 触发callback */
-    OutBoxMessage(MessagePayload payload, MessageCallback callback, long timeoutMs) {
-        this.payload = payload;
-        this.timeoutMs = timeoutMs;
-        this.callback = callback;
-        this.userFuture = null;
     }
 
     /**
      * 由某个client发送消息
+     *
+     * @param client message client
      */
     void sendWith(MessageClient client) {
         client.send(this);
@@ -56,39 +45,19 @@ final class OutBoxMessage {
      * handle message response
      * {@link ActorEnv#commonExecutors}下执行
      *
-     * @param response response message
+     * @param response response message payload
      * @param t        exception when send message or handle message
      */
-    void complete(Serializable response, Throwable t) {
+    void complete(MessagePayload response, Throwable t) {
+        if (Objects.isNull(userFuture)) {
+            //ignore
+            return;
+        }
+
         if (Objects.isNull(t)) {
-            if (Objects.nonNull(callback)) {
-                //callback
-                ExecutorService executor = callback.executor();
-                if (Objects.nonNull(executor)) {
-                    executor.execute(() ->
-                            callback.onResponse(payload.getMessage(), response));
-                } else {
-                    callback.onResponse(payload.getMessage(), response);
-                }
-            }
-            if (Objects.nonNull(userFuture)) {
-                //future
-                userFuture.complete(response);
-            }
+            userFuture.complete(response.getMessage());
         } else {
-            if (Objects.nonNull(callback)) {
-                //callback
-                ExecutorService executor = callback.executor();
-                if (Objects.nonNull(executor)) {
-                    executor.execute(() -> callback.onException(t));
-                } else {
-                    callback.onException(t);
-                }
-            }
-            if (Objects.nonNull(userFuture)) {
-                //future
-                userFuture.completeExceptionally(t);
-            }
+            userFuture.completeExceptionally(t);
         }
     }
 

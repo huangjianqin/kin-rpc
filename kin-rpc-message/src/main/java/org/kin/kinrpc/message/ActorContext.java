@@ -1,5 +1,6 @@
 package org.kin.kinrpc.message;
 
+import org.kin.framework.collection.AttachmentMap;
 import org.kin.kinrpc.transport.RequestContext;
 
 import java.io.Serializable;
@@ -11,11 +12,13 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2020-06-08
  */
-public final class MessagePostContext {
+public final class ActorContext extends AttachmentMap {
     /** actor env */
     private final ActorEnv actorEnv;
     /** sender address */
-    private final Address fromAddress;
+    private final ActorAddress fromActorAddress;
+    /** receiver actor name */
+    private String toActorName;
     /**
      * request context
      * send local message的时候, 为null
@@ -23,19 +26,17 @@ public final class MessagePostContext {
     private final RequestContext requestContext;
     /** 消息 */
     private final Serializable message;
-    // TODO: 2023/7/12
-    /** 消息创建时间 */
-    private long createTime;
     /** 消息事件时间, 即到达receiver端但还未处理的时间 */
     private long eventTime;
     /** 消息处理时间 */
     private long handleTime;
 
-    public MessagePostContext(ActorEnv actorEnv, RequestContext requestContext, Address fromAddress, Serializable message) {
+    public ActorContext(ActorEnv actorEnv, RequestContext requestContext, MessagePayload payload) {
         this.actorEnv = actorEnv;
         this.requestContext = requestContext;
-        this.fromAddress = fromAddress;
-        this.message = message;
+        this.fromActorAddress = payload.getFromActorAddress();
+        this.toActorName = payload.getToActorName();
+        this.message = payload.getMessage();
     }
 
     /** 原路返回, 响应客户端请求 */
@@ -44,25 +45,26 @@ public final class MessagePostContext {
             return;
         }
         MessagePayload responsePayload =
-                MessagePayload.response(actorEnv.getListenAddress(), message);
+                MessagePayload.response(ActorAddress.of(actorEnv.getListenAddress(), toActorName), message);
         requestContext.writeMessageResponse(responsePayload);
     }
 
+    /**
+     * 返回message sender actor
+     *
+     * @return message sender actor
+     */
     public ActorRef sender() {
-        return actorEnv.actorOf()
+        return ActorRef.of(fromActorAddress, actorEnv);
     }
 
-    //------------------------------------------------------------------------------------------------------------------
-    public Address getFromAddress() {
-        return fromAddress;
+    //setter && getter
+    public ActorAddress getFromActorAddress() {
+        return fromActorAddress;
     }
 
     public Serializable getMessage() {
         return message;
-    }
-
-    public long getCreateTime() {
-        return createTime;
     }
 
     public long getEventTime() {
@@ -79,5 +81,9 @@ public final class MessagePostContext {
 
     public void setHandleTime(long handleTime) {
         this.handleTime = handleTime;
+    }
+
+    public String getToActorName() {
+        return toActorName;
     }
 }

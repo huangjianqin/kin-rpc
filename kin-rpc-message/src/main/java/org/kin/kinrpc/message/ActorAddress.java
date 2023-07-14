@@ -12,17 +12,23 @@ import java.util.Objects;
 public final class ActorAddress implements Serializable {
     private static final long serialVersionUID = 5376277467578311383L;
 
-    /** actor address */
+    /** 不指向任何actor的{@link ActorAddress}实例 */
+    public static final ActorAddress NO_SENDER = of(Address.of("", -1), "");
+
+    /** address */
     private Address address;
     /** actor name */
     private String name;
 
+    private ActorAddress() {
+    }
+
     //------------------------------------------------------------------------------------------------------------
     public static ActorAddress of(Address address, String name) {
-        ActorAddress endpointAddress = new ActorAddress();
-        endpointAddress.address = address;
-        endpointAddress.name = name;
-        return endpointAddress;
+        ActorAddress actorAddress = new ActorAddress();
+        actorAddress.address = address;
+        actorAddress.name = name;
+        return actorAddress;
     }
 
     //------------------------------------------------------------------------------------------------------------

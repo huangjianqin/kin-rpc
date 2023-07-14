@@ -1,16 +1,12 @@
 package org.kin.kinrpc.message;
 
 /**
- * 线程安全的RpcEndpoint
+ * 保证消息处理线程安全的{@link Actor}实现
  *
  * @author huangjianqin
  * @date 2020-06-16
  */
 public abstract class ThreadSafeActor extends Actor {
-    public ThreadSafeActor(ActorEnv actorEnv) {
-        super(actorEnv);
-    }
-
     @Override
     public final boolean threadSafe() {
         return true;

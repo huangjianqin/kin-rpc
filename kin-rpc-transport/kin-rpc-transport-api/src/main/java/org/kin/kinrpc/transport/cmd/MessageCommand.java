@@ -39,15 +39,18 @@ public final class MessageCommand extends RequestCommand {
         this(version, RequestIdGenerator.next(), serializationCode, data);
     }
 
-    public MessageCommand(MessageCommand command, Serializable data) {
-        this(TransportConstants.VERSION, command.getId(), command.getSerializationCode(), data);
-    }
-
     private MessageCommand(short version, long id, byte serializationCode, Serializable data) {
         super(CommandCodes.MESSAGE, version, id, serializationCode);
         this.interest = data.getClass().getName();
         this.dataClass = data.getClass();
         this.data = data;
+    }
+
+    /**
+     * 用于response message
+     */
+    public MessageCommand(MessageCommand command, Serializable data) {
+        this(TransportConstants.VERSION, command.getId(), command.getSerializationCode(), data);
     }
 
     @Override

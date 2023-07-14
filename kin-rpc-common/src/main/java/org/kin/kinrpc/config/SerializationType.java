@@ -8,7 +8,7 @@ public enum SerializationType {
     /** java自带序列化 */
     JAVA("java"),
     /** kryo序列化 */
-    KRYO("ktyo"),
+    KRYO("kryo"),
     /** hessian2序列化 */
     HESSIAN2("hessian2"),
     /** json序列化 */

@@ -1,5 +1,6 @@
 package org.kin.kinrpc.message;
 
+import org.kin.framework.collection.ConcurrentHashSet;
 import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadPoolUtils;
 import org.kin.framework.utils.ExtensionLoader;
@@ -13,11 +14,8 @@ import org.kin.serialization.Serialization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -52,7 +50,7 @@ final class MessageClient {
     /** 目前用于重连成功时, 触发OutBox消息重发逻辑 */
     private RemotingClientStateObserver clientStateObserver;
     /** send message futures */
-    private final List<CompletableFuture<?>> requestFutures = Collections.synchronizedList(new ArrayList<>(64));
+    private final Set<CompletableFuture<?>> requestFutures = new ConcurrentHashSet<>();
     /** state */
     private AtomicInteger state = new AtomicInteger(INIT_STATE);
 
@@ -63,7 +61,7 @@ final class MessageClient {
         this.name = getClass().getSimpleName() + String.format("(- R:%s)", remoteAddress);
         this.serializationCode = (byte) ExtensionLoader.getExtensionCode(Serialization.class, actorEnv.getSerialization());
         this.client = ExtensionLoader.getExtension(Transport.class, actorEnv.getProtocol())
-                .createClient(remoteAddress.getHost(), remoteAddress.getPort(), actorEnv.getClientSsl());
+                .createClient(remoteAddress.getHost(), remoteAddress.getPort(), actorEnv.getClientSslConfig());
     }
 
     /**
@@ -121,6 +119,8 @@ final class MessageClient {
 
     /**
      * send message
+     *
+     * @param outBoxMessage outbound message
      */
     void send(OutBoxMessage outBoxMessage) {
         if (!isActive()) {
@@ -128,6 +128,10 @@ final class MessageClient {
         }
 
         MessagePayload payload = outBoxMessage.getPayload();
+        //设置的超时时间, 这里更新为超时结束时间
+        if (payload.getTimeout() > 0) {
+            payload.setTimeout(System.currentTimeMillis() + payload.getTimeout());
+        }
         MessageCommand command = new MessageCommand(serializationCode, payload);
 
         //request
@@ -150,12 +154,14 @@ final class MessageClient {
                 finalTimeoutFuture.cancel(true);
             }
 
-            outBoxMessage.complete((Serializable) r, t);
+            requestFutures.remove(requestFuture);
+            outBoxMessage.complete((MessagePayload) r, t);
         }, actorEnv.commonExecutors);
     }
 
     //setter && getter
     void setClientStateObserver(RemotingClientStateObserver clientStateObserver) {
+        this.client.addObservers(clientStateObserver);
         this.clientStateObserver = clientStateObserver;
     }
 

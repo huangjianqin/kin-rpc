@@ -1,5 +1,6 @@
 package org.kin.kinrpc.transport;
 
+import org.kin.framework.utils.CollectionUtils;
 import org.kin.kinrpc.transport.cmd.RequestCommand;
 
 import javax.annotation.Nullable;
@@ -59,6 +60,14 @@ public class RemotingClientPool<C extends RemotingClient> implements RemotingCli
     }
 
     @Override
+    public String remoteAddress() {
+        if (CollectionUtils.isNonEmpty(clients)) {
+            return clients.get(0).remoteAddress();
+        }
+        return "";
+    }
+
+    @Override
     public void shutdown() {
         Iterator<C> iterator = clients.iterator();
         while (iterator.hasNext()) {
@@ -105,5 +114,12 @@ public class RemotingClientPool<C extends RemotingClient> implements RemotingCli
             throw new TransportException("can not find available client");
         }
         return client.fireAndForget(command);
+    }
+
+    @Override
+    public void addObservers(Collection<RemotingClientStateObserver> observers) {
+        for (C client : clients) {
+            client.addObservers(observers);
+        }
     }
 }

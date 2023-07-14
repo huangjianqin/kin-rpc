@@ -24,7 +24,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * RPC环境
+ * actor环境
  * 管理一个server和多个client
  *
  * @author huangjianqin
@@ -32,16 +32,16 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class ActorEnv {
     private static final Logger log = LoggerFactory.getLogger(ActorEnv.class);
-    /** actor message processor interest */
-    String ACTOR_INTEREST = "$actor";
 
     /** thread local {@link ActorEnv}实例 */
     private static final ThreadLocal<ActorEnv> THREAD_LOCAL_ACTOR_ENV = new ThreadLocal<>();
 
+    /** current thread local actor env */
     static ActorEnv current() {
         return THREAD_LOCAL_ACTOR_ENV.get();
     }
 
+    /** update current thread local actor env */
     static void update(ActorEnv actorEnv) {
         THREAD_LOCAL_ACTOR_ENV.set(actorEnv);
     }
@@ -51,7 +51,7 @@ public final class ActorEnv {
             "kinrpc-message", 2);
 
     /** 消息调度 */
-    private final Dispatcher<String, MessagePostContext> dispatcher;
+    private final Dispatcher<String, ActorContext> dispatcher;
     /** listen address */
     private final Address listenAddress;
     /** remoting server */
@@ -61,9 +61,9 @@ public final class ActorEnv {
     /** 序列化方式 */
     private final String serialization;
     /** server端ssl */
-    private SslConfig serverSslConfig;
+    private final SslConfig serverSslConfig;
     /** client端ssl */
-    private SslConfig clientSsl;
+    private final SslConfig clientSslConfig;
     /** 标识是否terminated */
     private volatile boolean terminated = false;
     /** outbound client pool */
@@ -73,27 +73,13 @@ public final class ActorEnv {
     /** key -> {@link Actor}实例, value -> {@link Actor}对应的{@link ActorRef}实例 */
     private final Map<Actor, ActorRef> actorRefMap = new ConcurrentHashMap<>();
 
-    public ActorEnv(int port) {
-        this(port, SysUtils.DOUBLE_CPU);
-    }
-
-    public ActorEnv(int port,
-                    int parallelism) {
-        this(NetUtils.getLocalhost4Ip(), port, parallelism, SerializationType.JSON, ProtocolType.KINRPC);
-    }
-
-    public ActorEnv(int port,
-                    int parallelism,
-                    SerializationType serializationType,
-                    ProtocolType protocolType) {
-        this(NetUtils.getLocalhost4Ip(), port, parallelism, serializationType, protocolType);
-    }
-
-    public ActorEnv(String host,
-                    int port,
-                    int parallelism,
-                    SerializationType serializationType,
-                    ProtocolType protocolType) {
+    private ActorEnv(String host,
+                     int port,
+                     int parallelism,
+                     SerializationType serializationType,
+                     ProtocolType protocolType,
+                     SslConfig serverSslConfig,
+                     SslConfig clientSslConfig) {
         if (ProtocolType.JVM.equals(protocolType)) {
             throw new UnsupportedOperationException();
         }
@@ -102,9 +88,12 @@ public final class ActorEnv {
         this.dispatcher = new EventBasedDispatcher<>(parallelism);
         this.serialization = serializationType.getName();
         this.protocol = protocolType.getName();
+        this.serverSslConfig = serverSslConfig;
+        this.clientSslConfig = clientSslConfig;
 
         startServer();
 
+        // TODO: 2023/7/14
 //        //server child channel options, 默认值
 //        Map<ChannelOption, Object> serverChannelOptions = new HashMap<>(6);
 //        serverChannelOptions.put(ChannelOption.TCP_NODELAY, true);
@@ -148,19 +137,12 @@ public final class ActorEnv {
     private void startServer() {
         checkTerminated();
 
+        if (listenAddress.equals(Address.JVM)) {
+            return;
+        }
+
         Transport transport = ExtensionLoader.getExtension(Transport.class, protocol);
         server = transport.createServer(listenAddress.getHost(), listenAddress.getPort(), null, serverSslConfig);
-        server.registerRequestProcessor(new RequestProcessor<Serializable>() {
-            @Override
-            public void process(RequestContext requestContext, Serializable request) {
-
-            }
-
-            @Override
-            public String interest() {
-                return null;
-            }
-        });
         server.registerRequestProcessor(new MessagePayloadProcessor());
         server.start();
     }
@@ -178,13 +160,17 @@ public final class ActorEnv {
             throw new IllegalStateException(String.format("actor '%s' has been registered", name));
         }
 
-        ActorRef endpointRef = ActorRef.of(ActorAddress.of(listenAddress, name), this);
-        actorRefMap.put(actor, endpointRef);
-        dispatcher.register(name, actor, !actor.threadSafe());
+        ActorRef actorRef = ActorRef.of(ActorAddress.of(listenAddress, name), this);
+        actor.internalInit(actorRef);
+        actorRefMap.put(actor, actorRef);
+        dispatcher.register(name, new ActorReceiver(this, actor), !actor.threadSafe());
     }
 
     /**
      * 注销actor
+     *
+     * @param name  actor name
+     * @param actor actor instance
      */
     public void removeActor(String name, Actor actor) {
         checkTerminated();
@@ -195,13 +181,16 @@ public final class ActorEnv {
 
     /**
      * create remote actor reference
+     *
+     * @param actorName actor name
+     * @param address   actor address
+     * @return actor reference
      */
-    public ActorRef actorOf(String host, int port, String actorName) {
+    public ActorRef actorOf(Address address, String actorName) {
         checkTerminated();
 
         return ActorRef.of(
-                ActorAddress.of(
-                        Address.of(host, port), actorName),
+                ActorAddress.of(address, actorName),
                 this);
     }
 
@@ -209,7 +198,7 @@ public final class ActorEnv {
      * create local actor reference
      */
     public ActorRef actorOf(String actorName) {
-        return actorOf(listenAddress.getHost(), listenAddress.getPort(), actorName);
+        return actorOf(listenAddress, actorName);
     }
 
     /**
@@ -230,7 +219,7 @@ public final class ActorEnv {
             removeClient(rpcAddress);
         }
 
-        //关闭注册endpoint
+        //关闭dispatcher
         dispatcher.shutdown();
 
         //关闭server
@@ -257,8 +246,8 @@ public final class ActorEnv {
         return serverSslConfig;
     }
 
-    public SslConfig getClientSsl() {
-        return clientSsl;
+    public SslConfig getClientSslConfig() {
+        return clientSslConfig;
     }
 
     public boolean isTerminated() {
@@ -269,6 +258,8 @@ public final class ActorEnv {
 
     /**
      * push message to outbox
+     *
+     * @param message message which waiting to send
      */
     private void post2OutBox(OutBoxMessage message) {
         MessagePayload payload = message.getPayload();
@@ -284,11 +275,15 @@ public final class ActorEnv {
 
     /**
      * 发送消息
+     *
+     * @param payload message payload
      */
     void fireAndForget(MessagePayload payload) {
         checkTerminated();
 
-        if (listenAddress.equals(payload.getToAddress())) {
+        Address toAddress = payload.getToAddress();
+        if (listenAddress.equals(toAddress) ||
+                Address.JVM.equals(toAddress)) {
             //local, 直接分派
             postMessage(payload);
         } else {
@@ -298,6 +293,8 @@ public final class ActorEnv {
 
     /**
      * 支持返回值为future的消息发送
+     *
+     * @param payload message payload
      */
     <R extends Serializable> CompletableFuture<R> requestResponse(MessagePayload payload) {
         return requestResponse(payload, 0);
@@ -305,6 +302,9 @@ public final class ActorEnv {
 
     /**
      * 支持返回值为future的消息发送, 并且支持超时
+     *
+     * @param payload   message payload
+     * @param timeoutMs send message and receive response message timeout
      */
     <R extends Serializable> CompletableFuture<R> requestResponse(MessagePayload payload, long timeoutMs) {
         checkTerminated();
@@ -315,22 +315,9 @@ public final class ActorEnv {
     }
 
     /**
-     * 支持callback的消息发送
-     */
-    void requestResponse(MessagePayload messagePayload, MessageCallback callback) {
-        requestResponse(messagePayload, callback, 0);
-    }
-
-    /**
-     * 支持callback的消息发送, 并且支持超时
-     */
-    void requestResponse(MessagePayload messagePayload, MessageCallback callback, long timeoutMs) {
-        checkTerminated();
-        post2OutBox(new OutBoxMessage(messagePayload, callback, timeoutMs));
-    }
-
-    /**
      * 分派并处理接受到的消息
+     *
+     * @param payload message payload
      */
     void postMessage(MessagePayload payload) {
         if (terminated) {
@@ -339,12 +326,17 @@ public final class ActorEnv {
         postMessage(null, payload);
     }
 
-    /** 分派并处理消息 */
+    /**
+     * 分派并处理消息
+     *
+     * @param requestContext transport request context
+     * @param payload        message payload
+     */
     private void postMessage(@Nullable RequestContext requestContext, MessagePayload payload) {
-        MessagePostContext messagePostContext =
-                new MessagePostContext(this, requestContext, payload.getFromAddress(), payload.getMessage());
-        messagePostContext.setEventTime(System.currentTimeMillis());
-        dispatcher.postMessage(payload.getActorName(), messagePostContext);
+        ActorContext actorContext =
+                new ActorContext(this, requestContext, payload);
+        actorContext.setEventTime(System.currentTimeMillis());
+        dispatcher.postMessage(payload.getToActorName(), actorContext);
     }
 
     /**
@@ -365,6 +357,8 @@ public final class ActorEnv {
 
     /**
      * remove remote client
+     *
+     * @param address remote地址
      */
     void removeClient(Address address) {
         MessageClient client = clients.remove(address);
@@ -375,6 +369,8 @@ public final class ActorEnv {
 
     /**
      * remove outbox
+     *
+     * @param address remote地址
      */
     void removeOutBox(Address address) {
         OutBox outBox = outBoxes.remove(address);
@@ -386,6 +382,8 @@ public final class ActorEnv {
 
     /**
      * 返回actor reference
+     *
+     * @param actor actor
      */
     ActorRef actorOf(Actor actor) {
         return actorRefMap.get(actor);
@@ -399,13 +397,78 @@ public final class ActorEnv {
     private class MessagePayloadProcessor implements RequestProcessor<MessagePayload> {
         @Override
         public void process(RequestContext requestContext, MessagePayload payload) {
+            long timeout = payload.getTimeout();
+            if (timeout > 0 && System.currentTimeMillis() > timeout) {
+                //message timeout, ignore
+                return;
+            }
             //分派
             postMessage(requestContext, payload);
         }
 
         @Override
         public String interest() {
-            return ACTOR_INTEREST;
+            return MessagePayload.class.getName();
+        }
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        /** listen host */
+        private String host = NetUtils.getLocalhost4Ip();
+        /** listen port */
+        private int port = 12888;
+        /** 并行数 */
+        private int parallelism = SysUtils.DOUBLE_CPU;
+        /** 传输层协议 */
+        private ProtocolType protocolType = ProtocolType.KINRPC;
+        /** 序列化方式 */
+        private SerializationType serializationType = SerializationType.JSON;
+        /** server端ssl */
+        private SslConfig serverSslConfig;
+        /** client端ssl */
+        private SslConfig clientSsl;
+
+        public Builder host(String host) {
+            this.host = host;
+            return this;
+        }
+
+        public Builder port(int port) {
+            this.port = port;
+            return this;
+        }
+
+        public Builder parallelism(int parallelism) {
+            this.parallelism = parallelism;
+            return this;
+        }
+
+        public Builder protocolType(ProtocolType protocolType) {
+            this.protocolType = protocolType;
+            return this;
+        }
+
+        public Builder serializationType(SerializationType serializationType) {
+            this.serializationType = serializationType;
+            return this;
+        }
+
+        public Builder serverSslConfig(SslConfig serverSslConfig) {
+            this.serverSslConfig = serverSslConfig;
+            return this;
+        }
+
+        public Builder clientSsl(SslConfig clientSsl) {
+            this.clientSsl = clientSsl;
+            return this;
+        }
+
+        public ActorEnv build() {
+            return new ActorEnv(host, port, parallelism, serializationType, protocolType, serverSslConfig, clientSsl);
         }
     }
 }

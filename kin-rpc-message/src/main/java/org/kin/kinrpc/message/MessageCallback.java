@@ -16,14 +16,14 @@ public interface MessageCallback {
      * @param request  request message
      * @param response response message
      */
-    <REQ extends Serializable, RESP extends Serializable> void onResponse(REQ request, RESP response);
+    <REQ extends Serializable, RESP extends Serializable> void onSuccess(REQ request, RESP response);
 
     /**
      * message response fail callback
      *
      * @param e 异常
      */
-    void onException(Throwable e);
+    void onFailure(Throwable e);
 
     /**
      * 执行回调的executor

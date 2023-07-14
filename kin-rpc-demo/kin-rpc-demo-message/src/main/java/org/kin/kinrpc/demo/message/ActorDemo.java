@@ -1,56 +1,57 @@
 package org.kin.kinrpc.demo.message;
 
-import org.kin.framework.JvmCloseCleaner;
+import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.message.Actor;
 import org.kin.kinrpc.message.ActorEnv;
-import org.kin.kinrpc.message.MessagePostContext;
+import org.kin.kinrpc.message.Behaviors;
 
+import java.io.IOException;
 import java.io.Serializable;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author huangjianqin
  * @date 2020-06-13
  */
 public class ActorDemo extends Actor {
-    public ActorDemo(ActorEnv actorEnv) {
-        super(actorEnv);
-    }
+    public static void main(String[] args) throws IOException {
+        ActorEnv actorEnv = ActorEnv.builder().port(16888).build();
+        String name = "actorDemo";
+        ActorDemo actorDemo = new ActorDemo();
+        actorEnv.newActor(name, actorDemo);
 
-    public static void main(String[] args) {
-        ActorEnv actorEnv = new ActorEnv("0.0.0.0", 16888);
-        actorEnv.startServer();
-        String name = "rpcEndpointDemo";
-        ActorDemo rpcEndpointDemo = new ActorDemo(actorEnv);
-        actorEnv.newActor(name, rpcEndpointDemo);
-
-        JvmCloseCleaner.instance().add(() -> {
-            actorEnv.removeActor(name, rpcEndpointDemo);
-            actorEnv.destroy();
-        });
+        //destroy
+        System.in.read();
+        actorEnv.removeActor(name, actorDemo);
+        actorEnv.destroy();
     }
 
     @Override
     protected void onStart() {
-        System.out.println("endpoint start");
+        System.out.println("actor start");
     }
 
     @Override
     protected void onStop() {
-        System.out.println("endpoint stop");
+        System.out.println("actor stop");
     }
 
     @Override
-    protected void onReceiveMessage(MessagePostContext context) {
-        Serializable message = context.getMessage();
-        System.out.println(message);
-        if (message instanceof ActorRefDemo.PrintMessage) {
-            //相当于创建client, send message
-            ActorRefDemo.PrintMessage printMessage = (ActorRefDemo.PrintMessage) message;
-            printMessage.getFrom().fireAndForget(new ReplyMessage(context.getRequestId(), Integer.parseInt(printMessage.getContent())));
-        } else if (message instanceof ActorRefDemo.AskMessage) {
-            //原路返回
-            context.response(new ReplyMessage(context.getRequestId(), -1));
-        }
+    protected Behaviors createBehaviors() {
+        return Behaviors.builder()
+                .interceptors((next, behavior, actorContext, message) -> {
+                    System.out.println("actorDemo intercept behavior, message=" + message);
+                    next.intercept(next, behavior, actorContext, message);
+                })
+                .behavior(ActorRefDemo.PrintMessage.class, (ac, pm) -> {
+                    System.out.println(pm.getContent());
+                    ac.sender().fireAndForget(new ReplyMessage("i have print...." + StringUtils.randomString(ThreadLocalRandom.current().nextInt(20))));
+                })
+                .behavior(ActorRefDemo.AskMessage.class, (ac, am) -> {
+                    //原路返回
+                    ac.response(new ReplyMessage("hi, " + am.getContent()));
+                })
+                .build();
     }
 
     @Override
@@ -60,38 +61,28 @@ public class ActorDemo extends Actor {
 
     public static class ReplyMessage implements Serializable {
         private static final long serialVersionUID = -1586292592951384110L;
-        private long requestId;
-        private int count;
+        private String content;
 
         public ReplyMessage() {
         }
 
-        public ReplyMessage(long requestId, int count) {
-            this.requestId = requestId;
-            this.count = count;
+        public ReplyMessage(String content) {
+            this.content = content;
         }
 
         //setter && getter
-        public long getRequestId() {
-            return requestId;
+        public String getContent() {
+            return content;
         }
 
-        public void setRequestId(long requestId) {
-            this.requestId = requestId;
-        }
-
-        public int getCount() {
-            return count;
-        }
-
-        public void setCount(int count) {
-            this.count = count;
+        public void setContent(String content) {
+            this.content = content;
         }
 
         @Override
         public String toString() {
             return "ReplyMessage{" +
-                    "requestId='" + requestId + '\'' +
+                    "content='" + content + '\'' +
                     '}';
         }
     }
