@@ -2,7 +2,6 @@ package org.kin.kinrpc.message;
 
 import com.google.common.base.Preconditions;
 
-import java.io.Serializable;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -12,48 +11,22 @@ import java.util.concurrent.CompletableFuture;
  * @author huangjianqin
  * @date 2020-06-08
  */
-public final class ActorRef implements Serializable {
-    private static final long serialVersionUID = 3191956547695414179L;
+public abstract class ActorRef {
     /** placeholder, means empty sender actor reference */
-    public static final ActorRef NO_SENDER = of(ActorAddress.NO_SENDER);
+    public static final ActorRef NO_SENDER = new ActorRef(ActorAddress.NO_SENDER) {
+    };
+    /** completed future */
+    private static final CompletableFuture<Object> COMPLETED_FUTURE = new CompletableFuture<>();
+
+    static {
+        COMPLETED_FUTURE.complete(null);
+    }
 
     /** refer actor address */
-    private ActorAddress actorAddress;
-    /** actor env */
-    private transient volatile ActorEnv actorEnv;
+    private final ActorAddress actorAddress;
 
-    private ActorRef() {
-        //更新local RpcEnv
-        actorEnv = ActorEnv.current();
-    }
-
-    static ActorRef of(ActorAddress actorAddress) {
-        ActorRef actorRef = new ActorRef();
-        actorRef.actorAddress = actorAddress;
-        return actorRef;
-    }
-
-    static ActorRef of(ActorAddress actorAddress, ActorEnv actorEnv) {
-        if (actorAddress.equals(ActorAddress.NO_SENDER)) {
-            return NO_SENDER;
-        }
-        ActorRef actorRef = new ActorRef();
-        actorRef.actorAddress = actorAddress;
-        actorRef.actorEnv = actorEnv;
-        return actorRef;
-    }
-
-    /** 返回actor env, 如果{@link #actorEnv}没有赋值, 则从thread local获取 */
-    private ActorEnv actorEnv() {
-        //反序列化时没有获取到RpcEnv, 则尝试从执行线程获取RpcEnv
-        if (Objects.isNull(actorEnv)) {
-            synchronized (this) {
-                if (Objects.isNull(actorEnv)) {
-                    actorEnv = ActorEnv.current();
-                }
-            }
-        }
-        return actorEnv;
+    protected ActorRef(ActorAddress actorAddress) {
+        this.actorAddress = actorAddress;
     }
 
     /**
@@ -61,7 +34,7 @@ public final class ActorRef implements Serializable {
      *
      * @return true表示actor可用
      */
-    private boolean isAvailable() {
+    private final boolean isAvailable() {
         return this != NO_SENDER;
     }
 
@@ -70,8 +43,8 @@ public final class ActorRef implements Serializable {
      *
      * @param message message
      */
-    public void fireAndForget(Serializable message) {
-        fireAndForget(message, NO_SENDER);
+    public final void tell(Object message) {
+        tell(message, NO_SENDER);
     }
 
     /**
@@ -80,11 +53,21 @@ public final class ActorRef implements Serializable {
      * @param message message
      * @param sender  sender actor reference
      */
-    public void fireAndForget(Serializable message, ActorRef sender) {
+    public final void tell(Object message, ActorRef sender) {
         if (!isAvailable()) {
             return;
         }
-        actorEnv().fireAndForget(MessagePayload.requestAndForget(sender.actorAddress, this, message));
+        doTell(message, sender);
+    }
+
+    /**
+     * 发送消息
+     *
+     * @param message message
+     * @param sender  sender actor reference
+     */
+    public void doTell(Object message, ActorRef sender) {
+        //default do nothing
     }
 
     /**
@@ -93,8 +76,8 @@ public final class ActorRef implements Serializable {
      * @param message message
      * @return message response future
      */
-    public <R extends Serializable> CompletableFuture<R> requestResponse(Serializable message) {
-        return requestResponse(message, NO_SENDER, 0);
+    public final <R> CompletableFuture<R> ask(Object message) {
+        return ask(message, NO_SENDER, 0);
     }
 
     /**
@@ -104,8 +87,8 @@ public final class ActorRef implements Serializable {
      * @param timeoutMs send message and receive response message timeout
      * @return message response future
      */
-    public <R extends Serializable> CompletableFuture<R> requestResponse(Serializable message, long timeoutMs) {
-        return requestResponse(message, NO_SENDER, timeoutMs);
+    public final <R> CompletableFuture<R> ask(Object message, long timeoutMs) {
+        return ask(message, NO_SENDER, timeoutMs);
     }
 
     /**
@@ -115,8 +98,8 @@ public final class ActorRef implements Serializable {
      * @param sender  sender actor reference
      * @return message response future
      */
-    public <R extends Serializable> CompletableFuture<R> requestResponse(Serializable message, ActorRef sender) {
-        return requestResponse(message, sender, 0);
+    public final <R> CompletableFuture<R> ask(Object message, ActorRef sender) {
+        return ask(message, sender, 0);
     }
 
     /**
@@ -127,13 +110,27 @@ public final class ActorRef implements Serializable {
      * @param timeoutMs send message and receive response message timeout
      * @return message response future
      */
-    public <R extends Serializable> CompletableFuture<R> requestResponse(Serializable message, ActorRef sender, long timeoutMs) {
+    public final <R> CompletableFuture<R> ask(Object message, ActorRef sender, long timeoutMs) {
         if (!isAvailable()) {
             CompletableFuture<R> future = new CompletableFuture<>();
             future.complete(null);
             return future;
         }
-        return actorEnv().requestResponse(MessagePayload.request(sender.actorAddress, this, message, timeoutMs));
+        return doAsk(message, sender, timeoutMs);
+    }
+
+    /**
+     * 发送消息, 并返回Future, 支持阻塞等待待消息处理完成并返回, 并且支持超时
+     *
+     * @param message   message
+     * @param sender    sender actor reference
+     * @param timeoutMs send message and receive response message timeout
+     * @return message response future
+     */
+    @SuppressWarnings("unchecked")
+    public <R> CompletableFuture<R> doAsk(Object message, ActorRef sender, long timeoutMs) {
+        //default do nothing
+        return (CompletableFuture<R>) COMPLETED_FUTURE;
     }
 
     /**
@@ -142,8 +139,8 @@ public final class ActorRef implements Serializable {
      * @param message  message
      * @param callback message callback
      */
-    public void requestResponse(Serializable message, MessageCallback callback) {
-        requestResponse(message, callback, NO_SENDER, 0);
+    public final void ask(Object message, MessageCallback callback) {
+        ask(message, callback, NO_SENDER, 0);
     }
 
     /**
@@ -153,8 +150,8 @@ public final class ActorRef implements Serializable {
      * @param callback  message callback
      * @param timeoutMs send message and receive response message timeout
      */
-    public void requestResponse(Serializable message, MessageCallback callback, long timeoutMs) {
-        requestResponse(message, callback, NO_SENDER, timeoutMs);
+    public final void ask(Object message, MessageCallback callback, long timeoutMs) {
+        ask(message, callback, NO_SENDER, timeoutMs);
     }
 
     /**
@@ -164,8 +161,8 @@ public final class ActorRef implements Serializable {
      * @param callback message callback
      * @param sender   sender actor reference
      */
-    public void requestResponse(Serializable message, MessageCallback callback, ActorRef sender) {
-        requestResponse(message, callback, sender, 0);
+    public final void ask(Object message, MessageCallback callback, ActorRef sender) {
+        ask(message, callback, sender, 0);
     }
 
     /**
@@ -176,12 +173,12 @@ public final class ActorRef implements Serializable {
      * @param sender    sender actor reference
      * @param timeoutMs send message and receive response message timeout
      */
-    public void requestResponse(Serializable message, MessageCallback callback, ActorRef sender, long timeoutMs) {
+    public final void ask(Object message, MessageCallback callback, ActorRef sender, long timeoutMs) {
         if (!isAvailable()) {
             return;
         }
         Preconditions.checkNotNull(callback);
-        actorEnv().requestResponse(MessagePayload.request(sender.actorAddress, this, message, timeoutMs))
+        ask(message, sender, timeoutMs)
                 .whenComplete((r, t) -> {
                     if (Objects.isNull(t)) {
                         callback.onSuccess(message, r);
@@ -191,8 +188,17 @@ public final class ActorRef implements Serializable {
                 });
     }
 
+    /**
+     * response message
+     *
+     * @param message response message
+     */
+    public void answer(Object message) {
+        //default donothing
+    }
+
     //getter
-    public ActorAddress getActorAddress() {
+    public final ActorAddress getActorAddress() {
         return actorAddress;
     }
 

@@ -3,22 +3,21 @@ package org.kin.kinrpc.message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
 import java.util.*;
 
 /**
  * @author huangjianqin
  * @date 2023/7/13
  */
-public final class Behaviors implements Behavior<Serializable> {
+public final class Behaviors implements Behavior<Object> {
     private static final Logger log = LoggerFactory.getLogger(Behaviors.class);
 
     /** key -> 消息类型, value -> {@link Behavior} */
-    private final Map<Class<?>, Behavior<? extends Serializable>> behaviorMap;
+    private final Map<Class<?>, Behavior<?>> behaviorMap;
     /** interceptor chain */
     private final InterceptorChainContext interceptorChain;
 
-    private Behaviors(Map<Class<?>, Behavior<? extends Serializable>> behaviorMap,
+    private Behaviors(Map<Class<?>, Behavior<?>> behaviorMap,
                       List<Interceptor> interceptors) {
         this.behaviorMap = Collections.unmodifiableMap(behaviorMap);
         InterceptorChainContext interceptorChain = InterceptorChainContext.ON_RECEIVE;
@@ -28,16 +27,16 @@ public final class Behaviors implements Behavior<Serializable> {
         this.interceptorChain = interceptorChain;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public void onReceive(ActorContext actorContext, Serializable message) {
-        Class<? extends Serializable> messageClass = message.getClass();
-        Behavior<? extends Serializable> behavior = behaviorMap.get(messageClass);
+    @SuppressWarnings("unchecked")
+    public void onReceive(Object message) {
+        Class<?> messageClass = message.getClass();
+        Behavior<?> behavior = behaviorMap.get(messageClass);
         if (Objects.isNull(behavior)) {
             log.warn("can not find behavior for message '{}, make sure it is right'", messageClass.getName());
             return;
         }
-        interceptorChain.intercept(null, (Behavior<Serializable>) behavior, actorContext, message);
+        interceptorChain.intercept(null, (Behavior<Object>) behavior, message);
     }
 
     //------------------------------------------------------------------------------------------------------------------------builder
@@ -61,7 +60,7 @@ public final class Behaviors implements Behavior<Serializable> {
             return this;
         }
 
-        public <M extends Serializable> Builder behavior(Class<M> messageClass, Behavior<M> behavior) {
+        public <M> Builder behavior(Class<M> messageClass, Behavior<M> behavior) {
             if (behaviorMap.containsKey(messageClass)) {
                 throw new IllegalStateException(String.format("message class '%s' has been register behavior", messageClass.getName()));
             }

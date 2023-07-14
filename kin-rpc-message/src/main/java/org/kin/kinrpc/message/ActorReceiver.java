@@ -39,19 +39,21 @@ final class ActorReceiver extends Receiver<ActorContext> {
     public void receive(ActorContext context) {
         //update thread local actor env
         ActorEnv.update(actorEnv);
+        //update thread local actor context
+        ActorContext.update(context);
         //update message handle time
         context.setHandleTime(System.currentTimeMillis());
 
         if (log.isDebugEnabled()) {
             log.debug("receive message from {} to {}, eventTime={}, handleTime={}, message={}",
                     context.getFromActorAddress(),
-                    context.getToActorName(),
+                    context.getToActorAddress(),
                     context.getEventTime(),
                     context.getHandleTime(),
                     context.getMessage()
             );
         }
 
-        behaviors.onReceive(context, context.getMessage());
+        behaviors.onReceive(context.getMessage());
     }
 }

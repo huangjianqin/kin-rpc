@@ -22,7 +22,7 @@ final class OutBox {
     /** remote address */
     private final Address address;
     /** actor env */
-    private final ActorEnv actorEnv;
+    private final RemotingActorEnv actorEnv;
     /** remote client */
     private MessageClient client;
     /** 待发送队列 */
@@ -34,7 +34,7 @@ final class OutBox {
     @SuppressWarnings("rawtypes")
     private Future clientConnectFuture;
 
-    OutBox(Address address, ActorEnv actorEnv) {
+    OutBox(Address address, RemotingActorEnv actorEnv) {
         this.address = address;
         this.actorEnv = actorEnv;
     }

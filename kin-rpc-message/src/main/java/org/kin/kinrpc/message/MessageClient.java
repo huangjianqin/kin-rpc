@@ -54,7 +54,7 @@ final class MessageClient {
     /** state */
     private AtomicInteger state = new AtomicInteger(INIT_STATE);
 
-    MessageClient(ActorEnv actorEnv,
+    MessageClient(RemotingActorEnv actorEnv,
                   Address remoteAddress) {
         this.actorEnv = actorEnv;
         this.remoteAddress = remoteAddress;

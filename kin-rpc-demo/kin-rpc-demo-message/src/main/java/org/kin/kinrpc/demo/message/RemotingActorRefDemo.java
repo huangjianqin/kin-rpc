@@ -2,9 +2,9 @@ package org.kin.kinrpc.demo.message;
 
 import com.google.common.base.Stopwatch;
 import org.kin.framework.JvmCloseCleaner;
+import org.kin.kinrpc.config.SerializationType;
 import org.kin.kinrpc.message.*;
 
-import java.io.Serializable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -12,12 +12,12 @@ import java.util.concurrent.TimeUnit;
  * @author huangjianqin
  * @date 2020-06-13
  */
-public class ActorRefDemo extends Actor {
+public class RemotingActorRefDemo extends Actor {
 
     public static void main(String[] args) {
-        ActorEnv actorEnv = ActorEnv.builder().port(16889).build();
+        ActorEnv actorEnv = RemotingActorEnv.builder2().port(16889).serializationType(SerializationType.KRYO).build();
         String name = "actorRefDemo";
-        ActorRefDemo actorRefDemo = new ActorRefDemo();
+        RemotingActorRefDemo actorRefDemo = new RemotingActorRefDemo();
         try {
             actorEnv.newActor(name, actorRefDemo);
 
@@ -29,14 +29,13 @@ public class ActorRefDemo extends Actor {
             int count = 0;
             while (count < 5) {
                 try {
-                    // TODO: 2023/7/13
-//                    actorDemoRef.fireAndForget(new PrintMessage(++count + ""));
-                    CompletableFuture<ActorDemo.ReplyMessage> future = actorDemoRef.requestResponse(new AskMessage(++count + ""));
+                    actorDemoRef.tell(new PrintMessage(++count + ""));
+                    CompletableFuture<ReplyMessage> future = actorDemoRef.ask(new AskMessage(++count + ""));
                     System.out.println("ask with block >>>> " + future.get());
 
-                    actorDemoRef.requestResponse(new AskMessage(++count + ""), new MessageCallback() {
+                    actorDemoRef.ask(new AskMessage(++count + ""), new MessageCallback() {
                         @Override
-                        public <REQ extends Serializable, RESP extends Serializable> void onSuccess(REQ request, RESP response) {
+                        public <REQ, RESP> void onSuccess(REQ request, RESP response) {
                             System.out.println("ask with timeout >>>> " + "~~~~~" + request + "~~~~~" + response);
                         }
 
@@ -74,11 +73,11 @@ public class ActorRefDemo extends Actor {
     @Override
     protected Behaviors createBehaviors() {
         return Behaviors.builder()
-                .interceptors((next, behavior, actorContext, message) -> {
+                .interceptors((next, behavior, message) -> {
                     System.out.println("actorRefDemo intercept behavior, message=" + message);
-                    next.intercept(next, behavior, actorContext, message);
+                    next.intercept(next, behavior, message);
                 })
-                .behavior(ActorDemo.ReplyMessage.class, (ac, pm) -> {
+                .behavior(ReplyMessage.class, pm -> {
                     System.out.println("remote reply, " + pm.getContent());
                 })
                 .build();
@@ -87,59 +86,5 @@ public class ActorRefDemo extends Actor {
     @Override
     public boolean threadSafe() {
         return true;
-    }
-
-    public static class PrintMessage implements Serializable {
-        private static final long serialVersionUID = -1632194863001778858L;
-
-        private String content;
-
-        public PrintMessage() {
-        }
-
-        public PrintMessage(String content) {
-            this.content = content;
-        }
-
-        public String getContent() {
-            return content;
-        }
-
-        public void setContent(String content) {
-            this.content = content;
-        }
-
-        @Override
-        public String toString() {
-            return "PrintMessage{" +
-                    "content='" + content + '\'' +
-                    '}';
-        }
-    }
-
-
-    public static class AskMessage implements Serializable {
-        private static final long serialVersionUID = -6807586672826372145L;
-
-        private String content;
-
-        public AskMessage(String content) {
-            this.content = content;
-        }
-
-        public String getContent() {
-            return content;
-        }
-
-        public void setContent(String content) {
-            this.content = content;
-        }
-
-        @Override
-        public String toString() {
-            return "AskMessage{" +
-                    "content='" + content + '\'' +
-                    '}';
-        }
     }
 }

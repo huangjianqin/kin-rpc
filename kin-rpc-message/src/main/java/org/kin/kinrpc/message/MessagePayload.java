@@ -18,7 +18,7 @@ final class MessagePayload implements Serializable {
     /** 请求超时结束时间 */
     private long timeout;
     /** 消息 */
-    private Serializable message;
+    private Object message;
 
     //----------------------------------------------tmp
     /** receiver actor */
@@ -29,21 +29,21 @@ final class MessagePayload implements Serializable {
     /**
      * request ignore response
      */
-    static MessagePayload requestAndForget(ActorAddress fromActorAddress, ActorRef to, Serializable message) {
-        return request(fromActorAddress, to, message, true, 0);
+    static MessagePayload tell(ActorAddress fromActorAddress, ActorRef to, Object message) {
+        return ask(fromActorAddress, to, message, true, 0);
     }
 
     /**
      * request
      */
-    static MessagePayload request(ActorAddress fromActorAddress, ActorRef to, Serializable message, long timeout) {
-        return request(fromActorAddress, to, message, false, timeout);
+    static MessagePayload ask(ActorAddress fromActorAddress, ActorRef to, Object message, long timeout) {
+        return ask(fromActorAddress, to, message, false, timeout);
     }
 
     /**
      * request
      */
-    private static MessagePayload request(ActorAddress fromActorAddress, ActorRef to, Serializable message, boolean ignoreResponse, long timeout) {
+    private static MessagePayload ask(ActorAddress fromActorAddress, ActorRef to, Object message, boolean ignoreResponse, long timeout) {
         MessagePayload payload = new MessagePayload();
         payload.fromActorAddress = fromActorAddress;
         payload.toActorName = to.getActorAddress().getName();
@@ -57,7 +57,7 @@ final class MessagePayload implements Serializable {
     /**
      * response
      */
-    static MessagePayload response(ActorAddress fromActorAddress, Serializable message) {
+    static MessagePayload answer(ActorAddress fromActorAddress, Object message) {
         MessagePayload payload = new MessagePayload();
         payload.fromActorAddress = fromActorAddress;
         payload.toActorName = "";
@@ -85,11 +85,11 @@ final class MessagePayload implements Serializable {
         this.toActorName = toActorName;
     }
 
-    public Serializable getMessage() {
+    public Object getMessage() {
         return message;
     }
 
-    public void setMessage(Serializable message) {
+    public void setMessage(Object message) {
         this.message = message;
     }
 

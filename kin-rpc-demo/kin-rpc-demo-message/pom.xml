@@ -23,5 +23,11 @@
             <artifactId>kin-rpc-message</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <!-- todo -->
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-serialization-kryo</artifactId>
+        </dependency>
     </dependencies>
 </project>

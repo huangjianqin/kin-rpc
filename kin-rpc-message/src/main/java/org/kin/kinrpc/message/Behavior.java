@@ -1,7 +1,5 @@
 package org.kin.kinrpc.message;
 
-import java.io.Serializable;
-
 /**
  * 定义消息处理逻辑
  *
@@ -9,12 +7,11 @@ import java.io.Serializable;
  * @date 2023/7/13
  */
 @FunctionalInterface
-public interface Behavior<M extends Serializable> {
+public interface Behavior<M> {
     /**
      * 定义消息处理逻辑
      *
-     * @param actorContext actor context
-     * @param message      received message
+     * @param message received message
      */
-    void onReceive(ActorContext actorContext, M message);
+    void onReceive(M message);
 }

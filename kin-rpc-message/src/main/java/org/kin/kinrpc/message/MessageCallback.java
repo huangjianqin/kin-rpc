@@ -1,6 +1,5 @@
 package org.kin.kinrpc.message;
 
-import java.io.Serializable;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -16,7 +15,7 @@ public interface MessageCallback {
      * @param request  request message
      * @param response response message
      */
-    <REQ extends Serializable, RESP extends Serializable> void onSuccess(REQ request, RESP response);
+    <REQ, RESP> void onSuccess(REQ request, RESP response);
 
     /**
      * message response fail callback

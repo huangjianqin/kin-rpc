@@ -1,10 +1,6 @@
 package org.kin.kinrpc.message;
 
 import org.kin.framework.collection.AttachmentMap;
-import org.kin.kinrpc.transport.RequestContext;
-
-import java.io.Serializable;
-import java.util.Objects;
 
 /**
  * 消息处理上下文
@@ -13,57 +9,60 @@ import java.util.Objects;
  * @date 2020-06-08
  */
 public final class ActorContext extends AttachmentMap {
+    /** thread local {@link ActorEnv}实例 */
+    private static final ThreadLocal<ActorContext> THREAD_LOCAL_ACTOR_CONTEXT = new ThreadLocal<>();
+
+    /** current thread local actor context */
+    static ActorContext current() {
+        return THREAD_LOCAL_ACTOR_CONTEXT.get();
+    }
+
+    /** update current thread local actor context */
+    static void update(ActorContext context) {
+        THREAD_LOCAL_ACTOR_CONTEXT.set(context);
+    }
+
     /** actor env */
     private final ActorEnv actorEnv;
-    /** sender address */
-    private final ActorAddress fromActorAddress;
+    /** sender */
+    private final ActorRef sender;
     /** receiver actor name */
-    private String toActorName;
-    /**
-     * request context
-     * send local message的时候, 为null
-     */
-    private final RequestContext requestContext;
+    private final ActorAddress toActorAddress;
     /** 消息 */
-    private final Serializable message;
+    private final Object message;
     /** 消息事件时间, 即到达receiver端但还未处理的时间 */
     private long eventTime;
     /** 消息处理时间 */
     private long handleTime;
 
-    public ActorContext(ActorEnv actorEnv, RequestContext requestContext, MessagePayload payload) {
+    public ActorContext(ActorEnv actorEnv,
+                        ActorRef sender,
+                        ActorAddress toActorAddress,
+                        Object message) {
         this.actorEnv = actorEnv;
-        this.requestContext = requestContext;
-        this.fromActorAddress = payload.getFromActorAddress();
-        this.toActorName = payload.getToActorName();
-        this.message = payload.getMessage();
-    }
-
-    /** 原路返回, 响应客户端请求 */
-    public void response(Serializable message) {
-        if (Objects.isNull(requestContext)) {
-            return;
-        }
-        MessagePayload responsePayload =
-                MessagePayload.response(ActorAddress.of(actorEnv.getListenAddress(), toActorName), message);
-        requestContext.writeMessageResponse(responsePayload);
-    }
-
-    /**
-     * 返回message sender actor
-     *
-     * @return message sender actor
-     */
-    public ActorRef sender() {
-        return ActorRef.of(fromActorAddress, actorEnv);
+        this.sender = sender;
+        this.toActorAddress = toActorAddress;
+        this.message = message;
     }
 
     //setter && getter
-    public ActorAddress getFromActorAddress() {
-        return fromActorAddress;
+    public ActorEnv actorEnv() {
+        return actorEnv;
     }
 
-    public Serializable getMessage() {
+    public ActorRef sender() {
+        return sender;
+    }
+
+    public ActorAddress getFromActorAddress() {
+        return sender.getActorAddress();
+    }
+
+    public ActorAddress getToActorAddress() {
+        return toActorAddress;
+    }
+
+    public Object getMessage() {
         return message;
     }
 
@@ -81,9 +80,5 @@ public final class ActorContext extends AttachmentMap {
 
     public void setHandleTime(long handleTime) {
         this.handleTime = handleTime;
-    }
-
-    public String getToActorName() {
-        return toActorName;
     }
 }

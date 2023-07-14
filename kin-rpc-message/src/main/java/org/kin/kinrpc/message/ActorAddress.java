@@ -31,6 +31,10 @@ public final class ActorAddress implements Serializable {
         return actorAddress;
     }
 
+    public static ActorAddress of(String name) {
+        return of(Address.LOCAL, name);
+    }
+
     //------------------------------------------------------------------------------------------------------------
     public Address getAddress() {
         return address;

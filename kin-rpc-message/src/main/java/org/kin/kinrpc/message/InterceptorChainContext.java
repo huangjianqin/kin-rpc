@@ -1,6 +1,5 @@
 package org.kin.kinrpc.message;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -10,7 +9,7 @@ import java.util.Objects;
 public class InterceptorChainContext implements Interceptor {
     /** tail interceptor context in chain */
     private static final InterceptorChainContext TAIL = new InterceptorChainContext(null, null);
-    /** second last interceptor context in chain, main to call {@link Behavior#onReceive(ActorContext, Serializable)} */
+    /** second last interceptor context in chain, main to call {@link Behavior#onReceive(ActorContext, Object)} */
     public static final InterceptorChainContext ON_RECEIVE = new InterceptorChainContext(TAIL, Interceptor.ON_RECEIVE);
 
 
@@ -25,11 +24,11 @@ public class InterceptorChainContext implements Interceptor {
     }
 
     @Override
-    public void intercept(InterceptorChainContext next, Behavior<Serializable> behavior, ActorContext actorContext, Serializable message) {
+    public void intercept(InterceptorChainContext next, Behavior<Object> behavior, Object message) {
         if (Objects.isNull(interceptor)) {
             return;
         }
 
-        interceptor.intercept(this.next, behavior, actorContext, message);
+        interceptor.intercept(this.next, behavior, message);
     }
 }

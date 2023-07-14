@@ -38,6 +38,15 @@ public abstract class Actor {
     }
 
     /**
+     * 返回处理中的消息所属sender
+     *
+     * @return sender
+     */
+    public final ActorRef sender() {
+        return ActorContext.current().sender();
+    }
+
+    /**
      * 返回该actor对应的reference
      */
     public final ActorRef self() {

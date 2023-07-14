@@ -1,6 +1,5 @@
 package org.kin.kinrpc.message;
 
-import java.io.Serializable;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -16,7 +15,7 @@ final class OutBoxMessage {
     /** 消息请求超时时间 */
     private final long timeoutMs;
     /** future */
-    private final CompletableFuture<Serializable> userFuture;
+    private final CompletableFuture<Object> userFuture;
 
     OutBoxMessage(MessagePayload payload) {
         this.payload = payload;
@@ -26,10 +25,10 @@ final class OutBoxMessage {
 
     /** 异步请求调用, 触发future */
     @SuppressWarnings("unchecked")
-    OutBoxMessage(MessagePayload payload, CompletableFuture<? extends Serializable> userFuture, long timeoutMs) {
+    OutBoxMessage(MessagePayload payload, CompletableFuture<Object> userFuture, long timeoutMs) {
         this.payload = payload;
         this.timeoutMs = timeoutMs;
-        this.userFuture = (CompletableFuture<Serializable>) userFuture;
+        this.userFuture = userFuture;
     }
 
     /**

@@ -19,7 +19,7 @@ public final class Address implements Serializable {
     private static final long serialVersionUID = 145033673996597409L;
 
     /** {@link Address} for internal jvm address */
-    public static final Address JVM = Address.of("", -1);
+    public static final Address LOCAL = Address.of("", -1);
 
     /** host name */
     private String host;
