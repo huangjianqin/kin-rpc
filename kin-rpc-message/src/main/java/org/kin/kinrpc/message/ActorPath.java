@@ -1,5 +1,8 @@
 package org.kin.kinrpc.message;
 
+import com.google.common.base.Preconditions;
+import org.kin.framework.utils.StringUtils;
+
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -13,22 +16,25 @@ public final class ActorPath implements Serializable {
     private static final long serialVersionUID = 5376277467578311383L;
 
     /** 不指向任何actor的{@link ActorPath}实例 */
-    public static final ActorPath NO_SENDER = of(Address.of("", -1), "");
+    public static final ActorPath NO_SENDER = of(Address.LOCAL, "");
 
     /** address */
     private Address address;
     /** actor name */
     private String name;
 
-    private ActorPath() {
+    public ActorPath() {
+    }
+
+    public ActorPath(Address address, String name) {
+        Preconditions.checkNotNull(address);
+        this.address = address;
+        this.name = name;
     }
 
     //------------------------------------------------------------------------------------------------------------
     public static ActorPath of(Address address, String name) {
-        ActorPath actorPath = new ActorPath();
-        actorPath.address = address;
-        actorPath.name = name;
-        return actorPath;
+        return new ActorPath(address, name);
     }
 
     public static ActorPath of(String name) {
@@ -36,6 +42,13 @@ public final class ActorPath implements Serializable {
     }
 
     //------------------------------------------------------------------------------------------------------------
+
+    /** 返回是否没有sender */
+    public boolean isNoSender() {
+        return StringUtils.isBlank(name);
+    }
+
+    //setter && getter
     public Address getAddress() {
         return address;
     }

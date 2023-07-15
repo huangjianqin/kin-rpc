@@ -4,6 +4,7 @@ import org.kin.kinrpc.message.ActorEnv;
 import org.kin.kinrpc.message.ActorRef;
 import org.kin.kinrpc.message.RemotingActorEnv;
 
+import java.io.IOException;
 import java.util.concurrent.ForkJoinPool;
 
 /**
@@ -12,8 +13,8 @@ import java.util.concurrent.ForkJoinPool;
  */
 public class LocalActorTest {
 
-    public static void main(String[] args) throws InterruptedException {
-        ActorEnv actorEnv = RemotingActorEnv.builder().build();
+    public static void main(String[] args) throws InterruptedException, IOException {
+        ActorEnv actorEnv = RemotingActorEnv.local().build();
         ActorTestBase actorTestBase = new ActorTestBase() {
             @Override
             protected ActorEnv createActorEnv() {
@@ -38,7 +39,7 @@ public class LocalActorTest {
         Thread.sleep(1_000);
         ForkJoinPool.commonPool()
                 .execute(actorRefTestBase);
-        Thread.sleep(5_000);
+        System.in.read();
         System.exit(0);
     }
 }

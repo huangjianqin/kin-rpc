@@ -29,7 +29,7 @@ public abstract class ActorRefTestBase implements Runnable {
             int count = 0;
             while (count < 5) {
                 try {
-                    responderActor.tell(new PrintMessage(++count + ""));
+                    responderActor.tell(new PrintMessage(++count + ""), requestActor.self());
                     CompletableFuture<ReplyMessage> future = responderActor.ask(new AskMessage(++count + ""));
                     System.out.println("ask with block >>>> " + future.get());
 
@@ -50,14 +50,13 @@ public abstract class ActorRefTestBase implements Runnable {
             }
             watcher.stop();
             System.out.printf("结束, 耗时%d ms%n", watcher.elapsed(TimeUnit.MILLISECONDS));
-            System.in.read();
+            Thread.sleep(3_000);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
             actorEnv.removeActor(name, requestActor);
             actorEnv.destroy();
         }
-        System.exit(0);
     }
 
     protected abstract ActorEnv createActorEnv();

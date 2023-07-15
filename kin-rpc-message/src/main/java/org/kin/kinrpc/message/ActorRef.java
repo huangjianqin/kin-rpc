@@ -34,8 +34,8 @@ public abstract class ActorRef {
      *
      * @return true表示actor可用
      */
-    private final boolean isAvailable() {
-        return this != NO_SENDER;
+    private boolean isAvailable() {
+        return !getActorPath().isNoSender();
     }
 
     /**
@@ -203,7 +203,24 @@ public abstract class ActorRef {
     }
 
     public final boolean isLocal() {
-        return Address.LOCAL.equals(getActorPath().getAddress());
+        return getActorPath().getAddress().isLocal();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ActorRef)) {
+            return false;
+        }
+        ActorRef actorRef = (ActorRef) o;
+        return Objects.equals(actorPath, actorRef.actorPath);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(actorPath);
     }
 
     @Override

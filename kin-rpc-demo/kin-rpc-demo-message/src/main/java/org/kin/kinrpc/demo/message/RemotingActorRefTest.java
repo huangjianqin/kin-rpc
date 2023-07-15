@@ -2,7 +2,7 @@ package org.kin.kinrpc.demo.message;
 
 import org.kin.kinrpc.message.ActorEnv;
 import org.kin.kinrpc.message.ActorRef;
-import org.kin.kinrpc.message.RemotingActorEnv;
+import org.kin.kinrpc.message.Address;
 
 /**
  * @author huangjianqin
@@ -16,11 +16,11 @@ public class RemotingActorRefTest extends ActorRefTestBase {
 
     @Override
     protected ActorEnv createActorEnv() {
-        return RemotingActorEnv.builder2().port(16889).build();
+        return ActorEnv.remoting().port(16889).build();
     }
 
     @Override
     protected ActorRef createResponderActor(ActorEnv actorEnv) {
-        return actorEnv.actorOf("responder");
+        return actorEnv.actorOf(Address.of(16888), "responder");
     }
 }

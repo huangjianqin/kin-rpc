@@ -11,6 +11,9 @@ public class AskMessage implements Serializable {
 
     private String content;
 
+    public AskMessage() {
+    }
+
     public AskMessage(String content) {
         this.content = content;
     }

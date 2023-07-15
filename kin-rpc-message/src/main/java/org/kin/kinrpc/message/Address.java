@@ -2,6 +2,7 @@ package org.kin.kinrpc.message;
 
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.NetUtils;
+import org.kin.framework.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +27,7 @@ public final class Address implements Serializable {
     /** port */
     private int port;
 
-    private Address() {
+    public Address() {
     }
 
     //------------------------------------------------------------------------------------------------------------
@@ -56,6 +57,13 @@ public final class Address implements Serializable {
     }
 
     //------------------------------------------------------------------------------------------------------------
+
+    /** 返回是否local */
+    public boolean isLocal() {
+        return StringUtils.isBlank(host) && port < 1;
+    }
+
+    //setter && getter
     public String getHost() {
         return host;
     }

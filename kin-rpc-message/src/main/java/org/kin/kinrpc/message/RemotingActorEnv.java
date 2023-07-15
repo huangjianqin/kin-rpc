@@ -54,9 +54,25 @@ public final class RemotingActorEnv extends ActorEnv {
                              ProtocolType protocolType,
                              SslConfig serverSslConfig,
                              SslConfig clientSslConfig) {
-        super(parallelism,
-                (ActorRefProvider<RemotingActorEnv>) (actorEnv, actorPath) ->
-                        new RemotingActorRef(actorPath, actorEnv));
+        super(parallelism, new ActorRefProvider<RemotingActorEnv>() {
+            @Override
+            public ActorRef actorOf(RemotingActorEnv actorEnv, ActorPath actorPath) {
+                Address address = actorPath.getAddress();
+                if (Objects.isNull(address)) {
+                    address = Address.LOCAL;
+                }
+                if (address.isLocal() || address.equals(actorEnv.getListenAddress())) {
+                    return new LocalActorRef(actorPath, actorEnv);
+                } else {
+                    return new RemotingActorRef(actorPath, actorEnv);
+                }
+            }
+
+            @Override
+            public ActorRef actorOf(RemotingActorEnv actorEnv, String actorName) {
+                return new RemotingActorRef(ActorPath.of(actorEnv.getListenAddress(), actorName), actorEnv);
+            }
+        });
 
         if (ProtocolType.JVM.equals(protocolType)) {
             throw new UnsupportedOperationException();
@@ -103,10 +119,6 @@ public final class RemotingActorEnv extends ActorEnv {
     private void startServer() {
         checkTerminated();
 
-        if (listenAddress.equals(Address.LOCAL)) {
-            return;
-        }
-
         Transport transport = ExtensionLoader.getExtension(Transport.class, protocol);
         server = transport.createServer(listenAddress.getHost(), listenAddress.getPort(), null, serverSslConfig);
         server.registerRequestProcessor(new MessagePayloadProcessor());
@@ -130,23 +142,23 @@ public final class RemotingActorEnv extends ActorEnv {
     }
 
     //setter && getter
-    public Address getListenAddress() {
+    Address getListenAddress() {
         return listenAddress;
     }
 
-    public String getSerialization() {
+    String getSerialization() {
         return serialization;
     }
 
-    public String getProtocol() {
+    String getProtocol() {
         return protocol;
     }
 
-    public SslConfig getServerSslConfig() {
+    SslConfig getServerSslConfig() {
         return serverSslConfig;
     }
 
-    public SslConfig getClientSslConfig() {
+    SslConfig getClientSslConfig() {
         return clientSslConfig;
     }
 
@@ -177,47 +189,7 @@ public final class RemotingActorEnv extends ActorEnv {
     void tell(MessagePayload payload) {
         checkTerminated();
 
-        Address toAddress = payload.getToAddress();
-        if (listenAddress.equals(toAddress) ||
-                Address.LOCAL.equals(toAddress)) {
-            //local, 直接分派
-            postMessage(payload);
-        } else {
-            post2OutBox(new OutBoxMessage(payload));
-        }
-    }
-
-    /**
-     * 分派并处理接受到的消息
-     *
-     * @param payload message payload
-     */
-    void postMessage(MessagePayload payload) {
-        postMessage(null, payload);
-    }
-
-    /**
-     * 分派并处理消息
-     *
-     * @param requestContext transport request context
-     * @param payload        message payload
-     */
-    private void postMessage(@Nullable RequestContext requestContext, MessagePayload payload) {
-        if (terminated) {
-            return;
-        }
-
-        ActorRef sender;
-        if (Objects.isNull(requestContext)) {
-            sender = new LocalActorRef(payload.getFromActorAddress(), this);
-        } else {
-            sender = new RemotingActorRef(payload.getFromActorAddress(), RemotingActorEnv.this,
-                    requestContext, payload.getToActorName());
-        }
-        ActorContext actorContext =
-                new ActorContext(RemotingActorEnv.this, sender,
-                        ActorPath.of(payload.getToActorName()), payload.getMessage());
-        RemotingActorEnv.this.postMessage(actorContext);
+        post2OutBox(new OutBoxMessage(payload));
     }
 
     /**
@@ -241,6 +213,42 @@ public final class RemotingActorEnv extends ActorEnv {
         CompletableFuture<Object> userFuture = new CompletableFuture<>();
         post2OutBox(new OutBoxMessage(payload, userFuture, timeoutMs));
         return userFuture;
+    }
+
+    /**
+     * 分派并处理接受到的消息
+     *
+     * @param payload message payload
+     */
+    void postMessage(MessagePayload payload) {
+        postMessage(null, payload);
+    }
+
+    /**
+     * 分派并处理消息
+     *
+     * @param requestContext transport request context
+     * @param payload        message payload
+     */
+    private void postMessage(@Nullable RequestContext requestContext, MessagePayload payload) {
+        if (terminated) {
+            return;
+        }
+
+        ActorRef sender;
+        ActorPath fromActorAddress = payload.getFromActorAddress();
+
+
+        if (Objects.isNull(requestContext)) {
+            sender = new LocalActorRef(fromActorAddress, this);
+        } else {
+            sender = new RemotingActorRef(fromActorAddress, RemotingActorEnv.this,
+                    requestContext, payload.getToActorName());
+        }
+        ActorContext actorContext =
+                new ActorContext(RemotingActorEnv.this, sender,
+                        ActorPath.of(payload.getToActorName()), payload.getMessage());
+        RemotingActorEnv.this.postMessage(actorContext);
     }
 
     /**
@@ -305,10 +313,6 @@ public final class RemotingActorEnv extends ActorEnv {
         public String interest() {
             return MessagePayload.class.getName();
         }
-    }
-
-    public static Builder builder2() {
-        return new Builder();
     }
 
     public static class Builder {

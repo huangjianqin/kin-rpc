@@ -1,7 +1,6 @@
 package org.kin.kinrpc.demo.message;
 
 import org.kin.kinrpc.message.ActorEnv;
-import org.kin.kinrpc.message.RemotingActorEnv;
 
 /**
  * @author huangjianqin
@@ -14,6 +13,6 @@ public class RemotingActorTest extends ActorTestBase {
 
     @Override
     protected ActorEnv createActorEnv() {
-        return RemotingActorEnv.builder2().port(16888).build();
+        return ActorEnv.remoting().port(16888).build();
     }
 }

@@ -1,5 +1,7 @@
 package org.kin.kinrpc.message;
 
+import java.util.Objects;
+
 /**
  * actor抽象
  *
@@ -42,7 +44,7 @@ public abstract class Actor {
      *
      * @return sender
      */
-    public final ActorRef sender() {
+    protected final ActorRef sender() {
         return ActorContext.current().sender();
     }
 
@@ -60,5 +62,22 @@ public abstract class Actor {
      */
     final void internalInit(ActorRef self) {
         this.self = self;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Actor)) {
+            return false;
+        }
+        Actor actor = (Actor) o;
+        return Objects.equals(self, actor.self);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(self);
     }
 }
