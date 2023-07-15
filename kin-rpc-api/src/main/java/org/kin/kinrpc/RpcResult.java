@@ -109,6 +109,10 @@ public final class RpcResult {
     private void completeFuture(Object result,
                                 Throwable t,
                                 CompletableFuture<Object> future) {
+        if (future.isDone()) {
+            return;
+        }
+
         if (Objects.isNull(t)) {
             future.complete(result);
         } else {
