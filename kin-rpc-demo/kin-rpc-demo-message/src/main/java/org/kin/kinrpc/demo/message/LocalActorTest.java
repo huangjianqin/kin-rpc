@@ -15,13 +15,13 @@ public class LocalActorTest {
 
     public static void main(String[] args) throws InterruptedException, IOException {
         ActorEnv actorEnv = RemotingActorEnv.local().build();
-        ActorTestBase actorTestBase = new ActorTestBase() {
+        ActorTestBase actorTestBase = new ActorTestBase(false) {
             @Override
             protected ActorEnv createActorEnv() {
                 return actorEnv;
             }
         };
-        ActorRefTestBase actorRefTestBase = new ActorRefTestBase() {
+        ActorRefTestBase actorRefTestBase = new ActorRefTestBase(false) {
             @Override
             protected ActorEnv createActorEnv() {
                 return actorEnv;
@@ -40,6 +40,7 @@ public class LocalActorTest {
         ForkJoinPool.commonPool()
                 .execute(actorRefTestBase);
         System.in.read();
+        System.out.println("force exit");
         System.exit(0);
     }
 }

@@ -7,6 +7,10 @@ import org.kin.kinrpc.message.ActorEnv;
  * @date 2020-06-13
  */
 public class RemotingActorTest extends ActorTestBase {
+    protected RemotingActorTest() {
+        super(true);
+    }
+
     public static void main(String[] args) {
         new RemotingActorTest().run();
     }

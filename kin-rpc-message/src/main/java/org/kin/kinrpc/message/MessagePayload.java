@@ -18,7 +18,7 @@ final class MessagePayload implements Serializable {
     /** 请求超时结束时间 */
     private long timeout;
     /** 消息 */
-    private Object message;
+    private Serializable message;
 
     //----------------------------------------------tmp
     /** receiver actor */
@@ -29,21 +29,21 @@ final class MessagePayload implements Serializable {
     /**
      * request ignore response
      */
-    static MessagePayload tell(ActorPath fromActorPath, ActorRef to, Object message) {
+    static MessagePayload tell(ActorPath fromActorPath, ActorRef to, Serializable message) {
         return ask(fromActorPath, to, message, true, 0);
     }
 
     /**
      * request
      */
-    static MessagePayload ask(ActorPath fromActorPath, ActorRef to, Object message, long timeout) {
+    static MessagePayload ask(ActorPath fromActorPath, ActorRef to, Serializable message, long timeout) {
         return ask(fromActorPath, to, message, false, timeout);
     }
 
     /**
      * request
      */
-    private static MessagePayload ask(ActorPath fromActorPath, ActorRef to, Object message, boolean ignoreResponse, long timeout) {
+    private static MessagePayload ask(ActorPath fromActorPath, ActorRef to, Serializable message, boolean ignoreResponse, long timeout) {
         MessagePayload payload = new MessagePayload();
         payload.fromActorPath = fromActorPath;
         payload.toActorName = to.getActorPath().getName();
@@ -57,7 +57,7 @@ final class MessagePayload implements Serializable {
     /**
      * response
      */
-    static MessagePayload answer(ActorPath fromActorPath, Object message) {
+    static MessagePayload answer(ActorPath fromActorPath, Serializable message) {
         MessagePayload payload = new MessagePayload();
         payload.fromActorPath = fromActorPath;
         payload.toActorName = "";
@@ -85,11 +85,11 @@ final class MessagePayload implements Serializable {
         this.toActorName = toActorName;
     }
 
-    public Object getMessage() {
+    public Serializable getMessage() {
         return message;
     }
 
-    public void setMessage(Object message) {
+    public void setMessage(Serializable message) {
         this.message = message;
     }
 

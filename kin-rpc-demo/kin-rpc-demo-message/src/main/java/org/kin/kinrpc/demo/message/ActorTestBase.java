@@ -8,6 +8,11 @@ import org.kin.kinrpc.message.ActorEnv;
  */
 public abstract class ActorTestBase implements Runnable {
     private ActorEnv actorEnv;
+    private final boolean block;
+
+    protected ActorTestBase(boolean block) {
+        this.block = block;
+    }
 
     @Override
     public void run() {
@@ -16,13 +21,24 @@ public abstract class ActorTestBase implements Runnable {
         try {
             actorEnv = createActorEnv();
             actorEnv.newActor(name, responderActor);
-            System.in.read();
+            if (block) {
+                System.in.read();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            //destroy
-            actorEnv.removeActor(name, responderActor);
-            actorEnv.destroy();
+            if (block) {
+                //destroy
+                actorEnv.removeActor(name, responderActor);
+                actorEnv.destroy();
+                try {
+                    Thread.sleep(2_000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                System.out.println("force exit");
+                System.exit(0);
+            }
         }
     }
 

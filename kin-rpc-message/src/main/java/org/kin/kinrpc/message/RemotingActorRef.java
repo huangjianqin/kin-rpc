@@ -53,7 +53,7 @@ final class RemotingActorRef extends ActorRef {
     }
 
     @Override
-    public final synchronized void answer(Object message) {
+    public synchronized void answer(Object message) {
         checkMessage(message);
 
         if (Objects.isNull(requestContext)) {
@@ -63,7 +63,7 @@ final class RemotingActorRef extends ActorRef {
 
         //限制只能answer一次
         MessagePayload responsePayload =
-                MessagePayload.answer(ActorPath.of(actorEnv.getListenAddress(), toActorName), message);
+                MessagePayload.answer(ActorPath.of(actorEnv.getListenAddress(), toActorName), (Serializable) message);
         requestContext.writeMessageResponse(responsePayload);
         requestContext = null;
     }
@@ -71,7 +71,7 @@ final class RemotingActorRef extends ActorRef {
     @Override
     public void doTell(Object message, ActorRef sender) {
         checkMessage(message);
-        MessagePayload messagePayload = MessagePayload.tell(sender.getActorPath(), this, message);
+        MessagePayload messagePayload = MessagePayload.tell(sender.getActorPath(), this, (Serializable) message);
         actorEnv.tell(messagePayload);
     }
 
@@ -79,7 +79,7 @@ final class RemotingActorRef extends ActorRef {
     @Override
     public <R> CompletableFuture<R> doAsk(Object message, ActorRef sender, long timeoutMs) {
         checkMessage(message);
-        MessagePayload messagePayload = MessagePayload.ask(sender.getActorPath(), this, message, timeoutMs);
+        MessagePayload messagePayload = MessagePayload.ask(sender.getActorPath(), this, (Serializable) message, timeoutMs);
         return (CompletableFuture<R>) actorEnv.ask(messagePayload);
     }
 }

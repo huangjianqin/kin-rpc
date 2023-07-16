@@ -1,6 +1,7 @@
 package org.kin.kinrpc.demo.message;
 
 import com.google.common.base.Stopwatch;
+import org.kin.framework.JvmCloseCleaner;
 import org.kin.kinrpc.message.ActorEnv;
 import org.kin.kinrpc.message.ActorRef;
 import org.kin.kinrpc.message.MessageCallback;
@@ -14,10 +15,17 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class ActorRefTestBase implements Runnable {
     private ActorEnv actorEnv;
+    /** 阻塞等待user shutdown */
+    private final boolean block;
+
+    protected ActorRefTestBase(boolean block) {
+        this.block = block;
+    }
 
     @Override
     public void run() {
         actorEnv = createActorEnv();
+        JvmCloseCleaner.instance().add(() -> actorEnv.destroy());
         String name = "requester";
         RequestActor requestActor = new RequestActor();
         try {
@@ -50,12 +58,26 @@ public abstract class ActorRefTestBase implements Runnable {
             }
             watcher.stop();
             System.out.printf("结束, 耗时%d ms%n", watcher.elapsed(TimeUnit.MILLISECONDS));
-            Thread.sleep(3_000);
+            if (block) {
+                System.in.read();
+            } else {
+                Thread.sleep(3_000);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            actorEnv.removeActor(name, requestActor);
-            actorEnv.destroy();
+            if (block) {
+                //destroy
+                actorEnv.removeActor(name, requestActor);
+                actorEnv.destroy();
+                try {
+                    Thread.sleep(2_000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                System.out.println("force exit");
+                System.exit(0);
+            }
         }
     }
 

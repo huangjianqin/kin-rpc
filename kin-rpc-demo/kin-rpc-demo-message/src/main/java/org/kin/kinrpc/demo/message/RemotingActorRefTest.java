@@ -10,6 +10,10 @@ import org.kin.kinrpc.message.Address;
  */
 public class RemotingActorRefTest extends ActorRefTestBase {
 
+    protected RemotingActorRefTest() {
+        super(true);
+    }
+
     public static void main(String[] args) {
         new RemotingActorRefTest().run();
     }
