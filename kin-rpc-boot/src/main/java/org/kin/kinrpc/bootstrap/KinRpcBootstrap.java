@@ -910,14 +910,36 @@ public final class KinRpcBootstrap {
     }
 
     public KinRpcBootstrap service(ServiceConfig<?> service) {
+        return services(service);
+    }
+
+    public KinRpcBootstrap services(ServiceConfig<?>... services) {
+        return services(Arrays.asList(services));
+    }
+
+    @SuppressWarnings("rawtypes")
+    public KinRpcBootstrap services(Collection<ServiceConfig> services) {
         checkBeforeModify();
-        addConfig(ServiceConfig.class, service);
+        for (ServiceConfig<?> service : services) {
+            addConfig(ServiceConfig.class, service);
+        }
         return this;
     }
 
     public KinRpcBootstrap reference(ReferenceConfig<?> reference) {
+        return references(reference);
+    }
+
+    public KinRpcBootstrap references(ReferenceConfig<?>... references) {
+        return references(Arrays.asList(references));
+    }
+
+    @SuppressWarnings("rawtypes")
+    public KinRpcBootstrap references(Collection<ReferenceConfig> references) {
         checkBeforeModify();
-        addConfig(ReferenceConfig.class, reference);
+        for (ReferenceConfig<?> reference : references) {
+            addConfig(ReferenceConfig.class, reference);
+        }
         return this;
     }
 

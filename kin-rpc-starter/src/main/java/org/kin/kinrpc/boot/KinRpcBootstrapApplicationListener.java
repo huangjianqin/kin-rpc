@@ -5,9 +5,7 @@ import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.bootstrap.KinRpcBootstrap;
 import org.kin.kinrpc.bootstrap.KinRpcBootstrapListener;
-import org.kin.kinrpc.config.ExecutorConfig;
-import org.kin.kinrpc.config.RegistryConfig;
-import org.kin.kinrpc.config.ServerConfig;
+import org.kin.kinrpc.config.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -17,6 +15,8 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.ContextStoppedEvent;
 
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * @author huangjianqin
@@ -68,78 +68,125 @@ public class KinRpcBootstrapApplicationListener implements ApplicationListener<A
             bootstrap.listeners(kinRpcBootstrapListeners);
         }
 
-        //combine
-        List<ExecutorConfig> executors = new ArrayList<>(4);
-        List<RegistryConfig> registries = new ArrayList<>(4);
-        List<ServerConfig> servers = new ArrayList<>(4);
-        List<KinRpcProperties.ProviderProperty> providers = new ArrayList<>(4);
-        List<KinRpcProperties.ConsumerProperty> consumers = new ArrayList<>(4);
+        setUpConfigs(applicationContext, ExecutorConfig.class, bootstrap::executors, properties::getExecutor, properties::getExecutors);
+        setUpConfigs(applicationContext, RegistryConfig.class, bootstrap::registries, properties::getRegistry, properties::getRegistries);
+        setUpConfigs(applicationContext, ServerConfig.class, bootstrap::servers, properties::getServer, properties::getServers);
+        setUpConfigs(applicationContext, ProviderConfig.class, pcs -> {
+                    for (ProviderConfig pc : pcs) {
+                        if (!(pc instanceof KinRpcProperties.ProviderProperty)) {
+                            continue;
+                        }
+                        KinRpcProperties.ProviderProperty pp = (KinRpcProperties.ProviderProperty) pc;
+                        FilterUtils.addFilters(applicationContext, pp::getFilterBeans, pp::filter);
+                    }
+                },
+                bootstrap::providers,
+                () -> properties.getProvider(),
+                () -> CollectionUtils.isNonEmpty(properties.getProviders()) ? new ArrayList<>(properties.getProviders()) : Collections.emptyList());
+        setUpConfigs(applicationContext, ConsumerConfig.class, ccs -> {
+                    for (ConsumerConfig cc : ccs) {
+                        if (!(cc instanceof KinRpcProperties.ConsumerProperty)) {
+                            continue;
+                        }
+                        KinRpcProperties.ConsumerProperty cp = (KinRpcProperties.ConsumerProperty) cc;
+                        FilterUtils.addFilters(applicationContext, cp::getFilterBeans, cp::filter);
+                    }
+                },
+                bootstrap::consumers,
+                () -> properties.getConsumer(),
+                () -> CollectionUtils.isNonEmpty(properties.getConsumers()) ? new ArrayList<>(properties.getConsumers()) : Collections.emptyList());
+        setUpConfigs(applicationContext, ServiceConfig.class, bootstrap::services);
+        setUpConfigs(applicationContext, ReferenceConfig.class, bootstrap::references);
+    }
 
-        if (Objects.nonNull(properties.getExecutor())) {
-            executors.add(properties.getExecutor());
+    /**
+     * 添加{@link org.springframework.context.annotation.Bean}形式注册的{@link Config}实例
+     *
+     * @param applicationContext spring application context
+     * @param configClass        config class
+     * @param configs            temp config cache
+     */
+    private <C extends Config> void addConfigBeans(ApplicationContext applicationContext,
+                                                   Class<C> configClass,
+                                                   List<C> configs) {
+        Map<String, C> configBeanMap = applicationContext.getBeansOfType(configClass);
+        if (CollectionUtils.isNonEmpty(configBeanMap)) {
+            configs.addAll(configBeanMap.values());
+        }
+    }
+
+    /**
+     * {@link KinRpcBootstrap}设置配置
+     *
+     * @param applicationContext spring application context
+     * @param configClass        config class
+     * @param setter             bootstrap setup config func
+     * @param getter             get single config from {@link KinRpcProperties} bean
+     * @param batchGetter        batch get configs from {@link KinRpcProperties} bean
+     */
+    private <C extends Config> void setUpConfigs(ApplicationContext applicationContext,
+                                                 Class<C> configClass,
+                                                 Consumer<List<C>> setter,
+                                                 Supplier<C> getter,
+                                                 Supplier<Collection<C>> batchGetter) {
+        setUpConfigs(applicationContext, configClass, null, setter, getter, batchGetter);
+    }
+
+    /**
+     * {@link KinRpcBootstrap}设置配置
+     *
+     * @param applicationContext spring application context
+     * @param configClass        config class
+     * @param setter             bootstrap setup config func
+     * @param getter             get single config from {@link KinRpcProperties} bean
+     * @param batchGetter        batch get configs from {@link KinRpcProperties} bean
+     */
+    private <C extends Config> void setUpConfigs(ApplicationContext applicationContext,
+                                                 Class<C> configClass,
+                                                 Consumer<List<C>> setter) {
+        setUpConfigs(applicationContext, configClass, null, setter, null, null);
+    }
+
+    /**
+     * {@link KinRpcBootstrap}设置配置
+     *
+     * @param applicationContext spring application context
+     * @param configClass        config class
+     * @param funcBeforeSet      operation before bootstrap setup config
+     * @param setter             bootstrap setup config func
+     * @param getter             get single config from {@link KinRpcProperties} bean
+     * @param batchGetter        batch get configs from {@link KinRpcProperties} bean
+     */
+    private <C extends Config> void setUpConfigs(ApplicationContext applicationContext,
+                                                 Class<C> configClass,
+                                                 Consumer<List<C>> funcBeforeSet,
+                                                 Consumer<List<C>> setter,
+                                                 Supplier<C> getter,
+                                                 Supplier<Collection<C>> batchGetter) {
+        List<C> configs = new ArrayList<>(8);
+
+        //properties
+        if (Objects.nonNull(getter) &&
+                Objects.nonNull(getter.get())) {
+            configs.add(getter.get());
         }
 
-        if (Objects.nonNull(properties.getRegistry())) {
-            registries.add(properties.getRegistry());
+        if (Objects.nonNull(batchGetter) &&
+                CollectionUtils.isNonEmpty(batchGetter.get())) {
+            configs.addAll(batchGetter.get());
         }
 
-        if (Objects.nonNull(properties.getServer())) {
-            servers.add(properties.getServer());
-        }
+        //beans
+        addConfigBeans(applicationContext, configClass, configs);
 
-        if (Objects.nonNull(properties.getProvider())) {
-            providers.add(properties.getProvider());
-        }
-
-        if (Objects.nonNull(properties.getConsumer())) {
-            consumers.add(properties.getConsumer());
-        }
-
-        if (CollectionUtils.isNonEmpty(properties.getExecutors())) {
-            executors.addAll(properties.getExecutors());
-        }
-
-        if (CollectionUtils.isNonEmpty(properties.getRegistries())) {
-            registries.addAll(properties.getRegistries());
-        }
-
-        if (CollectionUtils.isNonEmpty(properties.getServers())) {
-            servers.addAll(properties.getServers());
-        }
-
-        if (CollectionUtils.isNonEmpty(properties.getProviders())) {
-            providers.addAll(properties.getProviders());
-        }
-
-        if (CollectionUtils.isNonEmpty(properties.getConsumers())) {
-            consumers.addAll(properties.getConsumers());
+        //extra operation before set
+        if (Objects.nonNull(funcBeforeSet)) {
+            funcBeforeSet.accept(configs);
         }
 
         //set
-        if (CollectionUtils.isNonEmpty(executors)) {
-            bootstrap.executors(executors);
-        }
-
-        if (CollectionUtils.isNonEmpty(registries)) {
-            bootstrap.registries(registries);
-        }
-
-        if (CollectionUtils.isNonEmpty(servers)) {
-            bootstrap.servers(servers);
-        }
-
-        if (CollectionUtils.isNonEmpty(providers)) {
-            for (KinRpcProperties.ProviderProperty providerProperty : providers) {
-                FilterUtils.addFilters(applicationContext, providerProperty::getFilterBeans, providerProperty::filter);
-            }
-            bootstrap.providers(new ArrayList<>(providers));
-        }
-
-        if (CollectionUtils.isNonEmpty(consumers)) {
-            for (KinRpcProperties.ConsumerProperty consumerProperty : consumers) {
-                FilterUtils.addFilters(applicationContext, consumerProperty::getFilterBeans, consumerProperty::filter);
-            }
-            bootstrap.consumers(new ArrayList<>(consumers));
+        if (CollectionUtils.isNonEmpty(configs)) {
+            setter.accept(configs);
         }
     }
 
