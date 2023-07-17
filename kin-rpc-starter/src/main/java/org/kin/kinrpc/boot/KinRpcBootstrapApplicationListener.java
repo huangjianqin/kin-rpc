@@ -68,10 +68,10 @@ public class KinRpcBootstrapApplicationListener implements ApplicationListener<A
             bootstrap.listeners(kinRpcBootstrapListeners);
         }
 
-        setUpConfigs(applicationContext, ExecutorConfig.class, bootstrap::executors, properties::getExecutor, properties::getExecutors);
-        setUpConfigs(applicationContext, RegistryConfig.class, bootstrap::registries, properties::getRegistry, properties::getRegistries);
-        setUpConfigs(applicationContext, ServerConfig.class, bootstrap::servers, properties::getServer, properties::getServers);
-        setUpConfigs(applicationContext, ProviderConfig.class, pcs -> {
+        configBootstrap(applicationContext, ExecutorConfig.class, bootstrap::executors, properties::getExecutor, properties::getExecutors);
+        configBootstrap(applicationContext, RegistryConfig.class, bootstrap::registries, properties::getRegistry, properties::getRegistries);
+        configBootstrap(applicationContext, ServerConfig.class, bootstrap::servers, properties::getServer, properties::getServers);
+        configBootstrap(applicationContext, ProviderConfig.class, pcs -> {
                     for (ProviderConfig pc : pcs) {
                         if (!(pc instanceof KinRpcProperties.ProviderProperty)) {
                             continue;
@@ -83,7 +83,7 @@ public class KinRpcBootstrapApplicationListener implements ApplicationListener<A
                 bootstrap::providers,
                 () -> properties.getProvider(),
                 () -> CollectionUtils.isNonEmpty(properties.getProviders()) ? new ArrayList<>(properties.getProviders()) : Collections.emptyList());
-        setUpConfigs(applicationContext, ConsumerConfig.class, ccs -> {
+        configBootstrap(applicationContext, ConsumerConfig.class, ccs -> {
                     for (ConsumerConfig cc : ccs) {
                         if (!(cc instanceof KinRpcProperties.ConsumerProperty)) {
                             continue;
@@ -95,20 +95,20 @@ public class KinRpcBootstrapApplicationListener implements ApplicationListener<A
                 bootstrap::consumers,
                 () -> properties.getConsumer(),
                 () -> CollectionUtils.isNonEmpty(properties.getConsumers()) ? new ArrayList<>(properties.getConsumers()) : Collections.emptyList());
-        setUpConfigs(applicationContext, ServiceConfig.class, bootstrap::services);
-        setUpConfigs(applicationContext, ReferenceConfig.class, bootstrap::references);
+        configBootstrap(applicationContext, ServiceConfig.class, bootstrap::services);
+        configBootstrap(applicationContext, ReferenceConfig.class, bootstrap::references);
     }
 
     /**
-     * 添加{@link org.springframework.context.annotation.Bean}形式注册的{@link Config}实例
+     * 将以{@link org.springframework.context.annotation.Bean}形式注册的{@link Config}实例添加到{@code configs}
      *
      * @param applicationContext spring application context
      * @param configClass        config class
      * @param configs            temp config cache
      */
-    private <C extends Config> void addConfigBeans(ApplicationContext applicationContext,
-                                                   Class<C> configClass,
-                                                   List<C> configs) {
+    private <C extends Config> void getConfigFromBeans(ApplicationContext applicationContext,
+                                                       Class<C> configClass,
+                                                       List<C> configs) {
         Map<String, C> configBeanMap = applicationContext.getBeansOfType(configClass);
         if (CollectionUtils.isNonEmpty(configBeanMap)) {
             configs.addAll(configBeanMap.values());
@@ -124,12 +124,12 @@ public class KinRpcBootstrapApplicationListener implements ApplicationListener<A
      * @param getter             get single config from {@link KinRpcProperties} bean
      * @param batchGetter        batch get configs from {@link KinRpcProperties} bean
      */
-    private <C extends Config> void setUpConfigs(ApplicationContext applicationContext,
-                                                 Class<C> configClass,
-                                                 Consumer<List<C>> setter,
-                                                 Supplier<C> getter,
-                                                 Supplier<Collection<C>> batchGetter) {
-        setUpConfigs(applicationContext, configClass, null, setter, getter, batchGetter);
+    private <C extends Config> void configBootstrap(ApplicationContext applicationContext,
+                                                    Class<C> configClass,
+                                                    Consumer<List<C>> setter,
+                                                    Supplier<C> getter,
+                                                    Supplier<Collection<C>> batchGetter) {
+        configBootstrap(applicationContext, configClass, null, setter, getter, batchGetter);
     }
 
     /**
@@ -138,13 +138,11 @@ public class KinRpcBootstrapApplicationListener implements ApplicationListener<A
      * @param applicationContext spring application context
      * @param configClass        config class
      * @param setter             bootstrap setup config func
-     * @param getter             get single config from {@link KinRpcProperties} bean
-     * @param batchGetter        batch get configs from {@link KinRpcProperties} bean
      */
-    private <C extends Config> void setUpConfigs(ApplicationContext applicationContext,
-                                                 Class<C> configClass,
-                                                 Consumer<List<C>> setter) {
-        setUpConfigs(applicationContext, configClass, null, setter, null, null);
+    private <C extends Config> void configBootstrap(ApplicationContext applicationContext,
+                                                    Class<C> configClass,
+                                                    Consumer<List<C>> setter) {
+        configBootstrap(applicationContext, configClass, null, setter, null, null);
     }
 
     /**
@@ -157,12 +155,12 @@ public class KinRpcBootstrapApplicationListener implements ApplicationListener<A
      * @param getter             get single config from {@link KinRpcProperties} bean
      * @param batchGetter        batch get configs from {@link KinRpcProperties} bean
      */
-    private <C extends Config> void setUpConfigs(ApplicationContext applicationContext,
-                                                 Class<C> configClass,
-                                                 Consumer<List<C>> funcBeforeSet,
-                                                 Consumer<List<C>> setter,
-                                                 Supplier<C> getter,
-                                                 Supplier<Collection<C>> batchGetter) {
+    private <C extends Config> void configBootstrap(ApplicationContext applicationContext,
+                                                    Class<C> configClass,
+                                                    Consumer<List<C>> funcBeforeSet,
+                                                    Consumer<List<C>> setter,
+                                                    Supplier<C> getter,
+                                                    Supplier<Collection<C>> batchGetter) {
         List<C> configs = new ArrayList<>(8);
 
         //properties
@@ -177,7 +175,7 @@ public class KinRpcBootstrapApplicationListener implements ApplicationListener<A
         }
 
         //beans
-        addConfigBeans(applicationContext, configClass, configs);
+        getConfigFromBeans(applicationContext, configClass, configs);
 
         //extra operation before set
         if (Objects.nonNull(funcBeforeSet)) {

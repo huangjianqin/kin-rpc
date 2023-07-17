@@ -182,7 +182,7 @@ public final class KinRpcBootstrap {
             String group = providerConfig.getGroup();
             putConfig(Objects.nonNull(group) ? group : "", ProviderConfig.class, providerConfig);
 
-            resolveServiceReferConfig(providerConfig);
+            resolveReferConfig(providerConfig);
             providerConfig.initDefaultConfig();
         }
 
@@ -190,7 +190,7 @@ public final class KinRpcBootstrap {
             String group = consumerConfig.getGroup();
             putConfig(Objects.nonNull(group) ? group : "", ConsumerConfig.class, consumerConfig);
 
-            resolveReferenceReferConfig(consumerConfig);
+            resolveReferConfig(consumerConfig);
             consumerConfig.initDefaultConfig();
         }
 
@@ -213,7 +213,7 @@ public final class KinRpcBootstrap {
             if (Objects.isNull(providerConfig)) {
                 providerConfig = getConfig(ProviderConfig.class, "");
             }
-            setUpServiceConfig(serviceConfig, providerConfig);
+            initServiceConfig(serviceConfig, providerConfig);
             //初始化service默认配置
             serviceConfig.initDefaultConfig();
         }
@@ -225,7 +225,7 @@ public final class KinRpcBootstrap {
             if (Objects.isNull(consumerConfig)) {
                 consumerConfig = getConfig(ConsumerConfig.class, "");
             }
-            setUpReferenceConfig(referenceConfig, consumerConfig);
+            initReferenceConfig(referenceConfig, consumerConfig);
             //初始化reference默认配置
             referenceConfig.initDefaultConfig();
         }
@@ -234,28 +234,28 @@ public final class KinRpcBootstrap {
     /**
      * 服务配置预处理
      */
-    private void setUpServiceConfig(ServiceConfig<?> serviceConfig,
-                                    @Nullable ProviderConfig provider) {
+    private void initServiceConfig(ServiceConfig<?> serviceConfig,
+                                   @Nullable ProviderConfig provider) {
         //处理引用配置
-        resolveServiceReferConfig(serviceConfig);
+        resolveReferConfig(serviceConfig);
 
         //interface
-        setUpConfigIfNotExists(serviceConfig::app, serviceConfig::getApp, provider, ProviderConfig::getApp, this::getApp);
-        setUpConfigIfNotExists(serviceConfig::group, serviceConfig::getGroup, provider, ProviderConfig::getGroup, this::getGroup);
-        setUpConfigIfNotExists(serviceConfig::version, serviceConfig::getVersion, provider, ProviderConfig::getVersion, this::getVersion);
-        setUpConfigIfNotExists(serviceConfig::serialization, serviceConfig::getSerialization, provider, ProviderConfig::getSerialization, this::getSerialization);
-        setUpConfigIfNotExists(serviceConfig::registries, serviceConfig::getRegistries, provider, ProviderConfig::getRegistries, this::getRegistries);
-        setUpConfigIfNotExists(serviceConfig::servers, serviceConfig::getServers, provider, ProviderConfig::getServers, this::getServers);
-        setUpConfigIfNotExists(serviceConfig::filters, serviceConfig::getFilters, provider, ProviderConfig::getFilters);
+        setParentConfigIfNotExists(serviceConfig::app, serviceConfig::getApp, provider, ProviderConfig::getApp, this::getApp);
+        setParentConfigIfNotExists(serviceConfig::group, serviceConfig::getGroup, provider, ProviderConfig::getGroup, this::getGroup);
+        setParentConfigIfNotExists(serviceConfig::version, serviceConfig::getVersion, provider, ProviderConfig::getVersion, this::getVersion);
+        setParentConfigIfNotExists(serviceConfig::serialization, serviceConfig::getSerialization, provider, ProviderConfig::getSerialization, this::getSerialization);
+        setParentConfigIfNotExists(serviceConfig::registries, serviceConfig::getRegistries, provider, ProviderConfig::getRegistries, this::getRegistries);
+        setParentConfigIfNotExists(serviceConfig::servers, serviceConfig::getServers, provider, ProviderConfig::getServers, this::getServers);
+        setParentConfigIfNotExists(serviceConfig::filters, serviceConfig::getFilters, provider, ProviderConfig::getFilters);
 
         //service
-        setUpConfigIfNotExists(serviceConfig::servers, serviceConfig::getServers, provider, ProviderConfig::getServers);
-        setUpConfigIfNotExists(serviceConfig::executor, serviceConfig::getExecutor, provider, ProviderConfig::getExecutor);
-        setUpConfigIfNotExists(serviceConfig::weight, serviceConfig::getWeight, provider, ProviderConfig::getWeight);
-        setUpConfigIfNotExists(serviceConfig::bootstrap, serviceConfig::getBootstrap, provider, ProviderConfig::getBootstrap);
-        setUpConfigIfNotExists(serviceConfig::delay, serviceConfig::getDelay, provider, ProviderConfig::getDelay);
-        setUpConfigIfNotExists(serviceConfig::token, serviceConfig::getToken, provider, ProviderConfig::getToken);
-        setUpConfigIfNotExists(serviceConfig::exportAsync, serviceConfig::isExportAsync, provider, ProviderConfig::isExportAsync);
+        setParentConfigIfNotExists(serviceConfig::servers, serviceConfig::getServers, provider, ProviderConfig::getServers);
+        setParentConfigIfNotExists(serviceConfig::executor, serviceConfig::getExecutor, provider, ProviderConfig::getExecutor);
+        setParentConfigIfNotExists(serviceConfig::weight, serviceConfig::getWeight, provider, ProviderConfig::getWeight);
+        setParentConfigIfNotExists(serviceConfig::bootstrap, serviceConfig::getBootstrap, provider, ProviderConfig::getBootstrap);
+        setParentConfigIfNotExists(serviceConfig::delay, serviceConfig::getDelay, provider, ProviderConfig::getDelay);
+        setParentConfigIfNotExists(serviceConfig::token, serviceConfig::getToken, provider, ProviderConfig::getToken);
+        setParentConfigIfNotExists(serviceConfig::exportAsync, serviceConfig::isExportAsync, provider, ProviderConfig::isExportAsync);
 
         //attachment
         if (Objects.nonNull(provider)) {
@@ -269,30 +269,30 @@ public final class KinRpcBootstrap {
     /**
      * 服务引用配置预处理
      */
-    private void setUpReferenceConfig(ReferenceConfig<?> referenceConfig,
-                                      @Nullable ConsumerConfig consumer) {
+    private void initReferenceConfig(ReferenceConfig<?> referenceConfig,
+                                     @Nullable ConsumerConfig consumer) {
         //处理引用配置
-        resolveReferenceReferConfig(referenceConfig);
+        resolveReferConfig(referenceConfig);
 
         //interface
-        setUpConfigIfNotExists(referenceConfig::app, referenceConfig::getApp, consumer, ConsumerConfig::getApp, this::getApp);
-        setUpConfigIfNotExists(referenceConfig::group, referenceConfig::getGroup, consumer, ConsumerConfig::getGroup, this::getGroup);
-        setUpConfigIfNotExists(referenceConfig::version, referenceConfig::getVersion, consumer, ConsumerConfig::getVersion, this::getVersion);
-        setUpConfigIfNotExists(referenceConfig::serialization, referenceConfig::getSerialization, consumer, ConsumerConfig::getSerialization, this::getSerialization);
-        setUpConfigIfNotExists(referenceConfig::registries, referenceConfig::getRegistries, consumer, ConsumerConfig::getRegistries, this::getRegistries);
-        setUpConfigIfNotExists(referenceConfig::filters, referenceConfig::getFilters, consumer, ConsumerConfig::getFilters);
+        setParentConfigIfNotExists(referenceConfig::app, referenceConfig::getApp, consumer, ConsumerConfig::getApp, this::getApp);
+        setParentConfigIfNotExists(referenceConfig::group, referenceConfig::getGroup, consumer, ConsumerConfig::getGroup, this::getGroup);
+        setParentConfigIfNotExists(referenceConfig::version, referenceConfig::getVersion, consumer, ConsumerConfig::getVersion, this::getVersion);
+        setParentConfigIfNotExists(referenceConfig::serialization, referenceConfig::getSerialization, consumer, ConsumerConfig::getSerialization, this::getSerialization);
+        setParentConfigIfNotExists(referenceConfig::registries, referenceConfig::getRegistries, consumer, ConsumerConfig::getRegistries, this::getRegistries);
+        setParentConfigIfNotExists(referenceConfig::filters, referenceConfig::getFilters, consumer, ConsumerConfig::getFilters);
 
         //reference
-        setUpConfigIfNotExists(referenceConfig::cluster, referenceConfig::getCluster, consumer, ConsumerConfig::getCluster);
-        setUpConfigIfNotExists(referenceConfig::loadBalance, referenceConfig::getLoadBalance, consumer, ConsumerConfig::getLoadBalance);
-        setUpConfigIfNotExists(referenceConfig::router, referenceConfig::getRouter, consumer, ConsumerConfig::getRouter);
-        setUpConfigIfNotExists(referenceConfig::generic, referenceConfig::isGeneric, consumer, ConsumerConfig::isGeneric);
-        setUpConfigIfNotExists(referenceConfig::ssl, referenceConfig::getSsl, consumer, ConsumerConfig::getSsl);
-        setUpConfigIfNotExists(referenceConfig::bootstrap, referenceConfig::getBootstrap, consumer, ConsumerConfig::getBootstrap);
-        setUpConfigIfNotExists(referenceConfig::rpcTimeout, referenceConfig::getRpcTimeout, consumer, ConsumerConfig::getRpcTimeout);
-        setUpConfigIfNotExists(referenceConfig::retries, referenceConfig::getRetries, consumer, ConsumerConfig::getRetries);
-        setUpConfigIfNotExists(referenceConfig::async, referenceConfig::isAsync, consumer, ConsumerConfig::isAsync);
-        setUpConfigIfNotExists(referenceConfig::sticky, referenceConfig::isSticky, consumer, ConsumerConfig::isSticky);
+        setParentConfigIfNotExists(referenceConfig::cluster, referenceConfig::getCluster, consumer, ConsumerConfig::getCluster);
+        setParentConfigIfNotExists(referenceConfig::loadBalance, referenceConfig::getLoadBalance, consumer, ConsumerConfig::getLoadBalance);
+        setParentConfigIfNotExists(referenceConfig::router, referenceConfig::getRouter, consumer, ConsumerConfig::getRouter);
+        setParentConfigIfNotExists(referenceConfig::generic, referenceConfig::isGeneric, consumer, ConsumerConfig::isGeneric);
+        setParentConfigIfNotExists(referenceConfig::ssl, referenceConfig::getSsl, consumer, ConsumerConfig::getSsl);
+        setParentConfigIfNotExists(referenceConfig::bootstrap, referenceConfig::getBootstrap, consumer, ConsumerConfig::getBootstrap);
+        setParentConfigIfNotExists(referenceConfig::rpcTimeout, referenceConfig::getRpcTimeout, consumer, ConsumerConfig::getRpcTimeout);
+        setParentConfigIfNotExists(referenceConfig::retries, referenceConfig::getRetries, consumer, ConsumerConfig::getRetries);
+        setParentConfigIfNotExists(referenceConfig::async, referenceConfig::isAsync, consumer, ConsumerConfig::isAsync);
+        setParentConfigIfNotExists(referenceConfig::sticky, referenceConfig::isSticky, consumer, ConsumerConfig::isSticky);
 
         //attachment
         if (Objects.nonNull(consumer)) {
@@ -308,7 +308,7 @@ public final class KinRpcBootstrap {
      *
      * @param serviceConfig 服务配置
      */
-    private void resolveServiceReferConfig(AbstractServiceConfig<?> serviceConfig) {
+    private void resolveReferConfig(AbstractServiceConfig<?> serviceConfig) {
         resolveReferConfigs(RegistryConfig.class, serviceConfig::getRegistries, serviceConfig::setRegistries, SharableConfig::getId);
         resolveReferConfigs(ServerConfig.class, serviceConfig::getServers, serviceConfig::setServers, SharableConfig::getId);
         resolveReferConfig(ExecutorConfig.class, serviceConfig::getExecutor, serviceConfig::executor, SharableConfig::getId);
@@ -322,7 +322,7 @@ public final class KinRpcBootstrap {
      *
      * @param referenceConfig 服务引用配置
      */
-    private void resolveReferenceReferConfig(AbstractReferenceConfig<?> referenceConfig) {
+    private void resolveReferConfig(AbstractReferenceConfig<?> referenceConfig) {
         resolveReferConfigs(RegistryConfig.class, referenceConfig::getRegistries, referenceConfig::setRegistries, SharableConfig::getId);
     }
 
@@ -382,22 +382,24 @@ public final class KinRpcBootstrap {
     }
 
     /**
-     * 尝试设置配置, 按优先级进行覆盖 {@code c1VGetter} ->{@code c2VGetter} ->  {@code c3VGetter}
+     * 如果没有配置, 则使用父配置
+     * 继承链是{@code c1VGetter} ->{@code c2VGetter} ->  {@code c3VGetter}
      *
      * @param setter    config value setter
      * @param c1VGetter service/reference config value getter
      * @param c2        provider/consumer config
      * @param c2VGetter provider/consumer config value getter
      */
-    private <T, PC> void setUpConfigIfNotExists(Consumer<T> setter,
-                                                Supplier<T> c1VGetter,
-                                                @Nullable PC c2,
-                                                Function<PC, T> c2VGetter) {
-        setUpConfigIfNotExists(setter, c1VGetter, c2, c2VGetter, null);
+    private <T, PC> void setParentConfigIfNotExists(Consumer<T> setter,
+                                                    Supplier<T> c1VGetter,
+                                                    @Nullable PC c2,
+                                                    Function<PC, T> c2VGetter) {
+        setParentConfigIfNotExists(setter, c1VGetter, c2, c2VGetter, null);
     }
 
     /**
-     * 尝试设置配置, 按优先级进行覆盖 {@code c1VGetter} ->{@code c2VGetter} ->  {@code c3VGetter}
+     * 如果没有配置, 则使用父配置
+     * 继承链是{@code c1VGetter} ->{@code c2VGetter} ->  {@code c3VGetter}
      *
      * @param setter    config value setter
      * @param c1VGetter service/reference config value getter
@@ -405,11 +407,11 @@ public final class KinRpcBootstrap {
      * @param c2VGetter provider/consumer config value getter
      * @param c3VGetter bootstrap config value getter
      */
-    private <T, PC> void setUpConfigIfNotExists(Consumer<T> setter,
-                                                Supplier<T> c1VGetter,
-                                                @Nullable PC c2,
-                                                Function<PC, T> c2VGetter,
-                                                @Nullable Supplier<T> c3VGetter) {
+    private <T, PC> void setParentConfigIfNotExists(Consumer<T> setter,
+                                                    Supplier<T> c1VGetter,
+                                                    @Nullable PC c2,
+                                                    Function<PC, T> c2VGetter,
+                                                    @Nullable Supplier<T> c3VGetter) {
         T c1V = c1VGetter.get();
         if (isNonNull(c1V)) {
             return;
