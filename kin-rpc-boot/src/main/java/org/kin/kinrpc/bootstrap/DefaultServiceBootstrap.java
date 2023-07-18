@@ -60,6 +60,7 @@ public class DefaultServiceBootstrap<T> extends ServiceBootstrap<T> {
         for (RegistryConfig registryConfig : config.getRegistries()) {
             Registry registry = RegistryHelper.getRegistry(registryConfig);
             registry.unregister(config);
+            RegistryHelper.releaseRegistry(registryConfig);
         }
 
         //service destroy

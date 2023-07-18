@@ -141,8 +141,9 @@ public final class ReferenceProxy implements InvocationHandler {
                 service, args, RpcContext.attachments(), methodMetadata);
         //clear attachments
         RpcContext.clearAttachments();
-        //attach method config
+        //attach config
         invocation.attach(ReferenceConstants.METHOD_CONFIG_KEY, methodConfig);
+        invocation.attach(ReferenceConstants.SERIALIZATION_KEY, config.getSerialization());
 
         if (log.isDebugEnabled()) {
             log.debug("ready to send rpc call. invocation={}", invocation);

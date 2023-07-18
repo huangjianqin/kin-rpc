@@ -48,6 +48,34 @@ public class RemoteServiceConsumer extends ServiceConsumer {
                 .handler(MethodConfig.create("asyncFind2").async())
                 .filter(new LogFilter(false));
 
+        try {
+            DemoService demoService = referenceConfig.refer();
+            System.in.read();
+            invokeDemoService(demoService);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        } finally {
+            referenceConfig.unRefer();
+        }
+
+        try {
+            System.in.read();
+            System.out.println("force application exit>>>");
+            System.exit(0);
+        } catch (Exception e) {
+            //do nothing
+        }
+    }
+
+    public static void genericInvoke(String appNamePrefix, String protocol) {
+        String address = String.join(RegistryConfig.ADDRESS_SEPARATOR,
+                protocol + "://127.0.0.1:13000/kinrpc:demo:0.1.0.0?serialization=json&weight=1&token=123456"
+//                protocol+ "://127.0.0.1:13100/kinrpc:demo:0.1.0.0?serialization=json&weight=2&token=123456",
+//                protocol+ "://127.0.0.1:13200/kinrpc:demo:0.1.0.0?serialization=json&weight=3&token=123456"
+//                protocol+ "://127.0.0.1:13300/kinrpc/demo:0.1.0.0?serialization=json&weight=4&token=123456"
+        );
+        RegistryConfig registryConfig = RegistryConfig.direct(address);
         ReferenceConfig<GenericService> genericReferenceConfig = ReferenceConfig.create(GenericService.class)
                 .generic()
                 .registries(registryConfig)
@@ -60,11 +88,6 @@ public class RemoteServiceConsumer extends ServiceConsumer {
                 .filter(new LogFilter(false));
 
         try {
-            DemoService demoService = referenceConfig.refer();
-            System.in.read();
-            invokeDemoService(demoService);
-
-            System.out.println("------------------------------------------------------------------------------------------------------------------------------------");
             System.in.read();
             GenericService genericDemoService = genericReferenceConfig.refer();
             invokeGenericDemoService(genericDemoService);
@@ -73,7 +96,6 @@ public class RemoteServiceConsumer extends ServiceConsumer {
             e.printStackTrace();
             System.exit(1);
         } finally {
-            referenceConfig.unRefer();
             genericReferenceConfig.unRefer();
         }
 

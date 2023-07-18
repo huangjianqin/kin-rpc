@@ -40,9 +40,9 @@ public interface Registry {
     /**
      * 取消服务订阅
      *
-     * @param service 服务gsv
+     * @param config reference config
      */
-    void unsubscribe(String service);
+    void unsubscribe(ReferenceConfig<?> config);
 
     /**
      * 释放注册中心占用资源

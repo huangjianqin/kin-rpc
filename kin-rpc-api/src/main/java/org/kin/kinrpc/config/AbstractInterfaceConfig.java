@@ -19,7 +19,10 @@ public abstract class AbstractInterfaceConfig<IC extends AbstractInterfaceConfig
     private String group;
     /** 版本号 */
     private String version;
-    /** 序列化方式 */
+    /**
+     * 序列化方式
+     * 对于reference端而言, 相当于兜底, 如果{@link org.kin.kinrpc.ServiceInstance}没有序列化方式, 则使用reference配置的序列化方式
+     */
     private String serialization;
     /** filter list */
     private transient final List<Filter> filters = new ArrayList<>();

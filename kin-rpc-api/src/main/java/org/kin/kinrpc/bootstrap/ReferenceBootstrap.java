@@ -51,9 +51,7 @@ public abstract class ReferenceBootstrap<T> {
 
         String service = config.getService();
         if (REFERENCED_SERVICES.contains(service)) {
-            log.warn("service '{}' has been referenced before, " +
-                    " please check and ensure duplicate refer is right operation, " +
-                    "ignore this if you did that on purpose!", service);
+            throw new IllegalStateException("service '{}' has been referenced before");
         }
 
         reference = doRefer();

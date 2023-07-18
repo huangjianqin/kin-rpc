@@ -88,7 +88,7 @@ public final class DirectRegistry extends AbstractRegistry {
     }
 
     @Override
-    public void unsubscribe(String service) {
+    public void unsubscribe(ReferenceConfig<?> config) {
         //do nothing
     }
 

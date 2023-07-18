@@ -20,6 +20,8 @@ import java.util.concurrent.TimeUnit;
 public final class ReferenceContext {
     /** reference端通用scheduler */
     public static final ExecutionContext SCHEDULER;
+    /** registry discovery scheduler */
+    public static final ExecutionContext DISCOVERY_SCHEDULER;
 
     static {
         ThreadPoolExecutor worker = ThreadPoolUtils.newThreadPool("kinrpc-reference-worker", true,
@@ -34,11 +36,20 @@ public final class ReferenceContext {
                 new SimpleThreadFactory("kinrpc-reference-scheduler", true),
                 new ThreadPoolExecutor.CallerRunsPolicy());
         SCHEDULER = new ExecutionContext(worker, scheduler);
+
+        ThreadPoolExecutor discoveryWorker = ThreadPoolUtils.newThreadPool("kinrpc-reference-discovery", true,
+                SysUtils.DOUBLE_CPU, SysUtils.DOUBLE_CPU,
+                60, TimeUnit.SECONDS,
+                new LinkedBlockingQueue<>(256), new SimpleThreadFactory("kinrpc-reference-discovery"),
+                new ThreadPoolExecutor.CallerRunsPolicy());
+        worker.allowCoreThreadTimeOut(true);
+        DISCOVERY_SCHEDULER = new ExecutionContext(discoveryWorker);
     }
 
     static {
         //hook
         JvmCloseCleaner.instance().add(SCHEDULER::shutdown);
+        JvmCloseCleaner.instance().add(DISCOVERY_SCHEDULER::shutdown);
     }
 
     private ReferenceContext() {

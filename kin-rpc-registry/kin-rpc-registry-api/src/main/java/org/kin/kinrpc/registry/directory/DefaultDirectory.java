@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -35,7 +35,7 @@ public class DefaultDirectory implements Directory {
     private volatile List<ReferenceInvoker<?>> invokers = Collections.emptyList();
     /** 标识是否正在处理服务发现实例 */
     private final AtomicBoolean discovering = new AtomicBoolean(false);
-    /** 待处理的理服务发现实例列表 */
+    /** 待处理的服务发现实例列表 */
     private final Queue<List<ServiceInstance>> discoverQueue = new MpscUnboundedAtomicArrayQueue<>(8);
     /** 用于调用{@link #list()}阻塞等待首次服务发现完成 */
     private volatile CountDownLatch firstDiscoverWaiter = new CountDownLatch(1);
@@ -81,7 +81,7 @@ public class DefaultDirectory implements Directory {
             return;
         }
 
-        ReferenceContext.SCHEDULER.execute(this::doDiscover);
+        ReferenceContext.DISCOVERY_SCHEDULER.execute(this::doDiscover);
     }
 
     /**
@@ -120,7 +120,6 @@ public class DefaultDirectory implements Directory {
                         firstDiscoverWaiter.countDown();
                         firstDiscoverWaiter = null;
                     }
-                    break;
                 } else {
                     //发现仍然有服务实例列表需要处理, 直接处理, 节省上下文切换
                 }
@@ -187,23 +186,11 @@ public class DefaultDirectory implements Directory {
         }
 
         //为未创建invoker的service instance创建invoker
-        for (ServiceInstance instance : serviceInstances) {
-            String schema = instance.metadata(ServiceMetadataConstants.SCHEMA_KEY);
-            Protocol protocol = ExtensionLoader.getExtension(Protocol.class, schema);
-            Preconditions.checkNotNull(protocol, String.format("protocol not found, %s", schema));
+        validInvokers.addAll(createReferenceInvokers(serviceInstances));
 
-            ReferenceInvoker<?> referenceInvoker = null;
-            try {
-                referenceInvoker = protocol.refer(config, instance);
-            } catch (Throwable throwable) {
-                log.error("fail to create reference invoker, instance = {}", instance);
-            }
-            validInvokers.add(referenceInvoker);
-        }
-
-        //destroy invalid invokers
+        //async destroy invalid invokers
         for (ReferenceInvoker<?> invoker : invalidInvokers) {
-            invoker.destroy();
+            ReferenceContext.DISCOVERY_SCHEDULER.execute(invoker::destroy);
         }
 
         //update cache
@@ -215,6 +202,63 @@ public class DefaultDirectory implements Directory {
                 .collect(Collectors.toList());
 
         log.info("directory(service={}) discover finished, validInstances={}", service(), validInstanceUrls);
+    }
+
+    /**
+     * 创建{@link ReferenceInvoker}实例
+     *
+     * @param serviceInstances service instance
+     * @return reference invoker list
+     */
+    private List<ReferenceInvoker<?>> createReferenceInvokers(List<ServiceInstance> serviceInstances) {
+        if (CollectionUtils.isEmpty(serviceInstances)) {
+            return Collections.emptyList();
+        }
+
+        List<CompletableFuture<? extends ReferenceInvoker<?>>> referenceInvokerFutures = new LinkedList<>();
+        for (ServiceInstance instance : serviceInstances) {
+            CompletableFuture<? extends ReferenceInvoker<?>> referenceInvokerFuture = CompletableFuture.supplyAsync(() -> {
+                String schema = instance.metadata(ServiceMetadataConstants.SCHEMA_KEY);
+                Protocol protocol = ExtensionLoader.getExtension(Protocol.class, schema);
+                Preconditions.checkNotNull(protocol, String.format("protocol not found, %s", schema));
+
+                ReferenceInvoker<?> referenceInvoker = null;
+                try {
+                    referenceInvoker = protocol.refer(config, instance);
+                } catch (Throwable throwable) {
+                    log.error("fail to create reference invoker, instance = {}", instance);
+                }
+                return referenceInvoker;
+            }, ReferenceContext.SCHEDULER);
+            referenceInvokerFutures.add(referenceInvokerFuture);
+        }
+
+        CompletableFuture<Void> waitReferFuture = CompletableFuture.allOf(referenceInvokerFutures.toArray(new CompletableFuture[0]));
+        try {
+            waitReferFuture.get(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            log.error("wait concurrent create reference invoker error", e.getCause());
+        } catch (TimeoutException e) {
+            log.error("wait concurrent create reference invoker timeout", e);
+        }
+
+        return referenceInvokerFutures.stream()
+                .filter(CompletableFuture::isDone)
+                .filter(f -> !f.isCompletedExceptionally())
+                .map(f -> {
+                    try {
+                        return f.get();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    } catch (ExecutionException e) {
+                        log.error("get concurrent reference invoker error", e.getCause());
+                    }
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     @Override

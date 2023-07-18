@@ -39,7 +39,7 @@ public class RegistryHelper {
         if (StringUtils.isNotBlank(name)) {
             return name;
         } else {
-            return config.getType() + "#" + config.getAddress();
+            return config.getType() + "(" + config.getAddress() + ")";
         }
     }
 
@@ -121,26 +121,13 @@ public class RegistryHelper {
      *
      * @param serviceConfig 服务配置
      * @param serverConfig  server配置
-     * @return 服务url string
-     */
-    public static String toUrlStr(ServiceConfig<?> serviceConfig, ServerConfig serverConfig) {
-        return toUrl(serviceConfig, serverConfig).toString();
-    }
-
-    /**
-     * 返回注册中心存储的服务信息(url形式)
-     *
-     * @param serviceConfig 服务配置
-     * @param serverConfig  server配置
      * @return 服务url
      */
     public static Url toUrl(ServiceConfig<?> serviceConfig, ServerConfig serverConfig) {
         Url url = new Url(serverConfig.getProtocol(),
                 serverConfig.getHost(),
-                serverConfig.getPort(),
-                serviceConfig.getService());
-        url.putParam(ServiceMetadataConstants.WEIGHT_KEY, serviceConfig.getWeight());
-        url.putParam(ServiceMetadataConstants.SERIALIZATION_KEY, serviceConfig.getSerialization());
+                serverConfig.getPort());
+        url.putParam(ServiceMetadataConstants.APP_NAME_KEY, serviceConfig.getApp().getAppName());
         return url;
     }
 

@@ -65,6 +65,7 @@ public class DefaultReferenceBootstrap<T> extends ProxyReferenceBootstrap<T> {
         for (RegistryConfig registryConfig : config.getRegistries()) {
             Registry registry = RegistryHelper.getRegistry(registryConfig);
             registry.unsubscribe(service);
+            RegistryHelper.releaseRegistry(registryConfig);
         }
     }
 }

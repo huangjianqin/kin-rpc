@@ -16,6 +16,8 @@ public final class ServiceMetadataConstants {
     public static final String SERIALIZATION_KEY = "serialization";
     /** service token */
     public static final String TOKEN_KEY = "token";
+    /** appName */
+    public static final String APP_NAME_KEY = "appName";
 
     private ServiceMetadataConstants() {
     }

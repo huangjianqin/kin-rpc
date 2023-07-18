@@ -6,7 +6,6 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.*;
-import org.kin.framework.cache.ReferenceCountedCache;
 import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.ServiceInstance;
@@ -15,9 +14,8 @@ import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.RegistryConfig;
 import org.kin.kinrpc.config.ServerConfig;
 import org.kin.kinrpc.config.ServiceConfig;
-import org.kin.kinrpc.registry.AbstractRegistry;
+import org.kin.kinrpc.registry.DiscoveryRegistry;
 import org.kin.kinrpc.registry.RegistryHelper;
-import org.kin.kinrpc.registry.directory.DefaultDirectory;
 import org.kin.kinrpc.registry.directory.Directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +34,7 @@ import java.util.stream.Collectors;
  * @author huangjianqin
  * @date 2019/7/2
  */
-public final class ZookeeperRegistry extends AbstractRegistry {
+public final class ZookeeperRegistry extends DiscoveryRegistry {
     private static final Logger log = LoggerFactory.getLogger(ZookeeperRegistry.class);
     /** zk注册中心root path */
     private static final String ROOT = "kinrpc";
@@ -49,24 +47,20 @@ public final class ZookeeperRegistry extends AbstractRegistry {
     }
 
     /** zk注册中心服务root path */
-    private static String getPath(String service) {
-        return root() + PATH_SEPARATOR + service;
+    private static String getPath(String group) {
+        return root() + PATH_SEPARATOR + group;
     }
 
     /** zk注册中心服务地址path */
-    private static String getPath(String service, String address) {
-        return getPath(service) + PATH_SEPARATOR + address;
+    private static String getPath(String group, String address) {
+        return getPath(group) + PATH_SEPARATOR + address;
     }
 
     /** zk地址 */
     private String connectAddress;
     /** curator client */
     private CuratorFramework client;
-    /**
-     * {@link Directory}实例缓存
-     * key -> 服务唯一标识, value -> {@link Directory}实例
-     */
-    private final ReferenceCountedCache<String, Directory> directoryCache = new ReferenceCountedCache<>((k, v) -> v.destroy());
+
 
     public ZookeeperRegistry(RegistryConfig config) {
         super(config);
@@ -130,16 +124,15 @@ public final class ZookeeperRegistry extends AbstractRegistry {
      * 创建zk node
      *
      * @param path zk path
-     * @param data zk node data
      */
-    private void createZNode(String path, byte[] data) {
+    private void createZNode(String path) {
         try {
             client.create()
                     //递归创建
                     .creatingParentsIfNeeded()
                     .withMode(CreateMode.PERSISTENT)
                     .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
-                    .forPath(path, data);
+                    .forPath(path);
             if (log.isDebugEnabled()) {
                 log.debug("create persistent znode(path='{}') success", path);
             }
@@ -186,65 +179,49 @@ public final class ZookeeperRegistry extends AbstractRegistry {
     }
 
     @Override
-    public void register(ServiceConfig<?> serviceConfig) {
-        String service = serviceConfig.getService();
-        log.info("zookeeper registry(address={}) register service '{}' ", connectAddress(), service);
-
+    public void doRegister(ServiceConfig<?> serviceConfig) {
+        String group = serviceConfig.getGroup();
         for (ServerConfig serverConfig : serviceConfig.getServers()) {
             Url url = RegistryHelper.toUrl(serviceConfig, serverConfig);
-            createZNode(getPath(service, url.getAddress()), url.toString().getBytes(StandardCharsets.UTF_8));
+            createZNode(getPath(group, url.getAddress()));
         }
     }
 
     @Override
-    public void unregister(ServiceConfig<?> serviceConfig) {
-        String service = serviceConfig.getService();
-        log.info("zookeeper registry(address={}) unregister service '{}' ", connectAddress(), service);
-
+    public void doUnregister(ServiceConfig<?> serviceConfig) {
+        String group = serviceConfig.getGroup();
         for (ServerConfig serverConfig : serviceConfig.getServers()) {
             Url url = RegistryHelper.toUrl(serviceConfig, serverConfig);
-            deleteZNode(getPath(service, url.getAddress()));
+            deleteZNode(getPath(group, url.getAddress()));
         }
-        tryDeleteZNode(getPath(service));
+        tryDeleteZNode(getPath(group));
     }
 
     @Override
-    public Directory subscribe(ReferenceConfig<?> config) {
-        String service = config.getService();
-        if (log.isDebugEnabled()) {
-            log.debug("reference subscribe service '{}' on zookeeper registry(address={})", service, connectAddress());
-        }
-
-        return directoryCache.get(service, () -> {
-            DefaultDirectory iDirectory = new DefaultDirectory(config);
-            watch(iDirectory);
-            return iDirectory;
-        });
+    public Directory doSubscribe(ReferenceConfig<?> config) {
+        Directory directory = getDirectory(config);
+        watch(config.getGroup());
+        return directory;
     }
 
     @Override
-    public void unsubscribe(String service) {
-        if (log.isDebugEnabled()) {
-            log.debug("reference unsubscribe service '{}' on zookeeper registry(address={})", service, connectAddress);
-        }
-        directoryCache.release(service);
+    public void doUnsubscribe(ReferenceConfig<?> config) {
+        unWatch(config.getGroup())
+        freeDirectory(config.getService());
     }
 
     /**
-     * 监听服务path及其childs变化
+     * 监听应用组及其childs变化
      */
-    private void watch(Directory directory) {
-        watchServiceNode(directory);
-        watchServiceNodeChilds(directory);
+    private void watch(String group) {
+        watchServiceNode(group);
+        watchServiceNodeChilds(group);
     }
 
     /**
      * 监听服务root path
      */
-    private void watchServiceNode(Directory directory) {
-        if (!directory.isAvailable()) {
-            return;
-        }
+    private void watchServiceNode(String group) {
         try {
             client.checkExists().usingWatcher((Watcher) (WatchedEvent event) -> {
                 //service root path created
@@ -287,11 +264,7 @@ public final class ZookeeperRegistry extends AbstractRegistry {
     /**
      * 监听服务root path下child node
      */
-    private void watchServiceNodeChilds(Directory directory) {
-        if (!directory.isAvailable()) {
-            return;
-        }
-
+    private void watchServiceNodeChilds(String group) {
         try {
             List<String> childPaths = client.getChildren().usingWatcher(
                     (Watcher) (WatchedEvent event) -> {
@@ -321,13 +294,12 @@ public final class ZookeeperRegistry extends AbstractRegistry {
     }
 
     @Override
-    public void destroy() {
+    public void doDestroy() {
         if (Objects.isNull(client)) {
             return;
         }
 
         client.close();
-        directoryCache.clear();
-        log.info("zookeeper registry(address={}) destroyed", connectAddress());
+        log.info("{} destroyed", getName());
     }
 }

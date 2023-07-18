@@ -5,7 +5,6 @@ import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.*;
 import org.kin.kinrpc.config.MethodConfig;
-import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.constants.ReferenceConstants;
 import org.kin.kinrpc.constants.ServerAttachmentConstants;
 import org.kin.kinrpc.transport.RemotingClient;
@@ -32,19 +31,19 @@ public class DefaultReferenceInvoker<T> implements ReferenceInvoker<T> {
     private final ServiceInstance instance;
     /** remoting client */
     private final RemotingClient client;
-    /** 服务端支持的序列化code */
+    /** 服务支持的序列化code */
     private final Byte serializationCode;
 
-    public DefaultReferenceInvoker(ReferenceConfig<T> config,
-                                   ServiceInstance instance,
+    public DefaultReferenceInvoker(ServiceInstance instance,
                                    RemotingClient client) {
         this.instance = instance;
         this.client = client;
         String serialization = instance.metadata(ServiceMetadataConstants.SERIALIZATION_KEY);
-        if (StringUtils.isBlank(serialization)) {
-            serialization = config.getSerialization();
+        if (StringUtils.isNotBlank(serialization)) {
+            this.serializationCode = (byte) ExtensionLoader.getExtensionCode(Serialization.class, serialization);
+        } else {
+            this.serializationCode = null;
         }
-        this.serializationCode = (byte) ExtensionLoader.getExtensionCode(Serialization.class, serialization);
     }
 
     @Override
@@ -55,6 +54,18 @@ public class DefaultReferenceInvoker<T> implements ReferenceInvoker<T> {
         if (Objects.nonNull(methodConfig)) {
             asyncInvoke |= methodConfig.isAsync();
             timeoutMs = methodConfig.getTimeout();
+        }
+
+        Byte serializationCode = this.serializationCode;
+        if (Objects.isNull(serializationCode)) {
+            String serialization = invocation.attachment(ReferenceConstants.SERIALIZATION_KEY);
+            if (StringUtils.isNotBlank(serialization)) {
+                serializationCode = (byte) ExtensionLoader.getExtensionCode(Serialization.class, serialization);
+            }
+        }
+
+        if (Objects.isNull(serializationCode)) {
+            throw new RpcException("rpc call fail, due to can not find available serialization, invocation=" + invocation);
         }
 
         RpcRequestCommand command = new RpcRequestCommand(this.serializationCode, invocation.serviceId(),
