@@ -30,7 +30,7 @@ public abstract class AbstractProtocol implements Protocol {
      * server cache
      * key -> listen address
      */
-    private final ReferenceCountedCache<String, RemotingServerContext> serverContextCache = new ReferenceCountedCache<>((k, c) -> c.getServer().shutdown());
+    private final ReferenceCountedCache<String, RemotingServerContext> serverContextCache = new ReferenceCountedCache<>((k, c) -> c.shutdown());
     /**
      * client cache, 复用client
      * key -> remote address
@@ -50,7 +50,7 @@ public abstract class AbstractProtocol implements Protocol {
     public final <T> Exporter<T> export(RpcService<T> rpcService, ServerConfig serverConfig) {
         String address = serverConfig.getAddress();
         RemotingServerContext serverContext = serverContextCache.get(address, () -> createServerContext(serverConfig));
-        serverContext.getRpcRequestProcessor().register(rpcService);
+        serverContext.register(rpcService);
         onExport(rpcService, serverContext.getServer());
         return new Exporter<T>() {
             @Override
@@ -60,7 +60,7 @@ public abstract class AbstractProtocol implements Protocol {
 
             @Override
             public void unExport() {
-                serverContext.getRpcRequestProcessor().unregister(rpcService.serviceId());
+                serverContext.unregister(rpcService.serviceId());
                 onUnExport(rpcService, serverContext.getServer());
                 serverContextCache.release(address);
             }

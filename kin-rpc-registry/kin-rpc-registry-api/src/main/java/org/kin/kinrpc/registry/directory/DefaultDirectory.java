@@ -246,14 +246,14 @@ public class DefaultDirectory implements Directory {
 
         return referenceInvokerFutures.stream()
                 .filter(CompletableFuture::isDone)
-                .filter(f -> !f.isCompletedExceptionally())
+                .filter(f -> !f.isCompletedExceptionally() || !f.isCancelled())
                 .map(f -> {
                     try {
                         return f.get();
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     } catch (ExecutionException e) {
-                        log.error("get concurrent reference invoker error", e.getCause());
+                        log.error("get reference invoker from future error", e.getCause());
                     }
                     return null;
                 })

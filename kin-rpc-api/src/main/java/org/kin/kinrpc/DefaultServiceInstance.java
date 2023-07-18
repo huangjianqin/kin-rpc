@@ -1,7 +1,5 @@
-package org.kin.kinrpc.registry;
+package org.kin.kinrpc;
 
-import org.kin.kinrpc.ServiceInstance;
-import org.kin.kinrpc.ServiceMetadataConstants;
 import org.kin.kinrpc.utils.GsvUtils;
 
 import java.util.Collections;
@@ -81,8 +79,12 @@ public class DefaultServiceInstance implements ServiceInstance {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         DefaultServiceInstance that = (DefaultServiceInstance) o;
         return serviceId == that.serviceId && port == that.port && Objects.equals(host, that.host);
     }

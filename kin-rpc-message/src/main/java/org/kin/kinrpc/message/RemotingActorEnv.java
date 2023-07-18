@@ -325,7 +325,7 @@ public final class RemotingActorEnv extends ActorEnv {
         /** 传输层协议 */
         private ProtocolType protocolType = ProtocolType.KINRPC;
         /** 序列化方式 */
-        private SerializationType serializationType = SerializationType.JSON;
+        private SerializationType serializationType = SerializationType.JSONB;
         /** server端ssl */
         private SslConfig serverSslConfig;
         /** client端ssl */

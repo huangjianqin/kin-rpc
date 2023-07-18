@@ -69,6 +69,7 @@ public final class DirectRegistry extends AbstractRegistry {
             throw new IllegalStateException("registry has been destroyed");
         }
 
+        // TODO: 2023/7/17 一个注册中心仅能订阅一次服务
         String service = config.getService();
         log.info("subscribe service '{}' ", service);
         Directory directory;

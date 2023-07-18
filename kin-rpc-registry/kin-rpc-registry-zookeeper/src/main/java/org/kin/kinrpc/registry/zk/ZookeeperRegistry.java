@@ -8,7 +8,9 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.*;
 import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.utils.ExceptionUtils;
-import org.kin.kinrpc.ServiceInstance;
+import org.kin.kinrpc.ApplicationInstance;
+import org.kin.kinrpc.DefaultApplicationInstance;
+import org.kin.kinrpc.ServiceMetadataConstants;
 import org.kin.kinrpc.common.Url;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.RegistryConfig;
@@ -20,16 +22,11 @@ import org.kin.kinrpc.registry.directory.Directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
- * 以zookeeper为注册中心, 实时监听服务状态变化, 并更新可用服务invoker
+ * 以zookeeper为注册中心, 实时监听应用实例状态变化, 并更新可用{@link org.kin.kinrpc.ReferenceInvoker}实例
  *
  * @author huangjianqin
  * @date 2019/7/2
@@ -46,12 +43,12 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
         return PATH_SEPARATOR + ROOT;
     }
 
-    /** zk注册中心服务root path */
+    /** zk注册中心{@link #ROOT}/group path */
     private static String getPath(String group) {
         return root() + PATH_SEPARATOR + group;
     }
 
-    /** zk注册中心服务地址path */
+    /** zk注册中心应用实例url path */
     private static String getPath(String group, String address) {
         return getPath(group) + PATH_SEPARATOR + address;
     }
@@ -106,10 +103,7 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
                 log.info("zookeeper registry(address={}) created", connectAddress());
             } else if (ConnectionState.RECONNECTED.equals(connectionState)) {
                 log.info("zookeeper registry(address={}) reconnected", connectAddress());
-                //重连时重新订阅
-                for (Directory directory : directoryCache.values()) {
-                    watch(directory);
-                }
+                // TODO: 2023/7/18  重连时重新订阅
             } else if (ConnectionState.LOST.equals(connectionState)) {
                 log.info("zookeeper registry(address={}) session expired", connectAddress());
             } else if (ConnectionState.SUSPENDED.equals(connectionState)) {
@@ -183,7 +177,7 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
         String group = serviceConfig.getGroup();
         for (ServerConfig serverConfig : serviceConfig.getServers()) {
             Url url = RegistryHelper.toUrl(serviceConfig, serverConfig);
-            createZNode(getPath(group, url.getAddress()));
+            createZNode(getPath(group, url.toString()));
         }
     }
 
@@ -192,7 +186,7 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
         String group = serviceConfig.getGroup();
         for (ServerConfig serverConfig : serviceConfig.getServers()) {
             Url url = RegistryHelper.toUrl(serviceConfig, serverConfig);
-            deleteZNode(getPath(group, url.getAddress()));
+            deleteZNode(getPath(group, url.toString()));
         }
         tryDeleteZNode(getPath(group));
     }
@@ -206,7 +200,8 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
 
     @Override
     public void doUnsubscribe(ReferenceConfig<?> config) {
-        unWatch(config.getGroup())
+        // TODO: 2023/7/18 处理unwatch
+//        unWatch(config.getGroup());
         freeDirectory(config.getService());
     }
 
@@ -214,36 +209,36 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
      * 监听应用组及其childs变化
      */
     private void watch(String group) {
-        watchServiceNode(group);
-        watchServiceNodeChilds(group);
+        watchAppGroupNode(group);
+        watchAppGroupNodeChilds(group);
     }
 
     /**
-     * 监听服务root path
+     * 监听应用组节点
      */
-    private void watchServiceNode(String group) {
+    private void watchAppGroupNode(String group) {
         try {
             client.checkExists().usingWatcher((Watcher) (WatchedEvent event) -> {
-                //service root path created
+                //application group path created
                 if (event.getType() == Watcher.Event.EventType.NodeCreated) {
                     if (log.isDebugEnabled()) {
                         log.debug("node '{}' created", event.getPath());
                     }
-                    watch(directory);
+                    watch(group);
                 }
 
                 if (event.getType() == Watcher.Event.EventType.NodeDeleted) {
-                    //service root path deleted
+                    //application group root path deleted
                     if (log.isDebugEnabled()) {
                         log.debug("node '{}' deleted", event.getPath());
                     }
-                    directory.discover(Collections.emptyList());
-                    //监控服务节点即可, 等待服务重新注册
-                    watchServiceNode(directory);
+                    onDiscovery(Collections.emptyList());
+                    //监控应用组节点即可, 等待应用实例重新注册
+                    watchAppGroupNode(group);
                 }
-            }).forPath(getPath(directory.service()));
+            }).forPath(getPath(group));
         } catch (KeeperException e) {
-            //服务还未注册或者因异常取消注册
+            //应用还未注册或者因异常取消注册
             if (e.code().equals(KeeperException.Code.NONODE)) {
                 //等待一段时间
                 try {
@@ -251,8 +246,8 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
                 } catch (InterruptedException e1) {
                     //ignore
                 }
-                //尝试重新订阅服务
-                watch(directory);
+                //尝试重新监听应用组节点
+                watch(group);
             } else {
                 ExceptionUtils.throwExt(e);
             }
@@ -262,9 +257,9 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
     }
 
     /**
-     * 监听服务root path下child node
+     * 监听应用组节点下子节点
      */
-    private void watchServiceNodeChilds(String group) {
+    private void watchAppGroupNodeChilds(String group) {
         try {
             List<String> childPaths = client.getChildren().usingWatcher(
                     (Watcher) (WatchedEvent event) -> {
@@ -272,20 +267,18 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
                             if (log.isDebugEnabled()) {
                                 log.debug("node '{}' childs changed", event.getPath());
                             }
-                            watchServiceNodeChilds(directory);
+                            watchAppGroupNodeChilds(group);
                         }
-                    }).forPath(getPath(directory.service()));
-            //获取child nodes的data
-            List<String> urls = new ArrayList<>(childPaths.size());
-            for (String path : childPaths) {
-                byte[] data = client.getData().forPath(getPath(directory.service(), path));
-                if (Objects.nonNull(data) && data.length > 0) {
-                    urls.add(new String(data, StandardCharsets.UTF_8));
-                }
+                    }).forPath(getPath(group));
+            //转换成应用实例
+            List<ApplicationInstance> appInstances = new ArrayList<>(childPaths.size());
+            for (String childPath : childPaths) {
+                Url url = Url.of(childPath);
+                Map<String, String> metadata = url.getParams();
+                metadata.put(ServiceMetadataConstants.SCHEMA_KEY, url.getProtocol());
+                appInstances.add(new DefaultApplicationInstance(group, url.getHost(), url.getPort(), metadata));
             }
-
-            List<ServiceInstance> serviceInstances = urls.stream().map(RegistryHelper::parseUrl).collect(Collectors.toList());
-            directory.discover(serviceInstances);
+            onDiscovery(appInstances);
         } catch (InterruptedException e) {
             //ignore
         } catch (Exception e) {

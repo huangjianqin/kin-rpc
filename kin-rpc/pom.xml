@@ -39,7 +39,7 @@
 
         <dependency>
             <groupId>org.kin</groupId>
-            <artifactId>kin-serialization-json</artifactId>
+            <artifactId>kin-serialization-jsonb</artifactId>
         </dependency>
     </dependencies>
 

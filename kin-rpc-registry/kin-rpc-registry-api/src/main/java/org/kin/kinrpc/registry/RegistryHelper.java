@@ -3,6 +3,7 @@ package org.kin.kinrpc.registry;
 import org.kin.framework.cache.ReferenceCountedCache;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.StringUtils;
+import org.kin.kinrpc.DefaultServiceInstance;
 import org.kin.kinrpc.ServiceInstance;
 import org.kin.kinrpc.ServiceMetadataConstants;
 import org.kin.kinrpc.common.Url;
@@ -94,8 +95,8 @@ public class RegistryHelper {
             }
 
             @Override
-            public void unsubscribe(String service) {
-                registry.unsubscribe(service);
+            public void unsubscribe(ReferenceConfig<?> config) {
+                registry.unsubscribe(config);
             }
 
             @Override

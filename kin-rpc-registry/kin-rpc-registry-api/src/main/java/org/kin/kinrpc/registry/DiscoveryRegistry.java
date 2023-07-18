@@ -2,19 +2,25 @@ package org.kin.kinrpc.registry;
 
 import org.jctools.queues.atomic.MpscUnboundedAtomicArrayQueue;
 import org.kin.framework.cache.ReferenceCountedCache;
+import org.kin.framework.collection.Tuple;
 import org.kin.framework.utils.CollectionUtils;
-import org.kin.kinrpc.ApplicationInstance;
-import org.kin.kinrpc.ReferenceContext;
-import org.kin.kinrpc.ServiceInstance;
+import org.kin.kinrpc.*;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.RegistryConfig;
 import org.kin.kinrpc.config.ServiceConfig;
+import org.kin.kinrpc.constants.CommonConstants;
 import org.kin.kinrpc.registry.directory.DefaultDirectory;
 import org.kin.kinrpc.registry.directory.Directory;
+import org.kin.kinrpc.service.MetadataService;
+import org.kin.kinrpc.utils.ReferenceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -32,8 +38,8 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
      * key -> 服务唯一标识, value -> {@link Directory}实例
      */
     private final ReferenceCountedCache<String, Directory> directoryCache = new ReferenceCountedCache<>((k, v) -> v.destroy());
-    /** key -> group, value -> application metadata list */
-    private volatile Map<String, Set<ApplicationMetadata>> group2AppMetadataSet = new HashMap<>();
+    /** key -> group, value -> application instance context list */
+    private volatile Map<String, Set<AppInstanceContext>> group2AppInstanceContexts = new HashMap<>();
     /** 标识是否正在处理发现的应用实例 */
     private final AtomicBoolean discovering = new AtomicBoolean(false);
     /** 待处理的应用实例列表 */
@@ -116,7 +122,6 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
                 if (Objects.isNull(discoverQueue.peek())) {
                     //reset discovering flag
                     discovering.compareAndSet(true, false);
-
                 } else {
                     //发现仍然有应用实例列表需要处理, 直接处理, 节省上下文切换
                 }
@@ -132,32 +137,32 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
         }
 
         //deep copy
-        Map<String, Set<ApplicationMetadata>> group2AppMetadataSet = new HashMap<>(this.group2AppMetadataSet);
-        for (String group : group2AppMetadataSet.keySet()) {
-            group2AppMetadataSet.put(group, new HashSet<>(group2AppMetadataSet.get(group)));
+        Map<String, Set<AppInstanceContext>> group2AppInstanceContexts = new HashMap<>(this.group2AppInstanceContexts);
+        for (String group : group2AppInstanceContexts.keySet()) {
+            group2AppInstanceContexts.put(group, new HashSet<>(group2AppInstanceContexts.get(group)));
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("old application instances {}", group2AppMetadataSet);
+            log.debug("old application instances {}", group2AppInstanceContexts);
         }
 
         //新加入的application instance
         Map<String, Set<ApplicationInstance>> group2NewAppInstances = new HashMap<>();
-        Map<String, Set<ApplicationMetadata>> group2RmAppMetadataSet = new HashMap<>();
+        Map<String, Set<AppInstanceContext>> group2RmAppInstanceContexts = new HashMap<>();
         for (Map.Entry<String, List<ApplicationInstance>> entry : group2ActiveAppInstances.entrySet()) {
             String group = entry.getKey();
 
             Set<ApplicationInstance> newAppInstances = new HashSet<>();
-            Set<ApplicationMetadata> rmAppMetadataSet = new HashSet<>();
+            Set<AppInstanceContext> rmAppInstanceContexts = new HashSet<>();
             //copy
             List<ApplicationInstance> activeAppInstances = new ArrayList<>(entry.getValue());
 
-            Set<ApplicationMetadata> oldAppMetadataSet = group2AppMetadataSet.get(group);
-            if (CollectionUtils.isEmpty(oldAppMetadataSet)) {
+            Set<AppInstanceContext> oldAppInstanceContexts = group2AppInstanceContexts.get(group);
+            if (CollectionUtils.isEmpty(oldAppInstanceContexts)) {
                 newAppInstances.addAll(activeAppInstances);
             } else {
-                Set<ApplicationInstance> oldAppInstances = oldAppMetadataSet.stream()
-                        .map(ApplicationMetadata::getInstance)
+                Set<ApplicationInstance> oldAppInstances = oldAppInstanceContexts.stream()
+                        .map(AppInstanceContext::getInstance)
                         .collect(Collectors.toSet());
                 Iterator<ApplicationInstance> iterator = activeAppInstances.iterator();
                 while (iterator.hasNext()) {
@@ -172,40 +177,29 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
                 }
 
                 //剩余的也就是离线的
-                rmAppMetadataSet.addAll(oldAppMetadataSet.stream()
+                rmAppInstanceContexts.addAll(oldAppInstanceContexts.stream()
                         .filter(oam -> oldAppInstances.contains(oam.getInstance()))
                         .collect(Collectors.toList()));
             }
 
             group2NewAppInstances.put(group, newAppInstances);
-            group2RmAppMetadataSet.put(group, rmAppMetadataSet);
+            group2RmAppInstanceContexts.put(group, rmAppInstanceContexts);
         }
 
         // TODO: 2023/7/18
 
         //new
-        if (log.isDebugEnabled()) {
-            log.debug("new application instances {}", group2NewAppInstances);
-        }
+        fetchAppInstanceMetadata(group2AppInstanceContexts, group2NewAppInstances);
 
         //remove
-        if (log.isDebugEnabled()) {
-            log.debug("remove application instances {}", group2RmAppMetadataSet);
-        }
-        for (Map.Entry<String, Set<ApplicationMetadata>> entry : group2RmAppMetadataSet.entrySet()) {
-            String group = entry.getKey();
-            Set<ApplicationMetadata> appMetadataSet = entry.getValue();
+        removeInvalidAppInstanceMetadata(group2AppInstanceContexts, group2RmAppInstanceContexts);
 
-            //移除
-            group2AppMetadataSet.get(group).removeAll(appMetadataSet);
-        }
-
-        this.group2AppMetadataSet = group2AppMetadataSet;
+        this.group2AppInstanceContexts = group2AppInstanceContexts;
 
         //notify directory
         Map<String, List<ServiceInstance>> service2Instances = new HashMap<>();
-        for (Map.Entry<String, Set<ApplicationMetadata>> entry : group2AppMetadataSet.entrySet()) {
-            for (ApplicationMetadata appMetadata : entry.getValue()) {
+        for (Map.Entry<String, Set<AppInstanceContext>> entry : group2AppInstanceContexts.entrySet()) {
+            for (AppInstanceContext appMetadata : entry.getValue()) {
                 for (ServiceInstance serviceInstance : appMetadata.getServiceInstances()) {
                     String service = serviceInstance.service();
                     List<ServiceInstance> serviceInstances = service2Instances.get(service);
@@ -227,6 +221,121 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
             }
 
             ReferenceContext.DISCOVERY_SCHEDULER.execute(() -> directory.discover(entry.getValue()));
+        }
+    }
+
+    /**
+     * 并发批量拉取应用元数据
+     *
+     * @param group2AppInstanceContexts 应用元数据上下文缓存
+     * @param group2NewAppInstances     需要拉取的应用实例
+     */
+    private void fetchAppInstanceMetadata(Map<String, Set<AppInstanceContext>> group2AppInstanceContexts,
+                                          Map<String, Set<ApplicationInstance>> group2NewAppInstances) {
+        if (log.isDebugEnabled()) {
+            log.debug("new application instances {}", group2NewAppInstances);
+        }
+
+        List<CompletableFuture<Tuple<String, AppInstanceContext>>> appInstanceContextFutures = new ArrayList<>();
+        for (Map.Entry<String, Set<ApplicationInstance>> entry : group2NewAppInstances.entrySet()) {
+            String group = entry.getKey();
+
+            Set<AppInstanceContext> appInstanceContexts = group2AppInstanceContexts.get(group);
+            if (Objects.isNull(appInstanceContexts)) {
+                appInstanceContexts = new HashSet<>();
+                group2AppInstanceContexts.put(group, appInstanceContexts);
+            }
+
+            for (ApplicationInstance appInstance : entry.getValue()) {
+                CompletableFuture<Tuple<String, AppInstanceContext>> future = CompletableFuture.supplyAsync(() -> {
+                    ReferenceConfig<MetadataService> metadataServiceReferenceConfig = ReferenceUtils.createInternalServiceReference(appInstance,
+                            MetadataService.class,
+                            CommonConstants.METADATA_SERVICE_NAME);
+                    MetadataService metadataService = metadataServiceReferenceConfig.refer();
+
+                    MetadataResponse metadataResponse = metadataService.metadata();
+                    Map<String, ServiceMetadata> serviceMetadataMap = metadataResponse.getServiceMetadataMap();
+                    List<ServiceInstance> serviceInstances = serviceMetadataMap.entrySet()
+                            .stream()
+                            .map(e -> {
+                                Map<String, String> iServiceMetadataMap = e.getValue().getMetadata();
+                                iServiceMetadataMap.put(ServiceMetadataConstants.SCHEMA_KEY, appInstance.scheme());
+                                return new DefaultServiceInstance(e.getKey(), appInstance.host(), appInstance.port(), iServiceMetadataMap);
+                            })
+                            .collect(Collectors.toList());
+                    return new Tuple<>(group,
+                            new AppInstanceContext(appInstance, serviceInstances,
+                                    metadataServiceReferenceConfig, metadataService));
+                });
+                appInstanceContextFutures.add(future);
+            }
+        }
+
+        try {
+            CompletableFuture.allOf(appInstanceContextFutures.toArray(new CompletableFuture[0]))
+                    .get(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            log.error("wait concurrent fetch application instance metadata error", e.getCause());
+        } catch (TimeoutException e) {
+            log.error("wait concurrent fetch application instance metadata timeout", e.getCause());
+        }
+
+        for (CompletableFuture<Tuple<String, AppInstanceContext>> future : appInstanceContextFutures) {
+            if (!future.isDone()) {
+                continue;
+            }
+
+            if (future.isCompletedExceptionally()) {
+                continue;
+            }
+
+            if (future.isCancelled()) {
+                continue;
+            }
+
+            try {
+                Tuple<String, AppInstanceContext> tuple = future.get();
+                String group = tuple.first();
+                AppInstanceContext appInstanceContext = tuple.second();
+
+                Set<AppInstanceContext> appInstanceContexts = group2AppInstanceContexts.get(group);
+                if (Objects.isNull(appInstanceContexts)) {
+                    appInstanceContexts = new HashSet<>();
+                    group2AppInstanceContexts.put(group, appInstanceContexts);
+                }
+
+                appInstanceContexts.add(appInstanceContext);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (ExecutionException e) {
+                log.error("get app instance context from future error", e.getCause());
+            }
+        }
+    }
+
+    /**
+     * 移除无效应用元数据上下文
+     *
+     * @param group2AppInstanceContexts   应用元数据上下文缓存
+     * @param group2RmAppInstanceContexts 需要移除的应用元数据上下文
+     */
+    private void removeInvalidAppInstanceMetadata(Map<String, Set<AppInstanceContext>> group2AppInstanceContexts,
+                                                  Map<String, Set<AppInstanceContext>> group2RmAppInstanceContexts) {
+        if (log.isDebugEnabled()) {
+            log.debug("remove application instances {}", group2RmAppInstanceContexts);
+        }
+        for (Map.Entry<String, Set<AppInstanceContext>> entry : group2RmAppInstanceContexts.entrySet()) {
+            String group = entry.getKey();
+            Set<AppInstanceContext> appInstanceContexts = entry.getValue();
+
+            for (AppInstanceContext appInstanceContext : appInstanceContexts) {
+                appInstanceContext.destroy();
+            }
+
+            //移除
+            group2AppInstanceContexts.get(group).removeAll(appInstanceContexts);
         }
     }
 

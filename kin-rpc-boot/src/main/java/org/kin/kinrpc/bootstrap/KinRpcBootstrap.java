@@ -464,6 +464,7 @@ public final class KinRpcBootstrap {
     private void checkConfig() {
         Set<String> exportServices = new HashSet<>();
         Map<String, String> listenHostPort2Protocol = new HashMap<>();
+        Multimap<String, String> listenHostPort2Services = MultimapBuilder.hashKeys().linkedHashSetValues().build();
         for (ServiceConfig<?> serviceConfig : getConfigs(ServiceConfig.class)) {
             serviceConfig.checkValid();
             String service = serviceConfig.getService();
@@ -481,7 +482,14 @@ public final class KinRpcBootstrap {
                     throw new IllegalConfigException(String.format("host and port conflict, different protocol listen on same host and port, '%s'", ipPort));
                 }
 
+                if (listenHostPort2Services.containsKey(ipPort) &&
+                        listenHostPort2Services.get(ipPort).contains(service)) {
+                    //一个server仅允许暴露同一服务一次
+                    throw new IllegalConfigException(String.format("more than one service '%s' export on '%s'", service, ipPort));
+                }
+
                 listenHostPort2Protocol.put(ipPort, protocol);
+                listenHostPort2Services.put(ipPort, service);
             }
         }
 

@@ -312,4 +312,17 @@ public class RpcService<T> implements Invoker<T> {
     public boolean isTerminated() {
         return terminated;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof RpcService)) return false;
+        RpcService<?> that = (RpcService<?>) o;
+        return Objects.equals(config.getService(), that.config.getService());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(config.getService());
+    }
 }

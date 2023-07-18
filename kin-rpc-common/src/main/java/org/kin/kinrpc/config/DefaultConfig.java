@@ -15,7 +15,7 @@ public final class DefaultConfig {
     /** 默认版本号 */
     public static final String DEFAULT_VERSION = "0.1.0.0";
     /** 默认序列化方式 */
-    public static final String DEFAULT_SERIALIZATION = "json";
+    public static final String DEFAULT_SERIALIZATION = "jsonb";
 
 
     /** @see MethodConfig#getTimeout() */
