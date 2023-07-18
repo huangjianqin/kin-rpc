@@ -74,7 +74,7 @@ public class JvmProtocol implements Protocol {
             RpcService<?> rpcService = rpcServiceCache.get(invocation.serviceId());
             Preconditions.checkNotNull(rpcService, String.format("can not find service '%s'", invocation.service()));
             CompletableFuture<Object> future = new CompletableFuture<>();
-            ReferenceContext.SCHEDULER.execute(() -> rpcService.invoke(invocation).onFinish(future));
+            rpcService.invoke(invocation).onFinish(future);
             return RpcResult.success(invocation, future);
         }
 

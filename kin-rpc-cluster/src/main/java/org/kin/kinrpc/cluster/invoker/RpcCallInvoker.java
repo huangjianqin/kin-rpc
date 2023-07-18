@@ -1,8 +1,6 @@
 package org.kin.kinrpc.cluster.invoker;
 
 import org.kin.kinrpc.*;
-import org.kin.kinrpc.cluster.RpcTimeoutException;
-import org.kin.kinrpc.config.MethodConfig;
 import org.kin.kinrpc.constants.ReferenceConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,8 +8,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 真正发起rpc call request的{@link Invoker}实现
@@ -31,11 +27,6 @@ public final class RpcCallInvoker<T> implements Invoker<T> {
 
     @Override
     public RpcResult invoke(Invocation invocation) {
-        MethodConfig methodConfig = invocation.attachment(ReferenceConstants.METHOD_CONFIG_KEY);
-        if (Objects.isNull(methodConfig)) {
-            throw new IllegalStateException("can not find method config. invocation=" + invocation);
-        }
-
         //经过路由, 负载均衡等策略规则筛选后的invoker
         ReferenceInvoker<T> invoker = invocation.attachment(ReferenceConstants.SELECTED_INVOKER_KEY);
         if (Objects.isNull(invoker) || !invoker.isAvailable()) {
@@ -48,29 +39,12 @@ public final class RpcCallInvoker<T> implements Invoker<T> {
 
         CompletableFuture<Object> future = new CompletableFuture<>();
 
-        int timeoutMs = methodConfig.getTimeout();
-        Future<?> timeoutFuture = null;
-        if (timeoutMs > 0) {
-            //async timeout
-            //这里没有统一纳管timeoutFuture, 一般超时时间都比较短, 待调度触发完成后, 有jvm回收
-            timeoutFuture = ReferenceContext.SCHEDULER.schedule(() -> {
-                if (future.isDone()) {
-                    //服务调用已有返回结果
-                    return;
-                }
-
-                future.completeExceptionally(new RpcTimeoutException(invocation, timeoutMs));
-            }, timeoutMs, TimeUnit.MILLISECONDS);
-            invocation.attach(ReferenceConstants.TIMEOUT_KEY, now + timeoutMs);
-        }
-
         if (log.isDebugEnabled()) {
             log.debug("{} send rpc call. invocation={}", getClass().getSimpleName(), invocation);
         }
 
-        Future<?> outerTimeoutFuture = timeoutFuture;
         return invoker.invoke(invocation)
-                .onFinishAsync((r, t) -> onRpcCallResponse(invocation, r, t, outerTimeoutFuture, future), future, ReferenceContext.SCHEDULER);
+                .onFinish((r, t) -> onRpcCallResponse(invocation, r, t, future), future);
     }
 
     /**
@@ -79,13 +53,11 @@ public final class RpcCallInvoker<T> implements Invoker<T> {
      * @param invocation    rpc call信息
      * @param result        rpc call result
      * @param t             rpc call exception
-     * @param timeoutFuture timeout future
      * @param future        listen rpc call future
      */
     private void onRpcCallResponse(Invocation invocation,
                                    @Nullable Object result,
                                    @Nullable Throwable t,
-                                   @Nullable Future<?> timeoutFuture,
                                    CompletableFuture<Object> future) {
         if (future.isDone()) {
             return;
@@ -93,10 +65,6 @@ public final class RpcCallInvoker<T> implements Invoker<T> {
 
         if (log.isDebugEnabled()) {
             log.debug("rpc call response. result={}, exception={}, invocation={}", result, t, invocation);
-        }
-
-        if (Objects.nonNull(timeoutFuture) && !timeoutFuture.isDone()) {
-            timeoutFuture.cancel(true);
         }
 
         invocation.attach(ReferenceConstants.RPC_CALL_FINISH_TIME_KEY, System.currentTimeMillis());

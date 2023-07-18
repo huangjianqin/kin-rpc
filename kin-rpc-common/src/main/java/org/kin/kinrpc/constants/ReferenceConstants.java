@@ -21,8 +21,6 @@ public final class ReferenceConstants {
     public static final String RPC_CALL_START_TIME_KEY = "rpcCallStartTime";
     /** rpc call Finish time(ms) */
     public static final String RPC_CALL_FINISH_TIME_KEY = "rpcCallFinishTime";
-    /** rpc call timeout(absolutely end time, ms) */
-    public static final String TIMEOUT_KEY = "timeout";
     /** loadbalance, 可能为null */
     public static final String LOADBALANCE = "loadbalance";
     /** filter chain */

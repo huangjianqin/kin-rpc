@@ -1,7 +1,4 @@
-package org.kin.kinrpc.cluster;
-
-import org.kin.kinrpc.Invocation;
-import org.kin.kinrpc.RpcException;
+package org.kin.kinrpc;
 
 /**
  * @author huangjianqin

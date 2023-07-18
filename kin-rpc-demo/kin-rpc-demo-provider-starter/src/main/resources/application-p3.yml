@@ -1,11 +1,11 @@
 spring:
   application:
-    name: kinrpc-demo-springboot-provider
+    name: kinrpc-demo-springboot-provider3
 server:
-  port: 14000
+  port: 14020
 kinrpc:
   server:
-    port: 13000
+    port: 13020
     protocol: "kinrpc"
   executor:
     id: "executor1"
