@@ -108,7 +108,7 @@ public class RemotingProcessor {
             } catch (Exception e) {
                 log.error("process command fail, {}", command, e);
                 //command process fail, response error
-                remotingContext.writeResponseIfError(command, e.getMessage());
+                remotingContext.writeResponseIfError(command, e.getClass().getName() + ": " + e.getMessage());
             }
         }
     }

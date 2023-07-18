@@ -44,7 +44,6 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
         check(StringUtils.isNotBlank(bootstrap), "reference bootstrap must be not blank");
 
         check(rpcTimeout > 0, "global method rpc call timeout must be greater than 0");
-        check(retries > 0, "global method rpc call retry times must be greater than 0");
     }
 
     @Override

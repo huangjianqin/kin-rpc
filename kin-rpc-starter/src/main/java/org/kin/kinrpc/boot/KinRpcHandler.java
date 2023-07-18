@@ -15,10 +15,10 @@ public @interface KinRpcHandler {
     String name();
 
     /** rpc call timeout(ms) */
-    int rpcTimeout() default 3000;
+    int rpcTimeout() default -1;
 
     /** 失败后重试次数 */
-    int retries() default 3;
+    int retries() default -1;
 
     /** 是否异步调用 */
     boolean async() default false;

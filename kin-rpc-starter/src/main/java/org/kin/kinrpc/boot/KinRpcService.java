@@ -1,6 +1,5 @@
 package org.kin.kinrpc.boot;
 
-import org.kin.kinrpc.config.DefaultConfig;
 import org.kin.kinrpc.config.ServiceConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
@@ -49,16 +48,16 @@ public @interface KinRpcService {
     String[] registries() default {};
 
     /** 服务所属组 */
-    String group() default DefaultConfig.DEFAULT_GROUP;
+    String group() default "";
 
     /** 服务名 */
     String serviceName() default "";
 
     /** 版本号 */
-    String version() default DefaultConfig.DEFAULT_VERSION;
+    String version() default "";
 
     /** 序列化方式 */
-    String serialization() default DefaultConfig.DEFAULT_SERIALIZATION;
+    String serialization() default "";
 
     /** filter bean name */
     String[] filters() default {};
@@ -77,13 +76,13 @@ public @interface KinRpcService {
     String executor() default "";
 
     /** 权重 */
-    int weight() default 1;
+    int weight() default -1;
 
     /** rpc请求认证token */
     String token() default "";
 
     /** 延迟发布时间, 毫秒 */
-    long delay() default 0L;
+    long delay() default -1L;
 
     /** 标识是否异步export */
     boolean exportAsync() default false;

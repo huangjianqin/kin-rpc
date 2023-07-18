@@ -40,7 +40,7 @@ public class RequestContext{
      * @param t   request process exception
      */
     public void writeResponseIfError(Throwable t){
-        remotingContext.writeResponseIfError(command, t.getMessage());
+        remotingContext.writeResponseIfError(command, t.getClass().getName() + ": " + t.getMessage());
     }
 
     /**

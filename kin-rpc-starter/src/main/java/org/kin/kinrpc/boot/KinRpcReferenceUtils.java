@@ -45,24 +45,7 @@ public final class KinRpcReferenceUtils {
     public static <T> ReferenceConfig<T> toReferenceConfig(ApplicationContext applicationContext,
                                                            Class<T> interfaceClass,
                                                            Map<String, Object> referenceAnnoAttrs) {
-        ReferenceConfig<T> referenceConfig = ReferenceConfig.create(interfaceClass)
-                .group((String) referenceAnnoAttrs.get("group"))
-                .version((String) referenceAnnoAttrs.get("version"))
-                .serialization((String) referenceAnnoAttrs.get("serialization"))
-                .cluster((String) referenceAnnoAttrs.get("cluster"))
-                .loadBalance((String) referenceAnnoAttrs.get("loadBalance"))
-                .router((String) referenceAnnoAttrs.get("router"))
-                .generic((Boolean) referenceAnnoAttrs.get("generic"))
-                .rpcTimeout((Integer) referenceAnnoAttrs.get("rpcTimeout"))
-                .retries((Integer) referenceAnnoAttrs.get("retries"))
-                .async((Boolean) referenceAnnoAttrs.get("async"))
-                .sticky((Boolean) referenceAnnoAttrs.get("sticky"));
-
-        String serviceName = (String) referenceAnnoAttrs.get("serviceName");
-        if (StringUtils.isBlank(serviceName)) {
-            serviceName = interfaceClass.getName();
-        }
-        referenceConfig.serviceName(serviceName);
+        ReferenceConfig<T> referenceConfig = ReferenceConfig.create(interfaceClass);
 
         String[] registries = (String[]) referenceAnnoAttrs.get("registries");
         if (CollectionUtils.isNonEmpty(registries)) {
@@ -71,14 +54,65 @@ public final class KinRpcReferenceUtils {
             }
         }
 
+        String group = (String) referenceAnnoAttrs.get("group");
+        if (StringUtils.isNotBlank(group)) {
+            referenceConfig.group(group);
+        }
+
+        String serviceName = (String) referenceAnnoAttrs.get("serviceName");
+        if (StringUtils.isBlank(serviceName)) {
+            serviceName = interfaceClass.getName();
+        }
+        referenceConfig.serviceName(serviceName);
+
+        String version = (String) referenceAnnoAttrs.get("version");
+        if (StringUtils.isNotBlank(version)) {
+            referenceConfig.version(version);
+        }
+
+        String serialization = (String) referenceAnnoAttrs.get("serialization");
+        if (StringUtils.isNotBlank(serialization)) {
+            referenceConfig.serialization(serialization);
+        }
+
         String[] filters = (String[]) referenceAnnoAttrs.get("filters");
         if (CollectionUtils.isNonEmpty(filters)) {
             FilterUtils.addFilters(applicationContext, () -> Arrays.asList(filters), referenceConfig::filter);
         }
 
+        String cluster = (String) referenceAnnoAttrs.get("cluster");
+        if (StringUtils.isNotBlank(cluster)) {
+            referenceConfig.cluster(cluster);
+        }
+
+        String loadBalance = (String) referenceAnnoAttrs.get("loadBalance");
+        if (StringUtils.isNotBlank(loadBalance)) {
+            referenceConfig.loadBalance(loadBalance);
+        }
+
+        String router = (String) referenceAnnoAttrs.get("router");
+        if (StringUtils.isNotBlank(router)) {
+            referenceConfig.router(router);
+        }
+
+        referenceConfig.generic((Boolean) referenceAnnoAttrs.get("generic"));
+
         if ((Boolean) referenceAnnoAttrs.get("jvm")) {
             referenceConfig.jvm();
         }
+
+        int rpcTimeout = (int) referenceAnnoAttrs.get("rpcTimeout");
+        if (rpcTimeout > 0) {
+            referenceConfig.rpcTimeout(rpcTimeout);
+        }
+
+        int retries = (int) referenceAnnoAttrs.get("retries");
+        if (retries > 0) {
+            referenceConfig.retries(retries);
+        }
+
+        referenceConfig.async((Boolean) referenceAnnoAttrs.get("async"))
+                .sticky((Boolean) referenceAnnoAttrs.get("sticky"));
 
         AnnotationAttributes[] handlerAnnoAttrsList = (AnnotationAttributes[]) referenceAnnoAttrs.get("handlers");
         if (CollectionUtils.isNonEmpty(handlerAnnoAttrsList)) {
@@ -87,11 +121,22 @@ public final class KinRpcReferenceUtils {
                 if (StringUtils.isBlank(name)) {
                     throw new IllegalConfigException(String.format("handler name is blank, KinRpcReference=%s", referenceAnnoAttrs));
                 }
-                referenceConfig.handler(MethodConfig.create(name)
-                        .timeout((Integer) handlerAnnoAttrs.get("rpcTimeout"))
-                        .retries((Integer) handlerAnnoAttrs.get("retries"))
-                        .async((Boolean) handlerAnnoAttrs.get("async"))
-                        .sticky((Boolean) handlerAnnoAttrs.get("sticky")));
+
+                MethodConfig methodConfig = MethodConfig.create(name);
+                int iRpcTimeout = (int) handlerAnnoAttrs.get("rpcTimeout");
+                if (iRpcTimeout > 0) {
+                    methodConfig.timeout(iRpcTimeout);
+                }
+
+                int iRetries = (int) handlerAnnoAttrs.get("retries");
+                if (iRetries > 0) {
+                    methodConfig.retries(iRetries);
+                }
+
+                methodConfig.async((Boolean) handlerAnnoAttrs.get("async"))
+                        .sticky((Boolean) handlerAnnoAttrs.get("sticky"));
+
+                referenceConfig.handler(methodConfig);
             }
         }
 

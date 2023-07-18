@@ -1,6 +1,5 @@
 package org.kin.kinrpc.boot;
 
-import org.kin.kinrpc.config.DefaultConfig;
 import org.springframework.context.ApplicationContext;
 
 import java.lang.annotation.*;
@@ -53,16 +52,16 @@ public @interface KinRpcReference {
     String[] registries() default {};
 
     /** 服务所属组 */
-    String group() default DefaultConfig.DEFAULT_GROUP;
+    String group() default "";
 
     /** 服务名 */
     String serviceName() default "";
 
     /** 版本号 */
-    String version() default DefaultConfig.DEFAULT_VERSION;
+    String version() default "";
 
     /** 序列化方式 */
-    String serialization() default DefaultConfig.DEFAULT_SERIALIZATION;
+    String serialization() default "";
 
     /** filter bean name */
     String[] filters() default {};
@@ -73,21 +72,21 @@ public @interface KinRpcReference {
      *
      * @see org.kin.kinrpc.config.ClusterType
      */
-    String cluster() default "failfast";
+    String cluster() default "";
 
     /**
      * loadbalance类型
      *
      * @see org.kin.kinrpc.config.LoadBalanceType
      */
-    String loadBalance() default "roundRobin";
+    String loadBalance() default "";
 
     /**
      * router类型
      *
      * @see org.kin.kinrpc.config.RouterType
      */
-    String router() default "none";
+    String router() default "";
 
     /** 是否使用泛化调用 */
     boolean generic() default false;
@@ -96,10 +95,10 @@ public @interface KinRpcReference {
     boolean jvm() default false;
 
     /** rpc call timeout(ms) */
-    int rpcTimeout() default 3000;
+    int rpcTimeout() default -1;
 
     /** 失败后重试次数 */
-    int retries() default 3;
+    int retries() default -1;
 
     /** 是否异步调用 */
     boolean async() default false;

@@ -2,7 +2,6 @@ package org.kin.kinrpc.config;
 
 import org.kin.framework.utils.NetUtils;
 import org.kin.framework.utils.SysUtils;
-import org.kin.kinrpc.constants.ReferenceConstants;
 
 import java.util.concurrent.TimeUnit;
 
@@ -20,9 +19,9 @@ public final class DefaultConfig {
 
 
     /** @see MethodConfig#getTimeout() */
-    public static final Integer DEFAULT_METHOD_TIMEOUT = ReferenceConstants.DEFAULT_RPC_CALL_TIMEOUT;
+    public static final Integer DEFAULT_METHOD_TIMEOUT = 3000;
     /** @see MethodConfig#getRetries() */
-    public static final Integer DEFAULT_METHOD_RETRIES = ReferenceConstants.DEFAULT_RETRY_TIMES;
+    public static final Integer DEFAULT_METHOD_RETRIES = 3;
     /** @see MethodConfig#isAsync() */
     public static final Boolean DEFAULT_METHOD_ASYNC = false;
     /** @see MethodConfig#isSticky() */

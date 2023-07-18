@@ -11,6 +11,6 @@ kinrpc:
   consumer:
     cluster: "failover"
     rpc-timeout: 2000
-    retries: 4
+    retries: 0
     filter-beans: "logFilter"
   async-export-refer: true

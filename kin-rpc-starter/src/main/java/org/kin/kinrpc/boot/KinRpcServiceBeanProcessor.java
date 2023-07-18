@@ -81,11 +81,7 @@ public class KinRpcServiceBeanProcessor implements BeanPostProcessor, Applicatio
     @SuppressWarnings("unchecked")
     private void addServiceConfig(Map<String, Object> serviceAnnoAttrs, Object bean) {
         Class<? super Object> interfaceClass = (Class<? super Object>) serviceAnnoAttrs.get("interfaceClass");
-        ServiceConfig<?> serviceConfig = ServiceConfig.create(interfaceClass, bean)
-                .group((String) serviceAnnoAttrs.get("group"))
-                .version((String) serviceAnnoAttrs.get("version"))
-                .serialization((String) serviceAnnoAttrs.get("serialization"))
-                .weight((Integer) serviceAnnoAttrs.get("weight"));
+        ServiceConfig<?> serviceConfig = ServiceConfig.create(interfaceClass, bean);
 
         String[] registries = (String[]) serviceAnnoAttrs.get("registries");
         if (CollectionUtils.isNonEmpty(registries)) {
@@ -94,11 +90,26 @@ public class KinRpcServiceBeanProcessor implements BeanPostProcessor, Applicatio
             }
         }
 
+        String group = (String) serviceAnnoAttrs.get("group");
+        if (StringUtils.isNotBlank(group)) {
+            serviceConfig.group(group);
+        }
+
         String serviceName = (String) serviceAnnoAttrs.get("serviceName");
         if (StringUtils.isBlank(serviceName)) {
             serviceName = interfaceClass.getName();
         }
         serviceConfig.serviceName(serviceName);
+
+        String version = (String) serviceAnnoAttrs.get("version");
+        if (StringUtils.isNotBlank(version)) {
+            serviceConfig.version(version);
+        }
+
+        String serialization = (String) serviceAnnoAttrs.get("serialization");
+        if (StringUtils.isNotBlank(serialization)) {
+            serviceConfig.serialization(serialization);
+        }
 
         String[] filters = (String[]) serviceAnnoAttrs.get("filters");
         if (CollectionUtils.isNonEmpty(filters)) {
@@ -119,6 +130,11 @@ public class KinRpcServiceBeanProcessor implements BeanPostProcessor, Applicatio
         String executor = (String) serviceAnnoAttrs.get("executor");
         if (StringUtils.isNotBlank(executor)) {
             serviceConfig.executor(ExecutorConfig.fromId(executor));
+        }
+
+        int weight = (int) serviceAnnoAttrs.get("weight");
+        if (weight > 0) {
+            serviceConfig.weight(weight);
         }
 
         String token = (String) serviceAnnoAttrs.get("token");
