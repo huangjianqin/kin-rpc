@@ -120,7 +120,7 @@ public class KinRpcBootstrapApplicationListener implements ApplicationListener<A
      *
      * @param applicationContext spring application context
      * @param configClass        config class
-     * @param setter             bootstrap setup config func
+     * @param setter             config bootstrap func
      * @param getter             get single config from {@link KinRpcProperties} bean
      * @param batchGetter        batch get configs from {@link KinRpcProperties} bean
      */
@@ -137,7 +137,7 @@ public class KinRpcBootstrapApplicationListener implements ApplicationListener<A
      *
      * @param applicationContext spring application context
      * @param configClass        config class
-     * @param setter             bootstrap setup config func
+     * @param setter             config bootstrap func
      */
     private <C extends Config> void configBootstrap(ApplicationContext applicationContext,
                                                     Class<C> configClass,
@@ -150,7 +150,7 @@ public class KinRpcBootstrapApplicationListener implements ApplicationListener<A
      *
      * @param applicationContext spring application context
      * @param configClass        config class
-     * @param funcBeforeSet      operation before bootstrap setup config
+     * @param funcBeforeSet      operation before config bootstrap func
      * @param setter             bootstrap setup config func
      * @param getter             get single config from {@link KinRpcProperties} bean
      * @param batchGetter        batch get configs from {@link KinRpcProperties} bean
