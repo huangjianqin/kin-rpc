@@ -7,6 +7,7 @@ import org.kin.kinrpc.registry.directory.Directory;
 
 /**
  * 注册中心
+ * group/{app}/{host:port}
  * Created by 健勤 on 2016/10/9.
  */
 public interface Registry {
@@ -32,17 +33,19 @@ public interface Registry {
     /**
      * 服务订阅
      *
-     * @param config reference config
+     * @param config   reference config
+     * @param listener service instance changed listener
      * @return {@link Directory}实例
      */
-    Directory subscribe(ReferenceConfig<?> config);
+    void subscribe(ReferenceConfig<?> config, ServiceInstanceChangedListener listener);
 
     /**
      * 取消服务订阅
      *
-     * @param config reference config
+     * @param config   reference config
+     * @param listener service instance changed listener
      */
-    void unsubscribe(ReferenceConfig<?> config);
+    void unsubscribe(ReferenceConfig<?> config, ServiceInstanceChangedListener listener);
 
     /**
      * 释放注册中心占用资源

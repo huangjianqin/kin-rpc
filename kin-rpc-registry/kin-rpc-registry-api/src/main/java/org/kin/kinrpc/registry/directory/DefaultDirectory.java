@@ -14,6 +14,7 @@ import org.kin.kinrpc.protocol.Protocol;
 import org.kin.kinrpc.protocol.Protocols;
 import org.kin.kinrpc.registry.DiscoveryUtils;
 import org.kin.kinrpc.registry.RegistryHelper;
+import org.kin.kinrpc.registry.ServiceInstanceChangedListener;
 import org.kin.kinrpc.transport.cmd.Serializations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +29,7 @@ import java.util.stream.Collectors;
  * @author huangjianqin
  * @date 2019/6/11
  */
-public class DefaultDirectory implements Directory {
+public class DefaultDirectory implements Directory, ServiceInstanceChangedListener {
     private static final Logger log = LoggerFactory.getLogger(DefaultDirectory.class);
 
     /** reference config */
@@ -72,7 +73,7 @@ public class DefaultDirectory implements Directory {
     }
 
     @Override
-    public void discover(List<ServiceInstance> serviceInstances) {
+    public void onServiceInstanceChanged(List<ServiceInstance> serviceInstances) {
         if (stopped) {
             return;
         }

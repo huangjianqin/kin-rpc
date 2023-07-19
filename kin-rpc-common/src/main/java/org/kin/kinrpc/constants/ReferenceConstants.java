@@ -7,6 +7,9 @@ package org.kin.kinrpc.constants;
  * @date 2023/6/16
  */
 public final class ReferenceConstants {
+    /** reference config provideBy字段分隔符 */
+    public static final String PROVIDE_BY_SEPARATOR = ",";
+
     //----------------------------------------------------------------invocation attachment key
     /** cluster根据规则策略选择可用的invoker */
     public static final String SELECTED_INVOKER_KEY = "selected";

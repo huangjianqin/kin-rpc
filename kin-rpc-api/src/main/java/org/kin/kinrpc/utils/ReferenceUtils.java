@@ -1,13 +1,14 @@
 package org.kin.kinrpc.utils;
 
+import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.ApplicationInstance;
 import org.kin.kinrpc.ServiceMetadataConstants;
 import org.kin.kinrpc.common.Url;
 import org.kin.kinrpc.config.*;
 import org.kin.kinrpc.constants.CommonConstants;
+import org.kin.kinrpc.constants.ReferenceConstants;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author huangjianqin
@@ -55,5 +56,19 @@ public final class ReferenceUtils {
                 .version(CommonConstants.INTERNAL_SERVICE_VERSION)
                 .app(ApplicationConfig.create(CommonConstants.INTERNAL_REFERENCE_APP_NAME))
                 .cluster(ClusterType.FAILOVER);
+    }
+
+    /**
+     * 解析{@link ReferenceConfig#getProvideBy()}字段
+     *
+     * @param provideBy app names collection
+     * @return app names
+     */
+    public static Set<String> parseProvideBy(String provideBy) {
+        if (StringUtils.isBlank(provideBy)) {
+            return Collections.emptySet();
+        }
+
+        return new HashSet<>(Arrays.asList(provideBy.split(ReferenceConstants.PROVIDE_BY_SEPARATOR)));
     }
 }

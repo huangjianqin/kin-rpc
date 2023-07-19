@@ -22,6 +22,8 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
     private SslConfig ssl;
     /** bootstrap 类型 */
     private String bootstrap;
+    /** 指定服务由那些应用提供, 如果存在多个, 则逗号分隔 */
+    private String provideBy;
 
     //----------------------------------------------------------------方法级配置, 如果方法没有特殊配置, 则取这个
     /** rpc call timeout(ms) */
@@ -42,6 +44,7 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
         check(StringUtils.isNotBlank(loadBalance), "loadBalance must be not blank");
         check(StringUtils.isNotBlank(router), "router must be not blank");
         check(StringUtils.isNotBlank(bootstrap), "reference bootstrap must be not blank");
+        check(StringUtils.isNotBlank(provideBy), "reference provideBy must be not blank");
 
         check(rpcTimeout > 0, "global method rpc call timeout must be greater than 0");
     }
@@ -217,6 +220,11 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
         return castThis();
     }
 
+    public AbstractReferenceConfig<ARC> provideBy(String provideBy) {
+        this.provideBy = provideBy;
+        return this;
+    }
+
     //----------------------
     public AbstractReferenceConfig<ARC> setCluster(String cluster) {
         this.cluster = cluster;
@@ -280,6 +288,14 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
         return this;
     }
 
+    public String getProvideBy() {
+        return provideBy;
+    }
+
+    public void setProvideBy(String provideBy) {
+        this.provideBy = provideBy;
+    }
+
     @Override
     public String toString() {
         return super.toString() +
@@ -289,6 +305,7 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
                 ", generic=" + generic +
                 ", ssl=" + ssl +
                 ", bootstrap='" + bootstrap + '\'' +
+                ", provideBy='" + provideBy + '\'' +
                 ", rpcTimeout=" + rpcTimeout +
                 ", retries=" + retries +
                 ", async=" + async +
