@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
  */
 public final class DefaultConfig {
     /** 默认组 */
-    public static final String DEFAULT_GROUP = "kinrpc";
+    public static final String DEFAULT_GROUP = "default";
     /** 默认版本号 */
     public static final String DEFAULT_VERSION = "0.1.0.0";
     /** 默认序列化方式 */
