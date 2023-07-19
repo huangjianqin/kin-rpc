@@ -17,17 +17,13 @@ import org.kin.kinrpc.config.RegistryConfig;
 import org.kin.kinrpc.config.ServerConfig;
 import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.registry.DiscoveryRegistry;
-import org.kin.kinrpc.registry.DiscoveryUtils;
-import org.kin.kinrpc.registry.RegistryDiscoveryException;
 import org.kin.kinrpc.registry.RegistryHelper;
 import org.kin.kinrpc.registry.directory.Directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 
 /**
  * 以zookeeper为注册中心, 实时监听应用实例状态变化, 并更新可用{@link org.kin.kinrpc.ReferenceInvoker}实例
@@ -126,14 +122,14 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
      * @param path zk path
      * @param data zk node data
      */
-    private void createZNode(String path, byte[] data) {
+    private void createZNode(String path) {
         try {
             client.create()
                     //递归创建
                     .creatingParentsIfNeeded()
                     .withMode(CreateMode.PERSISTENT)
                     .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
-                    .forPath(path, data);
+                    .forPath(path);
             if (log.isDebugEnabled()) {
                 log.debug("create persistent znode(path='{}') success", path);
             }
@@ -184,7 +180,7 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
         String group = serviceConfig.getGroup();
         for (ServerConfig serverConfig : serviceConfig.getServers()) {
             Url url = RegistryHelper.toUrl(serviceConfig, serverConfig);
-            createZNode(getPath(group, url.getAddress()), url.toString().getBytes(StandardCharsets.UTF_8));
+            createZNode(getPath(group, Url.encode(url.toString())));
         }
     }
 
@@ -193,7 +189,7 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
         String group = serviceConfig.getGroup();
         for (ServerConfig serverConfig : serviceConfig.getServers()) {
             Url url = RegistryHelper.toUrl(serviceConfig, serverConfig);
-            deleteZNode(getPath(group, url.getAddress()));
+            deleteZNode(getPath(group, Url.encode(url.toString())));
         }
         tryDeleteZNode(getPath(group));
     }
@@ -285,21 +281,8 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
                     }).forPath(getPath(group));
             //并发获取zk node data
             List<ApplicationInstance> appInstances = new ArrayList<>(childPaths.size());
-            List<Supplier<byte[]>> zkNodeDataSuppliers = new ArrayList<>();
             for (String childPath : childPaths) {
-                zkNodeDataSuppliers.add(() -> {
-                    try {
-                        return client.getData().forPath(getPath(group, childPath));
-                    } catch (Exception e) {
-                        log.error("concurrent get zk node data error", e);
-                        throw new RegistryDiscoveryException(e);
-                    }
-                });
-            }
-
-            //转换成应用实例
-            for (byte[] bytes : DiscoveryUtils.concurrentSupply(zkNodeDataSuppliers, "get zk node data")) {
-                Url url = Url.of(new String(bytes, StandardCharsets.UTF_8));
+                Url url = Url.of(Url.decode(childPath));
                 Map<String, String> metadata = url.getParams();
                 metadata.put(ServiceMetadataConstants.SCHEMA_KEY, url.getProtocol());
                 appInstances.add(new DefaultApplicationInstance(group, url.getHost(), url.getPort(), metadata));
