@@ -101,11 +101,10 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
         client.getConnectionStateListenable().addListener((curatorFramework, connectionState) -> {
             if (ConnectionState.CONNECTED.equals(connectionState)) {
                 log.info("zookeeper registry(address={}) created", connectAddress());
+                watch(config.getGroup());
             } else if (ConnectionState.RECONNECTED.equals(connectionState)) {
                 log.info("zookeeper registry(address={}) reconnected", connectAddress());
-                for (String group : getWatchingGroups()) {
-                    watch(group);
-                }
+                watch(config.getGroup());
             } else if (ConnectionState.LOST.equals(connectionState)) {
                 log.info("zookeeper registry(address={}) session expired", connectAddress());
             } else if (ConnectionState.SUSPENDED.equals(connectionState)) {
@@ -120,7 +119,6 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
      * 创建zk node
      *
      * @param path zk path
-     * @param data zk node data
      */
     private void createZNode(String path) {
         try {
@@ -197,7 +195,7 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
     @Override
     public Directory doSubscribe(ReferenceConfig<?> config) {
         Directory directory = getDirectory(config);
-        watch(config.getGroup());
+        notifyAppInstanceChanged();
         return directory;
     }
 
@@ -218,7 +216,7 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
      * 监听应用组节点
      */
     private void watchAppGroupNode(String group) {
-        if (!isWatching(group)) {
+        if (isTerminated()) {
             return;
         }
 
@@ -265,7 +263,7 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
      * 监听应用组节点下子节点
      */
     private void watchAppGroupNodeChilds(String group) {
-        if (!isWatching(group)) {
+        if (isTerminated()) {
             return;
         }
 

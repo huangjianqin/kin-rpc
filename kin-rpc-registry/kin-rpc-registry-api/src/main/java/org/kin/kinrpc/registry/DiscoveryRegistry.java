@@ -35,15 +35,13 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
      * key -> 服务唯一标识, value -> {@link Directory}实例
      */
     private final ReferenceCountedCache<String, Directory> directoryCache = new ReferenceCountedCache<>((k, v) -> v.destroy());
-    /** watching group */
-    private final ReferenceCountedCache<String, String> watchingGroup = new ReferenceCountedCache<>();
     /** key -> group, value -> application instance context list */
     private volatile Map<String, Set<AppInstanceContext>> group2AppInstanceContexts = new HashMap<>();
     /** 标识是否正在处理发现的应用实例 */
     private final AtomicBoolean discovering = new AtomicBoolean(false);
     /** 待处理的应用实例列表 */
     private final Queue<List<ApplicationInstance>> discoverQueue = new MpscUnboundedAtomicArrayQueue<>(8);
-    private volatile boolean stopped;
+    private volatile boolean terminated;
 
     protected DiscoveryRegistry(RegistryConfig config) {
         super(config);
@@ -76,7 +74,7 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
      * @param appInstances 应用实例列表
      */
     protected final void onDiscovery(List<ApplicationInstance> appInstances) {
-        if (stopped) {
+        if (terminated) {
             return;
         }
 
@@ -98,7 +96,7 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
 
         for (int i = 0; i < maxTimes; i++) {
             try {
-                if (stopped) {
+                if (terminated) {
                     return;
                 }
 
@@ -201,15 +199,22 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
         }
 
         if (!appInstanceChanged) {
-            log.debug("{} discover application instances finished, nothing changed", getName());
+            log.info("{} discover application instances finished, nothing changed", getName());
             return;
         }
 
         this.group2AppInstanceContexts = group2AppInstanceContexts;
 
-        log.debug("{} discover application instances finished, validInstances={}", getName(), group2AppInstanceContexts);
+        log.info("{} discover application instances finished, validInstances={}", getName(), group2AppInstanceContexts);
 
         //notify directory
+        notifyAppInstanceChanged();
+    }
+
+    /**
+     * 通知所有{@link Directory}应用实例变化
+     */
+    protected void notifyAppInstanceChanged() {
         Map<String, List<ServiceInstance>> service2Instances = new HashMap<>();
         for (Map.Entry<String, Set<AppInstanceContext>> entry : group2AppInstanceContexts.entrySet()) {
             for (AppInstanceContext appMetadata : entry.getValue()) {
@@ -325,7 +330,7 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
     @Override
     public final void register(ServiceConfig<?> serviceConfig) {
         String appName = serviceConfig.getApp().getAppName();
-        String group = serviceConfig.getGroup();
+        String group = config.getGroup();
         log.info("register application '{}' in group '{}' to {}", appName, group, getName());
 
         doRegister(serviceConfig);
@@ -334,7 +339,7 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
     @Override
     public final void unregister(ServiceConfig<?> serviceConfig) {
         String appName = serviceConfig.getApp().getAppName();
-        String group = serviceConfig.getGroup();
+        String group = config.getGroup();
         log.info("unregister application '{}' in group '{}' from {}", appName, group, getName());
 
         doUnregister(serviceConfig);
@@ -342,31 +347,29 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
 
     @Override
     public final Directory subscribe(ReferenceConfig<?> config) {
-        String group = config.getGroup();
+        String group = this.config.getGroup();
         if (log.isDebugEnabled()) {
             log.debug("reference subscribe application group '{}' on {}", group, getName());
         }
-        watchingGroup.put(group, group);
         return doSubscribe(config);
     }
 
     @Override
     public final void unsubscribe(ReferenceConfig<?> config) {
-        String group = config.getGroup();
+        String group = this.config.getGroup();
         if (log.isDebugEnabled()) {
             log.debug("unsubscribe application group '{}' on {}", group, getName());
         }
-        watchingGroup.release(group);
         doUnsubscribe(config);
     }
 
     @Override
     public final void destroy() {
-        if (stopped) {
+        if (terminated) {
             return;
         }
 
-        stopped = true;
+        terminated = true;
         doDestroy();
     }
 
@@ -404,27 +407,12 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
      */
     protected abstract void doDestroy();
 
-    /**
-     * 返回是否正在监听应用组
-     *
-     * @param group 应用组
-     * @return true表示正在监听应用组
-     */
-    protected boolean isWatching(String group) {
-        return watchingGroup.get(group) != null;
-    }
-
-    /**
-     * 返回正在监听的所有应用组
-     *
-     * @return 应用组
-     */
-    protected Collection<String> getWatchingGroups() {
-        return watchingGroup.values();
-    }
-
     //getter
     public String getName() {
         return name;
+    }
+
+    public boolean isTerminated() {
+        return terminated;
     }
 }

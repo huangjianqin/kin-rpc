@@ -4,6 +4,7 @@ import org.kin.framework.utils.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -29,6 +30,8 @@ public class RegistryConfig extends SharableConfig<RegistryConfig> {
     private String type;
     /** 注册中心的地址, 如果有多个, 用分号分隔 */
     private String address;
+    /** 应用组 */
+    private String group;
 
     /**
      * 复用{@link RegistryConfig}实例
@@ -88,6 +91,15 @@ public class RegistryConfig extends SharableConfig<RegistryConfig> {
         super.checkValid();
         check(StringUtils.isNotBlank(type), "registry type must be not blank");
         check(StringUtils.isNotBlank(address), "registry address must be not blank");
+        check(StringUtils.isNotBlank(group), "registry group must be not blank");
+    }
+
+    @Override
+    public void initDefaultConfig() {
+        super.initDefaultConfig();
+        if (Objects.isNull(group)) {
+            group = DefaultConfig.DEFAULT_GROUP;
+        }
     }
 
     /**
@@ -137,6 +149,15 @@ public class RegistryConfig extends SharableConfig<RegistryConfig> {
         return this;
     }
 
+    public String getGroup() {
+        return group;
+    }
+
+    public RegistryConfig group(String group) {
+        this.group = group;
+        return this;
+    }
+
     //----------------------
     public RegistryConfig setName(String name) {
         this.name = name;
@@ -153,6 +174,10 @@ public class RegistryConfig extends SharableConfig<RegistryConfig> {
         return this;
     }
 
+    public void setGroup(String group) {
+        this.group = group;
+    }
+
     @Override
     public String toString() {
         return "RegistryConfig{" +
@@ -160,6 +185,7 @@ public class RegistryConfig extends SharableConfig<RegistryConfig> {
                 ", name='" + name + '\'' +
                 ", type='" + type + '\'' +
                 ", address='" + address + '\'' +
+                ", group='" + group + '\'' +
                 '}';
     }
 }

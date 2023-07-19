@@ -61,7 +61,6 @@ public class DefaultReferenceBootstrap<T> extends ProxyReferenceBootstrap<T> {
         clusterInvoker.destroy();
 
         //获取注册中心client, 并取消订阅服务
-        String service = config.getService();
         for (RegistryConfig registryConfig : config.getRegistries()) {
             Registry registry = RegistryHelper.getRegistry(registryConfig);
             registry.unsubscribe(config);

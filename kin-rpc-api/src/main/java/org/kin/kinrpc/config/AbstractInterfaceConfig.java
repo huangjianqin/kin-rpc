@@ -42,6 +42,7 @@ public abstract class AbstractInterfaceConfig<IC extends AbstractInterfaceConfig
         }
 
         for (RegistryConfig registryConfig : registries) {
+            registryConfig.initDefaultConfig();
             registryConfig.checkValid();
         }
     }
