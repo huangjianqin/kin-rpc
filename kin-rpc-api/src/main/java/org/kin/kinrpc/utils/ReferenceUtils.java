@@ -1,5 +1,6 @@
 package org.kin.kinrpc.utils;
 
+import com.google.common.collect.ImmutableSet;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.ApplicationInstance;
 import org.kin.kinrpc.ServiceMetadataConstants;
@@ -7,6 +8,7 @@ import org.kin.kinrpc.common.Url;
 import org.kin.kinrpc.config.*;
 import org.kin.kinrpc.constants.CommonConstants;
 import org.kin.kinrpc.constants.ReferenceConstants;
+import org.kin.kinrpc.service.MetadataService;
 
 import java.util.*;
 
@@ -15,6 +17,15 @@ import java.util.*;
  * @date 2023/7/18
  */
 public final class ReferenceUtils {
+    /** 内置服务接口 */
+    private static final Set<Class<?>> INTERNAL_SERVICE_INTERFACES;
+
+    static {
+        ImmutableSet.Builder<Class<?>> internalServiceInterfacebuilder = ImmutableSet.builder();
+        internalServiceInterfacebuilder.add(MetadataService.class);
+        INTERNAL_SERVICE_INTERFACES = internalServiceInterfacebuilder.build();
+    }
+
     private ReferenceUtils() {
     }
 
@@ -69,6 +80,16 @@ public final class ReferenceUtils {
             return Collections.emptySet();
         }
 
-        return new HashSet<>(Arrays.asList(provideBy.split(ReferenceConstants.PROVIDE_BY_SEPARATOR)));
+        return new TreeSet<>(Arrays.asList(provideBy.split(ReferenceConstants.PROVIDE_BY_SEPARATOR)));
+    }
+
+    /**
+     * 返回{@code type}是否是内部服务接口
+     *
+     * @param type 服务接口
+     * @return true表示{@code type}是内部服务接口
+     */
+    public static boolean isInternalService(Class<?> type) {
+        return INTERNAL_SERVICE_INTERFACES.contains(type);
     }
 }

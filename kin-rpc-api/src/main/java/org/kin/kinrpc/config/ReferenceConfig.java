@@ -157,7 +157,7 @@ public final class ReferenceConfig<T> extends AbstractReferenceConfig<ReferenceC
             try {
                 latch.await();
             } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+                //ignore
             } finally {
                 latch = null;
             }

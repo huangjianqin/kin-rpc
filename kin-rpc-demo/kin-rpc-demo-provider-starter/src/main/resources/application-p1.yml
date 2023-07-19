@@ -1,6 +1,6 @@
 spring:
   application:
-    name: kinrpc-demo-springboot-provider1
+    name: kinrpc-demo-springboot-provider
 server:
   port: 14000
 kinrpc:

@@ -289,6 +289,7 @@ public final class KinRpcBootstrap {
         setParentConfigIfNotExists(referenceConfig::generic, referenceConfig::isGeneric, consumer, ConsumerConfig::isGeneric);
         setParentConfigIfNotExists(referenceConfig::ssl, referenceConfig::getSsl, consumer, ConsumerConfig::getSsl);
         setParentConfigIfNotExists(referenceConfig::bootstrap, referenceConfig::getBootstrap, consumer, ConsumerConfig::getBootstrap);
+        setParentConfigIfNotExists(referenceConfig::provideBy, referenceConfig::getProvideBy, consumer, ConsumerConfig::getProvideBy);
         setParentConfigIfNotExists(referenceConfig::rpcTimeout, referenceConfig::getRpcTimeout, consumer, ConsumerConfig::getRpcTimeout);
         setParentConfigIfNotExists(referenceConfig::retries, referenceConfig::getRetries, consumer, ConsumerConfig::getRetries);
         setParentConfigIfNotExists(referenceConfig::async, referenceConfig::isAsync, consumer, ConsumerConfig::isAsync);
@@ -500,6 +501,10 @@ public final class KinRpcBootstrap {
             if (!referServices.add(service)) {
                 throw new IllegalConfigException(String.format("more than one reference config for service '%s'", service));
             }
+
+            if (StringUtils.isBlank(referenceConfig.getProvideBy())) {
+                throw new IllegalConfigException("reference provideBy must be not blank");
+            }
         }
     }
 
@@ -639,7 +644,7 @@ public final class KinRpcBootstrap {
                     block = true;
                     blockCondition.await();
                 } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+                    //ignore
                 }
             }
         } finally {

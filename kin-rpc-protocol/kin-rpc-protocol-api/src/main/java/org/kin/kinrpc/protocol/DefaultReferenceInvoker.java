@@ -126,7 +126,6 @@ public class DefaultReferenceInvoker<T> implements ReferenceInvoker<T> {
         try {
             threadLessExecutor.waitAndDrain();
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
             resultFuture.completeExceptionally(e);
         }
         return RpcResult.success(invocation, resultFuture);

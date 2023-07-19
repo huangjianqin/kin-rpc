@@ -1,5 +1,6 @@
 package org.kin.kinrpc.demo.boot.consumer;
 
+import org.kin.kinrpc.ReferenceContext;
 import org.kin.kinrpc.boot.EnableKinRpc;
 import org.kin.kinrpc.boot.KinRpcHandler;
 import org.kin.kinrpc.boot.KinRpcReference;
@@ -10,6 +11,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * @author huangjianqin
  * @date 2023/7/11
@@ -19,6 +22,7 @@ import org.springframework.context.annotation.Bean;
 public class DemoServiceConsumerApplication {
     public static void main(String[] args) {
         SpringApplication.run(DemoServiceConsumerApplication.class);
+        ReferenceContext.SCHEDULER.schedule(System::gc, 5, TimeUnit.SECONDS);
     }
 
     @Bean

@@ -26,159 +26,139 @@ import java.util.stream.Collectors;
 public class AppInstanceWatcher {
     private static final Logger log = LoggerFactory.getLogger(AppInstanceWatcher.class);
 
-    /** app name */
-    private final String appName;
-    /** key -> app name, value -> application instance context list */
-    private volatile Map<String, Set<AppInstanceContext>> appInstanceContexts = new ConcurrentHashMap<>();
+    /** app name set */
+    private final Set<String> appNames;
+    /**
+     * key -> app name, value -> application instance context list
+     * value单线程更新, 多线程访问
+     */
+    private final Map<String, Set<AppInstanceContext>> appInstanceContexts = new ConcurrentHashMap<>();
     /** 标识是否正在处理发现的应用实例 */
     private final AtomicBoolean discovering = new AtomicBoolean(false);
     /** 待处理的应用实例列表 */
-    private final Queue<List<ApplicationInstance>> discoverQueue = new MpscUnboundedAtomicArrayQueue<>(8);
+    private final Queue<Tuple<String, List<ApplicationInstance>>> discoverQueue = new MpscUnboundedAtomicArrayQueue<>(8);
     /** key -> 服务唯一标识, value -> service instance changed listener list */
     private final Map<String, Set<ServiceInstanceChangedListener>> service2Listeners = new ConcurrentHashMap<>();
 
-    public AppInstanceWatcher(String appName) {
-        this.appName = appName;
+    public AppInstanceWatcher(Set<String> appNames) {
+        this.appNames = appNames;
     }
 
     /**
-     * 应用实例变更
+     * 应用实例变更触发
      *
-     * @param appInstances 应用实例列表
+     * @param appName      应用名
+     * @param appInstances 单应用所有存活实例列表
      */
-    protected final void onDiscovery(List<ApplicationInstance> appInstances) {
-        if (terminated) {
+    public void onDiscovery(String appName, List<ApplicationInstance> appInstances) {
+        if (CollectionUtils.isEmpty(appInstances)) {
             return;
         }
 
-        discoverQueue.add(appInstances);
+        discoverQueue.add(new Tuple<>(appName, appInstances));
         if (!discovering.compareAndSet(false, true)) {
             //discovering
             return;
         }
 
-        ReferenceContext.DISCOVERY_SCHEDULER.execute(this::doDiscover);
+        doDiscover();
     }
 
     /**
      * 处理发现的应用实例
      */
     private void doDiscover() {
-        //允许直接处理的最大次数, 防止discover一直占用线程(相当于死循环), 不释放
-        int maxTimes = 5;
-
-        for (int i = 0; i < maxTimes; i++) {
+        while (true) {
+            // TODO: 2023/7/20 是否可以优化执行性能, 分app fetch
+            // TODO: 2023/7/20 是否可以直接缓存实例, 不用每次都遍历查询
             try {
-                if (terminated) {
-                    return;
-                }
-
                 //只处理最新的
                 //最新发现的应用实例列表
-                List<ApplicationInstance> lastAppInstances = null;
-                List<ApplicationInstance> tmp;
+                String lastAppName;
+                Tuple<String, List<ApplicationInstance>> tuple;
                 //遍历找到最新的应用实例列表
-                while ((tmp = discoverQueue.poll()) != null) {
-                    lastAppInstances = tmp;
+                while ((tuple = discoverQueue.poll()) != null) {
+                    lastAppName = tuple.first();
+                    Tuple<String, List<ApplicationInstance>> headTuple = discoverQueue.peek();
+                    if (Objects.isNull(headTuple)) {
+                        break;
+                    }
+
+                    if (!headTuple.first().equals(lastAppName)) {
+                        break;
+                    }
                 }
 
-                if (Objects.nonNull(lastAppInstances)) {
+                if (Objects.nonNull(tuple)) {
                     //如果有新的应用实例列表, 则更新应用元数据缓存
-                    doDiscover(lastAppInstances);
+                    doDiscover(tuple.first(), tuple.second());
                 }
             } catch (Exception e) {
-                log.error("{} discover application fail", getName(), e);
-            } finally {
-                if (Objects.isNull(discoverQueue.peek())) {
-                    //reset discovering flag
-                    discovering.compareAndSet(true, false);
-                } else {
-                    //发现仍然有应用实例列表需要处理, 直接处理, 节省上下文切换
-                }
+                log.error("discover application fail", e);
+            }
+
+            if (Objects.isNull(discoverQueue.peek())) {
+                //reset discovering flag
+                discovering.compareAndSet(true, false);
+                break;
+            } else {
+                //发现仍然有应用实例列表需要处理, 直接处理, 节省上下文切换
             }
         }
     }
 
     /**
-     * @param appInstances 当前所有存活的应用实例
+     * @param appName      应用名
+     * @param appInstances 单应用所有存活实例列表
      */
-    private void doDiscover(List<ApplicationInstance> appInstances) {
-        Map<String, List<ApplicationInstance>> group2ActiveAppInstances = appInstances.stream().collect(Collectors.groupingBy(ApplicationInstance::group));
+    private void doDiscover(String appName, List<ApplicationInstance> appInstances) {
+        //copy
+        Set<AppInstanceContext> oldAppInstanceContexts = new HashSet<>(this.appInstanceContexts.computeIfAbsent(appName, k -> new HashSet<>()));
+        List<ApplicationInstance> oldAppInstances = oldAppInstanceContexts.stream().map(AppInstanceContext::getInstance).collect(Collectors.toList());
 
         if (log.isDebugEnabled()) {
-            log.debug("{} discover active application instances {}", getName(), group2ActiveAppInstances);
-        }
-
-        //deep copy
-        Map<String, Set<AppInstanceContext>> group2AppInstanceContexts = new HashMap<>(this.appInstanceContexts);
-        group2AppInstanceContexts.replaceAll((g, v) -> new HashSet<>(group2AppInstanceContexts.get(g)));
-
-        if (log.isDebugEnabled()) {
-            log.debug("{} old application instances {}", getName(), group2AppInstanceContexts);
+            log.debug("discover active application instances, appName={}, instances={}, oldInstances={}", appName, appInstances, oldAppInstances);
         }
 
         //新加入的application instance
-        Map<String, Set<ApplicationInstance>> group2NewAppInstances = new HashMap<>();
-        Map<String, Set<AppInstanceContext>> group2RmAppInstanceContexts = new HashMap<>();
-        for (Map.Entry<String, List<ApplicationInstance>> entry : group2ActiveAppInstances.entrySet()) {
-            String group = entry.getKey();
-
-            Set<ApplicationInstance> newAppInstances = new HashSet<>();
-            Set<AppInstanceContext> rmAppInstanceContexts = new HashSet<>();
-            //copy
-            List<ApplicationInstance> activeAppInstances = new ArrayList<>(entry.getValue());
-
-            Set<AppInstanceContext> oldAppInstanceContexts = group2AppInstanceContexts.get(group);
-            if (CollectionUtils.isEmpty(oldAppInstanceContexts)) {
-                newAppInstances.addAll(activeAppInstances);
-            } else {
-                Set<ApplicationInstance> oldAppInstances = oldAppInstanceContexts.stream()
-                        .map(AppInstanceContext::getInstance)
-                        .collect(Collectors.toSet());
-                for (ApplicationInstance activeAppInstance : activeAppInstances) {
-                    if (oldAppInstances.contains(activeAppInstance)) {
-                        //仍然存活
-                        oldAppInstances.remove(activeAppInstance);
-                    } else {
-                        //新加入
-                        newAppInstances.add(activeAppInstance);
-                    }
+        Set<ApplicationInstance> newAppInstances = new HashSet<>();
+        Set<AppInstanceContext> invalidAppInstanceContexts = new HashSet<>();
+        if (CollectionUtils.isEmpty(oldAppInstanceContexts)) {
+            newAppInstances.addAll(appInstances);
+        } else {
+            for (ApplicationInstance appInstance : appInstances) {
+                if (oldAppInstances.contains(appInstance)) {
+                    //仍然存活
+                    oldAppInstances.remove(appInstance);
+                } else {
+                    //新加入
+                    newAppInstances.add(appInstance);
                 }
-
-                //剩余的也就是离线的
-                rmAppInstanceContexts.addAll(oldAppInstanceContexts.stream()
-                        .filter(oam -> oldAppInstances.contains(oam.getInstance()))
-                        .collect(Collectors.toList()));
-            }
-            if (CollectionUtils.isNonEmpty(newAppInstances)) {
-                group2NewAppInstances.put(group, newAppInstances);
-            }
-            if (CollectionUtils.isNonEmpty(rmAppInstanceContexts)) {
-                group2RmAppInstanceContexts.put(group, rmAppInstanceContexts);
             }
         }
 
         //new
         boolean appInstanceChanged = false;
-        if (CollectionUtils.isNonEmpty(group2NewAppInstances)) {
-            fetchAppInstanceMetadata(group2AppInstanceContexts, group2NewAppInstances);
+        if (CollectionUtils.isNonEmpty(newAppInstances)) {
+            fetchAppInstanceMetadata(appName, oldAppInstanceContexts, newAppInstances);
             appInstanceChanged = true;
         }
 
         //remove
-        if (CollectionUtils.isNonEmpty(group2RmAppInstanceContexts)) {
-            removeInvalidAppInstanceMetadata(group2AppInstanceContexts, group2RmAppInstanceContexts);
+        if (CollectionUtils.isNonEmpty(invalidAppInstanceContexts)) {
+            removeInvalidAppInstanceMetadata(appName, oldAppInstanceContexts, invalidAppInstanceContexts);
             appInstanceChanged = true;
         }
 
         if (!appInstanceChanged) {
-            log.info("{} discover application instances finished, nothing changed", getName());
+            log.info("discover application instances finished, nothing changed, appName={}", appName);
             return;
         }
 
-        this.appInstanceContexts = group2AppInstanceContexts;
+        this.appInstanceContexts.put(appName, oldAppInstanceContexts);
 
-        log.info("{} discover application instances finished, validInstances={}", getName(), group2AppInstanceContexts);
+        oldAppInstances = oldAppInstanceContexts.stream().map(AppInstanceContext::getInstance).collect(Collectors.toList());
+        log.info("discover application instances finished, appName={}, instances={}", appName, oldAppInstances);
 
         //notify directory
         notifyAppInstanceChanged();
@@ -206,98 +186,80 @@ public class AppInstanceWatcher {
 
         for (Map.Entry<String, List<ServiceInstance>> entry : service2Instances.entrySet()) {
             String service = entry.getKey();
-            Directory directory = watchers.peek(service);
-            if (Objects.isNull(directory)) {
+
+            Set<ServiceInstanceChangedListener> listeners = service2Listeners.get(service);
+            if (CollectionUtils.isEmpty(listeners)) {
                 continue;
             }
 
-            ReferenceContext.DISCOVERY_SCHEDULER.execute(() -> directory.discover(entry.getValue()));
+            for (ServiceInstanceChangedListener listener : listeners) {
+                ReferenceContext.DISCOVERY_SCHEDULER.execute(() -> listener.onServiceInstanceChanged(entry.getValue()));
+            }
         }
     }
 
     /**
      * 并发批量拉取应用元数据
      *
-     * @param group2AppInstanceContexts 应用元数据上下文缓存
-     * @param group2NewAppInstances     需要拉取的应用实例
+     * @param appName             应用名
+     * @param appInstanceContexts 应用元数据上下文缓存
+     * @param newAppInstances     需要拉取的应用实例
      */
-    private void fetchAppInstanceMetadata(Map<String, Set<AppInstanceContext>> group2AppInstanceContexts,
-                                          Map<String, Set<ApplicationInstance>> group2NewAppInstances) {
+    private void fetchAppInstanceMetadata(String appName,
+                                          Set<AppInstanceContext> appInstanceContexts,
+                                          Set<ApplicationInstance> newAppInstances) {
         if (log.isDebugEnabled()) {
-            log.debug("{} find new application instances {}", getName(), group2NewAppInstances);
+            log.debug("find new application instances, appName={}, newInstances={}", appName, newAppInstances);
         }
 
-        List<Supplier<Tuple<String, AppInstanceContext>>> appInstanceContextSuppliers = new ArrayList<>(group2NewAppInstances.size() * 3);
-        for (Map.Entry<String, Set<ApplicationInstance>> entry : group2NewAppInstances.entrySet()) {
-            String group = entry.getKey();
+        List<Supplier<AppInstanceContext>> appInstanceContextSuppliers = new ArrayList<>(newAppInstances.size());
+        for (ApplicationInstance appInstance : newAppInstances) {
+            appInstanceContextSuppliers.add(() -> {
+                ReferenceConfig<MetadataService> metadataServiceReferenceConfig = ReferenceUtils.createInternalServiceReference(appInstance,
+                        MetadataService.class,
+                        CommonConstants.METADATA_SERVICE_NAME);
+                MetadataService metadataService = metadataServiceReferenceConfig.refer();
 
-            Set<AppInstanceContext> appInstanceContexts = group2AppInstanceContexts.get(group);
-            if (Objects.isNull(appInstanceContexts)) {
-                appInstanceContexts = new HashSet<>();
-                group2AppInstanceContexts.put(group, appInstanceContexts);
-            }
-
-            for (ApplicationInstance appInstance : entry.getValue()) {
-                appInstanceContextSuppliers.add(() -> {
-                    ReferenceConfig<MetadataService> metadataServiceReferenceConfig = ReferenceUtils.createInternalServiceReference(appInstance,
-                            MetadataService.class,
-                            CommonConstants.METADATA_SERVICE_NAME);
-                    MetadataService metadataService = metadataServiceReferenceConfig.refer();
-
-                    MetadataResponse metadataResponse = metadataService.metadata();
-                    Map<String, ServiceMetadata> serviceMetadataMap = metadataResponse.getServiceMetadataMap();
-                    List<ServiceInstance> serviceInstances = serviceMetadataMap.entrySet()
-                            .stream()
-                            .map(e -> {
-                                Map<String, String> iServiceMetadataMap = e.getValue().getMetadata();
-                                iServiceMetadataMap.put(ServiceMetadataConstants.SCHEMA_KEY, appInstance.scheme());
-                                return new DefaultServiceInstance(e.getKey(), appInstance.host(), appInstance.port(), iServiceMetadataMap);
-                            })
-                            .collect(Collectors.toList());
-                    return new Tuple<>(group,
-                            new AppInstanceContext(appInstance, serviceInstances,
-                                    metadataServiceReferenceConfig, metadataService));
-                });
-            }
+                MetadataResponse metadataResponse = metadataService.metadata();
+                Map<String, ServiceMetadata> serviceMetadataMap = metadataResponse.getServiceMetadataMap();
+                List<ServiceInstance> serviceInstances = serviceMetadataMap.entrySet()
+                        .stream()
+                        .map(e -> {
+                            Map<String, String> iServiceMetadataMap = e.getValue().getMetadata();
+                            iServiceMetadataMap.put(ServiceMetadataConstants.SCHEMA_KEY, appInstance.scheme());
+                            return new DefaultServiceInstance(e.getKey(), appInstance.host(), appInstance.port(), iServiceMetadataMap);
+                        })
+                        .collect(Collectors.toList());
+                return new AppInstanceContext(appInstance, serviceInstances,
+                        metadataServiceReferenceConfig, metadataService);
+            });
         }
 
-        for (Tuple<String, AppInstanceContext> tuple :
-                DiscoveryUtils.concurrentSupply(appInstanceContextSuppliers, "fetch application instance metadata")) {
-            String group = tuple.first();
-            AppInstanceContext appInstanceContext = tuple.second();
-
-            Set<AppInstanceContext> appInstanceContexts = group2AppInstanceContexts.get(group);
-            if (Objects.isNull(appInstanceContexts)) {
-                appInstanceContexts = new HashSet<>();
-                group2AppInstanceContexts.put(group, appInstanceContexts);
-            }
-
-            appInstanceContexts.add(appInstanceContext);
-        }
+        appInstanceContexts.addAll(
+                DiscoveryUtils.concurrentSupply(appInstanceContextSuppliers, String.format("fetch application '%s' instance metadata", appName)));
     }
 
     /**
      * 移除无效应用元数据上下文
      *
-     * @param group2AppInstanceContexts   应用元数据上下文缓存
-     * @param group2RmAppInstanceContexts 需要移除的应用元数据上下文
+     * @param appName                    应用名
+     * @param appInstanceContexts        应用元数据上下文缓存
+     * @param invalidAppInstanceContexts 无效应用元数据上下文
      */
-    private void removeInvalidAppInstanceMetadata(Map<String, Set<AppInstanceContext>> group2AppInstanceContexts,
-                                                  Map<String, Set<AppInstanceContext>> group2RmAppInstanceContexts) {
+    private void removeInvalidAppInstanceMetadata(String appName,
+                                                  Set<AppInstanceContext> appInstanceContexts,
+                                                  Set<AppInstanceContext> invalidAppInstanceContexts) {
         if (log.isDebugEnabled()) {
-            log.debug("{} remove invalid application instances {}", getName(), group2RmAppInstanceContexts);
+            log.debug("remove invalid application instances, appName={}, invalidInstances={}", appName, invalidAppInstanceContexts);
         }
-        for (Map.Entry<String, Set<AppInstanceContext>> entry : group2RmAppInstanceContexts.entrySet()) {
-            String group = entry.getKey();
-            Set<AppInstanceContext> appInstanceContexts = entry.getValue();
 
-            for (AppInstanceContext appInstanceContext : appInstanceContexts) {
-                appInstanceContext.destroy();
-            }
-
-            //移除
-            group2AppInstanceContexts.get(group).removeAll(appInstanceContexts);
+        //destroy
+        for (AppInstanceContext appInstanceContext : invalidAppInstanceContexts) {
+            appInstanceContext.destroy();
         }
+
+        //remove
+        appInstanceContexts.removeAll(invalidAppInstanceContexts);
     }
 
     /**
@@ -307,10 +269,10 @@ public class AppInstanceWatcher {
      * @param listener {@link ServiceInstanceChangedListener}实例
      */
     public void addListener(String service, ServiceInstanceChangedListener listener) {
-        Set<ServiceInstanceChangedListener> listeners = service2Listeners.computeIfAbsent(service, k -> new CopyOnWriteArraySet<>(4));
+        Set<ServiceInstanceChangedListener> listeners = service2Listeners.computeIfAbsent(service, k -> new CopyOnWriteArraySet<>());
         listeners.add(listener);
 
-        // TODO: 2023/7/19 notify
+        notifyAppInstanceChanged();
     }
 
     /**
@@ -328,10 +290,25 @@ public class AppInstanceWatcher {
         listeners.remove(listener);
     }
 
-    private void
-
     //getter
-    public String getAppName() {
-        return appName;
+    public Set<String> getAppNames() {
+        return appNames;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof AppInstanceWatcher)) {
+            return false;
+        }
+        AppInstanceWatcher that = (AppInstanceWatcher) o;
+        return Objects.equals(appNames, that.appNames);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(appNames);
     }
 }

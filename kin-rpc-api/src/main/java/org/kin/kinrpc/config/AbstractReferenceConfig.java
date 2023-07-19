@@ -44,7 +44,6 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
         check(StringUtils.isNotBlank(loadBalance), "loadBalance must be not blank");
         check(StringUtils.isNotBlank(router), "router must be not blank");
         check(StringUtils.isNotBlank(bootstrap), "reference bootstrap must be not blank");
-        check(StringUtils.isNotBlank(provideBy), "reference provideBy must be not blank");
 
         check(rpcTimeout > 0, "global method rpc call timeout must be greater than 0");
     }

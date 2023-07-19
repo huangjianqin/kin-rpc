@@ -1,7 +1,6 @@
 package org.kin.kinrpc.registry.directory;
 
 import org.kin.kinrpc.ReferenceInvoker;
-import org.kin.kinrpc.ServiceInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,11 +36,6 @@ public final class CompositeDirectory implements Directory {
     @Override
     public List<ReferenceInvoker<?>> list() {
         return directories.stream().flatMap(d -> d.list().stream()).distinct().collect(Collectors.toList());
-    }
-
-    @Override
-    public void discover(List<ServiceInstance> serviceInstances) {
-        throw new UnsupportedOperationException();
     }
 
     @Override

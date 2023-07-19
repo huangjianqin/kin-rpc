@@ -142,7 +142,7 @@ public abstract class AbstractRemotingClient implements RemotingClient {
             try {
                 firstConnWaiter.await();
             } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+                //ignore
             }
         }
     }

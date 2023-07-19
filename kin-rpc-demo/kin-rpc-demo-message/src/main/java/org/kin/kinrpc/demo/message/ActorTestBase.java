@@ -34,7 +34,7 @@ public abstract class ActorTestBase implements Runnable {
                 try {
                     Thread.sleep(2_000);
                 } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+                    //ignore
                 }
                 System.out.println("force exit");
                 System.exit(0);

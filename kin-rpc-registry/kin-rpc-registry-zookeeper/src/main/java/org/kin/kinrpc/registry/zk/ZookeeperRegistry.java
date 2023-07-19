@@ -7,18 +7,16 @@ import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.*;
 import org.kin.framework.concurrent.SimpleThreadFactory;
-import org.kin.framework.utils.ExceptionUtils;
 import org.kin.kinrpc.ApplicationInstance;
 import org.kin.kinrpc.DefaultApplicationInstance;
+import org.kin.kinrpc.ReferenceContext;
 import org.kin.kinrpc.ServiceMetadataConstants;
 import org.kin.kinrpc.common.Url;
-import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.RegistryConfig;
 import org.kin.kinrpc.config.ServerConfig;
 import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.registry.DiscoveryRegistry;
 import org.kin.kinrpc.registry.RegistryHelper;
-import org.kin.kinrpc.registry.directory.Directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,14 +41,19 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
         return PATH_SEPARATOR + ROOT;
     }
 
-    /** zk注册中心{@link #ROOT}/group path */
+    /** zk注册中心{@link #ROOT}/appGroup path */
     private static String getPath(String group) {
         return PATH_SEPARATOR + group;
     }
 
-    /** zk注册中心应用实例url path */
-    private static String getPath(String group, String address) {
-        return getPath(group) + PATH_SEPARATOR + address;
+    /** zk注册中心应用path */
+    private static String getPath(String group, String appName) {
+        return getPath(group) + PATH_SEPARATOR + appName;
+    }
+
+    /** zk注册中心应用path */
+    private static String getPath(String group, String appName, String instance) {
+        return getPath(group) + PATH_SEPARATOR + appName + PATH_SEPARATOR + instance;
     }
 
     /** zk地址 */
@@ -101,10 +104,13 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
         client.getConnectionStateListenable().addListener((curatorFramework, connectionState) -> {
             if (ConnectionState.CONNECTED.equals(connectionState)) {
                 log.info("zookeeper registry(address={}) created", connectAddress());
-                watch(config.getGroup());
+                watchAppGroupNode(config.getGroup());
             } else if (ConnectionState.RECONNECTED.equals(connectionState)) {
                 log.info("zookeeper registry(address={}) reconnected", connectAddress());
-                watch(config.getGroup());
+                watchAppGroupNode(config.getGroup());
+                for (String appName : getWatchingAppNames()) {
+                    watchAppNodeChildren(appName);
+                }
             } else if (ConnectionState.LOST.equals(connectionState)) {
                 log.info("zookeeper registry(address={}) session expired", connectAddress());
             } else if (ConnectionState.SUSPENDED.equals(connectionState)) {
@@ -175,41 +181,28 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
 
     @Override
     public void doRegister(ServiceConfig<?> serviceConfig) {
-        String group = serviceConfig.getGroup();
+        String appName = serviceConfig.getApp().getAppName();
         for (ServerConfig serverConfig : serviceConfig.getServers()) {
             Url url = RegistryHelper.toUrl(serviceConfig, serverConfig);
-            createZNode(getPath(group, Url.encode(url.toString())));
+            createZNode(getPath(config.getGroup(), appName, Url.encode(url.toString())));
         }
     }
 
     @Override
     public void doUnregister(ServiceConfig<?> serviceConfig) {
-        String group = serviceConfig.getGroup();
+        String appName = serviceConfig.getApp().getAppName();
         for (ServerConfig serverConfig : serviceConfig.getServers()) {
             Url url = RegistryHelper.toUrl(serviceConfig, serverConfig);
-            deleteZNode(getPath(group, Url.encode(url.toString())));
+            deleteZNode(getPath(config.getGroup(), appName, Url.encode(url.toString())));
         }
-        tryDeleteZNode(getPath(group));
+        tryDeleteZNode(getPath(config.getGroup(), appName));
     }
 
     @Override
-    public Directory doSubscribe(ReferenceConfig<?> config) {
-        Directory directory = getDirectory(config);
-        notifyAppInstanceChanged();
-        return directory;
-    }
-
-    @Override
-    public void doUnsubscribe(ReferenceConfig<?> config) {
-        freeDirectory(config.getService());
-    }
-
-    /**
-     * 监听应用组及其childs变化
-     */
-    private void watch(String group) {
-        watchAppGroupNode(group);
-        watchAppGroupNodeChilds(group);
+    protected void watch(Set<String> appNames) {
+        for (String appName : appNames) {
+            watchAppNodeChildren(appName);
+        }
     }
 
     /**
@@ -227,7 +220,10 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
                     if (log.isDebugEnabled()) {
                         log.debug("node '{}' created", event.getPath());
                     }
-                    watch(group);
+                    if (isWatching(event.getPath())) {
+                        watchAppNodeChildren(event.getPath());
+                    }
+                    watchAppGroupNode(group);
                 }
 
                 if (event.getType() == Watcher.Event.EventType.NodeDeleted) {
@@ -235,7 +231,7 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
                     if (log.isDebugEnabled()) {
                         log.debug("node '{}' deleted", event.getPath());
                     }
-                    onDiscovery(Collections.emptyList());
+                    onAppInstancesChanged(event.getPath(), Collections.emptyList());
                     //监控应用组节点即可, 等待应用实例重新注册
                     watchAppGroupNode(group);
                 }
@@ -244,25 +240,22 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
             //应用还未注册或者因异常取消注册
             if (e.code().equals(KeeperException.Code.NONODE)) {
                 //等待一段时间
-                try {
-                    TimeUnit.SECONDS.sleep(1);
-                } catch (InterruptedException e1) {
-                    //ignore
-                }
-                //尝试重新监听应用组节点
-                watch(group);
+                ReferenceContext.DISCOVERY_SCHEDULER.schedule(() -> {
+                    //尝试重新监听应用组节点
+                    watchAppGroupNode(group);
+                }, 3, TimeUnit.SECONDS);
             } else {
-                ExceptionUtils.throwExt(e);
+                log.error("{} watch application group node '{}' error", getName(), group, e);
             }
         } catch (Exception e) {
-            ExceptionUtils.throwExt(e);
+            log.error("{} watch application group node '{}' error", getName(), group, e);
         }
     }
 
     /**
-     * 监听应用组节点下子节点
+     * 监听应用节点下子节点
      */
-    private void watchAppGroupNodeChilds(String group) {
+    private void watchAppNodeChildren(String appName) {
         if (isTerminated()) {
             return;
         }
@@ -274,23 +267,28 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
                             if (log.isDebugEnabled()) {
                                 log.debug("node '{}' childs changed", event.getPath());
                             }
-                            watchAppGroupNodeChilds(group);
+                            watchAppNodeChildren(appName);
                         }
-                    }).forPath(getPath(group));
+                    }).forPath(getPath(config.getGroup(), appName));
             //并发获取zk node data
             List<ApplicationInstance> appInstances = new ArrayList<>(childPaths.size());
             for (String childPath : childPaths) {
                 Url url = Url.of(Url.decode(childPath));
                 Map<String, String> metadata = url.getParams();
                 metadata.put(ServiceMetadataConstants.SCHEMA_KEY, url.getProtocol());
-                appInstances.add(new DefaultApplicationInstance(group, url.getHost(), url.getPort(), metadata));
+                appInstances.add(new DefaultApplicationInstance(appName, url.getHost(), url.getPort(), metadata));
             }
 
-            onDiscovery(appInstances);
+            onAppInstancesChanged(appName, appInstances);
         } catch (InterruptedException e) {
             //ignore
+        } catch (KeeperException e) {
+            ReferenceContext.DISCOVERY_SCHEDULER.schedule(() -> {
+                //尝试重新监听应用节点下子节点
+                watchAppNodeChildren(appName);
+            }, 3, TimeUnit.SECONDS);
         } catch (Exception e) {
-            ExceptionUtils.throwExt(e);
+            log.error("{} watch application node '{}' error", getName(), appName, e);
         }
     }
 
@@ -301,6 +299,5 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
         }
 
         client.close();
-        log.info("{} destroyed", getName());
     }
 }

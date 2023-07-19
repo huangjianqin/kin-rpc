@@ -43,7 +43,12 @@ public final class ReferenceContext {
                 new LinkedBlockingQueue<>(256), new SimpleThreadFactory("kinrpc-reference-discovery"),
                 new ThreadPoolExecutor.CallerRunsPolicy());
         worker.allowCoreThreadTimeOut(true);
-        DISCOVERY_SCHEDULER = new ExecutionContext(discoveryWorker);
+
+        ScheduledExecutorService discoveryScheduler = ThreadPoolUtils.newScheduledThreadPool("kinrpc-reference-discovery-scheduler", true,
+                2,
+                new SimpleThreadFactory("kinrpc-reference-discovery-scheduler", true),
+                new ThreadPoolExecutor.CallerRunsPolicy());
+        DISCOVERY_SCHEDULER = new ExecutionContext(discoveryWorker, discoveryScheduler);
     }
 
     static {

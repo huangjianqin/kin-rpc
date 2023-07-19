@@ -1,12 +1,8 @@
 package org.kin.kinrpc.cluster.invoker;
 
-import org.kin.kinrpc.FilterChain;
 import org.kin.kinrpc.Invocation;
 import org.kin.kinrpc.RpcResult;
-import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
-import org.kin.kinrpc.cluster.router.Router;
 import org.kin.kinrpc.config.ReferenceConfig;
-import org.kin.kinrpc.registry.directory.Directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,12 +16,8 @@ import java.util.concurrent.CompletableFuture;
 public class FailFastClusterInvoker<T> extends ClusterInvoker<T> {
     private static final Logger log = LoggerFactory.getLogger(FailFastClusterInvoker.class);
 
-    public FailFastClusterInvoker(ReferenceConfig<T> config,
-                                  Directory directory,
-                                  Router router,
-                                  LoadBalance loadBalance,
-                                  FilterChain<T> filterChain) {
-        super(config, directory, router, loadBalance, filterChain);
+    public FailFastClusterInvoker(ReferenceConfig<T> config) {
+        super(config);
     }
 
     @Override

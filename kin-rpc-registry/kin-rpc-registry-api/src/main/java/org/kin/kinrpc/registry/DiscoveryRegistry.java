@@ -1,7 +1,9 @@
 package org.kin.kinrpc.registry;
 
 import org.kin.framework.cache.ReferenceCountedCache;
+import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.ApplicationInstance;
+import org.kin.kinrpc.ReferenceContext;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.RegistryConfig;
 import org.kin.kinrpc.config.ServiceConfig;
@@ -9,11 +11,9 @@ import org.kin.kinrpc.utils.ReferenceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * @author huangjianqin
@@ -42,17 +42,26 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
      * @param appName      应用名
      * @param appInstances 应用实例列表
      */
-    private void onAppInstancesChanged(String appName, List<ApplicationInstance> appInstances) {
-        AppInstanceWatcher watcher = watchers.peek(appName);
-        if (Objects.isNull(watcher)) {
-            return;
+    protected final void onAppInstancesChanged(String appName, List<ApplicationInstance> appInstances) {
+        Set<AppInstanceWatcher> watchers = app2Watchers.get(appName);
+        for (AppInstanceWatcher watcher : watchers) {
+            ReferenceContext.DISCOVERY_SCHEDULER.execute(() -> watcher.onDiscovery(appName, appInstances));
         }
+    }
 
-        watcher.onDiscovery(appInstances);
+    /**
+     * 检查注册中心是否已经terminated
+     */
+    protected final void checkTerminated() {
+        if (isTerminated()) {
+            throw new IllegalStateException(String.format("%s has been terminated", getName()));
+        }
     }
 
     @Override
     public final void register(ServiceConfig<?> serviceConfig) {
+        checkTerminated();
+
         String appName = serviceConfig.getApp().getAppName();
         String group = config.getGroup();
         log.info("register application '{}' in group '{}' to {}", appName, group, getName());
@@ -62,6 +71,8 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
 
     @Override
     public final void unregister(ServiceConfig<?> serviceConfig) {
+        checkTerminated();
+
         String appName = serviceConfig.getApp().getAppName();
         String group = config.getGroup();
         log.info("unregister application '{}' in group '{}' from {}", appName, group, getName());
@@ -71,6 +82,8 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
 
     @Override
     public final void subscribe(ReferenceConfig<?> config, ServiceInstanceChangedListener listener) {
+        checkTerminated();
+
         String group = this.config.getGroup();
         if (log.isDebugEnabled()) {
             log.debug("reference subscribe application group '{}' on {}", group, getName());
@@ -79,16 +92,26 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
         //watch
         String provideBy = config.getProvideBy();
         Set<String> appNames = ReferenceUtils.parseProvideBy(provideBy);
+        String uniqueKey = StringUtils.mkString(appNames);
+
+        AppInstanceWatcher watcher = watchers.get(uniqueKey, () -> new AppInstanceWatcher(appNames));
+        watcher.addListener(config.getService(), listener);
+
+        Set<String> watchingAppNames = getWatchingAppNames();
         for (String appName : appNames) {
-            AppInstanceWatcher watcher = watchers.get(appName, () -> new AppInstanceWatcher(appName));
-            watcher.addListener(config.getService(), listener);
+            Set<AppInstanceWatcher> watchers = app2Watchers.computeIfAbsent(appName, k -> new CopyOnWriteArraySet<>());
+            watchers.add(watcher);
         }
 
-        watch(appNames);
+        HashSet<String> newWatchAppNames = new HashSet<>(appNames);
+        newWatchAppNames.removeIf(n -> !watchingAppNames.contains(n));
+        watch(newWatchAppNames);
     }
 
     @Override
     public final void unsubscribe(ReferenceConfig<?> config, ServiceInstanceChangedListener listener) {
+        checkTerminated();
+
         String group = this.config.getGroup();
         if (log.isDebugEnabled()) {
             log.debug("unsubscribe application group '{}' on {}", group, getName());
@@ -97,11 +120,26 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
         //unwatch
         String provideBy = config.getProvideBy();
         Set<String> appNames = ReferenceUtils.parseProvideBy(provideBy);
+        String uniqueKey = StringUtils.mkString(appNames);
+
+        AppInstanceWatcher watcher = watchers.peek(uniqueKey);
+        if (Objects.isNull(watcher)) {
+            return;
+        }
+
+        watchers.release(uniqueKey);
+        watcher.removeListener(config.getService(), listener);
+
         for (String appName : appNames) {
-            AppInstanceWatcher watcher = watchers.peek(appName);
-            watchers.release(appName);
-            if (Objects.nonNull(watcher)) {
-                watcher.removeListener(config.getService(), listener);
+            Set<AppInstanceWatcher> watchers = app2Watchers.get(appName);
+            if (Objects.isNull(watchers)) {
+                continue;
+            }
+
+            watchers.remove(watcher);
+            if (watchers.size() < 1) {
+                //没有任何watcher, 则remove
+                app2Watchers.remove(appName);
             }
         }
     }
@@ -114,6 +152,8 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
 
         terminated = true;
         doDestroy();
+
+        log.info("{} destroyed", getName());
     }
 
     /**
@@ -145,16 +185,26 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
      *
      * @return true表示正在监听{@code appName}应用
      */
-    protected boolean isWatching(String appName) {
-        return Objects.nonNull(watchers.peek(appName));
+    protected final boolean isWatching(String appName) {
+        Set<AppInstanceWatcher> watchers = app2Watchers.get(appName);
+        return Objects.nonNull(watchers) && watchers.size() > 0;
+    }
+
+    /**
+     * 返回正在监听的{@code appName}应用
+     *
+     * @return 正在监听的{@code appName}应用集合
+     */
+    protected final Set<String> getWatchingAppNames() {
+        return app2Watchers.keySet();
     }
 
     //getter
-    public String getName() {
+    public final String getName() {
         return name;
     }
 
-    public boolean isTerminated() {
+    public final boolean isTerminated() {
         return terminated;
     }
 }

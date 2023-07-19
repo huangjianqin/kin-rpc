@@ -3,6 +3,7 @@ package org.kin.kinrpc.cluster.invoker;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.kin.framework.utils.CollectionUtils;
+import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.SPI;
 import org.kin.kinrpc.*;
 import org.kin.kinrpc.cluster.InvokerNotFoundException;
@@ -10,8 +11,11 @@ import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
 import org.kin.kinrpc.cluster.router.Router;
 import org.kin.kinrpc.config.MethodConfig;
 import org.kin.kinrpc.config.ReferenceConfig;
+import org.kin.kinrpc.config.RegistryConfig;
 import org.kin.kinrpc.constants.ReferenceConstants;
-import org.kin.kinrpc.registry.directory.Directory;
+import org.kin.kinrpc.registry.Registry;
+import org.kin.kinrpc.registry.RegistryHelper;
+import org.kin.kinrpc.registry.directory.DefaultDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +38,7 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
     /** reference配置 */
     protected final ReferenceConfig<T> config;
     /** 管理订阅服务的所有invoker实例 */
-    private final Directory directory;
+    private final DefaultDirectory directory;
     /** 路由策略 */
     private final Router router;
     /** 负载均衡策略 */
@@ -47,16 +51,25 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
             .expireAfterAccess(Duration.ofMinutes(5))
             .build();
 
-    protected ClusterInvoker(ReferenceConfig<T> config,
-                             Directory directory,
-                             Router router,
-                             LoadBalance loadBalance,
-                             FilterChain<T> filterChain) {
+    @SuppressWarnings("unchecked")
+    protected ClusterInvoker(ReferenceConfig<T> config) {
         this.config = config;
-        this.directory = directory;
-        this.router = router;
-        this.loadBalance = loadBalance;
-        this.filterChain = filterChain;
+
+        //创建filter chain
+        this.filterChain = FilterChain.create(config, (Invoker<T>) RpcCallInvoker.INSTANCE);
+
+        //创建loadbalance
+        this.loadBalance = ExtensionLoader.getExtension(LoadBalance.class, config.getLoadBalance());
+        //创建router
+        this.router = ExtensionLoader.getExtension(Router.class, config.getRouter());
+
+        //获取注册中心client, 并订阅服务
+        this.directory = new DefaultDirectory(config);
+        for (RegistryConfig registryConfig : config.getRegistries()) {
+            Registry registry = RegistryHelper.getRegistry(registryConfig);
+
+            registry.subscribe(config, directory);
+        }
     }
 
     @Override
@@ -200,5 +213,12 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
     public final void destroy() {
         //是否转移到registry unsubscribe更好
         directory.destroy();
+
+        //获取注册中心client, 并取消订阅服务
+        for (RegistryConfig registryConfig : config.getRegistries()) {
+            Registry registry = RegistryHelper.getRegistry(registryConfig);
+            registry.unsubscribe(config, directory);
+            RegistryHelper.releaseRegistry(registryConfig);
+        }
     }
 }

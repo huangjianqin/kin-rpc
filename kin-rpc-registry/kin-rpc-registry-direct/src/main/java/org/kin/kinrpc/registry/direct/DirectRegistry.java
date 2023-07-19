@@ -1,22 +1,17 @@
 package org.kin.kinrpc.registry.direct;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import org.kin.kinrpc.RpcException;
 import org.kin.kinrpc.ServiceInstance;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.RegistryConfig;
 import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.registry.AbstractRegistry;
 import org.kin.kinrpc.registry.RegistryHelper;
-import org.kin.kinrpc.registry.directory.DefaultDirectory;
-import org.kin.kinrpc.registry.directory.Directory;
+import org.kin.kinrpc.registry.ServiceInstanceChangedListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 /**
@@ -28,14 +23,7 @@ public final class DirectRegistry extends AbstractRegistry {
 
     /** 配置的service instance信息 */
     private final List<ServiceInstance> serviceInstances;
-    /**
-     * {@link Directory}实例缓存
-     * key -> 服务唯一标识, value -> {@link Directory}实例
-     */
-    private final Cache<String, Directory> directoryCache = CacheBuilder.newBuilder()
-            .<String, Directory>removalListener(n -> n.getValue().destroy())
-            .build();
-    private boolean stopped;
+    private boolean terminated;
 
     public DirectRegistry(RegistryConfig config) {
         super(config);
@@ -64,47 +52,39 @@ public final class DirectRegistry extends AbstractRegistry {
     }
 
     @Override
-    public Directory subscribe(ReferenceConfig<?> config) {
-        if (isStopped()) {
-            throw new IllegalStateException("registry has been destroyed");
+    public void subscribe(ReferenceConfig<?> config, ServiceInstanceChangedListener listener) {
+        if (isTerminated()) {
+            throw new IllegalStateException("DirectRegistry has been terminated");
         }
 
-        // TODO: 2023/7/17 一个注册中心仅能订阅一次服务
         String service = config.getService();
-        log.info("subscribe service '{}' ", service);
-        Directory directory;
-        try {
-            directory = directoryCache.get(service, () -> {
-                List<ServiceInstance> matchedServiceInstances = serviceInstances.stream()
-                        .filter(si -> si.service().equals(service))
-                        .collect(Collectors.toList());
-                DefaultDirectory newDirectory = new DefaultDirectory(config);
-                newDirectory.discover(matchedServiceInstances);
-                return newDirectory;
-            });
-        } catch (ExecutionException e) {
-            throw new RpcException(String.format("subscribe service '%s' fail", service), e.getCause());
+        List<ServiceInstance> matchedServiceInstances = serviceInstances.stream()
+                .filter(si -> si.service().equals(service))
+                .collect(Collectors.toList());
+
+        if (log.isDebugEnabled()) {
+            log.debug("subscribe service '{}' and find instances, {}", service, matchedServiceInstances);
         }
-        return directory;
+
+        listener.onServiceInstanceChanged(matchedServiceInstances);
     }
 
     @Override
-    public void unsubscribe(ReferenceConfig<?> config) {
+    public void unsubscribe(ReferenceConfig<?> config, ServiceInstanceChangedListener listener) {
         //do nothing
     }
 
     @Override
     public void destroy() {
-        if (isStopped()) {
+        if (isTerminated()) {
             return;
         }
 
-        stopped = true;
-        directoryCache.invalidateAll();
+        terminated = true;
     }
 
     //getter
-    private boolean isStopped() {
-        return stopped;
+    public boolean isTerminated() {
+        return terminated;
     }
 }

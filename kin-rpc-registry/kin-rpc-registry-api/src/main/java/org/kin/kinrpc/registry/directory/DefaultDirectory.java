@@ -65,7 +65,7 @@ public class DefaultDirectory implements Directory, ServiceInstanceChangedListen
             try {
                 firstDiscoverWaiter.await();
             } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+                //ignore
             }
         }
 

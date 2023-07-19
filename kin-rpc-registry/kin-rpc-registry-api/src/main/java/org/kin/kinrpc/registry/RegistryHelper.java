@@ -11,7 +11,6 @@ import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.RegistryConfig;
 import org.kin.kinrpc.config.ServerConfig;
 import org.kin.kinrpc.config.ServiceConfig;
-import org.kin.kinrpc.registry.directory.Directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,13 +89,13 @@ public class RegistryHelper {
             }
 
             @Override
-            public Directory subscribe(ReferenceConfig<?> config) {
-                return registry.subscribe(config);
+            public void subscribe(ReferenceConfig<?> config, ServiceInstanceChangedListener listener) {
+                registry.subscribe(config, listener);
             }
 
             @Override
-            public void unsubscribe(ReferenceConfig<?> config) {
-                registry.unsubscribe(config);
+            public void unsubscribe(ReferenceConfig<?> config, ServiceInstanceChangedListener listener) {
+                registry.unsubscribe(config, listener);
             }
 
             @Override

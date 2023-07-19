@@ -54,7 +54,7 @@ public final class DiscoveryUtils {
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
                     .get(timeoutMs, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            //ignore
         } catch (ExecutionException e) {
             log.error("concurrent {} error", desc, e);
         } catch (TimeoutException e) {
@@ -68,7 +68,7 @@ public final class DiscoveryUtils {
                     try {
                         return f.get();
                     } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
+                        //ignore
                     } catch (ExecutionException e) {
                         log.error("get {} from future error", desc, e.getCause());
                     }
