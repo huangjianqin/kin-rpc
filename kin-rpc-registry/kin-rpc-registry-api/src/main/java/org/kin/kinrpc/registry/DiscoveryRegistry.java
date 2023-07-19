@@ -17,11 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -38,6 +35,8 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
      * key -> 服务唯一标识, value -> {@link Directory}实例
      */
     private final ReferenceCountedCache<String, Directory> directoryCache = new ReferenceCountedCache<>((k, v) -> v.destroy());
+    /** watching group */
+    private final ReferenceCountedCache<String, String> watchingGroup = new ReferenceCountedCache<>();
     /** key -> group, value -> application instance context list */
     private volatile Map<String, Set<AppInstanceContext>> group2AppInstanceContexts = new HashMap<>();
     /** 标识是否正在处理发现的应用实例 */
@@ -91,7 +90,7 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
     }
 
     /**
-     * 处理发现的应用实例, todo
+     * 处理发现的应用实例
      */
     private void doDiscover() {
         //允许直接处理的最大次数, 防止discover一直占用线程(相当于死循环), 不释放
@@ -113,7 +112,7 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
                 }
 
                 if (Objects.nonNull(lastAppInstances)) {
-                    //如果有新的应用实例列表, 则更新todo
+                    //如果有新的应用实例列表, 则更新应用元数据缓存
                     doDiscover(lastAppInstances);
                 }
             } catch (Exception e) {
@@ -129,21 +128,22 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
         }
     }
 
+    /**
+     * @param appInstances 当前所有存活的应用实例
+     */
     private void doDiscover(List<ApplicationInstance> appInstances) {
         Map<String, List<ApplicationInstance>> group2ActiveAppInstances = appInstances.stream().collect(Collectors.groupingBy(ApplicationInstance::group));
 
         if (log.isDebugEnabled()) {
-            log.debug("discover active application instances {}", group2ActiveAppInstances);
+            log.debug("{} discover active application instances {}", getName(), group2ActiveAppInstances);
         }
 
         //deep copy
         Map<String, Set<AppInstanceContext>> group2AppInstanceContexts = new HashMap<>(this.group2AppInstanceContexts);
-        for (String group : group2AppInstanceContexts.keySet()) {
-            group2AppInstanceContexts.put(group, new HashSet<>(group2AppInstanceContexts.get(group)));
-        }
+        group2AppInstanceContexts.replaceAll((g, v) -> new HashSet<>(group2AppInstanceContexts.get(g)));
 
         if (log.isDebugEnabled()) {
-            log.debug("old application instances {}", group2AppInstanceContexts);
+            log.debug("{} old application instances {}", getName(), group2AppInstanceContexts);
         }
 
         //新加入的application instance
@@ -164,9 +164,7 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
                 Set<ApplicationInstance> oldAppInstances = oldAppInstanceContexts.stream()
                         .map(AppInstanceContext::getInstance)
                         .collect(Collectors.toSet());
-                Iterator<ApplicationInstance> iterator = activeAppInstances.iterator();
-                while (iterator.hasNext()) {
-                    ApplicationInstance activeAppInstance = iterator.next();
+                for (ApplicationInstance activeAppInstance : activeAppInstances) {
                     if (oldAppInstances.contains(activeAppInstance)) {
                         //仍然存活
                         oldAppInstances.remove(activeAppInstance);
@@ -181,20 +179,35 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
                         .filter(oam -> oldAppInstances.contains(oam.getInstance()))
                         .collect(Collectors.toList()));
             }
-
-            group2NewAppInstances.put(group, newAppInstances);
-            group2RmAppInstanceContexts.put(group, rmAppInstanceContexts);
+            if (CollectionUtils.isNonEmpty(newAppInstances)) {
+                group2NewAppInstances.put(group, newAppInstances);
+            }
+            if (CollectionUtils.isNonEmpty(rmAppInstanceContexts)) {
+                group2RmAppInstanceContexts.put(group, rmAppInstanceContexts);
+            }
         }
 
-        // TODO: 2023/7/18
-
         //new
-        fetchAppInstanceMetadata(group2AppInstanceContexts, group2NewAppInstances);
+        boolean appInstanceChanged = false;
+        if (CollectionUtils.isNonEmpty(group2NewAppInstances)) {
+            fetchAppInstanceMetadata(group2AppInstanceContexts, group2NewAppInstances);
+            appInstanceChanged = true;
+        }
 
         //remove
-        removeInvalidAppInstanceMetadata(group2AppInstanceContexts, group2RmAppInstanceContexts);
+        if (CollectionUtils.isNonEmpty(group2RmAppInstanceContexts)) {
+            removeInvalidAppInstanceMetadata(group2AppInstanceContexts, group2RmAppInstanceContexts);
+            appInstanceChanged = true;
+        }
+
+        if (!appInstanceChanged) {
+            log.debug("{} discover application instances finished, nothing changed", getName());
+            return;
+        }
 
         this.group2AppInstanceContexts = group2AppInstanceContexts;
+
+        log.debug("{} discover application instances finished, validInstances={}", getName(), group2AppInstanceContexts);
 
         //notify directory
         Map<String, List<ServiceInstance>> service2Instances = new HashMap<>();
@@ -233,10 +246,10 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
     private void fetchAppInstanceMetadata(Map<String, Set<AppInstanceContext>> group2AppInstanceContexts,
                                           Map<String, Set<ApplicationInstance>> group2NewAppInstances) {
         if (log.isDebugEnabled()) {
-            log.debug("new application instances {}", group2NewAppInstances);
+            log.debug("{} find new application instances {}", getName(), group2NewAppInstances);
         }
 
-        List<CompletableFuture<Tuple<String, AppInstanceContext>>> appInstanceContextFutures = new ArrayList<>();
+        List<Supplier<Tuple<String, AppInstanceContext>>> appInstanceContextSuppliers = new ArrayList<>(group2NewAppInstances.size() * 3);
         for (Map.Entry<String, Set<ApplicationInstance>> entry : group2NewAppInstances.entrySet()) {
             String group = entry.getKey();
 
@@ -247,7 +260,7 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
             }
 
             for (ApplicationInstance appInstance : entry.getValue()) {
-                CompletableFuture<Tuple<String, AppInstanceContext>> future = CompletableFuture.supplyAsync(() -> {
+                appInstanceContextSuppliers.add(() -> {
                     ReferenceConfig<MetadataService> metadataServiceReferenceConfig = ReferenceUtils.createInternalServiceReference(appInstance,
                             MetadataService.class,
                             CommonConstants.METADATA_SERVICE_NAME);
@@ -267,51 +280,21 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
                             new AppInstanceContext(appInstance, serviceInstances,
                                     metadataServiceReferenceConfig, metadataService));
                 });
-                appInstanceContextFutures.add(future);
             }
         }
 
-        try {
-            CompletableFuture.allOf(appInstanceContextFutures.toArray(new CompletableFuture[0]))
-                    .get(10, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        } catch (ExecutionException e) {
-            log.error("wait concurrent fetch application instance metadata error", e.getCause());
-        } catch (TimeoutException e) {
-            log.error("wait concurrent fetch application instance metadata timeout", e.getCause());
-        }
+        for (Tuple<String, AppInstanceContext> tuple :
+                DiscoveryUtils.concurrentSupply(appInstanceContextSuppliers, "fetch application instance metadata")) {
+            String group = tuple.first();
+            AppInstanceContext appInstanceContext = tuple.second();
 
-        for (CompletableFuture<Tuple<String, AppInstanceContext>> future : appInstanceContextFutures) {
-            if (!future.isDone()) {
-                continue;
+            Set<AppInstanceContext> appInstanceContexts = group2AppInstanceContexts.get(group);
+            if (Objects.isNull(appInstanceContexts)) {
+                appInstanceContexts = new HashSet<>();
+                group2AppInstanceContexts.put(group, appInstanceContexts);
             }
 
-            if (future.isCompletedExceptionally()) {
-                continue;
-            }
-
-            if (future.isCancelled()) {
-                continue;
-            }
-
-            try {
-                Tuple<String, AppInstanceContext> tuple = future.get();
-                String group = tuple.first();
-                AppInstanceContext appInstanceContext = tuple.second();
-
-                Set<AppInstanceContext> appInstanceContexts = group2AppInstanceContexts.get(group);
-                if (Objects.isNull(appInstanceContexts)) {
-                    appInstanceContexts = new HashSet<>();
-                    group2AppInstanceContexts.put(group, appInstanceContexts);
-                }
-
-                appInstanceContexts.add(appInstanceContext);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            } catch (ExecutionException e) {
-                log.error("get app instance context from future error", e.getCause());
-            }
+            appInstanceContexts.add(appInstanceContext);
         }
     }
 
@@ -324,7 +307,7 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
     private void removeInvalidAppInstanceMetadata(Map<String, Set<AppInstanceContext>> group2AppInstanceContexts,
                                                   Map<String, Set<AppInstanceContext>> group2RmAppInstanceContexts) {
         if (log.isDebugEnabled()) {
-            log.debug("remove application instances {}", group2RmAppInstanceContexts);
+            log.debug("{} remove invalid application instances {}", getName(), group2RmAppInstanceContexts);
         }
         for (Map.Entry<String, Set<AppInstanceContext>> entry : group2RmAppInstanceContexts.entrySet()) {
             String group = entry.getKey();
@@ -363,6 +346,7 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
         if (log.isDebugEnabled()) {
             log.debug("reference subscribe application group '{}' on {}", group, getName());
         }
+        watchingGroup.put(group, group);
         return doSubscribe(config);
     }
 
@@ -372,8 +356,8 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
         if (log.isDebugEnabled()) {
             log.debug("unsubscribe application group '{}' on {}", group, getName());
         }
-
-        unsubscribe(config);
+        watchingGroup.release(group);
+        doUnsubscribe(config);
     }
 
     @Override
@@ -419,6 +403,25 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
      * 释放注册中心占用资源
      */
     protected abstract void doDestroy();
+
+    /**
+     * 返回是否正在监听应用组
+     *
+     * @param group 应用组
+     * @return true表示正在监听应用组
+     */
+    protected boolean isWatching(String group) {
+        return watchingGroup.get(group) != null;
+    }
+
+    /**
+     * 返回正在监听的所有应用组
+     *
+     * @return 应用组
+     */
+    protected Collection<String> getWatchingGroups() {
+        return watchingGroup.values();
+    }
 
     //getter
     public String getName() {

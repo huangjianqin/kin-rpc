@@ -12,7 +12,7 @@ public class RemoteServiceConsumer extends ServiceConsumer {
     public static void invoke(String appNamePrefix, String protocol) {
 //        Map<String, String> metadata = new HashMap<>();
 //        metadata.put(ServiceMetadataConstants.SCHEMA_KEY, protocol);
-//        metadata.put(ServiceMetadataConstants.SERIALIZATION_KEY, SerializationType.JSON.getName());
+//        metadata.put(ServiceMetadataConstants.SERIALIZATION_KEY, SerializationType.JSONB.getName());
 //        metadata.put(ServiceMetadataConstants.WEIGHT_KEY, "1");
 //        metadata.put(ServiceMetadataConstants.TOKEN_KEY, "123456");
 //        DefaultServiceInstance instance1 = new DefaultServiceInstance(GsvUtils.service("kinrpc", Constants.DEMO_SERVICE_NAME, "0.1.0.0"),
@@ -32,10 +32,10 @@ public class RemoteServiceConsumer extends ServiceConsumer {
 //        );
 
         String address = String.join(RegistryConfig.ADDRESS_SEPARATOR,
-                protocol + "://127.0.0.1:13000/kinrpc:demo:0.1.0.0?serialization=json&weight=1&token=123456"
-//                protocol+ "://127.0.0.1:13100/kinrpc:demo:0.1.0.0?serialization=json&weight=2&token=123456",
-//                protocol+ "://127.0.0.1:13200/kinrpc:demo:0.1.0.0?serialization=json&weight=3&token=123456"
-//                protocol+ "://127.0.0.1:13300/kinrpc/demo:0.1.0.0?serialization=json&weight=4&token=123456"
+                protocol + "://127.0.0.1:13000/kinrpc:demo:0.1.0.0?serialization=jsonb&weight=1&token=123456"
+//                protocol+ "://127.0.0.1:13100/kinrpc:demo:0.1.0.0?serialization=jsonb&weight=2&token=123456",
+//                protocol+ "://127.0.0.1:13200/kinrpc:demo:0.1.0.0?serialization=jsonb&weight=3&token=123456"
+//                protocol+ "://127.0.0.1:13300/kinrpc/demo:0.1.0.0?serialization=jsonb&weight=4&token=123456"
         );
         RegistryConfig registryConfig = RegistryConfig.direct(address);
         ReferenceConfig<DemoService> referenceConfig = ReferenceConfig.create(DemoService.class)
@@ -70,10 +70,10 @@ public class RemoteServiceConsumer extends ServiceConsumer {
 
     public static void genericInvoke(String appNamePrefix, String protocol) {
         String address = String.join(RegistryConfig.ADDRESS_SEPARATOR,
-                protocol + "://127.0.0.1:13000/kinrpc:demo:0.1.0.0?serialization=json&weight=1&token=123456"
-//                protocol+ "://127.0.0.1:13100/kinrpc:demo:0.1.0.0?serialization=json&weight=2&token=123456",
-//                protocol+ "://127.0.0.1:13200/kinrpc:demo:0.1.0.0?serialization=json&weight=3&token=123456"
-//                protocol+ "://127.0.0.1:13300/kinrpc/demo:0.1.0.0?serialization=json&weight=4&token=123456"
+                protocol + "://127.0.0.1:13000/kinrpc:demo:0.1.0.0?serialization=jsonb&weight=1&token=123456"
+//                protocol+ "://127.0.0.1:13100/kinrpc:demo:0.1.0.0?serialization=jsonb&weight=2&token=123456",
+//                protocol+ "://127.0.0.1:13200/kinrpc:demo:0.1.0.0?serialization=jsonb&weight=3&token=123456"
+//                protocol+ "://127.0.0.1:13300/kinrpc/demo:0.1.0.0?serialization=jsonb&weight=4&token=123456"
         );
         RegistryConfig registryConfig = RegistryConfig.direct(address);
         ReferenceConfig<GenericService> genericReferenceConfig = ReferenceConfig.create(GenericService.class)
@@ -113,10 +113,10 @@ public class RemoteServiceConsumer extends ServiceConsumer {
      */
     public static void invoke2(String appNamePrefix, String protocol) {
         String address = String.join(RegistryConfig.ADDRESS_SEPARATOR,
-                protocol + "://127.0.0.1:13000/kinrpc:demo:0.1.0.0?serialization=json&weight=1&token=123456"
-//                protocol+ "://127.0.0.1:13100/kinrpc:demo:0.1.0.0?serialization=json&weight=2&token=123456",
-//                protocol+ "://127.0.0.1:13200/kinrpc:demo:0.1.0.0?serialization=json&weight=3&token=123456"
-//                protocol+ "://127.0.0.1:13300/kinrpc/demo:0.1.0.0?serialization=json&weight=4&token=123456"
+                protocol + "://127.0.0.1:13000/kinrpc:demo:0.1.0.0?serialization=jsonb&weight=1&token=123456"
+//                protocol+ "://127.0.0.1:13100/kinrpc:demo:0.1.0.0?serialization=jsonb&weight=2&token=123456",
+//                protocol+ "://127.0.0.1:13200/kinrpc:demo:0.1.0.0?serialization=jsonb&weight=3&token=123456"
+//                protocol+ "://127.0.0.1:13300/kinrpc/demo:0.1.0.0?serialization=jsonb&weight=4&token=123456"
         );
 
         KinRpcBootstrap.instance()

@@ -31,6 +31,7 @@ public final class ReferenceUtils {
 
     /**
      * 创建内置服务reference  config
+     * todo 如何带上ssl
      *
      * @param appInstance    application instance
      * @param interfaceClass 服务接口

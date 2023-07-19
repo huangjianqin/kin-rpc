@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: kinrpc-demo-springboot-provider-zk3
+server:
+  port: 14020
+kinrpc:
+  server:
+    port: 13020
+    protocol: "kinrpc"
+  executor:
+    id: "executor1"
+    type: "fix"
+  provider:
+    executor:
+      id: "executor1"
+    weight: 2
+    filter-beans: "logFilter"
+    delay: 3000
+    token: "123456"
+  async-export-refer: true
+  registry:
+    type: 'zookeeper'
+    address: "127.0.0.1:2181"

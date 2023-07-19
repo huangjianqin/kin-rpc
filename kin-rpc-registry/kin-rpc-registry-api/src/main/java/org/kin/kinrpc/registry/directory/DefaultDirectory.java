@@ -12,14 +12,16 @@ import org.kin.kinrpc.ServiceMetadataConstants;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.protocol.Protocol;
 import org.kin.kinrpc.protocol.Protocols;
+import org.kin.kinrpc.registry.DiscoveryUtils;
 import org.kin.kinrpc.registry.RegistryHelper;
 import org.kin.kinrpc.transport.cmd.Serializations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -186,11 +188,23 @@ public class DefaultDirectory implements Directory {
         }
 
         //为未创建invoker的service instance创建invoker
-        validInvokers.addAll(createReferenceInvokers(serviceInstances));
+        boolean serviceInstanceChanged = false;
+        if (CollectionUtils.isNonEmpty(serviceInstances)) {
+            validInvokers.addAll(createReferenceInvokers(serviceInstances));
+            serviceInstanceChanged = true;
+        }
 
         //async destroy invalid invokers
-        for (ReferenceInvoker<?> invoker : invalidInvokers) {
-            ReferenceContext.DISCOVERY_SCHEDULER.execute(invoker::destroy);
+        if (CollectionUtils.isNonEmpty(invalidInvokers)) {
+            for (ReferenceInvoker<?> invoker : invalidInvokers) {
+                ReferenceContext.DISCOVERY_SCHEDULER.execute(invoker::destroy);
+                serviceInstanceChanged = true;
+            }
+        }
+
+        if (!serviceInstanceChanged) {
+            log.info("directory(service={}) discover finished, nothing changed", service());
+            return;
         }
 
         //update cache
@@ -215,9 +229,9 @@ public class DefaultDirectory implements Directory {
             return Collections.emptyList();
         }
 
-        List<CompletableFuture<? extends ReferenceInvoker<?>>> referenceInvokerFutures = new LinkedList<>();
+        List<Supplier<ReferenceInvoker<?>>> referenceInvokerSuppliers = new LinkedList<>();
         for (ServiceInstance instance : serviceInstances) {
-            CompletableFuture<? extends ReferenceInvoker<?>> referenceInvokerFuture = CompletableFuture.supplyAsync(() -> {
+            referenceInvokerSuppliers.add(() -> {
                 String schema = instance.metadata(ServiceMetadataConstants.SCHEMA_KEY);
                 Protocol protocol = ExtensionLoader.getExtension(Protocol.class, schema);
                 Preconditions.checkNotNull(protocol, String.format("protocol not found, %s", schema));
@@ -229,36 +243,10 @@ public class DefaultDirectory implements Directory {
                     log.error("fail to create reference invoker, instance = {}", instance);
                 }
                 return referenceInvoker;
-            }, ReferenceContext.SCHEDULER);
-            referenceInvokerFutures.add(referenceInvokerFuture);
+            });
         }
 
-        CompletableFuture<Void> waitReferFuture = CompletableFuture.allOf(referenceInvokerFutures.toArray(new CompletableFuture[0]));
-        try {
-            waitReferFuture.get(10, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        } catch (ExecutionException e) {
-            log.error("wait concurrent create reference invoker error", e.getCause());
-        } catch (TimeoutException e) {
-            log.error("wait concurrent create reference invoker timeout", e);
-        }
-
-        return referenceInvokerFutures.stream()
-                .filter(CompletableFuture::isDone)
-                .filter(f -> !f.isCompletedExceptionally() || !f.isCancelled())
-                .map(f -> {
-                    try {
-                        return f.get();
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    } catch (ExecutionException e) {
-                        log.error("get reference invoker from future error", e.getCause());
-                    }
-                    return null;
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        return DiscoveryUtils.concurrentSupply(referenceInvokerSuppliers, "create reference invoker");
     }
 
     @Override

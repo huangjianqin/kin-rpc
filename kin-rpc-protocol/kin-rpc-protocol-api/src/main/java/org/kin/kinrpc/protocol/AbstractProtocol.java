@@ -37,7 +37,7 @@ public abstract class AbstractProtocol implements Protocol {
      * todo 同一remote server, 但一个reference需要使用ssl, 另外一个reference需要不使用ssl, 怎么处理
      * todo 同一remote server, 是否考虑需要client池
      */
-    private final ReferenceCountedCache<String, DefaultReferenceInvoker<?>> referenceInvokerCache = new ReferenceCountedCache<>();
+    private final ReferenceCountedCache<String, RemotingClient> clientCache = new ReferenceCountedCache<>();
 
     /**
      * 返回协议名
@@ -108,12 +108,13 @@ public abstract class AbstractProtocol implements Protocol {
     public final <T> ReferenceInvoker<T> refer(ReferenceConfig<T> referenceConfig,
                                                ServiceInstance instance) {
         String address = instance.address();
-        return (ReferenceInvoker<T>) referenceInvokerCache.get(address, () -> {
+        RemotingClient client = clientCache.get(address, () -> {
             Transport transport = ExtensionLoader.getExtension(Transport.class, name());
-            RemotingClient client = wrapClient(transport.createClient(instance.host(), instance.port(), referenceConfig.getSsl()), address);
-            client.connect();
-            return new DefaultReferenceInvoker<>(instance, client);
+            RemotingClient innerClient = wrapClient(transport.createClient(instance.host(), instance.port(), referenceConfig.getSsl()), address);
+            innerClient.connect();
+            return innerClient;
         });
+        return new DefaultReferenceInvoker<>(instance, client);
     }
 
     /**
@@ -142,7 +143,7 @@ public abstract class AbstractProtocol implements Protocol {
 
             @Override
             public void shutdown() {
-                if (referenceInvokerCache.release(address)) {
+                if (clientCache.release(address)) {
                     client.shutdown();
                 }
             }
@@ -167,6 +168,6 @@ public abstract class AbstractProtocol implements Protocol {
     @Override
     public void destroy() {
         serverContextCache.clear();
-        referenceInvokerCache.clear();
+        clientCache.clear();
     }
 }
