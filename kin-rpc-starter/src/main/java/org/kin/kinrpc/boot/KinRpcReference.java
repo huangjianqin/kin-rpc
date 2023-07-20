@@ -94,6 +94,9 @@ public @interface KinRpcReference {
     /** 是否仅在jvm内发布服务 */
     boolean jvm() default false;
 
+    /** 指定服务由那些应用提供, 如果存在多个, 则逗号分隔 */
+    String provideBy() default "";
+
     /** rpc call timeout(ms) */
     int rpcTimeout() default -1;
 

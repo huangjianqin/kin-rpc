@@ -114,6 +114,11 @@ public final class KinRpcReferenceUtils {
         referenceConfig.async((Boolean) referenceAnnoAttrs.get("async"))
                 .sticky((Boolean) referenceAnnoAttrs.get("sticky"));
 
+        String provideBy = (String) referenceAnnoAttrs.get("provideBy");
+        if (StringUtils.isNotBlank(provideBy)) {
+            referenceConfig.provideBy(provideBy);
+        }
+
         AnnotationAttributes[] handlerAnnoAttrsList = (AnnotationAttributes[]) referenceAnnoAttrs.get("handlers");
         if (CollectionUtils.isNonEmpty(handlerAnnoAttrsList)) {
             for (AnnotationAttributes handlerAnnoAttrs : handlerAnnoAttrsList) {

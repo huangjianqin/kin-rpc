@@ -127,7 +127,6 @@ public class RegistryHelper {
         Url url = new Url(serverConfig.getProtocol(),
                 serverConfig.getHost(),
                 serverConfig.getPort());
-        url.putParam(ServiceMetadataConstants.APP_NAME_KEY, serviceConfig.getApp().getAppName());
         return url;
     }
 

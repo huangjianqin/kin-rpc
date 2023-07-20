@@ -73,7 +73,7 @@ public final class ReferenceUtils {
      * 解析{@link ReferenceConfig#getProvideBy()}字段
      *
      * @param provideBy app names collection
-     * @return app names
+     * @return sorted app name set
      */
     public static Set<String> parseProvideBy(String provideBy) {
         if (StringUtils.isBlank(provideBy)) {
