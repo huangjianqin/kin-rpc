@@ -124,10 +124,9 @@ public class RegistryHelper {
      * @return 服务url
      */
     public static Url toUrl(ServiceConfig<?> serviceConfig, ServerConfig serverConfig) {
-        Url url = new Url(serverConfig.getProtocol(),
+        return new Url(serverConfig.getProtocol(),
                 serverConfig.getHost(),
                 serverConfig.getPort());
-        return url;
     }
 
     /**

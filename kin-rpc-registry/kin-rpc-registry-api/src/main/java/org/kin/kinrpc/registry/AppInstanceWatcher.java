@@ -1,5 +1,6 @@
 package org.kin.kinrpc.registry;
 
+import org.jctools.maps.NonBlockingHashMap;
 import org.jctools.queues.atomic.MpscUnboundedAtomicArrayQueue;
 import org.kin.framework.collection.Tuple;
 import org.kin.framework.utils.CollectionUtils;
@@ -13,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
@@ -32,13 +32,13 @@ public class AppInstanceWatcher {
      * key -> app name, value -> application instance context list
      * value单线程更新, 多线程访问
      */
-    private final Map<String, Set<AppInstanceContext>> appInstanceContexts = new ConcurrentHashMap<>();
+    private final Map<String, Set<AppInstanceContext>> appInstanceContexts = new NonBlockingHashMap<>();
     /** 标识是否正在处理发现的应用实例 */
     private final AtomicBoolean discovering = new AtomicBoolean(false);
     /** 待处理的应用实例列表 */
     private final Queue<Tuple<String, List<ApplicationInstance>>> discoverQueue = new MpscUnboundedAtomicArrayQueue<>(8);
     /** key -> 服务唯一标识, value -> service instance changed listener list */
-    private final Map<String, Set<ServiceInstanceChangedListener>> service2Listeners = new ConcurrentHashMap<>();
+    private final Map<String, Set<ServiceInstanceChangedListener>> service2Listeners = new NonBlockingHashMap<>();
 
     public AppInstanceWatcher(Set<String> appNames) {
         this.appNames = appNames;

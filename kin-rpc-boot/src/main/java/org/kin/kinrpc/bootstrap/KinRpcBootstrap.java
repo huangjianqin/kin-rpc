@@ -139,14 +139,16 @@ public final class KinRpcBootstrap {
         //服务引用
         referServices();
 
-        waitAsyncExportRefer();
+        if (CollectionUtils.isEmpty(asyncExportReferFutures)) {
+            onStarted();
+        } else {
+            //async wait
+            asyncExportReferExecutor
+                    .execute(() -> {
+                        waitAsyncExportRefer();
 
-        for (KinRpcBootstrapListener listener : kinRpcBootstrapListeners) {
-            try {
-                listener.onStarted(this);
-            } catch (Exception e) {
-                log.error("KinRpcBootstrapListener#onStarted fail", e);
-            }
+                        onStarted();
+                    });
         }
     }
 
@@ -582,6 +584,24 @@ public final class KinRpcBootstrap {
     }
 
     /**
+     * bootstrap started
+     */
+    private void onStarted() {
+        for (KinRpcBootstrapListener listener : kinRpcBootstrapListeners) {
+            try {
+                listener.onStarted(this);
+            } catch (Exception e) {
+                log.error("KinRpcBootstrapListener#onStarted fail", e);
+            }
+        }
+
+        if (Objects.nonNull(asyncExportReferExecutor)) {
+            asyncExportReferExecutor.shutdown();
+            asyncExportReferExecutor = null;
+        }
+    }
+
+    /**
      * 服务引用
      */
     private void referService(ReferenceConfig<?> referenceConfig) {
@@ -810,10 +830,6 @@ public final class KinRpcBootstrap {
                 log.error("async export or refer error", e);
             }
         } finally {
-            if (Objects.nonNull(asyncExportReferExecutor)) {
-                asyncExportReferExecutor.shutdown();
-                asyncExportReferExecutor = null;
-            }
             asyncExportReferFutures.clear();
             asyncExportReferFutures = null;
             log.info("async export or refer finished");

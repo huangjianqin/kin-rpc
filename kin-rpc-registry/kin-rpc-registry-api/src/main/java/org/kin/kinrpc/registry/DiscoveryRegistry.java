@@ -1,9 +1,12 @@
 package org.kin.kinrpc.registry;
 
+import org.jctools.maps.NonBlockingHashMap;
 import org.kin.framework.cache.ReferenceCountedCache;
+import org.kin.framework.collection.CopyOnWriteMap;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.ApplicationInstance;
 import org.kin.kinrpc.ReferenceContext;
+import org.kin.kinrpc.ServiceMetadata;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.RegistryConfig;
 import org.kin.kinrpc.config.ServiceConfig;
@@ -12,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
@@ -27,7 +29,9 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
     /** key -> sorted provideBy, value -> {@link AppInstanceWatcher}实例 */
     private final ReferenceCountedCache<String, AppInstanceWatcher> watchers = new ReferenceCountedCache<>();
     /** key -> app name, value -> {@link AppInstanceWatcher}实例 */
-    private final Map<String, Set<AppInstanceWatcher>> app2Watchers = new ConcurrentHashMap<>();
+    private final Map<String, Set<AppInstanceWatcher>> app2Watchers = new NonBlockingHashMap<>();
+    /** key -> 服务唯一标识, value -> 服务元数据 */
+    private final Map<String, ServiceMetadata> serviceMetadataMap = new CopyOnWriteMap<>(() -> new HashMap<>(4));
     /** 是否terminated */
     private volatile boolean terminated;
 
@@ -56,6 +60,10 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
         if (isTerminated()) {
             throw new IllegalStateException(String.format("%s has been terminated", getName()));
         }
+    }
+
+    public final void register() {
+
     }
 
     @Override

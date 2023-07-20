@@ -44,6 +44,7 @@ public final class ReferenceUtils {
     /**
      * 创建内置服务reference  config
      * todo 如何带上ssl
+     * todo app ssl 全jvm唯一
      *
      * @param appInstance    application instance
      * @param interfaceClass 服务接口
