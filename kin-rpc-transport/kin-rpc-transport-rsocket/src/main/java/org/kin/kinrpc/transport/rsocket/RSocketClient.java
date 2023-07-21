@@ -69,7 +69,7 @@ public class RSocketClient extends AbstractRemotingClient {
                 .port(port);
         if (Objects.nonNull(sslConfig)) {
             //ssl
-            tcpClient = tcpClient.secure(scs -> scs.sslContext(SslUtils.setUpClientSslContext(
+            tcpClient = tcpClient.secure(scs -> scs.sslContext(SslUtils.getClientSslContext(
                     sslConfig.getCertFile(), sslConfig.getCertKeyFile(), sslConfig.getCertKeyPassword(),
                     sslConfig.getCaFile(), sslConfig.getFingerprintFile())));
         }

@@ -1,6 +1,6 @@
 package org.kin.kinrpc.registry;
 
-import org.kin.kinrpc.ReferenceContext;
+import org.kin.kinrpc.RegistryContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +47,7 @@ public final class DiscoveryUtils {
     public static <T> List<T> concurrentSupply(List<Supplier<T>> suppliers, String desc, int timeoutMs) {
         List<CompletableFuture<T>> futures = new ArrayList<>();
         for (Supplier<T> supplier : suppliers) {
-            futures.add(CompletableFuture.supplyAsync(supplier, ReferenceContext.DISCOVERY_SCHEDULER));
+            futures.add(CompletableFuture.supplyAsync(supplier, RegistryContext.SCHEDULER));
         }
 
         try {

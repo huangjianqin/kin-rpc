@@ -1,5 +1,7 @@
 package org.kin.kinrpc;
 
+import org.kin.framework.utils.NetUtils;
+
 import java.util.Map;
 
 /**
@@ -8,11 +10,13 @@ import java.util.Map;
  */
 public interface ApplicationInstance {
     /**
-     * 返回application instance group
+     * 返回ip:port地址
      *
-     * @return application instance group
+     * @return ip:port地址
      */
-    String group();
+    default String address() {
+        return NetUtils.getIpPort(host(), port());
+    }
 
     /**
      * 返回application instance host
@@ -41,6 +45,13 @@ public interface ApplicationInstance {
      * @return application instance schema
      */
     String scheme();
+
+    /**
+     * 返回应用服务元数据版本
+     *
+     * @return 应用服务元数据版本
+     */
+    String revision();
 
     /**
      * 返回应用实例元数据

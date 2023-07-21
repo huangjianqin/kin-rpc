@@ -2,18 +2,18 @@ package org.kin.kinrpc.registry;
 
 import org.jctools.maps.NonBlockingHashMap;
 import org.kin.framework.cache.ReferenceCountedCache;
-import org.kin.framework.collection.CopyOnWriteMap;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.ApplicationInstance;
-import org.kin.kinrpc.ReferenceContext;
-import org.kin.kinrpc.ServiceMetadata;
+import org.kin.kinrpc.RegistryContext;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.RegistryConfig;
+import org.kin.kinrpc.config.ServerConfig;
 import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.utils.ReferenceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -30,8 +30,8 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
     private final ReferenceCountedCache<String, AppInstanceWatcher> watchers = new ReferenceCountedCache<>();
     /** key -> app name, value -> {@link AppInstanceWatcher}实例 */
     private final Map<String, Set<AppInstanceWatcher>> app2Watchers = new NonBlockingHashMap<>();
-    /** key -> 服务唯一标识, value -> 服务元数据 */
-    private final Map<String, ServiceMetadata> serviceMetadataMap = new CopyOnWriteMap<>(() -> new HashMap<>(4));
+    /** key -> address, value -> app metadata */
+    private final Map<String, ApplicationMetadata> address2AppMetaData = new NonBlockingHashMap<>();
     /** 是否terminated */
     private volatile boolean terminated;
 
@@ -47,9 +47,12 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
      * @param appInstances 应用实例列表
      */
     protected final void onAppInstancesChanged(String appName, List<ApplicationInstance> appInstances) {
+        if (isTerminated()) {
+            return;
+        }
         Set<AppInstanceWatcher> watchers = app2Watchers.get(appName);
         for (AppInstanceWatcher watcher : watchers) {
-            ReferenceContext.DISCOVERY_SCHEDULER.execute(() -> watcher.onDiscovery(appName, appInstances));
+            RegistryContext.SCHEDULER.execute(() -> watcher.onDiscovery(appName, appInstances));
         }
     }
 
@@ -62,19 +65,52 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
         }
     }
 
-    public final void register() {
+    /**
+     * 注册/更新应用实例
+     */
+    public final void refreshAppInstances() {
+        if (isTerminated()) {
+            return;
+        }
+        for (ApplicationMetadata appMetadata : address2AppMetaData.values()) {
+            RegistryContext.SCHEDULER.execute(() -> updateIfChanged(appMetadata));
+        }
+    }
 
+    /**
+     * 如果有变化, 则注册/更新应用实例
+     */
+    private void updateIfChanged(ApplicationMetadata appMetadata) {
+        String latestRevision;
+        synchronized (appMetadata) {
+            String revision = appMetadata.getRevision();
+            latestRevision = appMetadata.calOrUpdateRevision();
+            if (latestRevision.equals(revision)) {
+                //revision没有变化
+                return;
+            }
+        }
+
+        doRegister(appMetadata, latestRevision);
     }
 
     @Override
     public final void register(ServiceConfig<?> serviceConfig) {
         checkTerminated();
 
+        if (serviceConfig.getRegister()) {
+
+        }
+
         String appName = serviceConfig.getApp().getAppName();
         String group = config.getGroup();
         log.info("register application '{}' in group '{}' to {}", appName, group, getName());
 
-        doRegister(serviceConfig);
+        for (ServerConfig serverConfig : serviceConfig.getServers()) {
+            String address = serverConfig.getAddress();
+            ApplicationMetadata appMetadata = address2AppMetaData.computeIfAbsent(address, k -> new ApplicationMetadata(appName, serverConfig));
+            appMetadata.register(serviceConfig);
+        }
     }
 
     @Override
@@ -85,7 +121,15 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
         String group = config.getGroup();
         log.info("unregister application '{}' in group '{}' from {}", appName, group, getName());
 
-        doUnregister(serviceConfig);
+        String service = serviceConfig.getService();
+        for (ServerConfig serverConfig : serviceConfig.getServers()) {
+            String address = serverConfig.getAddress();
+            ApplicationMetadata appMetadata = address2AppMetaData.get(address);
+            if (Objects.isNull(appMetadata)) {
+                continue;
+            }
+            appMetadata.unregister(service);
+        }
     }
 
     @Override
@@ -159,6 +203,11 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
         }
 
         terminated = true;
+
+        for (ApplicationMetadata metadata : address2AppMetaData.values()) {
+            doUnregister(metadata);
+        }
+
         doDestroy();
 
         log.info("{} destroyed", getName());
@@ -167,16 +216,17 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
     /**
      * 注册服务
      *
-     * @param serviceConfig 服务配置
+     * @param appMetadata 应用元数据信息
+     * @param revision    注册的服务元数据版本
      */
-    protected abstract void doRegister(ServiceConfig<?> serviceConfig);
+    protected abstract void doRegister(ApplicationMetadata appMetadata, String revision);
 
     /**
      * 注销服务
      *
-     * @param serviceConfig 服务配置
+     * @param appMetadata 应用元数据信息
      */
-    protected abstract void doUnregister(ServiceConfig<?> serviceConfig);
+    protected abstract void doUnregister(ApplicationMetadata appMetadata);
 
     /**
      * 监听应用实例变化
@@ -205,6 +255,26 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
      */
     protected final Set<String> getWatchingAppNames() {
         return app2Watchers.keySet();
+    }
+
+    /**
+     * 返回{@code revision}对应的服务元数据
+     *
+     * @param revision 服务元数据版本
+     * @return {@link ApplicationMetadata}实例
+     */
+    @Nullable
+    public final ApplicationMetadata getServiceMetadataMap(String revision) {
+        if (StringUtils.isBlank(revision)) {
+            return null;
+        }
+
+        for (ApplicationMetadata appMetadata : address2AppMetaData.values()) {
+            if (revision.equals(appMetadata.getRevision())) {
+                return appMetadata;
+            }
+        }
+        return null;
     }
 
     //getter

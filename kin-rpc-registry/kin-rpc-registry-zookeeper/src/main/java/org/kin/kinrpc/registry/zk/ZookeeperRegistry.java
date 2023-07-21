@@ -7,21 +7,23 @@ import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.*;
 import org.kin.framework.concurrent.SimpleThreadFactory;
+import org.kin.framework.utils.ExceptionUtils;
+import org.kin.framework.utils.JSON;
+import org.kin.framework.utils.NetUtils;
+import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.ApplicationInstance;
 import org.kin.kinrpc.DefaultApplicationInstance;
-import org.kin.kinrpc.ReferenceContext;
-import org.kin.kinrpc.ServiceMetadataConstants;
-import org.kin.kinrpc.common.Url;
+import org.kin.kinrpc.RegistryContext;
 import org.kin.kinrpc.config.RegistryConfig;
-import org.kin.kinrpc.config.ServerConfig;
-import org.kin.kinrpc.config.ServiceConfig;
+import org.kin.kinrpc.registry.ApplicationMetadata;
 import org.kin.kinrpc.registry.DiscoveryRegistry;
-import org.kin.kinrpc.registry.RegistryHelper;
+import org.kin.kinrpc.registry.DiscoveryUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 /**
  * 以zookeeper为注册中心, 实时监听应用实例状态变化, 并更新可用{@link org.kin.kinrpc.ReferenceInvoker}实例
@@ -31,10 +33,10 @@ import java.util.concurrent.TimeUnit;
  */
 public final class ZookeeperRegistry extends DiscoveryRegistry {
     private static final Logger log = LoggerFactory.getLogger(ZookeeperRegistry.class);
-    /** zk注册中心root path */
-    private static final String ROOT = "kinrpc";
     /** zk path 分隔符 */
     private static final String PATH_SEPARATOR = "/";
+    /** zk注册中心root path */
+    private static final String ROOT = "kinrpc" + PATH_SEPARATOR + "services";
 
     /** zk注册中心root path */
     private static String root() {
@@ -48,12 +50,14 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
 
     /** zk注册中心应用path */
     private static String getPath(String group, String appName) {
-        return getPath(group) + PATH_SEPARATOR + appName;
+        String groupPath = (StringUtils.isNotBlank(group) ? getPath(group) : "") + PATH_SEPARATOR;
+        return groupPath + appName;
     }
 
     /** zk注册中心应用path */
-    private static String getPath(String group, String appName, String instance) {
-        return getPath(group) + PATH_SEPARATOR + appName + PATH_SEPARATOR + instance;
+    private static String getPath(String group, String appName, String address) {
+        String groupPath = (StringUtils.isNotBlank(group) ? getPath(group) : "") + PATH_SEPARATOR;
+        return groupPath + appName + PATH_SEPARATOR + address;
     }
 
     /** zk地址 */
@@ -125,20 +129,52 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
      * 创建zk node
      *
      * @param path zk path
+     * @param data zk path data
      */
-    private void createZNode(String path) {
+    private void createOrUpdateZNode(String path, byte[] data) {
         try {
             client.create()
                     //递归创建
                     .creatingParentsIfNeeded()
                     .withMode(CreateMode.PERSISTENT)
                     .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
-                    .forPath(path);
+                    .forPath(path, data);
             if (log.isDebugEnabled()) {
                 log.debug("create persistent znode(path='{}') success", path);
             }
+        } catch (KeeperException e) {
+            if (e instanceof KeeperException.NodeExistsException) {
+                updateZNode(path, data);
+            } else {
+                log.error("create persistent znode(path='{}') fail", path, e);
+            }
         } catch (Exception e) {
             log.error("create persistent znode(path='{}') fail", path, e);
+        }
+    }
+
+    /**
+     * 更新zk node
+     *
+     * @param path zk path
+     * @param data zk path data
+     */
+    private void updateZNode(String path, byte[] data) {
+        try {
+            client.setData()
+                    //递归创建
+                    .forPath(path, data);
+            if (log.isDebugEnabled()) {
+                log.debug("update persistent znode(path='{}') success", path);
+            }
+        } catch (KeeperException e) {
+            if (e instanceof KeeperException.NoNodeException) {
+                createOrUpdateZNode(path, data);
+            } else {
+                log.error("update persistent znode(path='{}') fail", path, e);
+            }
+        } catch (Exception e) {
+            log.error("update persistent znode(path='{}') fail", path, e);
         }
     }
 
@@ -180,22 +216,18 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
     }
 
     @Override
-    public void doRegister(ServiceConfig<?> serviceConfig) {
-        String appName = serviceConfig.getApp().getAppName();
-        for (ServerConfig serverConfig : serviceConfig.getServers()) {
-            Url url = RegistryHelper.toUrl(serviceConfig, serverConfig);
-            createZNode(getPath(config.getGroup(), appName, Url.encode(url.toString())));
-        }
+    protected void doRegister(ApplicationMetadata appMetadata, String revision) {
+        DefaultApplicationInstance.Builder instance = DefaultApplicationInstance.create()
+                .revision(revision)
+                .scheme(appMetadata.getProtocol());
+        createOrUpdateZNode(getPath(config.getGroup(), appMetadata.getAppName(), appMetadata.getAddress()),
+                JSON.writeBytes(instance.build()));
     }
 
     @Override
-    public void doUnregister(ServiceConfig<?> serviceConfig) {
-        String appName = serviceConfig.getApp().getAppName();
-        for (ServerConfig serverConfig : serviceConfig.getServers()) {
-            Url url = RegistryHelper.toUrl(serviceConfig, serverConfig);
-            deleteZNode(getPath(config.getGroup(), appName, Url.encode(url.toString())));
-        }
-        tryDeleteZNode(getPath(config.getGroup(), appName));
+    protected void doUnregister(ApplicationMetadata appMetadata) {
+        deleteZNode(getPath(config.getGroup(), appMetadata.getAppName(), appMetadata.getAddress()));
+        tryDeleteZNode(getPath(config.getGroup(), appMetadata.getAppName()));
     }
 
     @Override
@@ -240,7 +272,7 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
             //应用还未注册或者因异常取消注册
             if (e.code().equals(KeeperException.Code.NONODE)) {
                 //等待一段时间
-                ReferenceContext.DISCOVERY_SCHEDULER.schedule(() -> {
+                RegistryContext.SCHEDULER.schedule(() -> {
                     //尝试重新监听应用组节点
                     watchAppGroupNode(group);
                 }, 3, TimeUnit.SECONDS);
@@ -271,19 +303,32 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
                         }
                     }).forPath(getPath(config.getGroup(), appName));
             //并发获取zk node data
-            List<ApplicationInstance> appInstances = new ArrayList<>(childPaths.size());
+            List<Supplier<ApplicationInstance>> suppliers = new ArrayList<>(childPaths.size());
             for (String childPath : childPaths) {
-                Url url = Url.of(Url.decode(childPath));
-                Map<String, String> metadata = url.getParams();
-                metadata.put(ServiceMetadataConstants.SCHEMA_KEY, url.getProtocol());
-                appInstances.add(new DefaultApplicationInstance(appName, url.getHost(), url.getPort(), metadata));
+                suppliers.add(() -> {
+                    String absChildPath = getPath(config.getGroup(), appName, childPath);
+                    try {
+                        byte[] bytes = client.getData()
+                                .forPath(absChildPath);
+                        DefaultApplicationInstance instance = JSON.read(bytes, DefaultApplicationInstance.class);
+                        Object[] ipPortArr = NetUtils.parseIpPort(childPath);
+                        instance.setHost((String) ipPortArr[0]);
+                        instance.setPort((Integer) ipPortArr[1]);
+
+                        return instance;
+                    } catch (Exception e) {
+                        log.error("{} get zk node '{}' instance data error", getName(), absChildPath, e);
+                        ExceptionUtils.throwExt(e);
+                    }
+                    return null;
+                });
             }
 
-            onAppInstancesChanged(appName, appInstances);
+            onAppInstancesChanged(appName, DiscoveryUtils.concurrentSupply(suppliers, "concurrent get zk node instance data"));
         } catch (InterruptedException e) {
             //ignore
         } catch (KeeperException e) {
-            ReferenceContext.DISCOVERY_SCHEDULER.schedule(() -> {
+            RegistryContext.SCHEDULER.schedule(() -> {
                 //尝试重新监听应用节点下子节点
                 watchAppNodeChildren(appName);
             }, 3, TimeUnit.SECONDS);
@@ -297,6 +342,7 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
         if (Objects.isNull(client)) {
             return;
         }
+
 
         client.close();
     }

@@ -65,7 +65,7 @@ public class RSocketServer extends AbstractRemotingServer {
                 .port(port);
         if (Objects.nonNull(sslConfig)) {
             //ssl
-            tcpServer = tcpServer.secure(scs -> scs.sslContext(SslUtils.setUpServerSslContext(
+            tcpServer = tcpServer.secure(scs -> scs.sslContext(SslUtils.getServerSslContext(
                     sslConfig.getCertFile(), sslConfig.getCertKeyFile(), sslConfig.getCertKeyPassword(),
                     sslConfig.getCaFile(), sslConfig.getFingerprintFile())));
         }

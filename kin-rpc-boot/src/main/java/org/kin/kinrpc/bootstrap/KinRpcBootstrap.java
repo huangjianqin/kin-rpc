@@ -640,6 +640,8 @@ public final class KinRpcBootstrap {
             }
         }
 
+        ApplicationGuardian.instance().destroy();
+
         //notify block
         blockLock.lock();
         try {

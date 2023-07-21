@@ -63,8 +63,6 @@ public final class DefaultConfig {
     public static final Boolean DEFAULT_REFERENCE_GENERIC = false;
     /** 默认服务引用bootstrap 类型 */
     public static final String DEFAULT_REFERENCE_BOOTSTRAP = BootstrapType.DEFAULT.getName();
-    /** 默认同步refer */
-    public static final Boolean DEFAULT_REFERENCE_REFER_ASYNC = false;
 
 
     /** 默认服务权重 */
@@ -75,6 +73,8 @@ public final class DefaultConfig {
     public static final Long DEFAULT_SERVICE_DELAY = 0L;
     /** 默认同步发布 */
     public static final Boolean DEFAULT_SERVICE_EXPORT_ASYNC = false;
+    /** 默认注册到注册中心 */
+    public static final Boolean DEFAULT_SERVICE_REGISTER = true;
 
     private DefaultConfig() {
     }

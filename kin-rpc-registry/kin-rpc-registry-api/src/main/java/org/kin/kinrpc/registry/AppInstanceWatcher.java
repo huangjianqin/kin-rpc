@@ -29,10 +29,12 @@ public class AppInstanceWatcher {
     /** app name set */
     private final Set<String> appNames;
     /**
-     * key -> app name, value -> application instance context list
+     * key -> app name, value -> {key -> address, value -> application instance context list}
      * value单线程更新, 多线程访问
      */
-    private final Map<String, Set<AppInstanceContext>> appInstanceContexts = new NonBlockingHashMap<>();
+    private final Map<String, Map<String, AppInstanceContext>> appInstanceContexts = new NonBlockingHashMap<>();
+    /** key -> 服务唯一标识, value -> 服务实例集合 */
+    private volatile Map<String, Set<ServiceInstance>> service2Instances = new HashMap<>(8);
     /** 标识是否正在处理发现的应用实例 */
     private final AtomicBoolean discovering = new AtomicBoolean(false);
     /** 待处理的应用实例列表 */
@@ -69,8 +71,6 @@ public class AppInstanceWatcher {
      */
     private void doDiscover() {
         while (true) {
-            // TODO: 2023/7/20 是否可以优化执行性能, 分app fetch
-            // TODO: 2023/7/20 是否可以直接缓存实例, 不用每次都遍历查询
             try {
                 //只处理最新的
                 //最新发现的应用实例列表
@@ -113,8 +113,12 @@ public class AppInstanceWatcher {
      */
     private void doDiscover(String appName, List<ApplicationInstance> appInstances) {
         //copy
-        Set<AppInstanceContext> oldAppInstanceContexts = new HashSet<>(this.appInstanceContexts.computeIfAbsent(appName, k -> new HashSet<>()));
-        List<ApplicationInstance> oldAppInstances = oldAppInstanceContexts.stream().map(AppInstanceContext::getInstance).collect(Collectors.toList());
+        Map<String, AppInstanceContext> oldAppInstanceContexts = new LinkedHashMap<>(this.appInstanceContexts.computeIfAbsent(appName, k -> new LinkedHashMap<>()));
+        Set<AppInstanceContext> oldAppInstanceContextSet = new LinkedHashSet<>(oldAppInstanceContexts.values());
+        Set<ApplicationInstance> oldAppInstances = oldAppInstanceContextSet
+                .stream()
+                .map(AppInstanceContext::getInstance)
+                .collect(Collectors.toSet());
 
         if (log.isDebugEnabled()) {
             log.debug("discover active application instances, appName={}, instances={}, oldInstances={}", appName, appInstances, oldAppInstances);
@@ -122,14 +126,25 @@ public class AppInstanceWatcher {
 
         //新加入的application instance
         Set<ApplicationInstance> newAppInstances = new HashSet<>();
-        Set<AppInstanceContext> invalidAppInstanceContexts = new HashSet<>();
+        //服务元数据发生变化的application instance
+        Set<AppInstanceContext> changedAppInstanceContexts = new HashSet<>();
         if (CollectionUtils.isEmpty(oldAppInstanceContexts)) {
             newAppInstances.addAll(appInstances);
         } else {
             for (ApplicationInstance appInstance : appInstances) {
-                if (oldAppInstances.contains(appInstance)) {
+                String address = appInstance.address();
+                AppInstanceContext oldAppInstanceContext = oldAppInstanceContexts.get(address);
+                if (Objects.nonNull(oldAppInstanceContext)) {
                     //仍然存活
-                    oldAppInstances.remove(appInstance);
+                    ApplicationInstance oldAppInstance = oldAppInstanceContext.getInstance();
+                    if (!appInstance.revision().equals(oldAppInstance.revision())) {
+                        //服务元数据变化
+                        oldAppInstanceContext.updateInstance(appInstance);
+                        changedAppInstanceContexts.add(oldAppInstanceContext);
+                    } else {
+                        //服务元数据没有变化
+                        oldAppInstanceContextSet.add(oldAppInstanceContext);
+                    }
                 } else {
                     //新加入
                     newAppInstances.add(appInstance);
@@ -140,13 +155,19 @@ public class AppInstanceWatcher {
         //new
         boolean appInstanceChanged = false;
         if (CollectionUtils.isNonEmpty(newAppInstances)) {
-            fetchAppInstanceMetadata(appName, oldAppInstanceContexts, newAppInstances);
+            fetchNewAppInstanceMetadata(appName, oldAppInstanceContexts, newAppInstances);
             appInstanceChanged = true;
         }
 
         //remove
-        if (CollectionUtils.isNonEmpty(invalidAppInstanceContexts)) {
-            removeInvalidAppInstanceMetadata(appName, oldAppInstanceContexts, invalidAppInstanceContexts);
+        if (CollectionUtils.isNonEmpty(oldAppInstanceContextSet)) {
+            removeInvalidAppInstanceMetadata(appName, oldAppInstanceContexts, oldAppInstanceContextSet);
+            appInstanceChanged = true;
+        }
+
+        //update service metadata
+        if (CollectionUtils.isNonEmpty(changedAppInstanceContexts)) {
+            fetchChangedAppInstanceMetadata(appName, changedAppInstanceContexts);
             appInstanceChanged = true;
         }
 
@@ -157,45 +178,16 @@ public class AppInstanceWatcher {
 
         this.appInstanceContexts.put(appName, oldAppInstanceContexts);
 
-        oldAppInstances = oldAppInstanceContexts.stream().map(AppInstanceContext::getInstance).collect(Collectors.toList());
+        oldAppInstances = oldAppInstanceContexts.values()
+                .stream()
+                .map(AppInstanceContext::getInstance)
+                .collect(Collectors.toSet());
         log.info("discover application instances finished, appName={}, instances={}", appName, oldAppInstances);
 
         //notify directory
-        notifyAppInstanceChanged();
-    }
-
-    /**
-     * 通知所有{@link Directory}应用实例变化
-     */
-    protected void notifyAppInstanceChanged() {
-        Map<String, List<ServiceInstance>> service2Instances = new HashMap<>();
-        for (Map.Entry<String, Set<AppInstanceContext>> entry : appInstanceContexts.entrySet()) {
-            for (AppInstanceContext appMetadata : entry.getValue()) {
-                for (ServiceInstance serviceInstance : appMetadata.getServiceInstances()) {
-                    String service = serviceInstance.service();
-                    List<ServiceInstance> serviceInstances = service2Instances.get(service);
-                    if (Objects.isNull(serviceInstances)) {
-                        serviceInstances = new ArrayList<>();
-                        service2Instances.put(service, serviceInstances);
-                    }
-
-                    serviceInstances.add(serviceInstance);
-                }
-            }
-        }
-
-        for (Map.Entry<String, List<ServiceInstance>> entry : service2Instances.entrySet()) {
-            String service = entry.getKey();
-
-            Set<ServiceInstanceChangedListener> listeners = service2Listeners.get(service);
-            if (CollectionUtils.isEmpty(listeners)) {
-                continue;
-            }
-
-            for (ServiceInstanceChangedListener listener : listeners) {
-                ReferenceContext.DISCOVERY_SCHEDULER.execute(() -> listener.onServiceInstanceChanged(entry.getValue()));
-            }
-        }
+        Map<String, Set<ServiceInstance>> oldService2Instances = this.service2Instances;
+        refreshServiceInstanceCache();
+        notifyIfServiceInstanceChanged(oldService2Instances, this.service2Instances);
     }
 
     /**
@@ -205,9 +197,9 @@ public class AppInstanceWatcher {
      * @param appInstanceContexts 应用元数据上下文缓存
      * @param newAppInstances     需要拉取的应用实例
      */
-    private void fetchAppInstanceMetadata(String appName,
-                                          Set<AppInstanceContext> appInstanceContexts,
-                                          Set<ApplicationInstance> newAppInstances) {
+    private void fetchNewAppInstanceMetadata(String appName,
+                                             Map<String, AppInstanceContext> appInstanceContexts,
+                                             Set<ApplicationInstance> newAppInstances) {
         if (log.isDebugEnabled()) {
             log.debug("find new application instances, appName={}, newInstances={}", appName, newAppInstances);
         }
@@ -220,23 +212,57 @@ public class AppInstanceWatcher {
                         CommonConstants.METADATA_SERVICE_NAME);
                 MetadataService metadataService = metadataServiceReferenceConfig.refer();
 
-                MetadataResponse metadataResponse = metadataService.metadata();
-                Map<String, ServiceMetadata> serviceMetadataMap = metadataResponse.getServiceMetadataMap();
-                List<ServiceInstance> serviceInstances = serviceMetadataMap.entrySet()
-                        .stream()
-                        .map(e -> {
-                            Map<String, String> iServiceMetadataMap = e.getValue().getMetadata();
-                            iServiceMetadataMap.put(ServiceMetadataConstants.SCHEMA_KEY, appInstance.scheme());
-                            return new DefaultServiceInstance(e.getKey(), appInstance.host(), appInstance.port(), iServiceMetadataMap);
-                        })
-                        .collect(Collectors.toList());
+                MetadataResponse metadataResponse = metadataService.metadata(appInstance.revision());
+                List<ServiceInstance> serviceInstances = toServiceInstanceList(appInstance, metadataResponse);
                 return new AppInstanceContext(appInstance, serviceInstances,
                         metadataServiceReferenceConfig, metadataService);
             });
         }
 
-        appInstanceContexts.addAll(
-                DiscoveryUtils.concurrentSupply(appInstanceContextSuppliers, String.format("fetch application '%s' instance metadata", appName)));
+        for (AppInstanceContext appInstanceContext : DiscoveryUtils.concurrentSupply(appInstanceContextSuppliers, String.format("fetch application '%s' new instance metadata", appName))) {
+            appInstanceContexts.put(appInstanceContext.address(), appInstanceContext);
+        }
+    }
+
+    /**
+     * 并发批量拉取应用元数据
+     *
+     * @param changedAppInstanceContexts 需要拉取的应用实例
+     */
+    private void fetchChangedAppInstanceMetadata(String appName,
+                                                 Set<AppInstanceContext> changedAppInstanceContexts) {
+        List<Supplier<AppInstanceContext>> appInstanceContextSuppliers = new ArrayList<>(changedAppInstanceContexts.size());
+        for (AppInstanceContext appInstanceContext : changedAppInstanceContexts) {
+            appInstanceContextSuppliers.add(() -> {
+                ApplicationInstance appInstance = appInstanceContext.getInstance();
+                MetadataResponse metadataResponse = appInstanceContext.getMetadataService()
+                        .metadata(appInstanceContext.revision());
+                appInstanceContext.updateServiceInstances(toServiceInstanceList(appInstance, metadataResponse));
+                //return self
+                return appInstanceContext;
+            });
+        }
+
+        DiscoveryUtils.concurrentSupply(appInstanceContextSuppliers, String.format("fetch application '%s' changed instance metadata", appName));
+    }
+
+    /**
+     * 结合{@link ApplicationInstance}应用实例和{@link MetadataResponse}服务元数据, 组装完整的服务实例信息
+     *
+     * @param appInstance      应用实例
+     * @param metadataResponse remote返回的服务元数据
+     * @return 服务实例信息列表
+     */
+    private List<ServiceInstance> toServiceInstanceList(ApplicationInstance appInstance, MetadataResponse metadataResponse) {
+        Map<String, ServiceMetadata> serviceMetadataMap = metadataResponse.getServiceMetadataMap();
+        return serviceMetadataMap.entrySet()
+                .stream()
+                .map(e -> {
+                    Map<String, String> iServiceMetadataMap = e.getValue().getMetadata();
+                    iServiceMetadataMap.put(ServiceMetadataConstants.SCHEMA_KEY, appInstance.scheme());
+                    return new DefaultServiceInstance(e.getKey(), appInstance.host(), appInstance.port(), iServiceMetadataMap);
+                })
+                .collect(Collectors.toList());
     }
 
     /**
@@ -247,7 +273,7 @@ public class AppInstanceWatcher {
      * @param invalidAppInstanceContexts 无效应用元数据上下文
      */
     private void removeInvalidAppInstanceMetadata(String appName,
-                                                  Set<AppInstanceContext> appInstanceContexts,
+                                                  Map<String, AppInstanceContext> appInstanceContexts,
                                                   Set<AppInstanceContext> invalidAppInstanceContexts) {
         if (log.isDebugEnabled()) {
             log.debug("remove invalid application instances, appName={}, invalidInstances={}", appName, invalidAppInstanceContexts);
@@ -259,7 +285,114 @@ public class AppInstanceWatcher {
         }
 
         //remove
-        appInstanceContexts.removeAll(invalidAppInstanceContexts);
+        for (AppInstanceContext invalidAppInstanceContext : invalidAppInstanceContexts) {
+            appInstanceContexts.remove(invalidAppInstanceContext.address());
+        }
+    }
+
+    /**
+     * 刷新服务实例缓存
+     */
+    private void refreshServiceInstanceCache() {
+        Map<String, Set<ServiceInstance>> service2Instances = new HashMap<>(this.service2Instances.size() / 2 + 1);
+        for (Map.Entry<String, Map<String, AppInstanceContext>> entry : appInstanceContexts.entrySet()) {
+            for (AppInstanceContext appMetadataContext : entry.getValue().values()) {
+                for (ServiceInstance serviceInstance : appMetadataContext.getServiceInstances()) {
+                    String service = serviceInstance.service();
+                    Set<ServiceInstance> serviceInstances = service2Instances.get(service);
+                    if (Objects.isNull(serviceInstances)) {
+                        serviceInstances = new LinkedHashSet<>();
+                        service2Instances.put(service, serviceInstances);
+                    }
+
+                    serviceInstances.add(serviceInstance);
+                }
+            }
+        }
+
+        this.service2Instances = service2Instances;
+    }
+
+    /**
+     * 如果服务实例变化, 通知所有{@link Directory}服务实例变化
+     */
+    private void notifyIfServiceInstanceChanged(Map<String, Set<ServiceInstance>> oldService2Instances,
+                                                Map<String, Set<ServiceInstance>> service2Instances) {
+        Map<String, Set<ServiceInstance>> changedServiceInstanceMap = new LinkedHashMap<>();
+        for (Map.Entry<String, Set<ServiceInstance>> entry : service2Instances.entrySet()) {
+            String service = entry.getKey();
+            Set<ServiceInstance> serviceInstances = entry.getValue();
+
+            boolean changed = false;
+            if (oldService2Instances.containsKey(service)) {
+                //检查服务实例是否一致
+                Set<ServiceInstance> oldServiceInstances = oldService2Instances.get(service);
+                if (oldServiceInstances.size() != serviceInstances.size()) {
+                    //fast
+                    changed = true;
+                } else {
+                    //slow, 且长度一样
+                    for (ServiceInstance serviceInstance : serviceInstances) {
+                        if (!oldServiceInstances.contains(serviceInstance)) {
+                            changed = true;
+                            break;
+                        }
+                    }
+                }
+            } else {
+                //新服务
+                changed = true;
+            }
+
+            if (changed) {
+                changedServiceInstanceMap.put(service, serviceInstances);
+            }
+        }
+
+        for (String oldService : oldService2Instances.keySet()) {
+            if (service2Instances.containsKey(oldService)) {
+                continue;
+            }
+            //老服务移除
+            changedServiceInstanceMap.put(oldService, Collections.emptySet());
+        }
+
+        for (Map.Entry<String, Set<ServiceInstance>> entry : changedServiceInstanceMap.entrySet()) {
+            String service = entry.getKey();
+
+            notifyListeners(service, entry.getValue());
+        }
+    }
+
+    /**
+     * 通知所有{@link Directory}服务实例变化
+     *
+     * @param service          服务
+     * @param serviceInstances 服务实例
+     */
+    private void notifyListeners(String service,
+                                 Set<ServiceInstance> serviceInstances) {
+        if (Objects.isNull(serviceInstances)) {
+            return;
+        }
+
+        Set<ServiceInstanceChangedListener> listeners = service2Listeners.get(service);
+        if (CollectionUtils.isEmpty(listeners)) {
+            return;
+        }
+
+        for (ServiceInstanceChangedListener listener : listeners) {
+            RegistryContext.SCHEDULER.execute(() -> listener.onServiceInstanceChanged(serviceInstances));
+        }
+    }
+
+    /**
+     * 通知所有{@link Directory}服务实例变化
+     *
+     * @param service 服务
+     */
+    private void notifyListeners(String service) {
+        notifyListeners(service, this.service2Instances.get(service));
     }
 
     /**
@@ -272,7 +405,7 @@ public class AppInstanceWatcher {
         Set<ServiceInstanceChangedListener> listeners = service2Listeners.computeIfAbsent(service, k -> new CopyOnWriteArraySet<>());
         listeners.add(listener);
 
-        notifyAppInstanceChanged();
+        notifyListeners(service);
     }
 
     /**

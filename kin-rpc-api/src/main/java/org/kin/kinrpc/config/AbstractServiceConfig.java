@@ -1,8 +1,10 @@
 package org.kin.kinrpc.config;
 
 import org.kin.framework.utils.CollectionUtils;
+import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.IllegalConfigException;
+import org.kin.kinrpc.ServiceListener;
 import org.kin.kinrpc.utils.ObjectUtils;
 
 import java.util.*;
@@ -27,6 +29,10 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
     private String token;
     /** 标识是否异步export */
     private Boolean exportAsync;
+    /** 是否注册到注册中心 */
+    private Boolean register;
+    /** {@link ServiceListener}实例 */
+    private List<ServiceListener> serviceListeners = new ArrayList<>();
 
     @Override
     public void checkValid() {
@@ -77,6 +83,15 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
 
         if (Objects.isNull(exportAsync)) {
             exportAsync = DefaultConfig.DEFAULT_SERVICE_EXPORT_ASYNC;
+        }
+
+        if (Objects.isNull(register)) {
+            register = DefaultConfig.DEFAULT_SERVICE_REGISTER;
+        }
+
+        List<ServiceListener> serviceListeners = ExtensionLoader.getExtensions(ServiceListener.class);
+        if (CollectionUtils.isNonEmpty(serviceListeners)) {
+            this.serviceListeners.addAll(serviceListeners);
         }
     }
 
@@ -160,7 +175,7 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
     }
 
     public Boolean isExportAsync() {
-        return exportAsync;
+        return Objects.nonNull(exportAsync) ? exportAsync : false;
     }
 
     public ASC exportAsync(boolean exportAsync) {
@@ -170,6 +185,32 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
 
     public ASC exportAsync() {
         return exportAsync(true);
+    }
+
+    public AbstractServiceConfig<ASC> register(Boolean register) {
+        this.register = register;
+        return this;
+    }
+
+    public AbstractServiceConfig<ASC> register() {
+        return register(true);
+    }
+
+    public Boolean isRegister() {
+        return Objects.nonNull(register) ? register : true;
+    }
+
+    public List<ServiceListener> getServiceListeners() {
+        return serviceListeners;
+    }
+
+    public AbstractServiceConfig<ASC> serviceListeners(ServiceListener... serviceListeners) {
+        return serviceListeners(Arrays.asList(serviceListeners));
+    }
+
+    public AbstractServiceConfig<ASC> serviceListeners(List<ServiceListener> serviceListeners) {
+        this.serviceListeners.addAll(serviceListeners);
+        return this;
     }
 
     //----------------------
@@ -200,6 +241,14 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
 
     public void setExportAsync(Boolean exportAsync) {
         this.exportAsync = exportAsync;
+    }
+
+    public Boolean getRegister() {
+        return register;
+    }
+
+    public void setRegister(Boolean register) {
+        this.register = register;
     }
 
     @Override

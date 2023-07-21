@@ -4,6 +4,7 @@ import org.kin.kinrpc.ServiceInstance;
 import org.kin.kinrpc.config.ProtocolType;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * jvm模式下的服务实例信息
@@ -47,5 +48,18 @@ public class JvmServiceInstance implements ServiceInstance {
     @Override
     public int weight() {
         return 0;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        JvmServiceInstance that = (JvmServiceInstance) o;
+        return Objects.equals(service, that.service);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(service);
     }
 }

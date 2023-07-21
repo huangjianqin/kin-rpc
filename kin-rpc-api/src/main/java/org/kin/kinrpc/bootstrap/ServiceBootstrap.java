@@ -5,6 +5,7 @@ import org.kin.framework.concurrent.ThreadPoolUtils;
 import org.kin.framework.utils.SPI;
 import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.KinRpcRuntimeContext;
+import org.kin.kinrpc.ServiceListener;
 import org.kin.kinrpc.config.ServiceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,6 +79,15 @@ public abstract class ServiceBootstrap<T> {
         }
 
         doExport();
+
+        for (ServiceListener serviceListener : config.getServiceListeners()) {
+            try {
+                serviceListener.onExported(config);
+            } catch (Exception e) {
+                log.error("trigger service listener after service '{}' exported error", service, e);
+            }
+        }
+
         KinRpcRuntimeContext.cacheService(this);
 
         log.info("service '{}' exported! serviceConfig={}", service, config);
@@ -91,6 +101,15 @@ public abstract class ServiceBootstrap<T> {
             return;
         }
         doUnExport();
+
+        for (ServiceListener serviceListener : config.getServiceListeners()) {
+            try {
+                serviceListener.onUnexported(config);
+            } catch (Exception e) {
+                log.error("trigger service listener after service '{}' unExported error", config.getService(), e);
+            }
+        }
+
         KinRpcRuntimeContext.removeService(this);
 
         log.info("service '{}' unExported!", config.getService());

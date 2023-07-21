@@ -3,13 +3,13 @@ package org.kin.kinrpc.config;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.IllegalConfigException;
+import org.kin.kinrpc.ServiceMetadata;
+import org.kin.kinrpc.ServiceMetadataConstants;
 import org.kin.kinrpc.bootstrap.ServiceBootstrap;
 import org.kin.kinrpc.utils.GsvUtils;
 
 import java.lang.reflect.Method;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 
 /**
@@ -32,6 +32,8 @@ public final class ServiceConfig<T> extends AbstractServiceConfig<ServiceConfig<
     /** 返回服务唯一id */
     private transient int serviceId;
     private transient ServiceBootstrap<T> serviceBootstrap;
+    /** 服务元数据 */
+    private transient ServiceMetadata metadata;
 
     public static <T> ServiceConfig<T> create(Class<T> interfaceClass, T instance) {
         return new ServiceConfig<T>().interfaceClass(interfaceClass)
@@ -127,6 +129,30 @@ public final class ServiceConfig<T> extends AbstractServiceConfig<ServiceConfig<
         }
 
         serviceBootstrap.unExport();
+    }
+
+    /**
+     * 返回服务元数据
+     *
+     * @return 服务元数据
+     */
+    public ServiceMetadata getMetadata() {
+        if (Objects.isNull(this.metadata)) {
+            synchronized (this) {
+                if (Objects.nonNull(this.metadata)) {
+                    return this.metadata;
+                }
+
+                Map<String, String> metadata = new HashMap<>(4);
+                metadata.put(ServiceMetadataConstants.SERIALIZATION_KEY, getSerialization());
+                metadata.put(ServiceMetadataConstants.WEIGHT_KEY, getWeight().toString());
+                if (StringUtils.isNotBlank(getToken())) {
+                    metadata.put(ServiceMetadataConstants.TOKEN_KEY, getToken());
+                }
+                this.metadata = new ServiceMetadata(metadata);
+            }
+        }
+        return this.metadata;
     }
 
     //setter && getter

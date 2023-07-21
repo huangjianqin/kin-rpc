@@ -93,7 +93,7 @@ public class MethodConfig extends AbstractConfig {
     }
 
     public Boolean isAsync() {
-        return async;
+        return Objects.nonNull(async) ? async : false;
     }
 
     public MethodConfig async() {
@@ -107,7 +107,7 @@ public class MethodConfig extends AbstractConfig {
     }
 
     public Boolean isSticky() {
-        return sticky;
+        return Objects.nonNull(sticky) ? sticky : false;
     }
 
     public MethodConfig sticky() {

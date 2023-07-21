@@ -72,7 +72,7 @@ public class GrpcClient extends AbstractRemotingClient {
         channelBuilder.usePlaintext();
         if (Objects.nonNull(sslConfig)) {
             //ssl
-            channelBuilder.sslContext(SslUtils.setUpClientSslContext(
+            channelBuilder.sslContext(SslUtils.getClientSslContext(
                     sslConfig.getCertFile(), sslConfig.getCertKeyFile(), sslConfig.getCertKeyPassword(),
                     sslConfig.getCaFile(), sslConfig.getFingerprintFile()));
         }

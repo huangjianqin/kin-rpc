@@ -14,7 +14,7 @@ public abstract class AbstractRegistry implements Registry {
     }
 
     //getter
-    public RegistryConfig getConfig() {
+    public final RegistryConfig getConfig() {
         return config;
     }
 }

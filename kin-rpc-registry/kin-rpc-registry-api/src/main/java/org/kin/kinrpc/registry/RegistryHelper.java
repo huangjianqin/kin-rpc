@@ -14,8 +14,10 @@ import org.kin.kinrpc.config.ServiceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Created by huangjianqin on 2019/6/18.
@@ -23,7 +25,7 @@ import java.util.Objects;
 public class RegistryHelper {
     private static final Logger log = LoggerFactory.getLogger(RegistryHelper.class);
     /** 注册中心缓存 */
-    private static final ReferenceCountedCache<String, Registry> REGISTRY_CACHE = new ReferenceCountedCache<>();
+    private static final ReferenceCountedCache<String, RegistryEntry> REGISTRY_CACHE = new ReferenceCountedCache<>();
 
     private RegistryHelper() {
     }
@@ -50,61 +52,35 @@ public class RegistryHelper {
      * @return {@link Registry}实例
      */
     public static synchronized Registry getRegistry(RegistryConfig config) {
-        String key = getAlias(config);
-        return REGISTRY_CACHE.get(key, () -> {
+        String alias = getAlias(config);
+
+        RegistryEntry cached = REGISTRY_CACHE.peek(alias);
+        if (Objects.nonNull(cached)) {
+            return cached;
+        }
+
+        return REGISTRY_CACHE.get(alias, () -> {
             String type = config.getType();
             RegistryFactory registryFactory = ExtensionLoader.getExtension(RegistryFactory.class, type);
             if (Objects.isNull(registryFactory)) {
                 throw new RegistryFactoryNotFoundException(type);
             }
 
-            Registry registry = wrapRegistry(registryFactory.create(config), config);
-            registry.init();
-            return registry;
+            RegistryEntry registryEntry = wrapRegistry(alias, registryFactory.create(config));
+            registryEntry.init();
+            return registryEntry;
         });
     }
 
     /**
      * 对{@link Registry#destroy()}进行封装, 释放registry引用, 而不是直接destroy registry
      *
+     * @param alias    registry name
      * @param registry registry
-     * @param config   registry config
      * @return wrapped registry instance
      */
-    private static Registry wrapRegistry(Registry registry, RegistryConfig config) {
-        return new Registry() {
-            @Override
-            public void init() {
-                registry.init();
-            }
-
-            @Override
-            public void register(ServiceConfig<?> serviceConfig) {
-                registry.register(serviceConfig);
-            }
-
-            @Override
-            public void unregister(ServiceConfig<?> serviceConfig) {
-                registry.unregister(serviceConfig);
-            }
-
-            @Override
-            public void subscribe(ReferenceConfig<?> config, ServiceInstanceChangedListener listener) {
-                registry.subscribe(config, listener);
-            }
-
-            @Override
-            public void unsubscribe(ReferenceConfig<?> config, ServiceInstanceChangedListener listener) {
-                registry.unsubscribe(config, listener);
-            }
-
-            @Override
-            public void destroy() {
-                if (REGISTRY_CACHE.release(getAlias(config))) {
-                    registry.destroy();
-                }
-            }
-        };
+    private static RegistryEntry wrapRegistry(String alias, Registry registry) {
+        return new RegistryEntry(alias, registry);
     }
 
     /**
@@ -112,8 +88,26 @@ public class RegistryHelper {
      *
      * @param config 注册中心配置
      */
-    public static synchronized void releaseRegistry(RegistryConfig config) {
-        REGISTRY_CACHE.release(getAlias(config));
+    public static void releaseRegistry(RegistryConfig config) {
+        RegistryEntry registryEntry = REGISTRY_CACHE.peek(getAlias(config));
+        if (Objects.isNull(registryEntry)) {
+            return;
+        }
+        registryEntry.destroy();
+    }
+
+    /**
+     * 返回所有已注册的{@link DiscoveryRegistry}实例
+     *
+     * @return 所有已注册的{@link DiscoveryRegistry}实例
+     */
+    public static List<DiscoveryRegistry> getDiscoveryRegistries() {
+        return REGISTRY_CACHE.values()
+                .stream()
+                .map(RegistryEntry::getProxy)
+                .filter(r -> r instanceof DiscoveryRegistry)
+                .map(r -> ((DiscoveryRegistry) r))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -150,5 +144,57 @@ public class RegistryHelper {
         Map<String, String> params = url.getParams();
         params.put(ServiceMetadataConstants.SCHEMA_KEY, url.getProtocol());
         return new DefaultServiceInstance(url.getPath(), url.getHost(), url.getPort(), params);
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------
+    private static class RegistryEntry implements Registry {
+        private final String alias;
+        private final Registry proxy;
+
+        public RegistryEntry(String alias, Registry proxy) {
+            this.alias = alias;
+            this.proxy = proxy;
+        }
+
+        @Override
+        public void init() {
+            proxy.init();
+        }
+
+        @Override
+        public void register(ServiceConfig<?> serviceConfig) {
+            proxy.register(serviceConfig);
+        }
+
+        @Override
+        public void unregister(ServiceConfig<?> serviceConfig) {
+            proxy.unregister(serviceConfig);
+        }
+
+        @Override
+        public void subscribe(ReferenceConfig<?> config, ServiceInstanceChangedListener listener) {
+            proxy.subscribe(config, listener);
+        }
+
+        @Override
+        public void unsubscribe(ReferenceConfig<?> config, ServiceInstanceChangedListener listener) {
+            proxy.unsubscribe(config, listener);
+        }
+
+        @Override
+        public void destroy() {
+            if (REGISTRY_CACHE.release(alias)) {
+                proxy.destroy();
+            }
+        }
+
+        //getter
+        public String getAlias() {
+            return alias;
+        }
+
+        public Registry getProxy() {
+            return proxy;
+        }
     }
 }

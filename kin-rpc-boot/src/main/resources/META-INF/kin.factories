@@ -2,3 +2,4 @@ serviceBootstrap=org.kin.kinrpc.bootstrap.DefaultServiceBootstrap,\
   org.kin.kinrpc.bootstrap.JvmServiceBootstrap
 referenceBootstrap=org.kin.kinrpc.bootstrap.DefaultReferenceBootstrap,\
   org.kin.kinrpc.bootstrap.JvmReferenceBootstrap
+serviceListener=org.kin.kinrpc.bootstrap.AppGuardianServiceListener

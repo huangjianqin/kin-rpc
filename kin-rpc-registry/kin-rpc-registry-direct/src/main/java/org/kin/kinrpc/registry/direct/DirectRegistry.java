@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -58,9 +59,9 @@ public final class DirectRegistry extends AbstractRegistry {
         }
 
         String service = config.getService();
-        List<ServiceInstance> matchedServiceInstances = serviceInstances.stream()
+        Set<ServiceInstance> matchedServiceInstances = serviceInstances.stream()
                 .filter(si -> si.service().equals(service))
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
 
         if (log.isDebugEnabled()) {
             log.debug("subscribe service '{}' and find instances, {}", service, matchedServiceInstances);

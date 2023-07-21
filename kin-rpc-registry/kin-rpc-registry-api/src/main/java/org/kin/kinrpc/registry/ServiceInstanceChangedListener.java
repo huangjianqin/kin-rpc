@@ -2,7 +2,7 @@ package org.kin.kinrpc.registry;
 
 import org.kin.kinrpc.ServiceInstance;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * @author huangjianqin
@@ -14,5 +14,5 @@ public interface ServiceInstanceChangedListener {
      *
      * @param serviceInstances 当前存活的服务实例
      */
-    void onServiceInstanceChanged(List<ServiceInstance> serviceInstances);
+    void onServiceInstanceChanged(Set<ServiceInstance> serviceInstances);
 }

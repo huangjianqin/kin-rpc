@@ -72,7 +72,7 @@ public class GrpcServer extends AbstractRemotingServer {
                 .fallbackHandlerRegistry(handlerRegistry);
         if (Objects.nonNull(sslConfig)) {
             //ssl
-            serverBuilder.sslContext(SslUtils.setUpServerSslContext(
+            serverBuilder.sslContext(SslUtils.getServerSslContext(
                     sslConfig.getCertFile(), sslConfig.getCertKeyFile(), sslConfig.getCertKeyPassword(),
                     sslConfig.getCaFile(), sslConfig.getFingerprintFile()));
         }

@@ -17,9 +17,9 @@ import java.util.Objects;
  */
 public class AppInstanceContext implements ApplicationInstance {
     /** 应用实例 */
-    private final ApplicationInstance instance;
+    private ApplicationInstance instance;
     /** 该应用暴露的服务信息 */
-    private final List<ServiceInstance> serviceInstances;
+    private List<ServiceInstance> serviceInstances;
     /** {@link MetadataService} reference config */
     private final ReferenceConfig<MetadataService> metadataServiceReferenceConfig;
     /** {@link MetadataService} reference */
@@ -33,11 +33,6 @@ public class AppInstanceContext implements ApplicationInstance {
         this.serviceInstances = serviceInstances;
         this.metadataServiceReferenceConfig = metadataServiceReferenceConfig;
         this.metadataService = metadataService;
-    }
-
-    @Override
-    public String group() {
-        return instance.group();
     }
 
     @Override
@@ -58,6 +53,29 @@ public class AppInstanceContext implements ApplicationInstance {
     @Override
     public String scheme() {
         return instance.scheme();
+    }
+
+    @Override
+    public String revision() {
+        return instance.revision();
+    }
+
+    /**
+     * 更新应用实例
+     *
+     * @param instance 最新应用实例
+     */
+    public void updateInstance(ApplicationInstance instance) {
+        this.instance = instance;
+    }
+
+    /**
+     * 更新服务元数据
+     *
+     * @param serviceInstances 服务元数据
+     */
+    public void updateServiceInstances(List<ServiceInstance> serviceInstances) {
+        this.serviceInstances = serviceInstances;
     }
 
     /**

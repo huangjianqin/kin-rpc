@@ -13,7 +13,8 @@ public interface MetadataService {
     /**
      * 返回本应用所有服务元数据
      *
+     * @param revision 服务元数据版本
      * @return {@link MetadataResponse}实例
      */
-    MetadataResponse metadata();
+    MetadataResponse metadata(String revision);
 }

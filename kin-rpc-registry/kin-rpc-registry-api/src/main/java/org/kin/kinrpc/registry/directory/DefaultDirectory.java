@@ -5,8 +5,8 @@ import org.jctools.queues.atomic.MpscUnboundedAtomicArrayQueue;
 import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.StringUtils;
-import org.kin.kinrpc.ReferenceContext;
 import org.kin.kinrpc.ReferenceInvoker;
+import org.kin.kinrpc.RegistryContext;
 import org.kin.kinrpc.ServiceInstance;
 import org.kin.kinrpc.ServiceMetadataConstants;
 import org.kin.kinrpc.config.ReferenceConfig;
@@ -39,7 +39,7 @@ public class DefaultDirectory implements Directory, ServiceInstanceChangedListen
     /** 标识是否正在处理服务发现实例 */
     private final AtomicBoolean discovering = new AtomicBoolean(false);
     /** 待处理的服务发现实例列表 */
-    private final Queue<List<ServiceInstance>> discoverQueue = new MpscUnboundedAtomicArrayQueue<>(8);
+    private final Queue<Set<ServiceInstance>> discoverQueue = new MpscUnboundedAtomicArrayQueue<>(8);
     /** 用于调用{@link #list()}阻塞等待首次服务发现完成 */
     private volatile CountDownLatch firstDiscoverWaiter = new CountDownLatch(1);
     private volatile boolean stopped;
@@ -73,7 +73,7 @@ public class DefaultDirectory implements Directory, ServiceInstanceChangedListen
     }
 
     @Override
-    public void onServiceInstanceChanged(List<ServiceInstance> serviceInstances) {
+    public void onServiceInstanceChanged(Set<ServiceInstance> serviceInstances) {
         if (stopped) {
             return;
         }
@@ -84,7 +84,7 @@ public class DefaultDirectory implements Directory, ServiceInstanceChangedListen
             return;
         }
 
-        ReferenceContext.DISCOVERY_SCHEDULER.execute(this::doDiscover);
+        RegistryContext.SCHEDULER.execute(this::doDiscover);
     }
 
     /**
@@ -102,8 +102,8 @@ public class DefaultDirectory implements Directory, ServiceInstanceChangedListen
 
                 //只处理最新的
                 //最新的服务发现服务实例列表
-                List<ServiceInstance> lastInstances = null;
-                List<ServiceInstance> tmp;
+                Set<ServiceInstance> lastInstances = null;
+                Set<ServiceInstance> tmp;
                 //遍历找到最新的服务发现服务实例列表
                 while ((tmp = discoverQueue.poll()) != null) {
                     lastInstances = tmp;
@@ -130,7 +130,7 @@ public class DefaultDirectory implements Directory, ServiceInstanceChangedListen
         }
     }
 
-    private void doDiscover(List<ServiceInstance> serviceInstances) {
+    private void doDiscover(Set<ServiceInstance> serviceInstances) {
         if (stopped) {
             return;
         }
@@ -165,7 +165,7 @@ public class DefaultDirectory implements Directory, ServiceInstanceChangedListen
                 log.warn("directory(service={}) ignore service instance due to protocol not found, {}", service(), si);
                 return false;
             }
-        }).collect(Collectors.toList());
+        }).collect(Collectors.toSet());
 
         //遍历已创建的reference invoker, 分成3部分有效invoker, 无效invoker, 有效但未创建invoker的service instance
         List<ReferenceInvoker<?>> validInvokers = new ArrayList<>(serviceInstances.size());
@@ -198,7 +198,7 @@ public class DefaultDirectory implements Directory, ServiceInstanceChangedListen
         //async destroy invalid invokers
         if (CollectionUtils.isNonEmpty(invalidInvokers)) {
             for (ReferenceInvoker<?> invoker : invalidInvokers) {
-                ReferenceContext.DISCOVERY_SCHEDULER.execute(invoker::destroy);
+                RegistryContext.SCHEDULER.execute(invoker::destroy);
                 serviceInstanceChanged = true;
             }
         }
@@ -225,7 +225,7 @@ public class DefaultDirectory implements Directory, ServiceInstanceChangedListen
      * @param serviceInstances service instance
      * @return reference invoker list
      */
-    private List<ReferenceInvoker<?>> createReferenceInvokers(List<ServiceInstance> serviceInstances) {
+    private List<ReferenceInvoker<?>> createReferenceInvokers(Set<ServiceInstance> serviceInstances) {
         if (CollectionUtils.isEmpty(serviceInstances)) {
             return Collections.emptyList();
         }

@@ -140,7 +140,7 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
     }
 
     public Boolean isGeneric() {
-        return generic;
+        return Objects.nonNull(generic) ? generic : false;
     }
 
     public ARC generic() {
@@ -171,7 +171,7 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
     }
 
     public Boolean isAsync() {
-        return async;
+        return Objects.nonNull(async) ? async : false;
     }
 
     public ARC async() {
@@ -184,7 +184,7 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
     }
 
     public Boolean isSticky() {
-        return sticky;
+        return Objects.nonNull(sticky) ? sticky : false;
     }
 
     public ARC sticky() {
