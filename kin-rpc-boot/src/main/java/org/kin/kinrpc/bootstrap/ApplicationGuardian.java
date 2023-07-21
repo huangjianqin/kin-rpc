@@ -5,7 +5,7 @@ import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.RegistryContext;
 import org.kin.kinrpc.config.ServerConfig;
 import org.kin.kinrpc.config.ServiceConfig;
-import org.kin.kinrpc.constants.SystemProperties;
+import org.kin.kinrpc.constants.KinRpcSystemProperties;
 import org.kin.kinrpc.registry.DiscoveryRegistry;
 import org.kin.kinrpc.registry.RegistryHelper;
 import org.kin.kinrpc.registry.metadata.service.MetadataServiceImpl;
@@ -95,7 +95,7 @@ public final class ApplicationGuardian {
             return;
         }
 
-        int refreshDelay = SysUtils.getIntSysProperty(SystemProperties.METADATA_REFRESH_DELAY, 1000);
+        int refreshDelay = SysUtils.getIntSysProperty(KinRpcSystemProperties.METADATA_REFRESH_DELAY, 1000);
         refreshFuture = RegistryContext.SCHEDULER.scheduleWithFixedDelay(this::refreshAppInstanceOrMetadata, 0, refreshDelay, TimeUnit.MILLISECONDS);
     }
 
