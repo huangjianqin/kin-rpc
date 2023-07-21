@@ -1,5 +1,6 @@
 package org.kin.kinrpc.config;
 
+import org.kin.framework.utils.ExtensionException;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.IllegalConfigException;
@@ -115,6 +116,10 @@ public final class ServiceConfig<T> extends AbstractServiceConfig<ServiceConfig<
 
         if (Objects.isNull(serviceBootstrap)) {
             serviceBootstrap = ExtensionLoader.getExtension(ServiceBootstrap.class, getBootstrap(), this);
+        }
+
+        if (Objects.isNull(serviceBootstrap)) {
+            throw new ExtensionException(String.format("can not find service bootstrap named '%s', please check whether related SPI config is missing", getBootstrap()));
         }
 
         serviceBootstrap.export();

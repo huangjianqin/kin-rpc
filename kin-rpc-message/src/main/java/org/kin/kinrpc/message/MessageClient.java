@@ -3,6 +3,7 @@ package org.kin.kinrpc.message;
 import org.kin.framework.collection.ConcurrentHashSet;
 import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadPoolUtils;
+import org.kin.framework.utils.ExtensionException;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.transport.RemotingClient;
@@ -60,8 +61,12 @@ final class MessageClient {
         this.remoteAddress = remoteAddress;
         this.name = getClass().getSimpleName() + String.format("(- R:%s)", remoteAddress);
         this.serializationCode = (byte) ExtensionLoader.getExtensionCode(Serialization.class, actorEnv.getSerialization());
-        this.client = ExtensionLoader.getExtension(Transport.class, actorEnv.getProtocol())
-                .createClient(remoteAddress.getHost(), remoteAddress.getPort(), actorEnv.getClientSslConfig());
+        Transport transport = ExtensionLoader.getExtension(Transport.class, actorEnv.getProtocol());
+        if (Objects.isNull(transport)) {
+            throw new ExtensionException(String.format("can not find transport named '%s', please check whether related SPI config is missing", actorEnv.getProtocol()));
+        }
+
+        this.client = transport.createClient(remoteAddress.getHost(), remoteAddress.getPort(), actorEnv.getClientSslConfig());
     }
 
     /**

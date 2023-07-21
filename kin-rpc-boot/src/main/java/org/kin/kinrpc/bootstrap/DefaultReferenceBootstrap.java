@@ -1,5 +1,6 @@
 package org.kin.kinrpc.bootstrap;
 
+import org.kin.framework.utils.ExtensionException;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.kinrpc.cluster.invoker.ClusterInvoker;
 import org.kin.kinrpc.config.ReferenceConfig;
@@ -21,7 +22,11 @@ public class DefaultReferenceBootstrap<T> extends ProxyReferenceBootstrap<T> {
     @SuppressWarnings("unchecked")
     @Override
     public T doRefer() {
-        clusterInvoker = ExtensionLoader.getExtension(ClusterInvoker.class, config.getCluster(), config);
+        try {
+            clusterInvoker = ExtensionLoader.getExtension(ClusterInvoker.class, config.getCluster(), config);
+        } catch (Exception e) {
+            throw new ExtensionException(String.format("can not create cluster named '%s', please check whether related SPI config is missing", config.getCluster()), e);
+        }
 
         return createProxy(clusterInvoker);
     }

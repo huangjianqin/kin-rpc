@@ -8,6 +8,6 @@ public class RegistryFactoryNotFoundException extends RuntimeException {
     private static final long serialVersionUID = 8203221139466106072L;
 
     public RegistryFactoryNotFoundException(String type) {
-        super(String.format("can not find %s registry factory", type));
+        super(String.format("can not find '%s' registry factory please check whether related SPI config is missing", type));
     }
 }

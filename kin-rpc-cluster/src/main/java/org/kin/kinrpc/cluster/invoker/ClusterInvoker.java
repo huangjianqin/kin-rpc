@@ -3,6 +3,7 @@ package org.kin.kinrpc.cluster.invoker;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.kin.framework.utils.CollectionUtils;
+import org.kin.framework.utils.ExtensionException;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.SPI;
 import org.kin.kinrpc.*;
@@ -60,8 +61,15 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
 
         //创建loadbalance
         this.loadBalance = ExtensionLoader.getExtension(LoadBalance.class, config.getLoadBalance());
+        if (Objects.isNull(this.loadBalance)) {
+            throw new ExtensionException(String.format("can not find loadbalance named '%s', please check whether related SPI config is missing", config.getLoadBalance()));
+        }
+
         //创建router
         this.router = ExtensionLoader.getExtension(Router.class, config.getRouter());
+        if (Objects.isNull(this.router)) {
+            throw new ExtensionException(String.format("can not find router named '%s', please check whether related SPI config is missing", config.getRouter()));
+        }
 
         //获取注册中心client, 并订阅服务
         this.directory = new DefaultDirectory(config);

@@ -1,5 +1,6 @@
 package org.kin.kinrpc.config;
 
+import org.kin.framework.utils.ExtensionException;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.GenericService;
@@ -125,6 +126,10 @@ public final class ReferenceConfig<T> extends AbstractReferenceConfig<ReferenceC
 
         if (Objects.isNull(referenceBootstrap)) {
             referenceBootstrap = ExtensionLoader.getExtension(ReferenceBootstrap.class, getBootstrap(), this);
+        }
+
+        if (Objects.isNull(referenceBootstrap)) {
+            throw new ExtensionException(String.format("can not find reference bootstrap named '%s', please check whether related SPI config is missing", getBootstrap()));
         }
 
         proxy = referenceBootstrap.refer();

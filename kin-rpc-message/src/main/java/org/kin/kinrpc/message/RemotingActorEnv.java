@@ -1,5 +1,6 @@
 package org.kin.kinrpc.message;
 
+import org.kin.framework.utils.ExtensionException;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.NetUtils;
 import org.kin.framework.utils.SysUtils;
@@ -120,6 +121,9 @@ public final class RemotingActorEnv extends ActorEnv {
         checkTerminated();
 
         Transport transport = ExtensionLoader.getExtension(Transport.class, protocol);
+        if (Objects.isNull(transport)) {
+            throw new ExtensionException(String.format("can not find transport named '%s', please check whether related SPI config is missing", protocol));
+        }
         server = transport.createServer(listenAddress.getHost(), listenAddress.getPort(), null, serverSslConfig);
         server.registerRequestProcessor(new MessagePayloadProcessor());
         server.start();
