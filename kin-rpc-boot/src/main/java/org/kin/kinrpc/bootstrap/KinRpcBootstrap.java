@@ -9,7 +9,6 @@ import org.kin.framework.utils.*;
 import org.kin.kinrpc.GenericService;
 import org.kin.kinrpc.IllegalConfigException;
 import org.kin.kinrpc.config.*;
-import org.kin.kinrpc.registry.RegistryHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -129,9 +128,6 @@ public final class KinRpcBootstrap {
 
         //配置检查
         checkConfig();
-
-        //初始化全局配置, 包括注册中心, server, executor
-        initRegistries();
 
         //服务发布
         exportServices();
@@ -507,20 +503,6 @@ public final class KinRpcBootstrap {
             if (StringUtils.isBlank(referenceConfig.getProvideBy())) {
                 throw new IllegalConfigException("reference provideBy must be not blank");
             }
-        }
-    }
-
-    /**
-     * 初始化注册中心
-     */
-    private void initRegistries() {
-        List<RegistryConfig> registryConfigs = getConfigs(RegistryConfig.class);
-        if (CollectionUtils.isNonEmpty(registryConfigs)) {
-            return;
-        }
-
-        for (RegistryConfig registryConfig : registryConfigs) {
-            RegistryHelper.getRegistry(registryConfig);
         }
     }
 

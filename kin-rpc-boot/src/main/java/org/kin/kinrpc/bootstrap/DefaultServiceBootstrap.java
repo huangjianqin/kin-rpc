@@ -13,6 +13,7 @@ import org.kin.kinrpc.registry.RegistryHelper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * default boostrap service
@@ -46,7 +47,7 @@ public class DefaultServiceBootstrap<T> extends ServiceBootstrap<T> {
 
         //获取注册中心client, 并发布服务
         for (RegistryConfig registryConfig : config.getRegistries()) {
-            Registry registry = RegistryHelper.getRegistry(registryConfig);
+            Registry registry = RegistryHelper.createRegistryIfAbsent(registryConfig);
             registry.register(config);
         }
 
@@ -59,8 +60,13 @@ public class DefaultServiceBootstrap<T> extends ServiceBootstrap<T> {
         //获取注册中心client, 并取消发布服务
         for (RegistryConfig registryConfig : config.getRegistries()) {
             Registry registry = RegistryHelper.getRegistry(registryConfig);
+
+            if (Objects.isNull(registry)) {
+                continue;
+            }
+
             registry.unregister(config);
-            RegistryHelper.releaseRegistry(registryConfig);
+            registry.destroy();
         }
 
         //service destroy

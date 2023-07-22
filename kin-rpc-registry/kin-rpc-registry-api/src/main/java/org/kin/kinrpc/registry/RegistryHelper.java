@@ -14,6 +14,7 @@ import org.kin.kinrpc.config.ServiceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -51,13 +52,8 @@ public class RegistryHelper {
      * @param config 注册中心配置
      * @return {@link Registry}实例
      */
-    public static synchronized Registry getRegistry(RegistryConfig config) {
+    public static synchronized Registry createRegistryIfAbsent(RegistryConfig config) {
         String alias = getAlias(config);
-
-        RegistryEntry cached = REGISTRY_CACHE.peek(alias);
-        if (Objects.nonNull(cached)) {
-            return cached;
-        }
 
         return REGISTRY_CACHE.get(alias, () -> {
             String type = config.getType();
@@ -73,6 +69,17 @@ public class RegistryHelper {
     }
 
     /**
+     * 返回注册中心, 不增加引用计数
+     *
+     * @param config 注册中心配置
+     * @return {@link Registry}实例
+     */
+    @Nullable
+    public static Registry getRegistry(RegistryConfig config) {
+        return REGISTRY_CACHE.peek(getAlias(config));
+    }
+
+    /**
      * 对{@link Registry#destroy()}进行封装, 释放registry引用, 而不是直接destroy registry
      *
      * @param alias    registry name
@@ -81,19 +88,6 @@ public class RegistryHelper {
      */
     private static RegistryEntry wrapRegistry(String alias, Registry registry) {
         return new RegistryEntry(alias, registry);
-    }
-
-    /**
-     * 释放注册中心client引用次数
-     *
-     * @param config 注册中心配置
-     */
-    public static void releaseRegistry(RegistryConfig config) {
-        RegistryEntry registryEntry = REGISTRY_CACHE.peek(getAlias(config));
-        if (Objects.isNull(registryEntry)) {
-            return;
-        }
-        registryEntry.destroy();
     }
 
     /**

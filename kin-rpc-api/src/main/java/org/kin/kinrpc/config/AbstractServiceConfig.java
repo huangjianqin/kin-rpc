@@ -32,7 +32,7 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
     /** 是否注册到注册中心 */
     private Boolean register;
     /** {@link ServiceListener}实例 */
-    private List<ServiceListener> serviceListeners = new ArrayList<>();
+    private final List<ServiceListener> serviceListeners = new ArrayList<>();
 
     @Override
     public void checkValid() {

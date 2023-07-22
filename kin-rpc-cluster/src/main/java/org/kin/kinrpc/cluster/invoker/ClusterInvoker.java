@@ -74,7 +74,7 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
         //获取注册中心client, 并订阅服务
         this.directory = new DefaultDirectory(config);
         for (RegistryConfig registryConfig : config.getRegistries()) {
-            Registry registry = RegistryHelper.getRegistry(registryConfig);
+            Registry registry = RegistryHelper.createRegistryIfAbsent(registryConfig);
 
             registry.subscribe(config, directory);
         }
@@ -225,8 +225,13 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
         //获取注册中心client, 并取消订阅服务
         for (RegistryConfig registryConfig : config.getRegistries()) {
             Registry registry = RegistryHelper.getRegistry(registryConfig);
+
+            if (Objects.isNull(registry)) {
+                continue;
+            }
+
             registry.unsubscribe(config, directory);
-            RegistryHelper.releaseRegistry(registryConfig);
+            registry.destroy();
         }
     }
 }
