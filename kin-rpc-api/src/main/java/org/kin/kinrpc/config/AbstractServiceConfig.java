@@ -3,7 +3,6 @@ package org.kin.kinrpc.config;
 import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.StringUtils;
-import org.kin.kinrpc.IllegalConfigException;
 import org.kin.kinrpc.ServiceListener;
 import org.kin.kinrpc.utils.ObjectUtils;
 
@@ -17,6 +16,8 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
         extends AbstractInterfaceConfig<ASC> {
     /** 传输层配置 */
     private List<ServerConfig> servers = new ArrayList<>();
+    /** 服务connection ssl配置 */
+    private SslConfig ssl;
     /** 服务方法执行线程池 */
     private ExecutorConfig executor;
     /** 权重 */
@@ -100,13 +101,6 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
         return servers;
     }
 
-    public void setServers(List<ServerConfig> servers) {
-        if (Objects.isNull(servers)) {
-            throw new IllegalConfigException("servers can not be null");
-        }
-        this.servers = servers;
-    }
-
     public ASC jvm() {
         return bootstrap(BootstrapType.JVM);
     }
@@ -121,6 +115,16 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
 
     public ASC servers(Collection<ServerConfig> servers) {
         this.servers.addAll(servers);
+        return castThis();
+    }
+
+    public SslConfig getSsl() {
+        return ApplicationConfigManager.instance().getConfig(SslConfig.class);
+    }
+
+    public ASC ssl(SslConfig ssl) {
+        this.ssl = ssl;
+        ApplicationConfigManager.instance().addConfig(ssl);
         return castThis();
     }
 
@@ -200,6 +204,10 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
         return Objects.nonNull(register) ? register : true;
     }
 
+    public Boolean getRegister() {
+        return register;
+    }
+
     public List<ServiceListener> getServiceListeners() {
         return serviceListeners;
     }
@@ -214,37 +222,36 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
     }
 
     //----------------------
-    public AbstractServiceConfig<ASC> setExecutor(ExecutorConfig executor) {
+    public void setServers(List<ServerConfig> servers) {
+        this.servers = servers;
+    }
+
+    public void setSsl(SslConfig ssl) {
+        this.ssl = ssl;
+    }
+
+    public void setExecutor(ExecutorConfig executor) {
         this.executor = executor;
-        return this;
     }
 
-    public AbstractServiceConfig<ASC> setWeight(Integer weight) {
+    public void setWeight(Integer weight) {
         this.weight = weight;
-        return this;
     }
 
-    public AbstractServiceConfig<ASC> setBootstrap(String bootstrap) {
+    public void setBootstrap(String bootstrap) {
         this.bootstrap = bootstrap;
-        return this;
     }
 
-    public AbstractServiceConfig<ASC> setDelay(Long delay) {
+    public void setDelay(Long delay) {
         this.delay = delay;
-        return this;
     }
 
-    public AbstractServiceConfig<ASC> setToken(String token) {
+    public void setToken(String token) {
         this.token = token;
-        return this;
     }
 
     public void setExportAsync(Boolean exportAsync) {
         this.exportAsync = exportAsync;
-    }
-
-    public Boolean getRegister() {
-        return register;
     }
 
     public void setRegister(Boolean register) {
@@ -255,6 +262,7 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
     public String toString() {
         return super.toString() +
                 ObjectUtils.toStringIfPredicate(CollectionUtils.isNonEmpty(servers), ", servers=" + servers) +
+                ObjectUtils.toStringIfNonNull(ssl, ", ssl=" + ssl) +
                 ObjectUtils.toStringIfNonNull(executor, ", executor=" + executor) +
                 ", weight=" + weight +
                 ", bootstrap='" + bootstrap + '\'' +

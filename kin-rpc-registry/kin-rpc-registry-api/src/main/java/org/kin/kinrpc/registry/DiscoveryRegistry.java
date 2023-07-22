@@ -98,7 +98,7 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
     public final void register(ServiceConfig<?> serviceConfig) {
         checkTerminated();
 
-        if (!serviceConfig.getRegister()) {
+        if (!serviceConfig.isRegister()) {
             return;
         }
 
@@ -117,7 +117,7 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
     public final void unregister(ServiceConfig<?> serviceConfig) {
         checkTerminated();
 
-        if (!serviceConfig.getRegister()) {
+        if (!serviceConfig.isRegister()) {
             return;
         }
 

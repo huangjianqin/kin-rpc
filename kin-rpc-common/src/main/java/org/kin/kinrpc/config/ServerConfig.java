@@ -29,8 +29,6 @@ public class ServerConfig extends SharableConfig<ServerConfig> {
     private Integer port;
     /** server端业务线程池大小, 默认是double cpu处理器数量, 队列长度为512的线程池 */
     private ExecutorConfig executor;
-    /** 服务connection ssl配置 */
-    private SslConfig ssl;
 
     /**
      * 复用{@link ServerConfig}实例
@@ -180,39 +178,21 @@ public class ServerConfig extends SharableConfig<ServerConfig> {
         return this;
     }
 
-    public SslConfig getSsl() {
-        return ssl;
-    }
-
-    public ServerConfig ssl(SslConfig ssl) {
-        this.ssl = ssl;
-        return this;
-    }
-
     //----------------------
-    public ServerConfig setProtocol(String protocol) {
+    public void setProtocol(String protocol) {
         this.protocol = protocol;
-        return this;
     }
 
-    public ServerConfig setHost(String host) {
+    public void setHost(String host) {
         this.host = host;
-        return this;
     }
 
-    public ServerConfig setPort(Integer port) {
+    public void setPort(Integer port) {
         this.port = port;
-        return this;
     }
 
-    public ServerConfig setExecutor(ExecutorConfig executor) {
+    public void setExecutor(ExecutorConfig executor) {
         this.executor = executor;
-        return this;
-    }
-
-    public ServerConfig setSsl(SslConfig ssl) {
-        this.ssl = ssl;
-        return this;
     }
 
     @Override
@@ -236,7 +216,6 @@ public class ServerConfig extends SharableConfig<ServerConfig> {
                 ObjectUtils.toStringIfPredicate(StringUtils.isNotBlank(host), ", host='" + host + '\'') +
                 ", port=" + port +
                 ObjectUtils.toStringIfNonNull(executor, ", executor=" + executor) +
-                ObjectUtils.toStringIfNonNull(ssl, ", ssl=" + ssl) +
                 '}';
     }
 }

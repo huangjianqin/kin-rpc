@@ -65,7 +65,8 @@ public class DefaultReferenceInvoker<T> implements ReferenceInvoker<T> {
         }
 
         if (Objects.isNull(serializationCode)) {
-            throw new RpcException("rpc call fail, due to can not find available serialization, invocation=" + invocation);
+            return RpcResult.fail(invocation,
+                    new RpcException("rpc call fail, due to can not find available serialization, invocation=" + invocation));
         }
 
         RpcRequestCommand command = new RpcRequestCommand(this.serializationCode, invocation.serviceId(),

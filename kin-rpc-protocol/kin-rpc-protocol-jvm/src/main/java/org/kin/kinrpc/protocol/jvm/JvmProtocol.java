@@ -1,6 +1,5 @@
 package org.kin.kinrpc.protocol.jvm;
 
-import com.google.common.base.Preconditions;
 import org.kin.framework.collection.CopyOnWriteMap;
 import org.kin.framework.utils.Extension;
 import org.kin.kinrpc.*;
@@ -9,6 +8,7 @@ import org.kin.kinrpc.config.ServerConfig;
 import org.kin.kinrpc.protocol.Protocol;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -68,11 +68,15 @@ public class JvmProtocol implements Protocol {
         @Override
         public RpcResult invoke(Invocation invocation) {
             if (invocation.serviceId() != instance.serviceId()) {
-                throw new RpcException(String.format("invocation service(%s) is not right, should be %s", invocation.service(), instance.service()));
+                return RpcResult.fail(invocation,
+                        new RpcException(String.format("invocation service(%s) is not right, should be %s", invocation.service(), instance.service())));
             }
 
             RpcService<?> rpcService = rpcServiceCache.get(invocation.serviceId());
-            Preconditions.checkNotNull(rpcService, String.format("can not find service '%s'", invocation.service()));
+            if (Objects.isNull(rpcService)) {
+                return RpcResult.fail(invocation,
+                        new RpcException(String.format("can not find service '%s'", invocation.service())));
+            }
             CompletableFuture<Object> future = new CompletableFuture<>();
             rpcService.invoke(invocation).onFinish(future);
             return RpcResult.success(invocation, future);

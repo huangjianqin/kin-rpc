@@ -197,11 +197,12 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
     }
 
     public SslConfig getSsl() {
-        return ssl;
+        return ApplicationConfigManager.instance().getConfig(SslConfig.class);
     }
 
     public ARC ssl(SslConfig ssl) {
         this.ssl = ssl;
+        ApplicationConfigManager.instance().addConfig(ssl);
         return castThis();
     }
 

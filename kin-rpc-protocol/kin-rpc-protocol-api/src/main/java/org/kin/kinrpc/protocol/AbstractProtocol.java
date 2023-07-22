@@ -6,9 +6,7 @@ import org.kin.kinrpc.Exporter;
 import org.kin.kinrpc.ReferenceInvoker;
 import org.kin.kinrpc.RpcService;
 import org.kin.kinrpc.ServiceInstance;
-import org.kin.kinrpc.config.ExecutorConfig;
-import org.kin.kinrpc.config.ReferenceConfig;
-import org.kin.kinrpc.config.ServerConfig;
+import org.kin.kinrpc.config.*;
 import org.kin.kinrpc.executor.ExecutorHelper;
 import org.kin.kinrpc.executor.ManagedExecutor;
 import org.kin.kinrpc.transport.RemotingClient;
@@ -34,7 +32,6 @@ public abstract class AbstractProtocol implements Protocol {
     /**
      * client cache, 复用client
      * key -> remote address
-     * todo 同一remote server, 但一个reference需要使用ssl, 另外一个reference需要不使用ssl, 怎么处理
      * todo 同一remote server, 是否考虑需要client池
      */
     private final ReferenceCountedCache<String, RemotingClient> clientCache = new ReferenceCountedCache<>();
@@ -79,7 +76,8 @@ public abstract class AbstractProtocol implements Protocol {
         ManagedExecutor executor = Objects.nonNull(executorConfig) ? ExecutorHelper.getOrCreateExecutor(executorConfig, executorName) : null;
 
         Transport transport = ExtensionLoader.getExtension(Transport.class, name());
-        RemotingServer server = transport.createServer(serverConfig.getHost(), serverConfig.getPort(), executor, serverConfig.getSsl());
+        RemotingServer server = transport.createServer(serverConfig.getHost(), serverConfig.getPort(),
+                executor, ApplicationConfigManager.instance().getConfig(SslConfig.class));
         DefaultRpcRequestProcessor rpcRequestProcessor = new DefaultRpcRequestProcessor();
         server.registerRequestProcessor(rpcRequestProcessor);
 

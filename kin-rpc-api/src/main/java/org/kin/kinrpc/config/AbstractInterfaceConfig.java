@@ -92,6 +92,7 @@ public abstract class AbstractInterfaceConfig<IC extends AbstractInterfaceConfig
 
     public IC app(ApplicationConfig app) {
         this.app = app;
+        ApplicationConfigManager.instance().addConfig(app);
         return castThis();
     }
 
