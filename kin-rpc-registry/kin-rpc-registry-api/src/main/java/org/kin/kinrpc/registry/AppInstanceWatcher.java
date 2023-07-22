@@ -143,7 +143,7 @@ public class AppInstanceWatcher {
                         changedAppInstanceContexts.add(oldAppInstanceContext);
                     } else {
                         //服务元数据没有变化
-                        oldAppInstanceContextSet.add(oldAppInstanceContext);
+                        oldAppInstanceContextSet.remove(oldAppInstanceContext);
                     }
                 } else {
                     //新加入
@@ -211,7 +211,6 @@ public class AppInstanceWatcher {
                         MetadataService.class,
                         CommonConstants.METADATA_SERVICE_NAME);
                 MetadataService metadataService = metadataServiceReferenceConfig.refer();
-
                 MetadataResponse metadataResponse = metadataService.metadata(appInstance.revision());
                 List<ServiceInstance> serviceInstances = toServiceInstanceList(appInstance, metadataResponse);
                 return new AppInstanceContext(appInstance, serviceInstances,
@@ -254,6 +253,9 @@ public class AppInstanceWatcher {
      * @return 服务实例信息列表
      */
     private List<ServiceInstance> toServiceInstanceList(ApplicationInstance appInstance, MetadataResponse metadataResponse) {
+        if (Objects.isNull(metadataResponse)) {
+            return Collections.emptyList();
+        }
         Map<String, ServiceMetadata> serviceMetadataMap = metadataResponse.getServiceMetadataMap();
         return serviceMetadataMap.entrySet()
                 .stream()

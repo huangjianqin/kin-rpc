@@ -88,4 +88,12 @@ public final class DirectRegistry extends AbstractRegistry {
     public boolean isTerminated() {
         return terminated;
     }
+
+    @Override
+    public String toString() {
+        return "DirectRegistry{" +
+                "serviceInstances=" + serviceInstances +
+                ", terminated=" + terminated +
+                "}";
+    }
 }

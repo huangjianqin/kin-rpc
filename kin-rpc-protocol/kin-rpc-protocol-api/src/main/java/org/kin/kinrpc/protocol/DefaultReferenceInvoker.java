@@ -284,4 +284,12 @@ public class DefaultReferenceInvoker<T> implements ReferenceInvoker<T> {
     public int hashCode() {
         return Objects.hash(instance);
     }
+
+    @Override
+    public String toString() {
+        return "DefaultReferenceInvoker{" +
+                "instance=" + instance +
+                ", serializationCode=" + serializationCode +
+                '}';
+    }
 }

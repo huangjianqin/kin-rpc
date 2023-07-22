@@ -4,7 +4,10 @@ import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.ApplicationInstance;
 import org.kin.kinrpc.ServiceMetadataConstants;
 import org.kin.kinrpc.common.Url;
-import org.kin.kinrpc.config.*;
+import org.kin.kinrpc.config.ApplicationConfig;
+import org.kin.kinrpc.config.ReferenceConfig;
+import org.kin.kinrpc.config.RegistryConfig;
+import org.kin.kinrpc.config.SerializationType;
 import org.kin.kinrpc.constants.CommonConstants;
 import org.kin.kinrpc.constants.ReferenceConstants;
 
@@ -55,8 +58,7 @@ public final class ReferenceUtils {
                 .group(CommonConstants.INTERNAL_SERVICE_GROUP)
                 .serviceName(serviceName)
                 .version(CommonConstants.INTERNAL_SERVICE_VERSION)
-                .app(ApplicationConfig.create(CommonConstants.INTERNAL_REFERENCE_APP_NAME))
-                .cluster(ClusterType.FAILOVER);
+                .app(ApplicationConfig.create(CommonConstants.INTERNAL_REFERENCE_APP_NAME));
     }
 
     /**

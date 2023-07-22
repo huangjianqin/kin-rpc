@@ -68,7 +68,6 @@ public class DefaultDirectory implements Directory, ServiceInstanceChangedListen
                 //ignore
             }
         }
-
         return getActiveInvokers();
     }
 

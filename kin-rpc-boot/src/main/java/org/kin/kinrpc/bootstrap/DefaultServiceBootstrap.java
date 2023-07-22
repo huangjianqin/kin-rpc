@@ -43,6 +43,10 @@ public class DefaultServiceBootstrap<T> extends ServiceBootstrap<T> {
             Protocol protocol = Protocols.getByName(protocolName);
 
             exporters.add(protocol.export(rpcService, serverConfig));
+
+            //暴露内部服务
+            ApplicationGuardian guardian = ApplicationGuardian.instance();
+            guardian.exportInternalService(serverConfig);
         }
 
         //获取注册中心client, 并发布服务

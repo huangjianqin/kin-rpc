@@ -88,7 +88,7 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
      * @return zk session timeout
      */
     private int sessionTimeout() {
-        return config.attachment(ZKConstants.SESSION_TIMEOUT_KEY, 3000);
+        return config.attachment(ZKConstants.SESSION_TIMEOUT_KEY, 30000);
     }
 
     @Override
@@ -211,7 +211,9 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
                 log.debug("delete znode(path='{}') success", path);
             }
         } catch (Exception e) {
-            log.error("delete znode(path='{}') fail", path, e);
+            if (!(e instanceof KeeperException.NotEmptyException)) {
+                log.error("delete znode(path='{}') fail", path, e);
+            }
         }
     }
 

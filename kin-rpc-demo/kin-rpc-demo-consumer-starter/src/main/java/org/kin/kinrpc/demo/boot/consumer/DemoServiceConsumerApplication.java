@@ -10,6 +10,7 @@ import org.kin.kinrpc.demo.api.LogFilter;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import java.util.concurrent.TimeUnit;
 
@@ -19,6 +20,7 @@ import java.util.concurrent.TimeUnit;
  */
 @SpringBootApplication
 @EnableKinRpc
+@EnableWebMvc
 public class DemoServiceConsumerApplication {
     public static void main(String[] args) {
         SpringApplication.run(DemoServiceConsumerApplication.class);

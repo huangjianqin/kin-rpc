@@ -54,7 +54,6 @@ public class RegistryHelper {
      */
     public static synchronized Registry createRegistryIfAbsent(RegistryConfig config) {
         String alias = getAlias(config);
-
         return REGISTRY_CACHE.get(alias, () -> {
             String type = config.getType();
             RegistryFactory registryFactory = ExtensionLoader.getExtension(RegistryFactory.class, type);
@@ -189,6 +188,11 @@ public class RegistryHelper {
 
         public Registry getProxy() {
             return proxy;
+        }
+
+        @Override
+        public String toString() {
+            return proxy.toString();
         }
     }
 }
