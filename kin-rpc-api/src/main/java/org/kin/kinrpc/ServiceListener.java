@@ -21,5 +21,5 @@ public interface ServiceListener {
      *
      * @param serviceConfig 服务配置
      */
-    void onUnexported(ServiceConfig<?> serviceConfig);
+    void onUnExported(ServiceConfig<?> serviceConfig);
 }

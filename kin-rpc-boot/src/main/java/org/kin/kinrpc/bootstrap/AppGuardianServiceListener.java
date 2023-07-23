@@ -16,7 +16,7 @@ public class AppGuardianServiceListener implements ServiceListener {
     }
 
     @Override
-    public void onUnexported(ServiceConfig<?> serviceConfig) {
+    public void onUnExported(ServiceConfig<?> serviceConfig) {
         //do nothing
     }
 }

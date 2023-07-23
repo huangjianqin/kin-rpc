@@ -1,6 +1,7 @@
 package org.kin.kinrpc.registry.directory;
 
 import org.kin.kinrpc.ReferenceInvoker;
+import org.kin.kinrpc.registry.DirectoryListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,5 +58,10 @@ public final class CompositeDirectory implements Directory {
     @Override
     public String service() {
         return directories.get(0).service();
+    }
+
+    @Override
+    public void addListener(DirectoryListener listener) {
+        throw new UnsupportedOperationException();
     }
 }

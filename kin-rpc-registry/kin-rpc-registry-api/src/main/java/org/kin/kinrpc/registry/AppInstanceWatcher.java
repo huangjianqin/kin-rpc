@@ -52,7 +52,7 @@ public class AppInstanceWatcher {
      * @param appName      应用名
      * @param appInstances 单应用所有存活实例列表
      */
-    public void onDiscovery(String appName, List<ApplicationInstance> appInstances) {
+    public void onAppInstancesChanged(String appName, List<ApplicationInstance> appInstances) {
         if (CollectionUtils.isEmpty(appInstances)) {
             return;
         }

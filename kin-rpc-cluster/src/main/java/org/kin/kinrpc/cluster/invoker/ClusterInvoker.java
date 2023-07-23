@@ -73,6 +73,8 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
 
         //获取注册中心client, 并订阅服务
         this.directory = new DefaultDirectory(config);
+        //服务实例变化, 马上清掉stick invoker cache
+        this.directory.addListener((sis) -> stickyInvokerCache.cleanUp());
         for (RegistryConfig registryConfig : config.getRegistries()) {
             Registry registry = RegistryHelper.createRegistryIfAbsent(registryConfig);
 

@@ -104,7 +104,7 @@ public abstract class ServiceBootstrap<T> {
 
         for (ServiceListener serviceListener : config.getServiceListeners()) {
             try {
-                serviceListener.onUnexported(config);
+                serviceListener.onUnExported(config);
             } catch (Exception e) {
                 log.error("trigger service listener after service '{}' unExported error", config.getService(), e);
             }

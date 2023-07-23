@@ -12,6 +12,7 @@ import org.kin.kinrpc.ServiceMetadataConstants;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.protocol.Protocol;
 import org.kin.kinrpc.protocol.Protocols;
+import org.kin.kinrpc.registry.DirectoryListener;
 import org.kin.kinrpc.registry.DiscoveryUtils;
 import org.kin.kinrpc.registry.RegistryHelper;
 import org.kin.kinrpc.registry.ServiceInstanceChangedListener;
@@ -29,7 +30,7 @@ import java.util.stream.Collectors;
  * @author huangjianqin
  * @date 2019/6/11
  */
-public class DefaultDirectory implements Directory, ServiceInstanceChangedListener {
+public class DefaultDirectory extends AbstractDirectory implements ServiceInstanceChangedListener {
     private static final Logger log = LoggerFactory.getLogger(DefaultDirectory.class);
 
     /** reference config */
@@ -210,12 +211,22 @@ public class DefaultDirectory implements Directory, ServiceInstanceChangedListen
         //update cache
         this.invokers = validInvokers;
 
-        List<String> validInstanceUrls = validInvokers.stream()
+        List<ServiceInstance> finalServiceInstances = validInvokers.stream()
                 .map(ReferenceInvoker::serviceInstance)
+                .collect(Collectors.toList());
+        List<String> finalInstanceUrls = finalServiceInstances.stream()
                 .map(RegistryHelper::toUrlStr)
                 .collect(Collectors.toList());
 
-        log.info("directory(service={}) discover finished, validInstances={}", service(), validInstanceUrls);
+        log.info("directory(service={}) discover finished, validInstances={}", service(), finalInstanceUrls);
+
+        for (DirectoryListener listener : getListeners()) {
+            try {
+                listener.onDiscovery(finalServiceInstances);
+            } catch (Exception e) {
+                log.error("trigger {} onDiscovery error", DirectoryListener.class.getSimpleName(), e);
+            }
+        }
     }
 
     /**

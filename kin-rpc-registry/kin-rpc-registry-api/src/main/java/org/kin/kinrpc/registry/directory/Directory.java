@@ -1,6 +1,7 @@
 package org.kin.kinrpc.registry.directory;
 
 import org.kin.kinrpc.ReferenceInvoker;
+import org.kin.kinrpc.registry.DirectoryListener;
 
 import java.util.List;
 
@@ -36,4 +37,11 @@ public interface Directory {
      * @return 服务唯一标识
      */
     String service();
+
+    /**
+     * 添加{@link DirectoryListener}实例
+     *
+     * @param listener directory listener
+     */
+    void addListener(DirectoryListener listener);
 }

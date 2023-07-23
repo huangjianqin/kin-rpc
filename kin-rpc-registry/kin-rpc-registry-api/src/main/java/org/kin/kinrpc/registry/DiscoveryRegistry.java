@@ -52,7 +52,7 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
         }
         Set<AppInstanceWatcher> watchers = app2Watchers.get(appName);
         for (AppInstanceWatcher watcher : watchers) {
-            RegistryContext.SCHEDULER.execute(() -> watcher.onDiscovery(appName, appInstances));
+            RegistryContext.SCHEDULER.execute(() -> watcher.onAppInstancesChanged(appName, appInstances));
         }
     }
 
