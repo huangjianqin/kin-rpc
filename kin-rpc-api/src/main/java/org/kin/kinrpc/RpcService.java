@@ -98,7 +98,7 @@ public class RpcService<T> implements Invoker<T> {
         }
 
         try {
-            String token = invocation.getServerAttachments().remove(ServerAttachmentConstants.TOKEN_KEY);
+            String token = invocation.serverAttachments().remove(ServerAttachmentConstants.TOKEN_KEY);
             if (StringUtils.isNotBlank(this.token) && !this.token.equals(token)) {
                 throw new AuthorizationException(String.format("check service '%s' token authorization fail", invocation.service()));
             }
@@ -155,7 +155,7 @@ public class RpcService<T> implements Invoker<T> {
                            CompletableFuture<Object> future) {
         try {
             //关联rpc context与attachments
-            RpcContext.attachMany(invocation.getServerAttachments());
+            RpcContext.attachMany(invocation.serverAttachments());
             Object ret = doInvoke1(rpcHandler, invocation);
             CompletableFuture<Object> invokeFuture = wrapFuture(ret);
             invokeFuture.whenComplete((r, t) -> {
@@ -200,7 +200,7 @@ public class RpcService<T> implements Invoker<T> {
      */
     private Object doInvoke1(RpcHandler rpcHandler,
                              Invocation invocation) {
-        String handlerName = invocation.getHandlerName();
+        String handlerName = invocation.handlerName();
         Object[] params = invocation.params();
 
         if (log.isDebugEnabled()) {

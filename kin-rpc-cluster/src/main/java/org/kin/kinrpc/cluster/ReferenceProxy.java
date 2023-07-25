@@ -187,7 +187,6 @@ public final class ReferenceProxy implements InvocationHandler {
         RpcResult rpcResult = invoker.invoke(invocation);
         //reference通用线程处理
         rpcResult.onFinish(userFuture);
-        // TODO: 2023/7/12 是否需要实现cancel
         return userFuture;
     }
 }

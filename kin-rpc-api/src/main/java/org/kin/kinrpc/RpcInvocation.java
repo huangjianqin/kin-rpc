@@ -57,7 +57,7 @@ public class RpcInvocation extends AttachmentMap implements Invocation {
     }
 
     @Override
-    public String getHandlerName() {
+    public String handlerName() {
         return methodMetadata.handlerName();
     }
 
@@ -92,7 +92,7 @@ public class RpcInvocation extends AttachmentMap implements Invocation {
     }
 
     @Override
-    public Map<String, String> getServerAttachments() {
+    public Map<String, String> serverAttachments() {
         return serverAttachments;
     }
 

@@ -3,6 +3,7 @@ package org.kin.kinrpc.demo.api;
 import org.kin.kinrpc.GenericService;
 import org.kin.kinrpc.bootstrap.KinRpcBootstrap;
 import org.kin.kinrpc.config.*;
+import org.kin.kinrpc.constants.CacheConstants;
 
 /**
  * @author huangjianqin
@@ -45,6 +46,10 @@ public class RemoteServiceConsumer extends ServiceConsumer {
                 .cluster(ClusterType.FAILOVER)
                 .handler(MethodConfig.create("asyncFind").timeout(4000))
                 .handler(MethodConfig.create("delayRandom").sticky().retries(2))
+                .handler(MethodConfig.create("delayRandom2").sticky().retries(2)
+                        .timeout(10_000)
+                        .cache(CacheType.EXPIRING)
+                        .attach(CacheConstants.EXPIRING_CACHE_TTL, 1500))
                 .handler(MethodConfig.create("asyncFind2").async())
                 .filter(new LogFilter(false));
 
@@ -84,6 +89,10 @@ public class RemoteServiceConsumer extends ServiceConsumer {
                 .cluster(ClusterType.FAILOVER)
                 .handler(MethodConfig.create("asyncFind").timeout(4000))
                 .handler(MethodConfig.create("delayRandom").sticky().retries(2))
+                .handler(MethodConfig.create("delayRandom2").sticky().retries(2)
+                        .timeout(10_000)
+                        .cache(CacheType.EXPIRING)
+                        .attach(CacheConstants.EXPIRING_CACHE_TTL, 1500))
                 .handler(MethodConfig.create("asyncFind2").async())
                 .filter(new LogFilter(false));
 
@@ -131,6 +140,10 @@ public class RemoteServiceConsumer extends ServiceConsumer {
                         .serviceName(Constants.DEMO_SERVICE_NAME)
                         .handler(MethodConfig.create("asyncFind").timeout(3000))
                         .handler(MethodConfig.create("delayRandom").sticky().retries(2))
+                        .handler(MethodConfig.create("delayRandom2").sticky().retries(2)
+                                .timeout(10_000)
+                                .cache(CacheType.EXPIRING)
+                                .attach(CacheConstants.EXPIRING_CACHE_TTL, 1500))
                         .handler(MethodConfig.create("asyncFind2").async()))
                 .asyncExportRefer()
                 .start();

@@ -259,10 +259,13 @@ public final class KinRpcBootstrap {
         setParentConfigIfNotExists(referenceConfig::ssl, referenceConfig::getSsl, consumer, ConsumerConfig::getSsl);
         setParentConfigIfNotExists(referenceConfig::bootstrap, referenceConfig::getBootstrap, consumer, ConsumerConfig::getBootstrap);
         setParentConfigIfNotExists(referenceConfig::provideBy, referenceConfig::getProvideBy, consumer, ConsumerConfig::getProvideBy);
+
+        //method
         setParentConfigIfNotExists(referenceConfig::rpcTimeout, referenceConfig::getRpcTimeout, consumer, ConsumerConfig::getRpcTimeout);
         setParentConfigIfNotExists(referenceConfig::retries, referenceConfig::getRetries, consumer, ConsumerConfig::getRetries);
         setParentConfigIfNotExists(referenceConfig::async, referenceConfig::isAsync, consumer, ConsumerConfig::isAsync);
         setParentConfigIfNotExists(referenceConfig::sticky, referenceConfig::isSticky, consumer, ConsumerConfig::isSticky);
+        setParentConfigIfNotExists(referenceConfig::cache, referenceConfig::getCache, consumer, ConsumerConfig::getCache);
 
         //attachment
         if (Objects.nonNull(consumer)) {
@@ -472,7 +475,18 @@ public final class KinRpcBootstrap {
                 throw new IllegalConfigException(String.format("more than one reference config for service '%s'", service));
             }
 
-            if (StringUtils.isBlank(referenceConfig.getProvideBy())) {
+            //是否配置服务发现注册中心
+            boolean discovery = false;
+            for (RegistryConfig registry : referenceConfig.getRegistries()) {
+                if (RegistryType.DIRECT.getName().equals(registry.getType())) {
+                    continue;
+                }
+
+                discovery = true;
+                break;
+            }
+
+            if (discovery && StringUtils.isBlank(referenceConfig.getProvideBy())) {
                 throw new IllegalConfigException("reference provideBy must be not blank");
             }
         }

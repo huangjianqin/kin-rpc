@@ -5,6 +5,7 @@ import org.kin.kinrpc.boot.EnableKinRpc;
 import org.kin.kinrpc.boot.KinRpcHandler;
 import org.kin.kinrpc.boot.KinRpcReference;
 import org.kin.kinrpc.boot.KinRpcReferenceBean;
+import org.kin.kinrpc.constants.CacheConstants;
 import org.kin.kinrpc.demo.api.DemoService;
 import org.kin.kinrpc.demo.api.LogFilter;
 import org.springframework.boot.SpringApplication;
@@ -35,6 +36,9 @@ public class DemoServiceConsumerApplication {
     @KinRpcReference(serviceName = "demo",
             handlers = {@KinRpcHandler(name = "asyncFind"),
                     @KinRpcHandler(name = "delayRandom", sticky = true, retries = 2),
+                    @KinRpcHandler(name = "delayRandom2", sticky = true, retries = 2,
+                            rpcTimeout = 10_000, cache = "expiring",
+                            attachments = {CacheConstants.EXPIRING_CACHE_TTL, "1500"}),
                     @KinRpcHandler(name = "asyncFind2", async = true),
             })
     @Bean

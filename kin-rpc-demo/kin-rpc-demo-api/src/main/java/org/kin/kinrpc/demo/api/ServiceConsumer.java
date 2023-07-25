@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author huangjianqin
@@ -68,6 +69,31 @@ public class ServiceConsumer {
             demoService.printAttachments();
             return "";
         });
+        invoke("delayRandom2", demoService::delayRandom2);
+        try {
+            int sleep = ThreadLocalRandom.current().nextInt(2500);
+            System.out.println(String.format("sleep %dms", sleep));
+            Thread.sleep(sleep);
+        } catch (InterruptedException e) {
+
+        }
+        invoke("delayRandom2", demoService::delayRandom2);
+        try {
+            int sleep = ThreadLocalRandom.current().nextInt(2500);
+            System.out.println(String.format("sleep %dms", sleep));
+            Thread.sleep(sleep);
+        } catch (InterruptedException e) {
+
+        }
+        invoke("delayRandom2", demoService::delayRandom2);
+        try {
+            System.out.println("sleep 2000ms");
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+
+        }
+        invoke("delayRandom2", demoService::delayRandom2);
+
 
         try {
             Thread.sleep(3_000);
@@ -123,6 +149,31 @@ public class ServiceConsumer {
             genericDemoService.invoke("printAttachments");
             return "";
         });
+        invoke("delayRandom2", () -> genericDemoService.invoke("delayRandom2", Integer.class));
+        try {
+            int sleep = ThreadLocalRandom.current().nextInt(2500);
+            System.out.println(String.format("sleep %dms", sleep));
+            Thread.sleep(sleep);
+        } catch (InterruptedException e) {
+
+        }
+        invoke("delayRandom2", () -> genericDemoService.invoke("delayRandom2", Integer.class));
+        try {
+            int sleep = ThreadLocalRandom.current().nextInt(2500);
+            System.out.println(String.format("sleep %dms", sleep));
+            Thread.sleep(sleep);
+        } catch (InterruptedException e) {
+
+        }
+        invoke("delayRandom2", () -> genericDemoService.invoke("delayRandom2", Integer.class));
+        try {
+            System.out.println("sleep 2000ms");
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+
+        }
+        invoke("delayRandom2", () -> genericDemoService.invoke("delayRandom2", Integer.class));
+
 
         try {
             Thread.sleep(3_000);

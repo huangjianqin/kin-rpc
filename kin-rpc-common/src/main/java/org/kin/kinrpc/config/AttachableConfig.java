@@ -49,6 +49,41 @@ public abstract class AttachableConfig extends AbstractConfig implements Attachm
         return this.attachments.attachment(key, defaultValue);
     }
 
+    @Override
+    public boolean boolAttachment(String key, boolean defaultValue) {
+        return this.attachments.boolAttachment(key, defaultValue);
+    }
+
+    @Override
+    public byte byteAttachment(String key, byte defaultValue) {
+        return this.attachments.byteAttachment(key, defaultValue);
+    }
+
+    @Override
+    public short shortAttachment(String key, short defaultValue) {
+        return this.attachments.shortAttachment(key, defaultValue);
+    }
+
+    @Override
+    public int intAttachment(String key, int defaultValue) {
+        return this.attachments.intAttachment(key, defaultValue);
+    }
+
+    @Override
+    public long longAttachment(String key, long defaultValue) {
+        return this.attachments.longAttachment(key, defaultValue);
+    }
+
+    @Override
+    public float floatAttachment(String key, float defaultValue) {
+        return this.attachments.floatAttachment(key, defaultValue);
+    }
+
+    @Override
+    public double doubleAttachment(String key, double defaultValue) {
+        return this.attachments.doubleAttachment(key, defaultValue);
+    }
+
     @Nullable
     @Override
     public final <T> T detach(String key) {

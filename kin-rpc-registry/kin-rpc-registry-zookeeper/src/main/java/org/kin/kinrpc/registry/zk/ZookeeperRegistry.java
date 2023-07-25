@@ -88,7 +88,7 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
      * @return zk session timeout
      */
     private int sessionTimeout() {
-        return config.attachment(ZKConstants.SESSION_TIMEOUT_KEY, 30000);
+        return config.intAttachment(ZKConstants.SESSION_TIMEOUT_KEY, ZKConstants.DEFAULT_SESSION_TIMEOUT);
     }
 
     @Override

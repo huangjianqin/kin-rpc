@@ -141,6 +141,23 @@ public final class KinRpcReferenceUtils {
                 methodConfig.async((Boolean) handlerAnnoAttrs.get("async"))
                         .sticky((Boolean) handlerAnnoAttrs.get("sticky"));
 
+                String cache = (String) handlerAnnoAttrs.get("cache");
+                if (StringUtils.isNotBlank(cache)) {
+                    methodConfig.cache(cache);
+                }
+
+                String[] attachments = (String[]) handlerAnnoAttrs.get("attachments");
+                if (CollectionUtils.isNonEmpty(attachments)) {
+                    int entrySize = attachments.length / 2;
+                    if (entrySize > 0) {
+                        for (int i = 0, j = 0; i < entrySize; i++) {
+                            String key = attachments[j++];
+                            String value = attachments[j++];
+                            methodConfig.attach(key, value);
+                        }
+                    }
+                }
+
                 referenceConfig.handler(methodConfig);
             }
         }

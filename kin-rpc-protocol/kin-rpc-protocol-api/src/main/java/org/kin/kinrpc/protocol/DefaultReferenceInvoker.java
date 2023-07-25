@@ -72,7 +72,7 @@ public class DefaultReferenceInvoker<T> implements ReferenceInvoker<T> {
         RpcRequestCommand command = new RpcRequestCommand(this.serializationCode, invocation.serviceId(),
                 invocation.handlerId(), timeoutMs > 0 ? System.currentTimeMillis() + timeoutMs : 0, invocation.params());
         //bind server attachment
-        Map<String, String> serverAttachments = invocation.getServerAttachments();
+        Map<String, String> serverAttachments = invocation.serverAttachments();
         addTokenIfExists(serverAttachments);
         command.setMetadata(serverAttachments);
 

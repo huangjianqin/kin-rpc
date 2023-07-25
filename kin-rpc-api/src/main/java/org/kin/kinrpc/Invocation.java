@@ -45,7 +45,7 @@ public interface Invocation extends AttachmentSupport {
      *
      * @return 服务方法名
      */
-    String getHandlerName();
+    String handlerName();
 
     /**
      * 返回服务调用参数
@@ -101,5 +101,5 @@ public interface Invocation extends AttachmentSupport {
      *
      * @return attachments
      */
-    Map<String, String> getServerAttachments();
+    Map<String, String> serverAttachments();
 }

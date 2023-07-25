@@ -1,0 +1,3 @@
+org.kin.kinrpc.cache.factory.CacheFactory=org.kin.kinrpc.cache.factory.ExpiringCacheFactory,\
+org.kin.kinrpc.cache.factory.LruCacheFactory,\
+org.kin.kinrpc.cache.factory.ThreadLocalCacheFactory

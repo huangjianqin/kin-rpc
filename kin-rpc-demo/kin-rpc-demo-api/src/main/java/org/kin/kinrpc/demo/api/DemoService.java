@@ -45,6 +45,12 @@ public interface DemoService {
     int delayRandom();
 
     /**
+     * {@link Thread#sleep(long)}
+     * 测试超时+缓存
+     */
+    int delayRandom2();
+
+    /**
      * 测试返回{@link CompletableFuture}
      */
     CompletableFuture<User> asyncFind(String name, int age);

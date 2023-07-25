@@ -10,7 +10,7 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2023/6/16
  */
-public class MethodConfig extends AbstractConfig {
+public class MethodConfig extends AttachableConfig {
     /**
      * 方法名称
      * 不支持方法重载
@@ -24,6 +24,8 @@ public class MethodConfig extends AbstractConfig {
     private Boolean async;
     /** 是否服务调用粘黏 */
     private Boolean sticky;
+    /** 服务调用缓存类型 */
+    private String cache;
 
     public static MethodConfig create(String name) {
         return new MethodConfig().name(name);
@@ -120,6 +122,19 @@ public class MethodConfig extends AbstractConfig {
         return this;
     }
 
+    public String getCache() {
+        return cache;
+    }
+
+    public MethodConfig cache(String cache) {
+        this.cache = cache;
+        return this;
+    }
+
+    public MethodConfig cache(CacheType cacheType) {
+        return cache(cacheType.getName());
+    }
+
     @Override
     public String toString() {
         return "MethodConfig{" +
@@ -128,6 +143,7 @@ public class MethodConfig extends AbstractConfig {
                 ", retries=" + retries +
                 ", async=" + async +
                 ", sticky=" + sticky +
+                "cache='" + cache + '\'' +
                 '}';
     }
 }

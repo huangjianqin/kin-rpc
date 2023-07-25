@@ -103,6 +103,17 @@ public class DemoServiceImpl implements DemoService {
     }
 
     @Override
+    public int delayRandom2() {
+        int delay = 500 + ThreadLocalRandom.current().nextInt(1_000);
+        try {
+            Thread.sleep(delay);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        return delay;
+    }
+
+    @Override
     public CompletableFuture<User> asyncFind(String name, int age) {
         CompletableFuture<User> future = new CompletableFuture<>();
         ForkJoinPool.commonPool().execute(() -> {

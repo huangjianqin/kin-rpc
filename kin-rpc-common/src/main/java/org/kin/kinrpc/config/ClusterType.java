@@ -5,7 +5,9 @@ package org.kin.kinrpc.config;
  * @date 2023/6/27
  */
 public enum ClusterType {
+    /** failover */
     FAILOVER("failover"),
+    /** failfast */
     FAIL_FAST("failfast"),
     ;
     private final String name;

@@ -34,6 +34,8 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
     private Boolean async;
     /** 是否服务调用粘黏 */
     private Boolean sticky;
+    /** 服务调用缓存类型 */
+    private String cache;
 
     @Override
     public void checkValid() {
@@ -225,6 +227,11 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
         return this;
     }
 
+    public AbstractReferenceConfig<ARC> cache(String cache) {
+        this.cache = cache;
+        return this;
+    }
+
     //----------------------
     public AbstractReferenceConfig<ARC> setCluster(String cluster) {
         this.cluster = cluster;
@@ -296,6 +303,14 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
         this.provideBy = provideBy;
     }
 
+    public String getCache() {
+        return cache;
+    }
+
+    public void setCache(String cache) {
+        this.cache = cache;
+    }
+
     @Override
     public String toString() {
         return super.toString() +
@@ -309,6 +324,7 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
                 ", rpcTimeout=" + rpcTimeout +
                 ", retries=" + retries +
                 ", async=" + async +
-                ", sticky=" + sticky;
+                ", sticky=" + sticky +
+                ", cache='" + cache + '\'';
     }
 }

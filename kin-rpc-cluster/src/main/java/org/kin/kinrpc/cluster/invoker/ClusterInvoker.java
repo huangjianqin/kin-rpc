@@ -7,6 +7,7 @@ import org.kin.framework.utils.ExtensionException;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.SPI;
 import org.kin.kinrpc.*;
+import org.kin.kinrpc.cache.CacheFilter;
 import org.kin.kinrpc.cluster.InvokerNotFoundException;
 import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
 import org.kin.kinrpc.cluster.router.Router;
@@ -57,7 +58,7 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
         this.config = config;
 
         //创建filter chain
-        this.filterChain = FilterChain.create(config, (Invoker<T>) RpcCallInvoker.INSTANCE);
+        this.filterChain = FilterChain.create(config, createInternalFilterInvoker());
 
         //创建loadbalance
         this.loadBalance = ExtensionLoader.getExtension(LoadBalance.class, config.getLoadBalance());
@@ -80,6 +81,15 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
 
             registry.subscribe(config, directory);
         }
+    }
+
+    /**
+     * 创建内置filter关联的{@link FilterInvoker}实例链表
+     */
+    @SuppressWarnings("unchecked")
+    private Invoker<T> createInternalFilterInvoker() {
+        FilterInvoker<T> tailFilterInvoker = (FilterInvoker<T>) new FilterInvoker<>(RpcCallInvoker.INSTANCE);
+        return new FilterInvoker<>(CacheFilter.INSTANCE, tailFilterInvoker);
     }
 
     @Override

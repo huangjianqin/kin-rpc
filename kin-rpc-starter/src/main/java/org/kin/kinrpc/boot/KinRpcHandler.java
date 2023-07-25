@@ -25,4 +25,10 @@ public @interface KinRpcHandler {
 
     /** 是否服务调用粘黏 */
     boolean sticky() default false;
+
+    /** 服务调用缓存类型 */
+    String cache() default "";
+
+    /** 自定义属性, {key1, value1, key2, value2.....} */
+    String[] attachments() default {};
 }

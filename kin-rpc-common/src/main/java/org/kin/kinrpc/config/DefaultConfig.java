@@ -10,6 +10,8 @@ import java.util.concurrent.TimeUnit;
  * @date 2023/7/7
  */
 public final class DefaultConfig {
+
+    //--------------------------------------------------------------------interface
     /** 默认组 */
     public static final String DEFAULT_GROUP = "default";
     /** 默认版本号 */
@@ -18,6 +20,7 @@ public final class DefaultConfig {
     public static final String DEFAULT_SERIALIZATION = "jsonb";
 
 
+    //--------------------------------------------------------------------method
     /** @see MethodConfig#getTimeout() */
     public static final Integer DEFAULT_METHOD_TIMEOUT = 3000;
     /** @see MethodConfig#getRetries() */
@@ -28,6 +31,7 @@ public final class DefaultConfig {
     public static final Boolean DEFAULT_METHOD_STICKY = false;
 
 
+    //--------------------------------------------------------------------executor
     /** @see ExecutorConfig#getCorePoolSize() */
     public static final Integer DEFAULT_EXECUTOR_CORE_POOL_SIZE = SysUtils.getSuitableThreadNum();
     /** @see ExecutorConfig#getMaxPoolSize() */
@@ -38,6 +42,7 @@ public final class DefaultConfig {
     public static final Integer DEFAULT_EXECUTOR_QUEUE_SIZE = 256;
 
 
+    //--------------------------------------------------------------------server
     /** @see ServerConfig#getHost() */
     public static final String DEFAULT_SERVER_HOST = NetUtils.getLocalhost4Ip();
     /** @see ServerConfig#getPort() */
@@ -53,6 +58,7 @@ public final class DefaultConfig {
     }
 
 
+    //--------------------------------------------------------------------reference
     /** 默认cluster */
     public static final String DEFAULT_REFERENCE_CLUSTER = ClusterType.FAIL_FAST.getName();
     /** 默认负载均衡类型 */
@@ -65,6 +71,7 @@ public final class DefaultConfig {
     public static final String DEFAULT_REFERENCE_BOOTSTRAP = BootstrapType.DEFAULT.getName();
 
 
+    //--------------------------------------------------------------------service
     /** 默认服务权重 */
     public static final Integer DEFAULT_SERVICE_WEIGHT = 1;
     /** 默认服务bootstrap 类型 */
