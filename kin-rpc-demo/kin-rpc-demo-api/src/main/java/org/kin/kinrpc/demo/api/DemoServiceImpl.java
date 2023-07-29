@@ -193,4 +193,15 @@ public class DemoServiceImpl implements DemoService {
         }
         throw new IllegalStateException("failback() run error");
     }
+
+    @Override
+    public boolean forking() {
+        try {
+            Thread.sleep(ThreadLocalRandom.current().nextInt(1000));
+        } catch (InterruptedException e) {
+            //ignore
+        }
+        System.out.println("forking");
+        return true;
+    }
 }

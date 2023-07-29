@@ -17,6 +17,10 @@ public final class ReferenceConstants {
     /** failback cluster最大重试任务数量 */
     public static final String FAILBACK_RETRY_TASK_KEY = "cluster.failback.retryTask";
 
+    //---------------------------------------------------------------forking cluster
+    /** forking cluster并发次数 */
+    public static final String FORKING_FORKS_KEY = "cluster.forking.forks";
+
     private ReferenceConstants() {
     }
 }

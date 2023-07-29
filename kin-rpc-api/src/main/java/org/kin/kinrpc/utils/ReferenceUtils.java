@@ -2,6 +2,8 @@ package org.kin.kinrpc.utils;
 
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.ApplicationInstance;
+import org.kin.kinrpc.Invocation;
+import org.kin.kinrpc.RpcInvocation;
 import org.kin.kinrpc.ServiceMetadataConstants;
 import org.kin.kinrpc.common.Url;
 import org.kin.kinrpc.config.*;
@@ -68,5 +70,19 @@ public final class ReferenceUtils {
         }
 
         return new TreeSet<>(Arrays.asList(provideBy.split(ReferenceConstants.PROVIDE_BY_SEPARATOR)));
+    }
+
+    /**
+     * 服务{@link Invocation}实例
+     *
+     * @param invocation rpc call info
+     * @return {@link Invocation}新实例
+     */
+    public static Invocation copyInvocation(Invocation invocation) {
+        RpcInvocation rpcInvocation = new RpcInvocation(invocation.serviceId(), invocation.service(),
+                invocation.params(), invocation.serverAttachments(),
+                invocation.methodMetadata());
+        rpcInvocation.attachMany(invocation.attachments());
+        return rpcInvocation;
     }
 }

@@ -91,4 +91,9 @@ public interface DemoService {
      * failback模拟
      */
     boolean failback();
+
+    /**
+     * forking模拟
+     */
+    boolean forking();
 }

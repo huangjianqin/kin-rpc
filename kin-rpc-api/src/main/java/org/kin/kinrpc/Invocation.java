@@ -32,21 +32,27 @@ public interface Invocation extends AttachmentSupport {
      *
      * @return 服务方法唯一id
      */
-    int handlerId();
+    default int handlerId() {
+        return methodMetadata().handlerId();
+    }
 
     /**
      * 返回服务方法唯一标识
      *
      * @return 服务方法唯一标识
      */
-    String handler();
+    default String handler() {
+        return methodMetadata().handler();
+    }
 
     /**
      * 返回服务方法名
      *
      * @return 服务方法名
      */
-    String handlerName();
+    default String handlerName() {
+        return methodMetadata().handlerName();
+    }
 
     /**
      * 返回服务调用参数
@@ -60,10 +66,14 @@ public interface Invocation extends AttachmentSupport {
      *
      * @return true表示服务调用结果是异步返回
      */
-    boolean isAsyncReturn();
+    default boolean isAsyncReturn() {
+        return methodMetadata().isAsyncReturn();
+    }
 
     /** 标识服务方法没有返回值 */
-    boolean isOneWay();
+    default boolean isOneWay() {
+        return methodMetadata().isOneWay();
+    }
 
     /**
      * 返回服务调用结果真实返回值
@@ -72,21 +82,27 @@ public interface Invocation extends AttachmentSupport {
      *
      * @return 服务调用结果真实返回值
      */
-    Class<?> realReturnType();
+    default Class<?> realReturnType() {
+        return methodMetadata().realReturnType();
+    }
 
     /**
      * 返回服务方法返回值
      *
      * @return 服务方法返回值
      */
-    Class<?> returnType();
+    default Class<?> returnType() {
+        return methodMetadata().returnType();
+    }
 
     /**
      * 判断是否是{@link Object}定义方法
      *
      * @return true表示是{@link Object}定义方法
      */
-    boolean isObjectMethod();
+    default boolean isObjectMethod() {
+        return methodMetadata().isObjectMethod();
+    }
 
     /**
      * 返回值是否为空
@@ -109,5 +125,14 @@ public interface Invocation extends AttachmentSupport {
      *
      * @return 接口方法实例
      */
-    Method method();
+    default Method method() {
+        return methodMetadata().method();
+    }
+
+    /**
+     * 返回{@link MethodMetadata}实例
+     *
+     * @return {@link MethodMetadata}实例
+     */
+    MethodMetadata methodMetadata();
 }

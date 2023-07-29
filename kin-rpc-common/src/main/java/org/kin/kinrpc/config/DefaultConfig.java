@@ -92,6 +92,10 @@ public final class DefaultConfig {
     /** failback cluster默认最大重试任务数量 */
     public static final int DEFAULT_FAILBACK_RETRY_TASK = 100;
 
+    //--------------------------------------------------------------------forking cluster
+    /** forking cluster默认并发次数 */
+    public static final int DEFAULT_FORKING_FORKS = 2;
+
     private DefaultConfig() {
     }
 }

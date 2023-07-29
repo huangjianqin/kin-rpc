@@ -95,6 +95,7 @@ public class ServiceConsumer {
         invoke("delayRandom2", demoService::delayRandom2);
         invoke("valid", () -> demoService.valid("A", 1, new Parameter("room", 123)));
         invoke("failback", demoService::failback);
+        invoke("forking", demoService::forking);
 
         try {
             Thread.sleep(3_000);
@@ -176,6 +177,7 @@ public class ServiceConsumer {
         invoke("delayRandom2", () -> genericDemoService.invoke("delayRandom2", Integer.class));
         invoke("valid", () -> genericDemoService.invoke("valid", Boolean.class, "A", 1, new Parameter("room", 123)));
         invoke("failback", () -> genericDemoService.invoke("failback", Boolean.class));
+        invoke("forking", () -> genericDemoService.invoke("forking", Boolean.class));
 
         try {
             Thread.sleep(3_000);

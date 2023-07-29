@@ -40,7 +40,7 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
     /** reference配置 */
     protected final ReferenceConfig<T> config;
     /** 管理订阅服务的所有invoker实例 */
-    private final DefaultDirectory directory;
+    protected final DefaultDirectory directory;
     /** 路由策略 */
     private final Router router;
     /** 负载均衡策略 */

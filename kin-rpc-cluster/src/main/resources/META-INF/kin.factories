@@ -9,4 +9,5 @@ rpcResultAdapter=org.kin.kinrpc.cluster.call.FutureResultAdapter,\
 cluster=org.kin.kinrpc.cluster.invoker.FailFastClusterInvoker,\
   org.kin.kinrpc.cluster.invoker.FailoverClusterInvoker,\
   org.kin.kinrpc.cluster.invoker.FailSafeClusterInvoker,\
-  org.kin.kinrpc.cluster.invoker.FailBackClusterInvoker
+  org.kin.kinrpc.cluster.invoker.FailBackClusterInvoker,\
+  org.kin.kinrpc.cluster.invoker.ForkingClusterInvoker

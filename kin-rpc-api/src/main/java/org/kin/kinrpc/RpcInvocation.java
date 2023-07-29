@@ -2,7 +2,6 @@ package org.kin.kinrpc;
 
 import org.kin.framework.collection.AttachmentMap;
 
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,48 +47,8 @@ public class RpcInvocation extends AttachmentMap implements Invocation {
     }
 
     @Override
-    public int handlerId() {
-        return methodMetadata.handlerId();
-    }
-
-    @Override
-    public String handler() {
-        return methodMetadata.handler();
-    }
-
-    @Override
-    public String handlerName() {
-        return methodMetadata.handlerName();
-    }
-
-    @Override
     public Object[] params() {
         return params;
-    }
-
-    @Override
-    public boolean isAsyncReturn() {
-        return methodMetadata.isAsyncReturn();
-    }
-
-    @Override
-    public boolean isOneWay() {
-        return methodMetadata.isOneWay();
-    }
-
-    @Override
-    public Class<?> realReturnType() {
-        return methodMetadata.realReturnType();
-    }
-
-    @Override
-    public Class<?> returnType() {
-        return methodMetadata.returnType();
-    }
-
-    @Override
-    public boolean isObjectMethod() {
-        return methodMetadata.isObjectMethod();
     }
 
     @Override
@@ -98,12 +57,7 @@ public class RpcInvocation extends AttachmentMap implements Invocation {
     }
 
     @Override
-    public Method method() {
-        return methodMetadata.method();
-    }
-
-    //getter
-    public MethodMetadata getMethodMetadata() {
+    public MethodMetadata methodMetadata() {
         return methodMetadata;
     }
 
