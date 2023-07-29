@@ -1,5 +1,6 @@
 package org.kin.kinrpc.cluster.invoker;
 
+import org.kin.framework.utils.Extension;
 import org.kin.kinrpc.Invocation;
 import org.kin.kinrpc.RpcResult;
 import org.kin.kinrpc.config.ReferenceConfig;
@@ -15,6 +16,7 @@ import java.util.concurrent.CompletableFuture;
  * @author huangjianqin
  * @date 2023/6/26
  */
+@Extension("failfast")
 public class FailFastClusterInvoker<T> extends ClusterInvoker<T> {
     private static final Logger log = LoggerFactory.getLogger(FailFastClusterInvoker.class);
 

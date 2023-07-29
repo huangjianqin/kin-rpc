@@ -1,5 +1,6 @@
 package org.kin.kinrpc.cluster.invoker;
 
+import org.kin.framework.utils.Extension;
 import org.kin.kinrpc.*;
 import org.kin.kinrpc.config.MethodConfig;
 import org.kin.kinrpc.config.ReferenceConfig;
@@ -19,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
  * @author huangjianqin
  * @date 2023/6/26
  */
+@Extension("failover")
 public class FailoverClusterInvoker<T> extends ClusterInvoker<T> {
     private static final Logger log = LoggerFactory.getLogger(FailoverClusterInvoker.class);
 
@@ -65,7 +67,7 @@ public class FailoverClusterInvoker<T> extends ClusterInvoker<T> {
                     t = RpcUtils.normalizeException(t);
 
                     //fail
-                    log.warn("rpc call fail {} times, ready to retry rpc call, invocation={}, exception={}", curTimes, invocation, t);
+                    log.warn("rpc call fail {} times, ready to retry rpc call, invocation={}", curTimes, invocation, t);
                     if (!(t instanceof ServerErrorException) && t instanceof RpcException) {
                         //rpc异常(非服务方法执行异常), 才发起rpc异常重试
                         ReferenceInvoker<T> invoker = invocation.attachment(InvocationConstants.SELECTED_INVOKER_KEY);

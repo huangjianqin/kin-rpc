@@ -120,6 +120,18 @@ public final class KinRpcReferenceUtils {
             referenceConfig.provideBy(provideBy);
         }
 
+        String[] attachments = (String[]) referenceAnnoAttrs.get("attachments");
+        if (CollectionUtils.isNonEmpty(attachments)) {
+            int entrySize = attachments.length / 2;
+            if (entrySize > 0) {
+                for (int i = 0, j = 0; i < entrySize; i++) {
+                    String key = attachments[j++];
+                    String value = attachments[j++];
+                    referenceConfig.attach(key, value);
+                }
+            }
+        }
+
         AnnotationAttributes[] handlerAnnoAttrsList = (AnnotationAttributes[]) referenceAnnoAttrs.get("handlers");
         if (CollectionUtils.isNonEmpty(handlerAnnoAttrsList)) {
             for (AnnotationAttributes handlerAnnoAttrs : handlerAnnoAttrsList) {
@@ -148,7 +160,7 @@ public final class KinRpcReferenceUtils {
                     methodConfig.cache(cache);
                 }
 
-                String[] attachments = (String[]) handlerAnnoAttrs.get("attachments");
+                attachments = (String[]) handlerAnnoAttrs.get("attachments");
                 if (CollectionUtils.isNonEmpty(attachments)) {
                     int entrySize = attachments.length / 2;
                     if (entrySize > 0) {

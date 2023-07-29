@@ -88,11 +88,11 @@ public final class RpcUtils {
      * @return 异常
      */
     public static Throwable normalizeException(Throwable throwable) {
-        if (throwable instanceof ExecutionException) {
+        while (throwable instanceof ExecutionException) {
             throwable = throwable.getCause();
         }
 
-        if (throwable instanceof CompletionException) {
+        while (throwable instanceof CompletionException) {
             throwable = throwable.getCause();
         }
 

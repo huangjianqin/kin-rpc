@@ -114,4 +114,7 @@ public @interface KinRpcReference {
 
     /** 服务方法配置 */
     KinRpcHandler[] handlers() default {};
+
+    /** 自定义属性, {key1, value1, key2, value2.....} */
+    String[] attachments() default {};
 }

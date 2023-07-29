@@ -22,8 +22,8 @@ public class FilterChain<T> extends DelegateInvoker<T> {
     /** filter list, 优先级由低到高 */
     private final List<Filter> filters;
 
-    protected FilterChain(Invoker<T> lastInvoker, List<Filter> filters) {
-        super(buildInvokerChain(lastInvoker, filters));
+    protected FilterChain(Invoker<T> rpcCallInvoker, List<Filter> filters) {
+        super(buildInvokerChain(rpcCallInvoker, filters));
         this.filters = filters;
     }
 
@@ -32,8 +32,8 @@ public class FilterChain<T> extends DelegateInvoker<T> {
      *
      * @return 调用链invoker实例
      */
-    private static <T> Invoker<T> buildInvokerChain(Invoker<T> lastInvoker, List<Filter> filters) {
-        FilterInvoker<T> invokerChain = new FilterInvoker<>(lastInvoker);
+    private static <T> Invoker<T> buildInvokerChain(Invoker<T> rpcCallInvoker, List<Filter> filters) {
+        FilterInvoker<T> invokerChain = new FilterInvoker<>(rpcCallInvoker);
         if (CollectionUtils.isNonEmpty(filters)) {
             for (int i = filters.size() - 1; i >= 0; i--) {
                 invokerChain = new FilterInvoker<>(filters.get(i), invokerChain);
@@ -48,25 +48,25 @@ public class FilterChain<T> extends DelegateInvoker<T> {
      *
      * @param userFilters         user defined filter
      * @param internalPostFilters 内部后置filter, 不参与user defined filter order sort
-     * @param lastInvoker         发起rpc call invoker
+     * @param rpcCallInvoker      发起rpc call invoker
      * @return {@link FilterChain}实例
      */
     public static <T> FilterChain<T> create(List<Filter> userFilters,
                                             List<Filter> internalPostFilters,
-                                            Invoker<T> lastInvoker) {
-        return create(Collections.emptyList(), userFilters, internalPostFilters, lastInvoker);
+                                            Invoker<T> rpcCallInvoker) {
+        return create(Collections.emptyList(), userFilters, internalPostFilters, rpcCallInvoker);
     }
 
     /**
      * 创建{@link FilterChain}实例
      *
      * @param userFilters user defined filter
-     * @param lastInvoker 发起rpc call invoker
+     * @param rpcCallInvoker 发起rpc call invoker
      * @return {@link FilterChain}实例
      */
     public static <T> FilterChain<T> create(List<Filter> userFilters,
-                                            Invoker<T> lastInvoker) {
-        return create(Collections.emptyList(), userFilters, Collections.emptyList(), lastInvoker);
+                                            Invoker<T> rpcCallInvoker) {
+        return create(Collections.emptyList(), userFilters, Collections.emptyList(), rpcCallInvoker);
     }
 
     /**
@@ -75,13 +75,13 @@ public class FilterChain<T> extends DelegateInvoker<T> {
      * @param internalPreFilters  内部前置filter, 不参与user defined filter order sort
      * @param userFilters         user defined filter
      * @param internalPostFilters 内部后置filter, 不参与user defined filter order sort
-     * @param lastInvoker         发起rpc call invoker
+     * @param rpcCallInvoker         发起rpc call invoker
      * @return {@link FilterChain}实例
      */
     public static <T> FilterChain<T> create(List<Filter> internalPreFilters,
                                             List<Filter> userFilters,
                                             List<Filter> internalPostFilters,
-                                            Invoker<T> lastInvoker) {
+                                            Invoker<T> rpcCallInvoker) {
         //sort user defined filter
         userFilters.sort(Comparator.comparingInt(Filter::order));
 
@@ -91,7 +91,7 @@ public class FilterChain<T> extends DelegateInvoker<T> {
         finalFilters.addAll(internalPostFilters);
 
         // TODO: 2023/7/10 加载内置filter, 某些功能支持需要通过filter实现, 但我们不需要user手动配置, 同时filter还需要init
-        return new FilterChain<>(lastInvoker, finalFilters);
+        return new FilterChain<>(rpcCallInvoker, finalFilters);
     }
 
     @Override

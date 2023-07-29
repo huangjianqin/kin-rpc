@@ -86,4 +86,9 @@ public interface DemoService {
     boolean valid(@NotEmpty String name,
                   @Max(20) int age,
                   @Valid Parameter p);
+
+    /**
+     * failback模拟
+     */
+    boolean failback();
 }

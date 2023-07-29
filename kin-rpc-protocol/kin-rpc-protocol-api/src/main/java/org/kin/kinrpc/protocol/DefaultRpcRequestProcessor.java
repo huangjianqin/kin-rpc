@@ -8,19 +8,18 @@ import org.kin.kinrpc.RpcException;
 import org.kin.kinrpc.RpcInvocation;
 import org.kin.kinrpc.RpcService;
 import org.kin.kinrpc.config.ServiceConfig;
-import org.kin.kinrpc.constants.ServiceConstants;
+import org.kin.kinrpc.constants.InvocationConstants;
 import org.kin.kinrpc.transport.RequestContext;
 import org.kin.kinrpc.transport.RpcRequestProcessor;
 import org.kin.kinrpc.transport.cmd.CodecException;
 import org.kin.kinrpc.transport.cmd.RpcRequestCommand;
 import org.kin.kinrpc.utils.GsvUtils;
+import org.kin.kinrpc.utils.RpcUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
 
 /**
  * 默认rpc request处理实现
@@ -108,7 +107,7 @@ public class DefaultRpcRequestProcessor extends RpcRequestProcessor {
         Map<String, String> metadata = request.getMetadata();
         RpcInvocation invocation = new RpcInvocation(serviceId, rpcService.service(),
                 request.getParams(), metadata, methodMetadata);
-        invocation.attach(ServiceConstants.TIMEOUT_KEY, request.getTimeout());
+        invocation.attach(InvocationConstants.TIMEOUT_KEY, request.getTimeout());
         try {
             rpcService.invoke(invocation)
                     .onFinish((r, t) -> onFinish(requestContext, request, invocation.isOneWay(), r, t));
@@ -146,10 +145,7 @@ public class DefaultRpcRequestProcessor extends RpcRequestProcessor {
             }
         } else {
             //服务调用异常
-            while (t instanceof ExecutionException ||
-                    t instanceof CompletionException) {
-                t = t.getCause();
-            }
+            t = RpcUtils.normalizeException(t);
             requestContext.writeResponseIfError(t);
         }
     }

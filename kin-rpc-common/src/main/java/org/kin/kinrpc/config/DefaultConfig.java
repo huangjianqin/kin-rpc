@@ -85,6 +85,13 @@ public final class DefaultConfig {
     /** 默认注册到注册中心 */
     public static final Boolean DEFAULT_SERVICE_REGISTER = true;
 
+    //--------------------------------------------------------------------cluster
+    //--------------------------------------------------------------------failback cluster
+    /** failback cluster默认重试次数 */
+    public static final int DEFAULT_FAILBACK_RETRIES = 3;
+    /** failback cluster默认最大重试任务数量 */
+    public static final int DEFAULT_FAILBACK_RETRY_TASK = 100;
+
     private DefaultConfig() {
     }
 }

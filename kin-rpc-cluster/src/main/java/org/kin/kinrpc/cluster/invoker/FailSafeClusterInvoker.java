@@ -1,6 +1,7 @@
 package org.kin.kinrpc.cluster.invoker;
 
 import org.kin.framework.utils.ClassUtils;
+import org.kin.framework.utils.Extension;
 import org.kin.kinrpc.Invocation;
 import org.kin.kinrpc.RpcResult;
 import org.kin.kinrpc.config.ReferenceConfig;
@@ -17,6 +18,7 @@ import java.util.concurrent.CompletableFuture;
  * @author huangjianqin
  * @date 2023/7/29
  */
+@Extension("failsafe")
 public class FailSafeClusterInvoker<T> extends ClusterInvoker<T> {
     private static final Logger log = LoggerFactory.getLogger(FailSafeClusterInvoker.class);
 
@@ -34,7 +36,7 @@ public class FailSafeClusterInvoker<T> extends ClusterInvoker<T> {
                 future.complete(r);
             } else {
                 //fail
-                log.error("rpc call by fail safe cluster invoker, ignore error and return default value", t);
+                log.error("failsafe cluster rpc call fail, ignore error and return default value", t);
                 //返回默认值
                 future.complete(ClassUtils.getDefaultValue(invocation.returnType()));
             }

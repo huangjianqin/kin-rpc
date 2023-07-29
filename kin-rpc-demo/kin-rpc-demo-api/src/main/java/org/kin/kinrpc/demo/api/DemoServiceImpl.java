@@ -87,7 +87,7 @@ public class DemoServiceImpl implements DemoService {
 
     @Override
     public void runWithError() {
-        throw new BusinessException("run error");
+        throw new BusinessException("business error");
     }
 
     @Override
@@ -184,5 +184,13 @@ public class DemoServiceImpl implements DemoService {
     @Override
     public boolean valid(String name, int age, Parameter p) {
         return true;
+    }
+
+    @Override
+    public boolean failback() {
+        if (ThreadLocalRandom.current().nextBoolean()) {
+            return true;
+        }
+        throw new IllegalStateException("failback() run error");
     }
 }

@@ -11,7 +11,7 @@ public final class InvocationConstants {
 
     //----------------------------------------------------------------reference invocation attachment key
     /** cluster根据规则策略选择可用的invoker */
-    public static final String SELECTED_INVOKER_KEY = "selected";
+    public static final String SELECTED_INVOKER_KEY = "selectedInvoker";
     /** 服务方法配置 */
     public static final String METHOD_CONFIG_KEY = "methodConfig";
     /** 序列化类型配置 */
@@ -28,6 +28,8 @@ public final class InvocationConstants {
     //----------------------------------------------------------------service invocation attachment key
     /** service token */
     public static final String TOKEN_KEY = "token";
+    /** rpc call timeout(absolutely end time) */
+    public static final String TIMEOUT_KEY = "timeout";
 
     private InvocationConstants() {
     }
