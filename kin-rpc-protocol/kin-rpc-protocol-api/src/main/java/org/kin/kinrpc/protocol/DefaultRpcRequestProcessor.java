@@ -19,6 +19,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 /**
  * 默认rpc request处理实现
@@ -144,6 +146,10 @@ public class DefaultRpcRequestProcessor extends RpcRequestProcessor {
             }
         } else {
             //服务调用异常
+            while (t instanceof ExecutionException ||
+                    t instanceof CompletionException) {
+                t = t.getCause();
+            }
             requestContext.writeResponseIfError(t);
         }
     }

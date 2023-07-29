@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
 /**
+ * 快速失败
+ *
  * @author huangjianqin
  * @date 2023/6/26
  */

@@ -9,6 +9,8 @@ public enum ClusterType {
     FAILOVER("failover"),
     /** failfast */
     FAIL_FAST("failfast"),
+    /** failsafe */
+    FAIL_SAFE("failsafe"),
     ;
     private final String name;
 

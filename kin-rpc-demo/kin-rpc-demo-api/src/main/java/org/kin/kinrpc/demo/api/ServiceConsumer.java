@@ -187,7 +187,8 @@ public class ServiceConsumer {
         StringBuilder sb = new StringBuilder();
         sb.append("---" + Thread.currentThread().getName() + "---" + message + System.lineSeparator());
         try {
-            sb.append(callable.call().toString() + System.lineSeparator());
+            sb.append(callable.call());
+            sb.append(System.lineSeparator());
         } catch (Exception e) {
             //异常则输出, 然后继续执行下一task
             sb.append(ExceptionUtils.getExceptionDesc(e) + System.lineSeparator());
@@ -219,6 +220,10 @@ public class ServiceConsumer {
     }
 
     private static User readUserByteBuf(ByteBuf byteBuf) {
+        if (Objects.isNull(byteBuf)) {
+            return null;
+        }
+
         String name = BytebufUtils.readShortString(byteBuf);
         byte age = byteBuf.readByte();
         return User.of(name, age);

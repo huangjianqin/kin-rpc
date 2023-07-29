@@ -106,7 +106,8 @@ public class ValidationFilter implements Filter {
 
         return invoker.invoke(invocation)
                 .onFinish((r, t) -> {
-                    if (Objects.nonNull(t)) {
+                    if (Objects.isNull(t)) {
+                        //success
                         Set<ConstraintViolation<Object>> violations = validator.validate(r, groups);
                         if (!violations.isEmpty()) {
                             throw new ConstraintViolationException(

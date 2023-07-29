@@ -14,6 +14,8 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
+ * 失败重试
+ *
  * @author huangjianqin
  * @date 2023/6/26
  */
