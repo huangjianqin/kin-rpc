@@ -49,8 +49,8 @@ public class FailBackClusterInvoker<T> extends ClusterInvoker<T> {
 
     public FailBackClusterInvoker(ReferenceConfig<T> config) {
         super(config);
-        this.maxRetries = config.attachment(ReferenceConstants.FAILBACK_RETRIES_KEY, DefaultConfig.DEFAULT_FAILBACK_RETRIES);
-        this.maxRetryTask = config.attachment(ReferenceConstants.FAILBACK_RETRY_TASK_KEY, DefaultConfig.DEFAULT_FAILBACK_RETRY_TASK);
+        this.maxRetries = config.intAttachment(ReferenceConstants.FAILBACK_RETRIES_KEY, DefaultConfig.DEFAULT_FAILBACK_RETRIES);
+        this.maxRetryTask = config.intAttachment(ReferenceConstants.FAILBACK_RETRY_TASK_KEY, DefaultConfig.DEFAULT_FAILBACK_RETRY_TASK);
     }
 
     /**
