@@ -16,6 +16,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
+ * 并行发起服务调用
+ *
  * @author huangjianqin
  * @date 2023/7/29
  */
