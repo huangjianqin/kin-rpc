@@ -225,6 +225,7 @@ public final class KinRpcBootstrap {
         setParentConfigIfNotExists(serviceConfig::delay, serviceConfig::getDelay, provider, ProviderConfig::getDelay);
         setParentConfigIfNotExists(serviceConfig::token, serviceConfig::getToken, provider, ProviderConfig::getToken);
         setParentConfigIfNotExists(serviceConfig::exportAsync, serviceConfig::getExportAsync, provider, ProviderConfig::getExportAsync);
+        setParentConfigIfNotExists(serviceConfig::validation, serviceConfig::getValidation, provider, ProviderConfig::getValidation);
 
         //attachment
         if (Objects.nonNull(provider)) {
