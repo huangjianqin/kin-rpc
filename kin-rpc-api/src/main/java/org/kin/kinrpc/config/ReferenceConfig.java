@@ -88,6 +88,10 @@ public final class ReferenceConfig<T> extends AbstractReferenceConfig<ReferenceC
         for (MethodConfig method : handlers) {
             method.initDefaultConfig();
         }
+
+        if (Objects.isNull(getValidation())) {
+            validation(DefaultConfig.DEFAULT_METHOD_VALIDATION);
+        }
     }
 
     /**

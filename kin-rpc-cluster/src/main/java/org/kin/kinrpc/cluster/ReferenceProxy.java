@@ -13,7 +13,7 @@ import org.kin.kinrpc.*;
 import org.kin.kinrpc.cluster.call.RpcResultAdapterHelper;
 import org.kin.kinrpc.config.MethodConfig;
 import org.kin.kinrpc.config.ReferenceConfig;
-import org.kin.kinrpc.constants.ReferenceConstants;
+import org.kin.kinrpc.constants.InvocationConstants;
 import org.kin.kinrpc.utils.GsvUtils;
 import org.kin.kinrpc.utils.HandlerUtils;
 import org.kin.kinrpc.utils.RpcUtils;
@@ -79,7 +79,8 @@ public final class ReferenceProxy implements InvocationHandler {
                 .timeout(config.getRpcTimeout())
                 .retries(config.getRetries())
                 .async(config.isAsync())
-                .sticky(config.isSticky());
+                .sticky(config.isSticky())
+                .validation(config.isValidation());
     }
 
     @Override
@@ -142,8 +143,10 @@ public final class ReferenceProxy implements InvocationHandler {
         //clear attachments
         RpcContext.clearAttachments();
         //attach config
-        invocation.attach(ReferenceConstants.METHOD_CONFIG_KEY, methodConfig);
-        invocation.attach(ReferenceConstants.SERIALIZATION_KEY, config.getSerialization());
+        invocation.attach(InvocationConstants.METHOD_CONFIG_KEY, methodConfig);
+        invocation.attach(InvocationConstants.SERIALIZATION_KEY, config.getSerialization());
+        //服务方法调用参数校验
+        invocation.attach(InvocationConstants.VALIDATION_KEY, methodConfig.isValidation());
 
         if (log.isDebugEnabled()) {
             log.debug("ready to send rpc call. invocation={}", invocation);

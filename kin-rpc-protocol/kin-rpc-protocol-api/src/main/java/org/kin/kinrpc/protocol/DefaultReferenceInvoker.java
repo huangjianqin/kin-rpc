@@ -5,8 +5,7 @@ import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.*;
 import org.kin.kinrpc.config.MethodConfig;
-import org.kin.kinrpc.constants.ReferenceConstants;
-import org.kin.kinrpc.constants.ServerAttachmentConstants;
+import org.kin.kinrpc.constants.InvocationConstants;
 import org.kin.kinrpc.transport.RemotingClient;
 import org.kin.kinrpc.transport.cmd.RpcRequestCommand;
 import org.kin.kinrpc.transport.cmd.RpcResponseCommand;
@@ -48,7 +47,7 @@ public class DefaultReferenceInvoker<T> implements ReferenceInvoker<T> {
 
     @Override
     public RpcResult invoke(Invocation invocation) {
-        MethodConfig methodConfig = invocation.attachment(ReferenceConstants.METHOD_CONFIG_KEY);
+        MethodConfig methodConfig = invocation.attachment(InvocationConstants.METHOD_CONFIG_KEY);
         boolean asyncInvoke = invocation.isAsyncReturn();
         int timeoutMs = 0;
         if (Objects.nonNull(methodConfig)) {
@@ -58,7 +57,7 @@ public class DefaultReferenceInvoker<T> implements ReferenceInvoker<T> {
 
         Byte serializationCode = this.serializationCode;
         if (Objects.isNull(serializationCode)) {
-            String serialization = invocation.attachment(ReferenceConstants.SERIALIZATION_KEY);
+            String serialization = invocation.attachment(InvocationConstants.SERIALIZATION_KEY);
             if (StringUtils.isNotBlank(serialization)) {
                 serializationCode = (byte) ExtensionLoader.getExtensionCode(Serialization.class, serialization);
             }
@@ -255,7 +254,7 @@ public class DefaultReferenceInvoker<T> implements ReferenceInvoker<T> {
             return;
         }
 
-        serverAttachments.put(ServerAttachmentConstants.TOKEN_KEY, token);
+        serverAttachments.put(InvocationConstants.TOKEN_KEY, token);
     }
 
     @Override

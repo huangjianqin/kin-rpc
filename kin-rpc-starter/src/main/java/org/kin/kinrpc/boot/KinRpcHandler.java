@@ -29,6 +29,9 @@ public @interface KinRpcHandler {
     /** 服务调用缓存类型 */
     String cache() default "";
 
+    /** 是否开启服务方法调用参数校验 */
+    boolean validation() default true;
+
     /** 自定义属性, {key1, value1, key2, value2.....} */
     String[] attachments() default {};
 }

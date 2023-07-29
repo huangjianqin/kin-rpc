@@ -34,6 +34,8 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
     private Boolean register;
     /** {@link ServiceListener}实例 */
     private final List<ServiceListener> serviceListeners = new ArrayList<>();
+    /** 是否开启参数调用 */
+    private Boolean validation;
 
     @Override
     public void checkValid() {
@@ -178,7 +180,7 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
         return castThis();
     }
 
-    public Boolean isExportAsync() {
+    public boolean isExportAsync() {
         return Objects.nonNull(exportAsync) ? exportAsync : false;
     }
 
@@ -221,6 +223,19 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
         return this;
     }
 
+    public Boolean isValidation() {
+        return Objects.nonNull(validation) ? validation : false;
+    }
+
+    public AbstractServiceConfig<ASC> validation(Boolean validation) {
+        this.validation = validation;
+        return this;
+    }
+
+    public AbstractServiceConfig<ASC> validation() {
+        return validation(true);
+    }
+
     //----------------------
     public void setServers(List<ServerConfig> servers) {
         this.servers = servers;
@@ -250,12 +265,24 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
         this.token = token;
     }
 
+    public Boolean getExportAsync() {
+        return exportAsync;
+    }
+
     public void setExportAsync(Boolean exportAsync) {
         this.exportAsync = exportAsync;
     }
 
     public void setRegister(Boolean register) {
         this.register = register;
+    }
+
+    public Boolean getValidation() {
+        return validation;
+    }
+
+    public void setValidation(Boolean validation) {
+        this.validation = validation;
     }
 
     @Override
@@ -268,6 +295,7 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
                 ", bootstrap='" + bootstrap + '\'' +
                 ", delay=" + delay +
                 ", token=" + token +
-                ", exportAsync=" + exportAsync;
+                ", exportAsync=" + exportAsync +
+                ", validation=" + validation;
     }
 }

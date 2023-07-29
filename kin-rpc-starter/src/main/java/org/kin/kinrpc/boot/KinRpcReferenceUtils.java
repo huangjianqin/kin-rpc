@@ -112,7 +112,8 @@ public final class KinRpcReferenceUtils {
         }
 
         referenceConfig.async((Boolean) referenceAnnoAttrs.get("async"))
-                .sticky((Boolean) referenceAnnoAttrs.get("sticky"));
+                .sticky((Boolean) referenceAnnoAttrs.get("sticky"))
+                .validation((Boolean) referenceAnnoAttrs.get("validation"));
 
         String provideBy = (String) referenceAnnoAttrs.get("provideBy");
         if (StringUtils.isNotBlank(provideBy)) {
@@ -139,7 +140,8 @@ public final class KinRpcReferenceUtils {
                 }
 
                 methodConfig.async((Boolean) handlerAnnoAttrs.get("async"))
-                        .sticky((Boolean) handlerAnnoAttrs.get("sticky"));
+                        .sticky((Boolean) handlerAnnoAttrs.get("sticky"))
+                        .validation((Boolean) handlerAnnoAttrs.get("validation"));
 
                 String cache = (String) handlerAnnoAttrs.get("cache");
                 if (StringUtils.isNotBlank(cache)) {

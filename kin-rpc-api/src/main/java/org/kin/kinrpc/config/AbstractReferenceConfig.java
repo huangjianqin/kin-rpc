@@ -36,6 +36,8 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
     private Boolean sticky;
     /** 服务调用缓存类型 */
     private String cache;
+    /** 是否开启参数调用 */
+    private Boolean validation;
 
     @Override
     public void checkValid() {
@@ -141,7 +143,7 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
         return router(routerType.getName());
     }
 
-    public Boolean isGeneric() {
+    public boolean isGeneric() {
         return Objects.nonNull(generic) ? generic : false;
     }
 
@@ -172,7 +174,7 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
         return castThis();
     }
 
-    public Boolean isAsync() {
+    public boolean isAsync() {
         return Objects.nonNull(async) ? async : false;
     }
 
@@ -185,7 +187,7 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
         return castThis();
     }
 
-    public Boolean isSticky() {
+    public boolean isSticky() {
         return Objects.nonNull(sticky) ? sticky : false;
     }
 
@@ -230,6 +232,19 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
     public AbstractReferenceConfig<ARC> cache(String cache) {
         this.cache = cache;
         return this;
+    }
+
+    public boolean isValidation() {
+        return Objects.nonNull(validation) ? validation : false;
+    }
+
+    public AbstractReferenceConfig<ARC> validation(Boolean validation) {
+        this.validation = validation;
+        return this;
+    }
+
+    public AbstractReferenceConfig<ARC> validation() {
+        return validation(true);
     }
 
     //----------------------
@@ -311,6 +326,14 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
         this.cache = cache;
     }
 
+    public Boolean getValidation() {
+        return validation;
+    }
+
+    public void setValidation(Boolean validation) {
+        this.validation = validation;
+    }
+
     @Override
     public String toString() {
         return super.toString() +
@@ -325,6 +348,7 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
                 ", retries=" + retries +
                 ", async=" + async +
                 ", sticky=" + sticky +
-                ", cache='" + cache + '\'';
+                ", cache='" + cache + '\'' +
+                ", validation=" + validation;
     }
 }

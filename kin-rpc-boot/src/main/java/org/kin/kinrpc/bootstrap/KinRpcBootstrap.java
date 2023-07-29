@@ -224,7 +224,7 @@ public final class KinRpcBootstrap {
         setParentConfigIfNotExists(serviceConfig::bootstrap, serviceConfig::getBootstrap, provider, ProviderConfig::getBootstrap);
         setParentConfigIfNotExists(serviceConfig::delay, serviceConfig::getDelay, provider, ProviderConfig::getDelay);
         setParentConfigIfNotExists(serviceConfig::token, serviceConfig::getToken, provider, ProviderConfig::getToken);
-        setParentConfigIfNotExists(serviceConfig::exportAsync, serviceConfig::isExportAsync, provider, ProviderConfig::isExportAsync);
+        setParentConfigIfNotExists(serviceConfig::exportAsync, serviceConfig::getExportAsync, provider, ProviderConfig::getExportAsync);
 
         //attachment
         if (Objects.nonNull(provider)) {
@@ -255,7 +255,7 @@ public final class KinRpcBootstrap {
         setParentConfigIfNotExists(referenceConfig::cluster, referenceConfig::getCluster, consumer, ConsumerConfig::getCluster);
         setParentConfigIfNotExists(referenceConfig::loadBalance, referenceConfig::getLoadBalance, consumer, ConsumerConfig::getLoadBalance);
         setParentConfigIfNotExists(referenceConfig::router, referenceConfig::getRouter, consumer, ConsumerConfig::getRouter);
-        setParentConfigIfNotExists(referenceConfig::generic, referenceConfig::isGeneric, consumer, ConsumerConfig::isGeneric);
+        setParentConfigIfNotExists(referenceConfig::generic, referenceConfig::getGeneric, consumer, ConsumerConfig::getGeneric);
         setParentConfigIfNotExists(referenceConfig::ssl, referenceConfig::getSsl, consumer, ConsumerConfig::getSsl);
         setParentConfigIfNotExists(referenceConfig::bootstrap, referenceConfig::getBootstrap, consumer, ConsumerConfig::getBootstrap);
         setParentConfigIfNotExists(referenceConfig::provideBy, referenceConfig::getProvideBy, consumer, ConsumerConfig::getProvideBy);
@@ -263,9 +263,10 @@ public final class KinRpcBootstrap {
         //method
         setParentConfigIfNotExists(referenceConfig::rpcTimeout, referenceConfig::getRpcTimeout, consumer, ConsumerConfig::getRpcTimeout);
         setParentConfigIfNotExists(referenceConfig::retries, referenceConfig::getRetries, consumer, ConsumerConfig::getRetries);
-        setParentConfigIfNotExists(referenceConfig::async, referenceConfig::isAsync, consumer, ConsumerConfig::isAsync);
-        setParentConfigIfNotExists(referenceConfig::sticky, referenceConfig::isSticky, consumer, ConsumerConfig::isSticky);
+        setParentConfigIfNotExists(referenceConfig::async, referenceConfig::getAsync, consumer, ConsumerConfig::getAsync);
+        setParentConfigIfNotExists(referenceConfig::sticky, referenceConfig::getSticky, consumer, ConsumerConfig::getSticky);
         setParentConfigIfNotExists(referenceConfig::cache, referenceConfig::getCache, consumer, ConsumerConfig::getCache);
+        setParentConfigIfNotExists(referenceConfig::validation, referenceConfig::getValidation, consumer, ConsumerConfig::getValidation);
 
         //attachment
         if (Objects.nonNull(consumer)) {

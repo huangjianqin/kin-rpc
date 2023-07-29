@@ -180,4 +180,9 @@ public class DemoServiceImpl implements DemoService {
     public void printAttachments() {
         System.out.println(RpcContext.attachments());
     }
+
+    @Override
+    public boolean valid(String name, int age, Parameter p) {
+        return true;
+    }
 }

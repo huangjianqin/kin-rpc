@@ -2,6 +2,7 @@ package org.kin.kinrpc;
 
 import org.kin.framework.collection.AttachmentSupport;
 
+import java.lang.reflect.Method;
 import java.util.Map;
 
 /**
@@ -102,4 +103,11 @@ public interface Invocation extends AttachmentSupport {
      * @return attachments
      */
     Map<String, String> serverAttachments();
+
+    /**
+     * 返回接口方法实例
+     *
+     * @return 接口方法实例
+     */
+    Method method();
 }

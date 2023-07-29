@@ -3,7 +3,7 @@ package org.kin.kinrpc.cluster.invoker;
 import org.kin.kinrpc.*;
 import org.kin.kinrpc.config.MethodConfig;
 import org.kin.kinrpc.config.ReferenceConfig;
-import org.kin.kinrpc.constants.ReferenceConstants;
+import org.kin.kinrpc.constants.InvocationConstants;
 import org.kin.kinrpc.utils.RpcUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +26,7 @@ public class FailoverClusterInvoker<T> extends ClusterInvoker<T> {
 
     @Override
     protected void doInvoke(Invocation invocation, CompletableFuture<Object> future) {
-        MethodConfig methodConfig = invocation.attachment(ReferenceConstants.METHOD_CONFIG_KEY);
+        MethodConfig methodConfig = invocation.attachment(InvocationConstants.METHOD_CONFIG_KEY);
         if (Objects.isNull(methodConfig)) {
             throw new IllegalStateException("can not find method config. invocation=" + invocation);
         }
@@ -66,7 +66,7 @@ public class FailoverClusterInvoker<T> extends ClusterInvoker<T> {
                     log.warn("rpc call fail {} times, ready to retry rpc call, invocation={}, exception={}", curTimes, invocation, t);
                     if (!(t instanceof ServerErrorException) && t instanceof RpcException) {
                         //rpc异常(非服务方法执行异常), 才发起rpc异常重试
-                        ReferenceInvoker<T> invoker = invocation.attachment(ReferenceConstants.SELECTED_INVOKER_KEY);
+                        ReferenceInvoker<T> invoker = invocation.attachment(InvocationConstants.SELECTED_INVOKER_KEY);
                         if (Objects.nonNull(invoker)) {
                             excludes.add(invoker.serviceInstance());
                         }

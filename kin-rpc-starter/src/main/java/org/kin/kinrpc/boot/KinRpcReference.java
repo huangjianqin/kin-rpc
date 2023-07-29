@@ -109,6 +109,9 @@ public @interface KinRpcReference {
     /** 是否服务调用粘黏 */
     boolean sticky() default false;
 
+    /** 是否开启服务方法调用参数校验 */
+    boolean validation() default true;
+
     /** 服务方法配置 */
     KinRpcHandler[] handlers() default {};
 }

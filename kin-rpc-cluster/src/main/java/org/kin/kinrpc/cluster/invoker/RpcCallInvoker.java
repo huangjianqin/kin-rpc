@@ -1,7 +1,7 @@
 package org.kin.kinrpc.cluster.invoker;
 
 import org.kin.kinrpc.*;
-import org.kin.kinrpc.constants.ReferenceConstants;
+import org.kin.kinrpc.constants.InvocationConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +20,11 @@ public final class RpcCallInvoker<T> implements Invoker<T> {
     private static final Logger log = LoggerFactory.getLogger(RpcCallInvoker.class);
 
     /** 单例 */
-    public static final Invoker<?> INSTANCE = new RpcCallInvoker<>();
+    private static final RpcCallInvoker<?> INSTANCE = new RpcCallInvoker<>();
+
+    public static RpcCallInvoker<?> instance() {
+        return INSTANCE;
+    }
 
     private RpcCallInvoker() {
     }
@@ -28,14 +32,14 @@ public final class RpcCallInvoker<T> implements Invoker<T> {
     @Override
     public RpcResult invoke(Invocation invocation) {
         //经过路由, 负载均衡等策略规则筛选后的invoker
-        ReferenceInvoker<T> invoker = invocation.attachment(ReferenceConstants.SELECTED_INVOKER_KEY);
+        ReferenceInvoker<T> invoker = invocation.attachment(InvocationConstants.SELECTED_INVOKER_KEY);
         if (Objects.isNull(invoker) || !invoker.isAvailable()) {
             return RpcResult.fail(invocation, new IllegalStateException("can not find available invoker. invocation=" + invocation));
         }
 
         //ready to rpc call
         long now = System.currentTimeMillis();
-        invocation.attach(ReferenceConstants.RPC_CALL_START_TIME_KEY, now);
+        invocation.attach(InvocationConstants.RPC_CALL_START_TIME_KEY, now);
 
         CompletableFuture<Object> future = new CompletableFuture<>();
 
@@ -67,10 +71,10 @@ public final class RpcCallInvoker<T> implements Invoker<T> {
             log.debug("rpc call response. result={}, exception={}, invocation={}", result, t, invocation);
         }
 
-        invocation.attach(ReferenceConstants.RPC_CALL_FINISH_TIME_KEY, System.currentTimeMillis());
+        invocation.attach(InvocationConstants.RPC_CALL_FINISH_TIME_KEY, System.currentTimeMillis());
 
         RpcResponse rpcResponse = new RpcResponse(result, t);
-        FilterChain<T> chain = invocation.attachment(ReferenceConstants.FILTER_CHAIN);
+        FilterChain<T> chain = invocation.attachment(InvocationConstants.FILTER_CHAIN);
         if (Objects.nonNull(chain)) {
             chain.onResponse(invocation, rpcResponse);
         }

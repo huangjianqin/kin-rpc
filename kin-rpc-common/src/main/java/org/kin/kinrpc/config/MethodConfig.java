@@ -26,6 +26,8 @@ public class MethodConfig extends AttachableConfig {
     private Boolean sticky;
     /** 服务调用缓存类型 */
     private String cache;
+    /** 是否开启参数调用 */
+    private Boolean validation;
 
     public static MethodConfig create(String name) {
         return new MethodConfig().name(name);
@@ -58,6 +60,10 @@ public class MethodConfig extends AttachableConfig {
 
         if (Objects.isNull(sticky)) {
             sticky = DefaultConfig.DEFAULT_METHOD_STICKY;
+        }
+
+        if (Objects.isNull(validation)) {
+            validation = DefaultConfig.DEFAULT_METHOD_VALIDATION;
         }
     }
 
@@ -135,6 +141,19 @@ public class MethodConfig extends AttachableConfig {
         return cache(cacheType.getName());
     }
 
+    public Boolean isValidation() {
+        return validation;
+    }
+
+    public MethodConfig validation(Boolean validation) {
+        this.validation = validation;
+        return this;
+    }
+
+    public MethodConfig validation() {
+        return validation(true);
+    }
+
     @Override
     public String toString() {
         return "MethodConfig{" +
@@ -144,6 +163,7 @@ public class MethodConfig extends AttachableConfig {
                 ", async=" + async +
                 ", sticky=" + sticky +
                 "cache='" + cache + '\'' +
+                ", validation=" + validation +
                 '}';
     }
 }

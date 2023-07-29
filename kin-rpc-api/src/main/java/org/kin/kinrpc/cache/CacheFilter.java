@@ -8,7 +8,7 @@ import org.kin.kinrpc.Invoker;
 import org.kin.kinrpc.RpcResult;
 import org.kin.kinrpc.cache.factory.CacheFactory;
 import org.kin.kinrpc.config.MethodConfig;
-import org.kin.kinrpc.constants.ReferenceConstants;
+import org.kin.kinrpc.constants.InvocationConstants;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -23,9 +23,13 @@ public class CacheFilter implements Filter {
     /** 单例 */
     public static final CacheFilter INSTANCE = new CacheFilter();
 
+    public static CacheFilter instance() {
+        return INSTANCE;
+    }
+
     @Override
     public RpcResult invoke(Invoker<?> invoker, Invocation invocation) {
-        MethodConfig methodConfig = invocation.attachment(ReferenceConstants.METHOD_CONFIG_KEY);
+        MethodConfig methodConfig = invocation.attachment(InvocationConstants.METHOD_CONFIG_KEY);
         if (Objects.isNull(methodConfig)) {
             //no cache
             return invoker.invoke(invocation);

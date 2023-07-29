@@ -29,6 +29,8 @@ public final class DefaultConfig {
     public static final Boolean DEFAULT_METHOD_ASYNC = false;
     /** @see MethodConfig#isSticky() */
     public static final Boolean DEFAULT_METHOD_STICKY = false;
+    /** @see MethodConfig#isValidation() */
+    public static final Boolean DEFAULT_METHOD_VALIDATION = true;
 
 
     //--------------------------------------------------------------------executor

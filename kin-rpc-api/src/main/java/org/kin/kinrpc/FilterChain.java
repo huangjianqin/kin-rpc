@@ -1,11 +1,12 @@
 package org.kin.kinrpc;
 
 import org.kin.framework.utils.CollectionUtils;
-import org.kin.kinrpc.config.AbstractInterfaceConfig;
-import org.kin.kinrpc.constants.ReferenceConstants;
+import org.kin.kinrpc.constants.InvocationConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -34,8 +35,6 @@ public class FilterChain<T> extends DelegateInvoker<T> {
     private static <T> Invoker<T> buildInvokerChain(Invoker<T> lastInvoker, List<Filter> filters) {
         FilterInvoker<T> invokerChain = new FilterInvoker<>(lastInvoker);
         if (CollectionUtils.isNonEmpty(filters)) {
-            //custom filter order
-            filters.sort(Comparator.comparingInt(Filter::order));
             for (int i = filters.size() - 1; i >= 0; i--) {
                 invokerChain = new FilterInvoker<>(filters.get(i), invokerChain);
             }
@@ -44,14 +43,60 @@ public class FilterChain<T> extends DelegateInvoker<T> {
         return invokerChain;
     }
 
-    public static <T> FilterChain<T> create(AbstractInterfaceConfig<?> config, Invoker<T> lastInvoker) {
+    /**
+     * 创建{@link FilterChain}实例
+     *
+     * @param userFilters         user defined filter
+     * @param internalPostFilters 内部后置filter, 不参与user defined filter order sort
+     * @param lastInvoker         发起rpc call invoker
+     * @return {@link FilterChain}实例
+     */
+    public static <T> FilterChain<T> create(List<Filter> userFilters,
+                                            List<Filter> internalPostFilters,
+                                            Invoker<T> lastInvoker) {
+        return create(Collections.emptyList(), userFilters, internalPostFilters, lastInvoker);
+    }
+
+    /**
+     * 创建{@link FilterChain}实例
+     *
+     * @param userFilters user defined filter
+     * @param lastInvoker 发起rpc call invoker
+     * @return {@link FilterChain}实例
+     */
+    public static <T> FilterChain<T> create(List<Filter> userFilters,
+                                            Invoker<T> lastInvoker) {
+        return create(Collections.emptyList(), userFilters, Collections.emptyList(), lastInvoker);
+    }
+
+    /**
+     * 创建{@link FilterChain}实例
+     *
+     * @param internalPreFilters  内部前置filter, 不参与user defined filter order sort
+     * @param userFilters         user defined filter
+     * @param internalPostFilters 内部后置filter, 不参与user defined filter order sort
+     * @param lastInvoker         发起rpc call invoker
+     * @return {@link FilterChain}实例
+     */
+    public static <T> FilterChain<T> create(List<Filter> internalPreFilters,
+                                            List<Filter> userFilters,
+                                            List<Filter> internalPostFilters,
+                                            Invoker<T> lastInvoker) {
+        //sort user defined filter
+        userFilters.sort(Comparator.comparingInt(Filter::order));
+
+        List<Filter> finalFilters = new ArrayList<>();
+        finalFilters.addAll(internalPreFilters);
+        finalFilters.addAll(userFilters);
+        finalFilters.addAll(internalPostFilters);
+
         // TODO: 2023/7/10 加载内置filter, 某些功能支持需要通过filter实现, 但我们不需要user手动配置, 同时filter还需要init
-        return new FilterChain<>(lastInvoker, config.getFilters());
+        return new FilterChain<>(lastInvoker, finalFilters);
     }
 
     @Override
     public RpcResult invoke(Invocation invocation) {
-        invocation.attach(ReferenceConstants.FILTER_CHAIN, this);
+        invocation.attach(InvocationConstants.FILTER_CHAIN, this);
         return super.invoke(invocation);
     }
 

@@ -93,6 +93,7 @@ public class ServiceConsumer {
 
         }
         invoke("delayRandom2", demoService::delayRandom2);
+        invoke("valid", () -> demoService.valid("A", 1, new Parameter("room", 123)));
 
 
         try {
@@ -173,7 +174,7 @@ public class ServiceConsumer {
 
         }
         invoke("delayRandom2", () -> genericDemoService.invoke("delayRandom2", Integer.class));
-
+        invoke("valid", () -> genericDemoService.invoke("valid", Boolean.class, "A", 1, new Parameter("room", 123)));
 
         try {
             Thread.sleep(3_000);

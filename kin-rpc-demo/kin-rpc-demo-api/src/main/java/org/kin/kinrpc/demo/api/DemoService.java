@@ -4,6 +4,9 @@ import io.netty.buffer.ByteBuf;
 import org.kin.kinrpc.RpcContext;
 import reactor.core.publisher.Mono;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -76,4 +79,11 @@ public interface DemoService {
     CompletableFuture<Void> asyncRunWithError();
 
     void printAttachments();
+
+    /**
+     * 参数校验
+     */
+    boolean valid(@NotEmpty String name,
+                  @Max(20) int age,
+                  @Valid Parameter p);
 }

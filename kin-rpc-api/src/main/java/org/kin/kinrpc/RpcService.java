@@ -8,10 +8,11 @@ import org.kin.framework.utils.ExceptionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.config.ExecutorConfig;
 import org.kin.kinrpc.config.ServiceConfig;
-import org.kin.kinrpc.constants.ServerAttachmentConstants;
+import org.kin.kinrpc.constants.InvocationConstants;
 import org.kin.kinrpc.executor.ExecutorHelper;
 import org.kin.kinrpc.executor.ManagedExecutor;
 import org.kin.kinrpc.utils.RpcUtils;
+import org.kin.kinrpc.utils.ServiceFilterUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
@@ -47,7 +48,7 @@ public class RpcService<T> implements Invoker<T> {
         this.config = config;
         //创建filter chain
         Invoker<T> invoker = this::doInvoke;
-        this.chain = FilterChain.create(config, invoker);
+        this.chain = FilterChain.create(config.getFilters(), ServiceFilterUtils.internalPostFilters(), invoker);
 
         //create rpc handler
         IntObjectHashMap<RpcHandler> rpcHandlerMap = new IntObjectHashMap<>();
@@ -98,10 +99,13 @@ public class RpcService<T> implements Invoker<T> {
         }
 
         try {
-            String token = invocation.serverAttachments().remove(ServerAttachmentConstants.TOKEN_KEY);
+            String token = invocation.serverAttachments().remove(InvocationConstants.TOKEN_KEY);
             if (StringUtils.isNotBlank(this.token) && !this.token.equals(token)) {
                 throw new AuthorizationException(String.format("check service '%s' token authorization fail", invocation.service()));
             }
+
+            //服务方法调用参数校验
+            invocation.attach(InvocationConstants.VALIDATION_KEY, config.isValidation());
 
             CompletableFuture<Object> future = new CompletableFuture<>();
             if (Objects.nonNull(executor)) {

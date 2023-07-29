@@ -2,6 +2,7 @@ package org.kin.kinrpc;
 
 import org.kin.framework.collection.AttachmentMap;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -94,6 +95,11 @@ public class RpcInvocation extends AttachmentMap implements Invocation {
     @Override
     public Map<String, String> serverAttachments() {
         return serverAttachments;
+    }
+
+    @Override
+    public Method method() {
+        return methodMetadata.method();
     }
 
     //getter

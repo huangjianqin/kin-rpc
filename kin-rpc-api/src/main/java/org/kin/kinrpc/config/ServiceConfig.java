@@ -71,6 +71,10 @@ public final class ServiceConfig<T> extends AbstractServiceConfig<ServiceConfig<
         if (StringUtils.isBlank(getServiceName())) {
             serviceName(getInterfaceClass().getSimpleName());
         }
+
+        if (Objects.isNull(getValidation())) {
+            validation(DefaultConfig.DEFAULT_METHOD_VALIDATION);
+        }
     }
 
     /**

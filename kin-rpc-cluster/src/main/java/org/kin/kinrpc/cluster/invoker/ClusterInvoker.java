@@ -7,14 +7,14 @@ import org.kin.framework.utils.ExtensionException;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.SPI;
 import org.kin.kinrpc.*;
-import org.kin.kinrpc.cache.CacheFilter;
 import org.kin.kinrpc.cluster.InvokerNotFoundException;
 import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
 import org.kin.kinrpc.cluster.router.Router;
+import org.kin.kinrpc.cluster.utils.ReferenceFilterUtils;
 import org.kin.kinrpc.config.MethodConfig;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.RegistryConfig;
-import org.kin.kinrpc.constants.ReferenceConstants;
+import org.kin.kinrpc.constants.InvocationConstants;
 import org.kin.kinrpc.registry.Registry;
 import org.kin.kinrpc.registry.RegistryHelper;
 import org.kin.kinrpc.registry.directory.DefaultDirectory;
@@ -58,7 +58,10 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
         this.config = config;
 
         //创建filter chain
-        this.filterChain = FilterChain.create(config, createInternalFilterInvoker());
+        this.filterChain = (FilterChain<T>) FilterChain.create(ReferenceFilterUtils.internalPreFilters(),
+                config.getFilters(),
+                ReferenceFilterUtils.internalPostFilters(),
+                RpcCallInvoker.instance());
 
         //创建loadbalance
         this.loadBalance = ExtensionLoader.getExtension(LoadBalance.class, config.getLoadBalance());
@@ -81,15 +84,6 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
 
             registry.subscribe(config, directory);
         }
-    }
-
-    /**
-     * 创建内置filter关联的{@link FilterInvoker}实例链表
-     */
-    @SuppressWarnings("unchecked")
-    private Invoker<T> createInternalFilterInvoker() {
-        FilterInvoker<T> tailFilterInvoker = (FilterInvoker<T>) new FilterInvoker<>(RpcCallInvoker.INSTANCE);
-        return new FilterInvoker<>(CacheFilter.INSTANCE, tailFilterInvoker);
     }
 
     @Override
@@ -123,7 +117,7 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
         }
 
         //1. check sticky
-        MethodConfig methodConfig = invocation.attachment(ReferenceConstants.METHOD_CONFIG_KEY);
+        MethodConfig methodConfig = invocation.attachment(InvocationConstants.METHOD_CONFIG_KEY);
         if (Objects.nonNull(methodConfig) && methodConfig.isSticky()) {
             ReferenceInvoker<T> invoker = stickyInvokerCache.getIfPresent(invocation.handlerId());
             if (Objects.nonNull(invoker)) {
@@ -149,7 +143,7 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
         ReferenceInvoker<?> loadBalancedInvoker = loadBalance.loadBalance(invocation, routedInvokers);
 
         //attach
-        invocation.attach(ReferenceConstants.LOADBALANCE, loadBalance);
+        invocation.attach(InvocationConstants.LOADBALANCE, loadBalance);
 
         if (log.isDebugEnabled()) {
             if (loadBalancedInvoker != null) {
@@ -171,7 +165,7 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
         ReferenceInvoker<T> selected = select(invocation, excludes);
 
         if (Objects.nonNull(selected)) {
-            invocation.attach(ReferenceConstants.SELECTED_INVOKER_KEY, selected);
+            invocation.attach(InvocationConstants.SELECTED_INVOKER_KEY, selected);
         } else {
             throw new InvokerNotFoundException(invocation.handler());
         }
@@ -191,7 +185,7 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
         try {
             return filterChain.invoke(invocation)
                     .onFinish((r, t) -> {
-                        MethodConfig methodConfig = invocation.attachment(ReferenceConstants.METHOD_CONFIG_KEY);
+                        MethodConfig methodConfig = invocation.attachment(InvocationConstants.METHOD_CONFIG_KEY);
                         if (Objects.isNull(methodConfig) || !methodConfig.isSticky()) {
                             return;
                         }
@@ -199,7 +193,7 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
                         //维护服务方法调用invoker sticky
                         if (Objects.isNull(t)) {
                             //rpc call success
-                            ReferenceInvoker<T> invoker = invocation.attachment(ReferenceConstants.SELECTED_INVOKER_KEY);
+                            ReferenceInvoker<T> invoker = invocation.attachment(InvocationConstants.SELECTED_INVOKER_KEY);
                             if (Objects.nonNull(invoker)) {
                                 stickyInvokerCache.put(invocation.handlerId(), invoker);
                             }
@@ -220,11 +214,11 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
      */
     protected final void onResetInvocation(Invocation invocation) {
         //保留method config
-        MethodConfig methodConfig = invocation.attachment(ReferenceConstants.METHOD_CONFIG_KEY);
+        MethodConfig methodConfig = invocation.attachment(InvocationConstants.METHOD_CONFIG_KEY);
         //reset
         invocation.clear();
         //recover retain
-        invocation.attach(ReferenceConstants.METHOD_CONFIG_KEY, methodConfig);
+        invocation.attach(InvocationConstants.METHOD_CONFIG_KEY, methodConfig);
     }
 
     /**
