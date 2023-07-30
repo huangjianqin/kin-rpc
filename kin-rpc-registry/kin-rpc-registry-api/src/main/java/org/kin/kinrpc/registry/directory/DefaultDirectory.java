@@ -53,7 +53,9 @@ public class DefaultDirectory extends AbstractDirectory implements ServiceInstan
      * 返回已订阅且活跃的invoker列表
      */
     private List<ReferenceInvoker<?>> getActiveInvokers() {
-        return invokers.stream().filter(ReferenceInvoker::isAvailable).collect(Collectors.toList());
+        return invokers.stream()
+                .filter(ReferenceInvoker::isAvailable)
+                .collect(Collectors.toList());
     }
 
     @Override

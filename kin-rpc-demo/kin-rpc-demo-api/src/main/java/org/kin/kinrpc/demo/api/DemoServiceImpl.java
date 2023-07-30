@@ -33,6 +33,10 @@ public class DemoServiceImpl implements DemoService {
             User.of("E", 5)
     );
 
+    protected int getRpcPort() {
+        return -1;
+    }
+
     @Override
     public List<User> findAll() {
         return USERS;
@@ -203,5 +207,16 @@ public class DemoServiceImpl implements DemoService {
         }
         System.out.println("forking");
         return true;
+    }
+
+    @Override
+    public int broadcast() {
+        try {
+            Thread.sleep(ThreadLocalRandom.current().nextInt(1000));
+        } catch (InterruptedException e) {
+            //ignore
+        }
+        System.out.println("broadcast");
+        return getRpcPort();
     }
 }

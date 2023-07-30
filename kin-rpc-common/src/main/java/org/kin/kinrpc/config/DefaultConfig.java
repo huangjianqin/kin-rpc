@@ -95,6 +95,9 @@ public final class DefaultConfig {
     //--------------------------------------------------------------------forking cluster
     /** forking cluster默认并发次数 */
     public static final int DEFAULT_FORKING_FORKS = 2;
+    //--------------------------------------------------------------------broadcast cluster
+    /** broadcast cluster默认服务调用失败的比例 */
+    public static final int DEFAULT_BROADCAST_FAIL_PERCENT = 20;
 
     private DefaultConfig() {
     }

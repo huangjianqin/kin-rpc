@@ -21,6 +21,10 @@ public final class ReferenceConstants {
     /** forking cluster并发次数 */
     public static final String FORKING_FORKS_KEY = "cluster.forking.forks";
 
+    //---------------------------------------------------------------broadcast cluster
+    /** broadcast cluster服务调用失败的比例, 当达到这个比例后, 将不再发起调用, 直接抛出异常 */
+    public static final String BROADCAST_FAIL_PERCENT_KEY = "cluster.broadcast.fal.percent";
+
     private ReferenceConstants() {
     }
 }

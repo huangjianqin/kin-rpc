@@ -10,4 +10,5 @@ cluster=org.kin.kinrpc.cluster.invoker.FailFastClusterInvoker,\
   org.kin.kinrpc.cluster.invoker.FailoverClusterInvoker,\
   org.kin.kinrpc.cluster.invoker.FailSafeClusterInvoker,\
   org.kin.kinrpc.cluster.invoker.FailBackClusterInvoker,\
-  org.kin.kinrpc.cluster.invoker.ForkingClusterInvoker
+  org.kin.kinrpc.cluster.invoker.ForkingClusterInvoker,\
+  org.kin.kinrpc.cluster.invoker.BroadcastClusterInvoker

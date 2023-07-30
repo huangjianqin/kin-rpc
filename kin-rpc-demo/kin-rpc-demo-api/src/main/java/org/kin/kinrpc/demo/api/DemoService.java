@@ -96,4 +96,9 @@ public interface DemoService {
      * forking模拟
      */
     boolean forking();
+
+    /**
+     * broadcast模拟
+     */
+    int broadcast();
 }

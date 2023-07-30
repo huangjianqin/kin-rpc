@@ -30,24 +30,18 @@ public class ForkingClusterInvoker<T> extends ClusterInvoker<T> {
 
     public ForkingClusterInvoker(ReferenceConfig<T> config) {
         super(config);
-        this.forks = config.intAttachment(ReferenceConstants.FORKING_FORKS_KEY, DefaultConfig.DEFAULT_FORKING_FORKS);
+        this.forks = config.intAttachment(ReferenceConstants.BROADCAST_FAIL_PERCENT_KEY, DefaultConfig.DEFAULT_FORKING_FORKS);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected void doInvoke(Invocation invocation, CompletableFuture<Object> future) {
         List<ServiceInstance> excludes = new CopyOnWriteArrayList<>();
         if (forks < 1) {
             //尽全力发起rpc call
-            ReferenceInvoker<T> selected;
-            Invocation invocationCopy = ReferenceUtils.copyInvocation(invocation);
-            while (Objects.nonNull(selected = select(invocationCopy, excludes))) {
-                excludes.add(selected.serviceInstance());
-
-                ReferenceInvoker<T> finalSelected = selected;
-                Invocation finalInvocationCopy = invocationCopy;
-                ReferenceContext.SCHEDULER.execute(() -> doInvoke0(finalInvocationCopy, future, finalSelected));
-
-                invocationCopy = ReferenceUtils.copyInvocation(invocation);
+            for (ReferenceInvoker<?> invoker : directory.list()) {
+                Invocation invocationCopy = ReferenceUtils.copyInvocation(invocation);
+                ReferenceContext.SCHEDULER.execute(() -> doInvoke0(invocationCopy, future, (ReferenceInvoker<T>) invoker));
             }
         } else {
             //最多发起forks次rpc call
