@@ -13,9 +13,11 @@ import org.kin.kinrpc.RpcResult;
 import org.kin.kinrpc.ServiceInstance;
 import org.kin.kinrpc.config.DefaultConfig;
 import org.kin.kinrpc.config.ReferenceConfig;
+import org.kin.kinrpc.config.RegistryConfig;
 import org.kin.kinrpc.constants.InvocationConstants;
 import org.kin.kinrpc.constants.KinRpcSystemProperties;
 import org.kin.kinrpc.constants.ReferenceConstants;
+import org.kin.kinrpc.registry.directory.Directory;
 import org.kin.kinrpc.utils.RpcUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,10 +49,12 @@ public class FailBackClusterInvoker<T> extends ClusterInvoker<T> {
     /** 重试timer */
     private volatile Timer timer;
 
-    public FailBackClusterInvoker(ReferenceConfig<T> config) {
-        super(config);
-        this.maxRetries = config.intAttachment(ReferenceConstants.FAILBACK_RETRIES_KEY, DefaultConfig.DEFAULT_FAILBACK_RETRIES);
-        this.maxRetryTask = config.intAttachment(ReferenceConstants.FAILBACK_RETRY_TASK_KEY, DefaultConfig.DEFAULT_FAILBACK_RETRY_TASK);
+    public FailBackClusterInvoker(ReferenceConfig<T> referenceConfig,
+                                  RegistryConfig registryConfig,
+                                  Directory directory) {
+        super(referenceConfig, registryConfig, directory);
+        this.maxRetries = referenceConfig.intAttachment(ReferenceConstants.FAILBACK_RETRIES_KEY, DefaultConfig.DEFAULT_FAILBACK_RETRIES);
+        this.maxRetryTask = referenceConfig.intAttachment(ReferenceConstants.FAILBACK_RETRY_TASK_KEY, DefaultConfig.DEFAULT_FAILBACK_RETRY_TASK);
     }
 
     /**

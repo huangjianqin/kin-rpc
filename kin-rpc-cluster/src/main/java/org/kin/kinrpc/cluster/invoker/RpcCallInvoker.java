@@ -38,9 +38,6 @@ public final class RpcCallInvoker<T> implements Invoker<T> {
         }
 
         //ready to rpc call
-        long now = System.currentTimeMillis();
-        invocation.attach(InvocationConstants.RPC_CALL_START_TIME_KEY, now);
-
         CompletableFuture<Object> future = new CompletableFuture<>();
 
         if (log.isDebugEnabled()) {
@@ -71,10 +68,8 @@ public final class RpcCallInvoker<T> implements Invoker<T> {
             log.debug("rpc call response. result={}, exception={}, invocation={}", result, t, invocation);
         }
 
-        invocation.attach(InvocationConstants.RPC_CALL_FINISH_TIME_KEY, System.currentTimeMillis());
-
         RpcResponse rpcResponse = new RpcResponse(result, t);
-        FilterChain<T> chain = invocation.attachment(InvocationConstants.FILTER_CHAIN);
+        FilterChain<T> chain = invocation.attachment(InvocationConstants.FILTER_CHAIN_KEY);
         if (Objects.nonNull(chain)) {
             chain.onResponse(invocation, rpcResponse);
         }

@@ -96,7 +96,7 @@ public class FilterChain<T> extends DelegateInvoker<T> {
 
     @Override
     public RpcResult invoke(Invocation invocation) {
-        invocation.attach(InvocationConstants.FILTER_CHAIN, this);
+        invocation.attach(InvocationConstants.FILTER_CHAIN_KEY, this);
         return super.invoke(invocation);
     }
 

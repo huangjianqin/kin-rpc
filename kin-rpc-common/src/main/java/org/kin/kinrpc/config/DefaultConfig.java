@@ -85,6 +85,14 @@ public final class DefaultConfig {
     /** 默认注册到注册中心 */
     public static final Boolean DEFAULT_SERVICE_REGISTER = true;
 
+    //--------------------------------------------------------------------registry
+    /** 默认注册中心优先级 */
+    public static final Boolean DEFAULT_REGISTRY_PREFERRED = false;
+    /** 默认注册中心区域 */
+    public static final String DEFAULT_REGISTRY_ZONE = "";
+    /** 默认注册中心权重 */
+    public static final Integer DEFAULT_REGISTRY_WEIGHT = 1;
+
     //--------------------------------------------------------------------cluster
     //--------------------------------------------------------------------failback cluster
     /** failback cluster默认重试次数 */

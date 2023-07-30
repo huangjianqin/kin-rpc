@@ -12,10 +12,7 @@ import org.kin.kinrpc.ServiceMetadataConstants;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.protocol.Protocol;
 import org.kin.kinrpc.protocol.Protocols;
-import org.kin.kinrpc.registry.DirectoryListener;
-import org.kin.kinrpc.registry.DiscoveryUtils;
-import org.kin.kinrpc.registry.RegistryHelper;
-import org.kin.kinrpc.registry.ServiceInstanceChangedListener;
+import org.kin.kinrpc.registry.*;
 import org.kin.kinrpc.transport.cmd.Serializations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,14 +24,18 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
+ * 与{@link Registry}绑定的{@link Directory}实现
+ *
  * @author huangjianqin
  * @date 2019/6/11
  */
-public class DefaultDirectory extends AbstractDirectory implements ServiceInstanceChangedListener {
-    private static final Logger log = LoggerFactory.getLogger(DefaultDirectory.class);
+public class RegistryDirectory extends AbstractDirectory implements ServiceInstanceChangedListener {
+    private static final Logger log = LoggerFactory.getLogger(RegistryDirectory.class);
 
     /** reference config */
     private final ReferenceConfig<?> config;
+    /** related registry instance */
+    private final Registry registry;
     /** 订阅的invoker列表 */
     private volatile List<ReferenceInvoker<?>> invokers = Collections.emptyList();
     /** 标识是否正在处理服务发现实例 */
@@ -45,8 +46,12 @@ public class DefaultDirectory extends AbstractDirectory implements ServiceInstan
     private volatile CountDownLatch firstDiscoverWaiter = new CountDownLatch(1);
     private volatile boolean stopped;
 
-    public DefaultDirectory(ReferenceConfig<?> config) {
+    public RegistryDirectory(ReferenceConfig<?> config, Registry registry) {
         this.config = config;
+        this.registry = registry;
+
+        //服务订阅
+        registry.subscribe(config, this);
     }
 
     /**
@@ -274,6 +279,11 @@ public class DefaultDirectory extends AbstractDirectory implements ServiceInstan
         }
 
         stopped = true;
+        //取消订阅服务
+        registry.unsubscribe(config, this);
+        registry.destroy();
+
+        //terminate reference invoker
         for (ReferenceInvoker<?> invoker : invokers) {
             invoker.destroy();
         }

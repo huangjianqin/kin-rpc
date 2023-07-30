@@ -1,12 +1,15 @@
 package org.kin.kinrpc.cluster.invoker;
 
+import org.kin.framework.utils.Extension;
 import org.kin.kinrpc.Invocation;
 import org.kin.kinrpc.ReferenceInvoker;
 import org.kin.kinrpc.RpcResult;
 import org.kin.kinrpc.config.DefaultConfig;
 import org.kin.kinrpc.config.ReferenceConfig;
+import org.kin.kinrpc.config.RegistryConfig;
 import org.kin.kinrpc.constants.InvocationConstants;
 import org.kin.kinrpc.constants.ReferenceConstants;
+import org.kin.kinrpc.registry.directory.Directory;
 import org.kin.kinrpc.utils.ReferenceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,15 +22,18 @@ import java.util.concurrent.CompletableFuture;
  * @author huangjianqin
  * @date 2023/7/29
  */
+@Extension("broadcast")
 public class BroadcastClusterInvoker<T> extends ClusterInvoker<T> {
     private static final Logger log = LoggerFactory.getLogger(BroadcastClusterInvoker.class);
 
     /** 失败不再服务调用比例 */
     private final int failPercent;
 
-    public BroadcastClusterInvoker(ReferenceConfig<T> config) {
-        super(config);
-        this.failPercent = config.attachment(ReferenceConstants.BROADCAST_FAIL_PERCENT_KEY, DefaultConfig.DEFAULT_BROADCAST_FAIL_PERCENT);
+    public BroadcastClusterInvoker(ReferenceConfig<T> referenceConfig,
+                                   RegistryConfig registryConfig,
+                                   Directory directory) {
+        super(referenceConfig, registryConfig, directory);
+        this.failPercent = referenceConfig.attachment(ReferenceConstants.BROADCAST_FAIL_PERCENT_KEY, DefaultConfig.DEFAULT_BROADCAST_FAIL_PERCENT);
     }
 
     @Override

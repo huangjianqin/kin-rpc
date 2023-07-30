@@ -21,9 +21,13 @@ public final class InvocationConstants {
     /** rpc call Finish time(ms) */
     public static final String RPC_CALL_FINISH_TIME_KEY = "rpcCallFinishTime";
     /** loadbalance, 可能为null */
-    public static final String LOADBALANCE = "loadbalance";
+    public static final String LOADBALANCE_KEY = "loadbalance";
     /** filter chain */
-    public static final String FILTER_CHAIN = "filterChain";
+    public static final String FILTER_CHAIN_KEY = "filterChain";
+    /** registry zone */
+    public static final String REGISTRY_ZONE_KEY = "registryZone";
+    /** registry zone force */
+    public static final String REGISTRY_ZONE_FORCE_KEY = "registryZoneForce";
 
     //----------------------------------------------------------------service invocation attachment key
     /** service token */

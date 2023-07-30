@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: kinrpc-demo-springboot-consumer-multi-registry
+server:
+  port: 14001
+kinrpc:
+  consumer:
+    cluster: "failover"
+    rpc-timeout: 2000
+    retries: 0
+    filter-beans: "logFilter"
+    provide-by: "kinrpc-demo-springboot-provider-multi-registry"
+  async-export-refer: true
+  registries:
+    - type: "zk"
+      address: "127.0.0.1:2181"
+      #      preferred: true
+      weight: 1
+    - type: "zk"
+      address: "127.0.0.1:3181"
+      weight: 2

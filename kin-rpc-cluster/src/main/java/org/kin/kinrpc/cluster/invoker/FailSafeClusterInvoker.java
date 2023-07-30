@@ -5,6 +5,8 @@ import org.kin.framework.utils.Extension;
 import org.kin.kinrpc.Invocation;
 import org.kin.kinrpc.RpcResult;
 import org.kin.kinrpc.config.ReferenceConfig;
+import org.kin.kinrpc.config.RegistryConfig;
+import org.kin.kinrpc.registry.directory.Directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,8 +24,10 @@ import java.util.concurrent.CompletableFuture;
 public class FailSafeClusterInvoker<T> extends ClusterInvoker<T> {
     private static final Logger log = LoggerFactory.getLogger(FailSafeClusterInvoker.class);
 
-    public FailSafeClusterInvoker(ReferenceConfig<T> config) {
-        super(config);
+    public FailSafeClusterInvoker(ReferenceConfig<T> referenceConfig,
+                                  RegistryConfig registryConfig,
+                                  Directory directory) {
+        super(referenceConfig, registryConfig, directory);
     }
 
     @Override

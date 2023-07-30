@@ -1,5 +1,6 @@
 package org.kin.kinrpc;
 
+import org.kin.framework.utils.NetUtils;
 import org.kin.kinrpc.utils.GsvUtils;
 
 import java.util.Collections;
@@ -23,10 +24,12 @@ public class DefaultServiceInstance implements ServiceInstance {
     private final String host;
     /** 服务实例端口 */
     private final int port;
+    /** 服务实例address */
+    private final String address;
     /** 服务元数据 */
     private final Map<String, String> metadata;
     /** 服务权重 */
-    private int weight;
+    private final int weight;
 
     public DefaultServiceInstance(String service,
                                   String host,
@@ -36,6 +39,7 @@ public class DefaultServiceInstance implements ServiceInstance {
         this.service = service;
         this.host = host;
         this.port = port;
+        this.address = NetUtils.getIpPort(host(), port());
         this.metadata = Collections.unmodifiableMap(metadata);
 
         this.scheme = metadata(ServiceMetadataConstants.SCHEMA_KEY);
@@ -63,6 +67,11 @@ public class DefaultServiceInstance implements ServiceInstance {
     }
 
     @Override
+    public String address() {
+        return address;
+    }
+
+    @Override
     public Map<String, String> metadata() {
         return metadata;
     }
@@ -75,6 +84,11 @@ public class DefaultServiceInstance implements ServiceInstance {
     @Override
     public int weight() {
         return weight;
+    }
+
+    @Override
+    public boolean isCluster() {
+        return false;
     }
 
     @Override

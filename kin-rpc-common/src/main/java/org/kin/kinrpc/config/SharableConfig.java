@@ -22,14 +22,6 @@ public abstract class SharableConfig<C extends SharableConfig<C>> extends Attach
         return (C) this;
     }
 
-    @Override
-    public void initDefaultConfig() {
-        super.initDefaultConfig();
-        if (StringUtils.isBlank(id)) {
-            id = genDefaultId();
-        }
-    }
-
     /**
      * 生成默认配置id
      *
@@ -39,6 +31,9 @@ public abstract class SharableConfig<C extends SharableConfig<C>> extends Attach
 
     //setter && getter
     public final String getId() {
+        if (StringUtils.isBlank(id)) {
+            id = genDefaultId();
+        }
         return id;
     }
 

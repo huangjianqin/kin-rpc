@@ -147,6 +147,7 @@ public final class ReferenceProxy implements InvocationHandler {
         invocation.attach(InvocationConstants.SERIALIZATION_KEY, config.getSerialization());
         //服务方法调用参数校验
         invocation.attach(InvocationConstants.VALIDATION_KEY, methodConfig.isValidation());
+        invocation.attachMany(RpcContext.attachments());
 
         if (log.isDebugEnabled()) {
             log.debug("ready to send rpc call. invocation={}", invocation);
@@ -188,8 +189,9 @@ public final class ReferenceProxy implements InvocationHandler {
         CompletableFuture<Object> userFuture = new CompletableFuture<>();
         // TODO: 2023/6/26 第一次rpc call还是在user invoke线程, 其他是在reference通用线程发起, 真要全异步, 这里需要扔到reference通用线程执行invoker.invoke
         RpcResult rpcResult = invoker.invoke(invocation);
+        invocation.attach(InvocationConstants.RPC_CALL_START_TIME_KEY, System.currentTimeMillis());
         //reference通用线程处理
-        rpcResult.onFinish(userFuture);
+        rpcResult.onFinish((r, t) -> invocation.attach(InvocationConstants.RPC_CALL_FINISH_TIME_KEY, System.currentTimeMillis()), userFuture);
         return userFuture;
     }
 }

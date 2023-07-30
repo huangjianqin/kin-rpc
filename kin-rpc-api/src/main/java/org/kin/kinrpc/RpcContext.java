@@ -1,6 +1,7 @@
 package org.kin.kinrpc;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -100,7 +101,7 @@ public class RpcContext {
      * @return 所有attachment
      */
     public static Map<String, String> attachments() {
-        return new HashMap<>(RpcContext.THREAD_LOCAL_RPC_CONTEXT.get().attachment);
+        return Collections.unmodifiableMap(RpcContext.THREAD_LOCAL_RPC_CONTEXT.get().attachment);
     }
 
     /**

@@ -4,8 +4,10 @@ import org.kin.framework.utils.Extension;
 import org.kin.kinrpc.*;
 import org.kin.kinrpc.config.DefaultConfig;
 import org.kin.kinrpc.config.ReferenceConfig;
+import org.kin.kinrpc.config.RegistryConfig;
 import org.kin.kinrpc.constants.InvocationConstants;
 import org.kin.kinrpc.constants.ReferenceConstants;
+import org.kin.kinrpc.registry.directory.Directory;
 import org.kin.kinrpc.utils.ReferenceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,9 +30,11 @@ public class ForkingClusterInvoker<T> extends ClusterInvoker<T> {
     /** 并行数 */
     private final int forks;
 
-    public ForkingClusterInvoker(ReferenceConfig<T> config) {
-        super(config);
-        this.forks = config.intAttachment(ReferenceConstants.BROADCAST_FAIL_PERCENT_KEY, DefaultConfig.DEFAULT_FORKING_FORKS);
+    public ForkingClusterInvoker(ReferenceConfig<T> referenceConfig,
+                                 RegistryConfig registryConfig,
+                                 Directory directory) {
+        super(referenceConfig, registryConfig, directory);
+        this.forks = referenceConfig.intAttachment(ReferenceConstants.BROADCAST_FAIL_PERCENT_KEY, DefaultConfig.DEFAULT_FORKING_FORKS);
     }
 
     @SuppressWarnings("unchecked")

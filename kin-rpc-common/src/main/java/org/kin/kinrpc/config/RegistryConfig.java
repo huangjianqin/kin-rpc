@@ -33,6 +33,14 @@ public class RegistryConfig extends SharableConfig<RegistryConfig> {
     /** 应用组 */
     private String group;
 
+    //--------------------------------------------------------------------多注册中心
+    /** 注册中心优先级 */
+    private Boolean preferred;
+    /** 同中心优化, 优先选择具有相同区域的注册中心 */
+    private String zone;
+    /** 注册中心权重 */
+    private Integer weight;
+
     /**
      * 复用{@link RegistryConfig}实例
      *
@@ -100,6 +108,18 @@ public class RegistryConfig extends SharableConfig<RegistryConfig> {
         if (Objects.isNull(group)) {
             group = DefaultConfig.DEFAULT_GROUP;
         }
+
+        if (Objects.isNull(preferred)) {
+            preferred = DefaultConfig.DEFAULT_REGISTRY_PREFERRED;
+        }
+
+        if (Objects.isNull(zone)) {
+            zone = DefaultConfig.DEFAULT_REGISTRY_ZONE;
+        }
+
+        if (Objects.isNull(weight)) {
+            weight = DefaultConfig.DEFAULT_REGISTRY_WEIGHT;
+        }
     }
 
     /**
@@ -158,6 +178,37 @@ public class RegistryConfig extends SharableConfig<RegistryConfig> {
         return this;
     }
 
+    public boolean isPreferred() {
+        return Objects.nonNull(preferred) ? preferred : false;
+    }
+
+    public RegistryConfig preferred(Boolean preferred) {
+        this.preferred = preferred;
+        return this;
+    }
+
+    public RegistryConfig preferred() {
+        return preferred(true);
+    }
+
+    public String getZone() {
+        return zone;
+    }
+
+    public RegistryConfig zone(String zone) {
+        this.zone = zone;
+        return this;
+    }
+
+    public Integer getWeight() {
+        return weight;
+    }
+
+    public RegistryConfig weight(Integer weight) {
+        this.weight = weight;
+        return this;
+    }
+
     //----------------------
     public RegistryConfig setName(String name) {
         this.name = name;
@@ -178,6 +229,22 @@ public class RegistryConfig extends SharableConfig<RegistryConfig> {
         this.group = group;
     }
 
+    public Boolean getPreferred() {
+        return preferred;
+    }
+
+    public void setPreferred(Boolean preferred) {
+        this.preferred = preferred;
+    }
+
+    public void setZone(String zone) {
+        this.zone = zone;
+    }
+
+    public void setWeight(Integer weight) {
+        this.weight = weight;
+    }
+
     @Override
     public String toString() {
         return "RegistryConfig{" +
@@ -186,6 +253,9 @@ public class RegistryConfig extends SharableConfig<RegistryConfig> {
                 ", type='" + type + '\'' +
                 ", address='" + address + '\'' +
                 ", group='" + group + '\'' +
+                ", preferred=" + preferred +
+                ", zone='" + zone + '\'' +
+                ", weight=" + weight +
                 '}';
     }
 }

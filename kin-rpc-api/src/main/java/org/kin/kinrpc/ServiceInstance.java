@@ -93,4 +93,11 @@ public interface ServiceInstance {
     default String metadata(String key, String defaultValue) {
         return metadata().getOrDefault(key, defaultValue);
     }
+
+    /**
+     * 返回是否是集群
+     *
+     * @return true表示是集群服务实例
+     */
+    boolean isCluster();
 }

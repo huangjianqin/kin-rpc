@@ -15,9 +15,7 @@ import org.kin.kinrpc.config.MethodConfig;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.RegistryConfig;
 import org.kin.kinrpc.constants.InvocationConstants;
-import org.kin.kinrpc.registry.Registry;
-import org.kin.kinrpc.registry.RegistryHelper;
-import org.kin.kinrpc.registry.directory.DefaultDirectory;
+import org.kin.kinrpc.registry.directory.Directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,21 +28,27 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
+ * 特殊的{@link ReferenceInvoker}实现, 不是对单一服务实例发起RPC请求, 而是有策略地从服务实例集群挑选一个服务实例并发起RPC请求
+ *
  * @author huangjianqin
  * @date 2023/6/25
  */
 @SPI(alias = "cluster", singleton = false)
-public abstract class ClusterInvoker<T> implements Invoker<T> {
+public abstract class ClusterInvoker<T> implements ReferenceInvoker<T> {
     private static final Logger log = LoggerFactory.getLogger(ClusterInvoker.class);
 
-    /** reference配置 */
-    protected final ReferenceConfig<T> config;
+    /** reference config */
+    protected final ReferenceConfig<T> referenceConfig;
+    /** registry config */
+    private final RegistryConfig registryConfig;
     /** 管理订阅服务的所有invoker实例 */
-    protected final DefaultDirectory directory;
+    protected final Directory directory;
+    /** cluster伪装的服务实例 */
+    private final ServiceInstance serviceInstance;
     /** 路由策略 */
-    private final Router router;
+    protected final Router router;
     /** 负载均衡策略 */
-    private final LoadBalance loadBalance;
+    protected final LoadBalance loadBalance;
     /** filter chain */
     private final FilterChain<T> filterChain;
     /** key -> 服务方法唯一id, 即handlerId, value -> 上一次服务调用成功的invoker */
@@ -54,35 +58,39 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
             .build();
 
     @SuppressWarnings("unchecked")
-    protected ClusterInvoker(ReferenceConfig<T> config) {
-        this.config = config;
+    protected ClusterInvoker(ReferenceConfig<T> referenceConfig,
+                             @Nullable RegistryConfig registryConfig,
+                             Directory directory) {
+        this.referenceConfig = referenceConfig;
+        this.registryConfig = registryConfig;
+        //服务实例变化, 马上清掉stick invoker cache
+        this.directory = directory;
+        this.directory.addListener((sis) -> stickyInvokerCache.cleanUp());
+        if (Objects.nonNull(registryConfig)) {
+            this.serviceInstance = new ClusterServiceInstance(referenceConfig.getServiceId(), referenceConfig.getService(),
+                    registryConfig.getType(), registryConfig.getAddress(), registryConfig.getWeight());
+        } else {
+            //多注册中心场景(ZoneAwareClusterInvoker -> multi cluster invoker) or cluster invoker wrap cluster invokers
+            this.serviceInstance = new ClusterServiceInstance(referenceConfig.getServiceId(), referenceConfig.getService(),
+                    "multiClusterInvokerWrapper");
+        }
 
         //创建filter chain
         this.filterChain = (FilterChain<T>) FilterChain.create(ReferenceFilterUtils.internalPreFilters(),
-                config.getFilters(),
+                referenceConfig.getFilters(),
                 ReferenceFilterUtils.internalPostFilters(),
                 RpcCallInvoker.instance());
 
         //创建loadbalance
-        this.loadBalance = ExtensionLoader.getExtension(LoadBalance.class, config.getLoadBalance());
+        this.loadBalance = ExtensionLoader.getExtension(LoadBalance.class, referenceConfig.getLoadBalance());
         if (Objects.isNull(this.loadBalance)) {
-            throw new ExtensionException(String.format("can not find loadbalance named '%s', please check whether related SPI config is missing", config.getLoadBalance()));
+            throw new ExtensionException(String.format("can not find loadbalance named '%s', please check whether related SPI config is missing", referenceConfig.getLoadBalance()));
         }
 
         //创建router
-        this.router = ExtensionLoader.getExtension(Router.class, config.getRouter());
+        this.router = ExtensionLoader.getExtension(Router.class, referenceConfig.getRouter());
         if (Objects.isNull(this.router)) {
-            throw new ExtensionException(String.format("can not find router named '%s', please check whether related SPI config is missing", config.getRouter()));
-        }
-
-        //获取注册中心client, 并订阅服务
-        this.directory = new DefaultDirectory(config);
-        //服务实例变化, 马上清掉stick invoker cache
-        this.directory.addListener((sis) -> stickyInvokerCache.cleanUp());
-        for (RegistryConfig registryConfig : config.getRegistries()) {
-            Registry registry = RegistryHelper.createRegistryIfAbsent(registryConfig);
-
-            registry.subscribe(config, directory);
+            throw new ExtensionException(String.format("can not find router named '%s', please check whether related SPI config is missing", referenceConfig.getRouter()));
         }
     }
 
@@ -128,6 +136,10 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
             }
         }
 
+        /**
+         * docker run -d -p 3181:3181 --name zk2 -v ~/docker/zookeeper2/conf/zoo.cfg:/conf/zoo.cfg -v ~/docker/zookeeper2/data:/data -v ~/docker/zookeeper2/datalog:/datalog zookeeper:3.5.8
+         */
+
         //2. list invokers
         List<ReferenceInvoker<?>> availableInvokers = directory.list();
         //过滤掉单次请求曾经fail的service 访问地址
@@ -143,13 +155,13 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
         ReferenceInvoker<?> loadBalancedInvoker = loadBalance.loadBalance(invocation, routedInvokers);
 
         //attach
-        invocation.attach(InvocationConstants.LOADBALANCE, loadBalance);
+        invocation.attach(InvocationConstants.LOADBALANCE_KEY, loadBalance);
 
         if (log.isDebugEnabled()) {
             if (loadBalancedInvoker != null) {
-                log.debug("reference invoker select finished, {}", loadBalancedInvoker.serviceInstance());
+                log.debug("reference invoker select finished, selected={}, invocation={}", loadBalancedInvoker.serviceInstance(), invocation);
             } else {
-                log.debug("can not select any available reference invoker");
+                log.debug("can not select any available invoker, invocation={}", invocation);
             }
         }
         return (ReferenceInvoker<T>) loadBalancedInvoker;
@@ -213,31 +225,48 @@ public abstract class ClusterInvoker<T> implements Invoker<T> {
      * @param invocation rpc call信息
      */
     protected final void onResetInvocation(Invocation invocation) {
-        //保留method config
-        MethodConfig methodConfig = invocation.attachment(InvocationConstants.METHOD_CONFIG_KEY);
-        //reset
-        invocation.clear();
-        //recover retain
-        invocation.attach(InvocationConstants.METHOD_CONFIG_KEY, methodConfig);
+        invocation.detach(InvocationConstants.SELECTED_INVOKER_KEY);
+        invocation.detach(InvocationConstants.LOADBALANCE_KEY);
+        invocation.detach(InvocationConstants.FILTER_CHAIN_KEY);
+    }
+
+    @Override
+    public final ServiceInstance serviceInstance() {
+        return serviceInstance;
+    }
+
+    @Override
+    public final boolean isAvailable() {
+        return directory.isAvailable();
+    }
+
+    /**
+     * 返回是否是优先选择的cluster
+     *
+     * @return true表示是优先选择的cluster
+     */
+    public boolean isPreferred() {
+        return Objects.nonNull(registryConfig) && registryConfig.isPreferred();
+    }
+
+    /**
+     * 返回cluster zone
+     *
+     * @return cluster zone
+     */
+    public String getZone() {
+        return Objects.nonNull(registryConfig) ? registryConfig.getZone() : "false";
+    }
+
+    public RegistryConfig getRegistryConfig() {
+        return registryConfig;
     }
 
     /**
      * 释放占用资源
      */
+    @Override
     public final void destroy() {
-        //是否转移到registry unsubscribe更好
         directory.destroy();
-
-        //获取注册中心client, 并取消订阅服务
-        for (RegistryConfig registryConfig : config.getRegistries()) {
-            Registry registry = RegistryHelper.getRegistry(registryConfig);
-
-            if (Objects.isNull(registry)) {
-                continue;
-            }
-
-            registry.unsubscribe(config, directory);
-            registry.destroy();
-        }
     }
 }
