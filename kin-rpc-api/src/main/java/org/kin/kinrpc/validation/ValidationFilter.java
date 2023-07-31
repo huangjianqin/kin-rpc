@@ -186,7 +186,7 @@ public class ValidationFilter implements Filter {
 
         if (!KinRpcAppContext.ENHANCE) {
             //没有类增强技术, 则不校验
-            log.warn("generate parameter bean constructor fail due to can not find ByteBuddy support");
+            log.warn("can not valid primitives parameter, because generate parameter bean constructor fail due to can not find ByteBuddy support in classpath");
             return null;
         }
 
