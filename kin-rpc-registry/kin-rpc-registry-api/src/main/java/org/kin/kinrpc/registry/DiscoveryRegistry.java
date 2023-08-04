@@ -37,7 +37,7 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
 
     protected DiscoveryRegistry(RegistryConfig config) {
         super(config);
-        this.name = RegistryHelper.getAlias(config);
+        this.name = RegistryManager.getAlias(config);
     }
 
     /**

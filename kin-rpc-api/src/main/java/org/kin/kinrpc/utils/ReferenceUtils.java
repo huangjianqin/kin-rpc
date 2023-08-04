@@ -80,6 +80,7 @@ public final class ReferenceUtils {
      */
     public static Invocation copyInvocation(Invocation invocation) {
         RpcInvocation rpcInvocation = new RpcInvocation(invocation.serviceId(), invocation.service(),
+                invocation.interfaceClass(),
                 invocation.params(), invocation.serverAttachments(),
                 invocation.methodMetadata());
         rpcInvocation.attachMany(invocation.attachments());

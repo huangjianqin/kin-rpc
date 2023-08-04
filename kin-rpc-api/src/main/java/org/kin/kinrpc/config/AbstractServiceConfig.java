@@ -36,6 +36,8 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
     private final List<ServiceListener> serviceListeners = new ArrayList<>();
     /** 是否开启参数调用 */
     private Boolean validation;
+    /** fallback (service) class name */
+    private String fallback;
 
     @Override
     public void checkValid() {
@@ -236,6 +238,15 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
         return validation(true);
     }
 
+    public AbstractServiceConfig<ASC> fallback(String fallback) {
+        this.fallback = fallback;
+        return this;
+    }
+
+    public AbstractServiceConfig<ASC> fallback() {
+        return fallback(Boolean.TRUE.toString());
+    }
+
     //----------------------
     public void setServers(List<ServerConfig> servers) {
         this.servers = servers;
@@ -285,6 +296,14 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
         this.validation = validation;
     }
 
+    public String getFallback() {
+        return fallback;
+    }
+
+    public void setFallback(String fallback) {
+        this.fallback = fallback;
+    }
+
     @Override
     public String toString() {
         return super.toString() +
@@ -296,6 +315,7 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
                 ", delay=" + delay +
                 ", token=" + token +
                 ", exportAsync=" + exportAsync +
-                ", validation=" + validation;
+                ", validation=" + validation +
+                ", fallback=" + fallback;
     }
 }

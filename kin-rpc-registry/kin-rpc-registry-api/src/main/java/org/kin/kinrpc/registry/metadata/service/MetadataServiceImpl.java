@@ -3,7 +3,7 @@ package org.kin.kinrpc.registry.metadata.service;
 import org.kin.kinrpc.MetadataResponse;
 import org.kin.kinrpc.registry.ApplicationMetadata;
 import org.kin.kinrpc.registry.DiscoveryRegistry;
-import org.kin.kinrpc.registry.RegistryHelper;
+import org.kin.kinrpc.registry.RegistryManager;
 import org.kin.kinrpc.service.MetadataService;
 
 import java.util.Objects;
@@ -22,7 +22,7 @@ public class MetadataServiceImpl implements MetadataService {
 
     @Override
     public MetadataResponse metadata(String revision) {
-        for (DiscoveryRegistry discoveryRegistry : RegistryHelper.getDiscoveryRegistries()) {
+        for (DiscoveryRegistry discoveryRegistry : RegistryManager.getDiscoveryRegistries()) {
             ApplicationMetadata appMetadata = discoveryRegistry.getServiceMetadataMap(revision);
             if (Objects.isNull(appMetadata)) {
                 continue;

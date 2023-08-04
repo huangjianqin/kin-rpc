@@ -1,6 +1,7 @@
 package org.kin.kinrpc.config;
 
 import org.kin.framework.utils.StringUtils;
+import org.kin.kinrpc.executor.ExecutorManager;
 import org.kin.kinrpc.utils.ObjectUtils;
 
 import java.util.Objects;
@@ -22,7 +23,7 @@ public class ExecutorConfig extends SharableConfig<ExecutorConfig> {
      * executor name, 如果user不指定, 则跟service唯一标识和server唯一标识有关
      * 一般用于引用自定义executor
      *
-     * @see org.kin.kinrpc.executor.ExecutorHelper
+     * @see ExecutorManager
      */
     private String name;
     /** 服务处理线程类型 */

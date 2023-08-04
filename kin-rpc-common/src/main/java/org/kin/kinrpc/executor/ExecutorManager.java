@@ -16,7 +16,7 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2023/3/1
  */
-public class ExecutorHelper {
+public class ExecutorManager {
     /**
      * 服务调用线程池
      * key -> executor name

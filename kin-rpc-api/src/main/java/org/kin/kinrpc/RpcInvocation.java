@@ -17,6 +17,8 @@ public class RpcInvocation extends AttachmentMap implements Invocation {
     private final int serviceId;
     /** 服务唯一标识 */
     private final String service;
+    /** 服务接口类 */
+    private final Class<?> interfaceClass;
     /** 方法参数实例 */
     private final Object[] params;
     /** 发送给server的attachments */
@@ -26,11 +28,13 @@ public class RpcInvocation extends AttachmentMap implements Invocation {
 
     public RpcInvocation(int serviceId,
                          String service,
+                         Class<?> interfaceClass,
                          Object[] params,
                          Map<String, String> serverAttachments,
                          MethodMetadata methodMetadata) {
         this.serviceId = serviceId;
         this.service = service;
+        this.interfaceClass = interfaceClass;
         this.params = params;
         this.serverAttachments = new HashMap<>(serverAttachments);
         this.methodMetadata = methodMetadata;
@@ -44,6 +48,11 @@ public class RpcInvocation extends AttachmentMap implements Invocation {
     @Override
     public String service() {
         return service;
+    }
+
+    @Override
+    public Class<?> interfaceClass() {
+        return interfaceClass;
     }
 
     @Override
@@ -66,6 +75,7 @@ public class RpcInvocation extends AttachmentMap implements Invocation {
         return "RpcInvocation{" +
                 "serviceId=" + serviceId +
                 ", service='" + service + '\'' +
+                ", interfaceClass=" + interfaceClass +
                 ", params=" + Arrays.deepToString(params) +
                 ", serverAttachments=" + serverAttachments +
                 ", methodMetadata=" + methodMetadata +

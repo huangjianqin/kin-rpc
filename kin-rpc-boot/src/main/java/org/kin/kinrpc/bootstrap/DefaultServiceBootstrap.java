@@ -9,7 +9,7 @@ import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.protocol.Protocol;
 import org.kin.kinrpc.protocol.Protocols;
 import org.kin.kinrpc.registry.Registry;
-import org.kin.kinrpc.registry.RegistryHelper;
+import org.kin.kinrpc.registry.RegistryManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +51,7 @@ public class DefaultServiceBootstrap<T> extends ServiceBootstrap<T> {
 
         //获取注册中心client, 并发布服务
         for (RegistryConfig registryConfig : config.getRegistries()) {
-            Registry registry = RegistryHelper.createRegistryIfAbsent(registryConfig);
+            Registry registry = RegistryManager.createRegistryIfAbsent(registryConfig);
             registry.register(config);
         }
 
@@ -63,7 +63,7 @@ public class DefaultServiceBootstrap<T> extends ServiceBootstrap<T> {
     protected void doUnExport() {
         //获取注册中心client, 并取消发布服务
         for (RegistryConfig registryConfig : config.getRegistries()) {
-            Registry registry = RegistryHelper.getRegistry(registryConfig);
+            Registry registry = RegistryManager.getRegistry(registryConfig);
 
             if (Objects.isNull(registry)) {
                 continue;

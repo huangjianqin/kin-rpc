@@ -9,7 +9,7 @@ import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.config.ExecutorConfig;
 import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.constants.InvocationConstants;
-import org.kin.kinrpc.executor.ExecutorHelper;
+import org.kin.kinrpc.executor.ExecutorManager;
 import org.kin.kinrpc.executor.ManagedExecutor;
 import org.kin.kinrpc.utils.RpcUtils;
 import org.kin.kinrpc.utils.ServiceFilterUtils;
@@ -74,7 +74,7 @@ public class RpcService<T> implements Invoker<T> {
         ExecutorConfig executorConfig = config.getExecutor();
         ManagedExecutor executor = null;
         if (Objects.nonNull(executorConfig)) {
-            executor = ExecutorHelper.getOrCreateExecutor(executorConfig, service);
+            executor = ExecutorManager.getOrCreateExecutor(executorConfig, service);
         }
         this.executor = executor;
 

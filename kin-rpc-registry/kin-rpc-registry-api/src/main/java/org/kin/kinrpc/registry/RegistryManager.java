@@ -23,12 +23,12 @@ import java.util.stream.Collectors;
 /**
  * Created by huangjianqin on 2019/6/18.
  */
-public class RegistryHelper {
-    private static final Logger log = LoggerFactory.getLogger(RegistryHelper.class);
+public class RegistryManager {
+    private static final Logger log = LoggerFactory.getLogger(RegistryManager.class);
     /** 注册中心缓存 */
     private static final ReferenceCountedCache<String, RegistryEntry> REGISTRY_CACHE = new ReferenceCountedCache<>();
 
-    private RegistryHelper() {
+    private RegistryManager() {
     }
 
     /**

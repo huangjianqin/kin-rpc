@@ -8,7 +8,7 @@ import org.kin.kinrpc.cluster.invoker.ZoneAwareClusterInvoker;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.RegistryConfig;
 import org.kin.kinrpc.registry.Registry;
-import org.kin.kinrpc.registry.RegistryHelper;
+import org.kin.kinrpc.registry.RegistryManager;
 import org.kin.kinrpc.registry.directory.RegistryDirectory;
 import org.kin.kinrpc.registry.directory.StaticDirectory;
 
@@ -36,7 +36,7 @@ public class DefaultReferenceBootstrap<T> extends ProxyReferenceBootstrap<T> {
             List<ReferenceInvoker<?>> clusterInvokers = new ArrayList<>();
             //获取注册中心client, 并订阅服务
             for (RegistryConfig registryConfig : config.getRegistries()) {
-                Registry registry = RegistryHelper.createRegistryIfAbsent(registryConfig);
+                Registry registry = RegistryManager.createRegistryIfAbsent(registryConfig);
                 RegistryDirectory directory = new RegistryDirectory(config, registry);
 
                 clusterInvokers.add(ExtensionLoader.getExtension(ClusterInvoker.class, config.getCluster(), config, registryConfig, directory));

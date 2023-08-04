@@ -8,6 +8,8 @@ public final class InvocationConstants {
     //----------------------------------------------------------------common invocation attachment key
     /** 是否开启服务方法调用参数校验 */
     public static final String VALIDATION_KEY = "validation";
+    /** fallback class(service) name */
+    public static final String FALLBACK_KEY = "fallback";
 
     //----------------------------------------------------------------reference invocation attachment key
     /** cluster根据规则策略选择可用的invoker */

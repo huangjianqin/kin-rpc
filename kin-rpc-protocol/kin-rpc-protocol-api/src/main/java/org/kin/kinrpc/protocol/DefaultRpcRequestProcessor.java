@@ -105,7 +105,7 @@ public class DefaultRpcRequestProcessor extends RpcRequestProcessor {
 
         //invoke
         Map<String, String> metadata = request.getMetadata();
-        RpcInvocation invocation = new RpcInvocation(serviceId, rpcService.service(),
+        RpcInvocation invocation = new RpcInvocation(serviceId, rpcService.service(), rpcService.getInterface(),
                 request.getParams(), metadata, methodMetadata);
         invocation.attach(InvocationConstants.TIMEOUT_KEY, request.getTimeout());
         try {

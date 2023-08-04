@@ -28,6 +28,13 @@ public interface Invocation extends AttachmentSupport {
     String service();
 
     /**
+     * 返回服务接口类
+     *
+     * @return 服务接口类
+     */
+    Class<?> interfaceClass();
+
+    /**
      * 返回服务方法唯一id
      *
      * @return 服务方法唯一id

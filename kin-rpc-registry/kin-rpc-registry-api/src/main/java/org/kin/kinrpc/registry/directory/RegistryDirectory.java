@@ -146,10 +146,10 @@ public class RegistryDirectory extends AbstractDirectory implements ServiceInsta
 
         List<String> oldInstanceUrls = oldInvokers.stream()
                 .map(ReferenceInvoker::serviceInstance)
-                .map(RegistryHelper::toUrlStr)
+                .map(RegistryManager::toUrlStr)
                 .collect(Collectors.toList());
         List<String> discoverInstanceUrls = serviceInstances.stream()
-                .map(RegistryHelper::toUrlStr)
+                .map(RegistryManager::toUrlStr)
                 .collect(Collectors.toList());
 
         log.info("directory(service={}) discover start, oldInstances={}, discoverInstances={}", service(), oldInstanceUrls, discoverInstanceUrls);
@@ -222,7 +222,7 @@ public class RegistryDirectory extends AbstractDirectory implements ServiceInsta
                 .map(ReferenceInvoker::serviceInstance)
                 .collect(Collectors.toList());
         List<String> finalInstanceUrls = finalServiceInstances.stream()
-                .map(RegistryHelper::toUrlStr)
+                .map(RegistryManager::toUrlStr)
                 .collect(Collectors.toList());
 
         log.info("directory(service={}) discover finished, validInstances={}", service(), finalInstanceUrls);

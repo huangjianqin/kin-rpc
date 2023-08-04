@@ -7,7 +7,7 @@ import org.kin.kinrpc.ReferenceInvoker;
 import org.kin.kinrpc.RpcService;
 import org.kin.kinrpc.ServiceInstance;
 import org.kin.kinrpc.config.*;
-import org.kin.kinrpc.executor.ExecutorHelper;
+import org.kin.kinrpc.executor.ExecutorManager;
 import org.kin.kinrpc.executor.ManagedExecutor;
 import org.kin.kinrpc.transport.RemotingClient;
 import org.kin.kinrpc.transport.RemotingClientStateObserver;
@@ -73,7 +73,7 @@ public abstract class AbstractProtocol implements Protocol {
     private RemotingServerContext createServerContext(ServerConfig serverConfig) {
         ExecutorConfig executorConfig = serverConfig.getExecutor();
         String executorName = serverConfig.getAddress() + "-command-processor";
-        ManagedExecutor executor = Objects.nonNull(executorConfig) ? ExecutorHelper.getOrCreateExecutor(executorConfig, executorName) : null;
+        ManagedExecutor executor = Objects.nonNull(executorConfig) ? ExecutorManager.getOrCreateExecutor(executorConfig, executorName) : null;
 
         Transport transport = ExtensionLoader.getExtension(Transport.class, name());
         RemotingServer server = transport.createServer(serverConfig.getHost(), serverConfig.getPort(),

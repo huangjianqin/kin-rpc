@@ -7,7 +7,7 @@ import org.kin.kinrpc.config.ServerConfig;
 import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.constants.KinRpcSystemProperties;
 import org.kin.kinrpc.registry.DiscoveryRegistry;
-import org.kin.kinrpc.registry.RegistryHelper;
+import org.kin.kinrpc.registry.RegistryManager;
 import org.kin.kinrpc.registry.metadata.service.MetadataServiceImpl;
 import org.kin.kinrpc.service.MetadataService;
 import org.kin.kinrpc.utils.ServiceUtils;
@@ -118,7 +118,7 @@ public final class ApplicationGuardian {
             return;
         }
 
-        for (DiscoveryRegistry discoveryRegistry : RegistryHelper.getDiscoveryRegistries()) {
+        for (DiscoveryRegistry discoveryRegistry : RegistryManager.getDiscoveryRegistries()) {
             discoveryRegistry.refreshAppInstances();
         }
     }

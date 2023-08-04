@@ -5,7 +5,7 @@ import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.RegistryConfig;
 import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.registry.AbstractRegistry;
-import org.kin.kinrpc.registry.RegistryHelper;
+import org.kin.kinrpc.registry.RegistryManager;
 import org.kin.kinrpc.registry.ServiceInstanceChangedListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +32,7 @@ public final class DirectRegistry extends AbstractRegistry {
         List<String> addressList = config.getAddressList();
         List<ServiceInstance> serviceInstances = new ArrayList<>(addressList.size());
         for (String address : addressList) {
-            serviceInstances.add(RegistryHelper.parseUrl(address));
+            serviceInstances.add(RegistryManager.parseUrl(address));
         }
         this.serviceInstances = serviceInstances;
     }

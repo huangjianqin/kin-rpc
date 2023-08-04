@@ -24,6 +24,8 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
     private String bootstrap;
     /** 指定服务由那些应用提供, 如果存在多个, 则逗号分隔 */
     private String provideBy;
+    /** fallback (service) class name */
+    private String fallback;
 
     //----------------------------------------------------------------方法级配置, 如果方法没有特殊配置, 则取这个
     /** rpc call timeout(ms) */
@@ -247,6 +249,15 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
         return validation(true);
     }
 
+    public AbstractReferenceConfig<ARC> fallback(String fallback) {
+        this.fallback = fallback;
+        return this;
+    }
+
+    public AbstractReferenceConfig<ARC> fallback() {
+        return fallback(Boolean.TRUE.toString());
+    }
+
     //----------------------
     public AbstractReferenceConfig<ARC> setCluster(String cluster) {
         this.cluster = cluster;
@@ -334,6 +345,14 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
         this.validation = validation;
     }
 
+    public String getFallback() {
+        return fallback;
+    }
+
+    public void setFallback(String fallback) {
+        this.fallback = fallback;
+    }
+
     @Override
     public String toString() {
         return super.toString() +
@@ -349,6 +368,7 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
                 ", async=" + async +
                 ", sticky=" + sticky +
                 ", cache='" + cache + '\'' +
-                ", validation=" + validation;
+                ", validation=" + validation +
+                ", fallback=" + fallback;
     }
 }
