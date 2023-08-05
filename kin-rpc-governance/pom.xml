@@ -9,7 +9,7 @@
         <version>${revision}</version>
     </parent>
 
-    <artifactId>kin-rpc-extensions</artifactId>
+    <artifactId>kin-rpc-governance</artifactId>
     <packaging>pom</packaging>
     <modules>
         <module>kin-rpc-sentinel</module>

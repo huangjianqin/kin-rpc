@@ -19,7 +19,7 @@
         <module>kin-rpc-bom</module>
         <module>kin-rpc-api</module>
         <module>kin-rpc-boot</module>
-        <module>kin-rpc-extensions</module>
+        <module>kin-rpc-governance</module>
     </modules>
     <packaging>pom</packaging>
 
