@@ -1,0 +1,2 @@
+org.kin.kinrpc.Filter=org.kin.kinrpc.sentinel.SentinelConsumerFilter,\
+org.kin.kinrpc.sentinel.SentinelProviderFilter

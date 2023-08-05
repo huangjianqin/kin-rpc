@@ -1,14 +1,15 @@
 package org.kin.kinrpc.utils;
 
+import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.StringUtils;
-import org.kin.kinrpc.ApplicationInstance;
-import org.kin.kinrpc.Invocation;
-import org.kin.kinrpc.RpcInvocation;
-import org.kin.kinrpc.ServiceMetadataConstants;
+import org.kin.kinrpc.*;
+import org.kin.kinrpc.cache.CacheFilter;
 import org.kin.kinrpc.common.Url;
 import org.kin.kinrpc.config.*;
 import org.kin.kinrpc.constants.CommonConstants;
 import org.kin.kinrpc.constants.ReferenceConstants;
+import org.kin.kinrpc.constants.Scopes;
+import org.kin.kinrpc.validation.ValidationFilter;
 
 import java.util.*;
 
@@ -17,6 +18,9 @@ import java.util.*;
  * @date 2023/7/18
  */
 public final class ReferenceUtils {
+    /** 缓存spi加载的reference端{@link Filter}实例 */
+    private static List<Filter> referenceFilters;
+
     private ReferenceUtils() {
     }
 
@@ -80,10 +84,52 @@ public final class ReferenceUtils {
      */
     public static Invocation copyInvocation(Invocation invocation) {
         RpcInvocation rpcInvocation = new RpcInvocation(invocation.serviceId(), invocation.service(),
-                invocation.interfaceClass(),
+                invocation.serviceName(), invocation.interfaceClass(),
                 invocation.params(), invocation.serverAttachments(),
                 invocation.methodMetadata());
         rpcInvocation.attachMany(invocation.attachments());
         return rpcInvocation;
+    }
+
+    /**
+     * reference内部前置filter
+     */
+    public static List<Filter> internalPreFilters() {
+        return Collections.emptyList();
+    }
+
+    /**
+     * reference内部后置filter
+     */
+    public static List<Filter> internalPostFilters() {
+        return Arrays.asList(ValidationFilter.instance(), CacheFilter.instance());
+    }
+
+    /**
+     * 返回通过spi加载的reference filter
+     *
+     * @return reference filter
+     */
+    public static List<Filter> getReferenceFilters() {
+        if (Objects.nonNull(referenceFilters)) {
+            return referenceFilters;
+        }
+
+        List<Filter> filters = new ArrayList<>(4);
+        for (Filter filter : ExtensionLoader.getExtensions(Filter.class)) {
+            Class<? extends Filter> filterClass = filter.getClass();
+            Scope scope = filterClass.getAnnotation(Scope.class);
+            if (Objects.isNull(scope)) {
+                continue;
+            }
+
+            if (Scopes.APPLICATION.equals(scope.value()) ||
+                    Scopes.CONSUMER.equals(scope.value())) {
+                filters.add(filter);
+            }
+        }
+
+        referenceFilters = filters;
+        return referenceFilters;
     }
 }

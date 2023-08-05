@@ -40,7 +40,8 @@ public class DemoServiceConsumerApplication {
                             rpcTimeout = 10_000, cache = "expiring",
                             attachments = {CacheConstants.EXPIRING_CACHE_TTL, "1500"}),
                     @KinRpcHandler(name = "asyncFind2", async = true),
-            })
+            },
+            fallback = "true")
     @Bean
     public KinRpcReferenceBean<DemoService> demoServiceFactoryBean() {
         return new KinRpcReferenceBean<>(DemoService.class);

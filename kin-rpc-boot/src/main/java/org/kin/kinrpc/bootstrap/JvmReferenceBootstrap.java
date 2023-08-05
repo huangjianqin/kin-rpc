@@ -1,12 +1,16 @@
 package org.kin.kinrpc.bootstrap;
 
+import org.kin.kinrpc.Filter;
 import org.kin.kinrpc.FilterChain;
 import org.kin.kinrpc.ReferenceInvoker;
-import org.kin.kinrpc.cluster.utils.ReferenceFilterUtils;
 import org.kin.kinrpc.config.ProtocolType;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.protocol.Protocol;
 import org.kin.kinrpc.protocol.Protocols;
+import org.kin.kinrpc.utils.ReferenceUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * reference boostrap for jvm
@@ -25,10 +29,12 @@ public class JvmReferenceBootstrap<T> extends ProxyReferenceBootstrap<T> {
         Protocol protocol = Protocols.getByName(ProtocolType.JVM.getName());
         ReferenceInvoker<T> referenceInvoker = protocol.refer(config, new JvmServiceInstance(config.getService()));
 
+        List<Filter> filters = new ArrayList<>(config.getFilters());
+        filters.addAll(ReferenceUtils.getReferenceFilters());
         //创建filter chain
-        FilterChain<T> chain = FilterChain.create(ReferenceFilterUtils.internalPreFilters(),
-                config.getFilters(),
-                ReferenceFilterUtils.internalPostFilters(),
+        FilterChain<T> chain = FilterChain.create(ReferenceUtils.internalPreFilters(),
+                filters,
+                ReferenceUtils.internalPostFilters(),
                 referenceInvoker);
 
         return createProxy(chain);

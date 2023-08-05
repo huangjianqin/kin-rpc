@@ -12,15 +12,13 @@ import org.kin.kinrpc.constants.InvocationConstants;
 import org.kin.kinrpc.executor.ExecutorManager;
 import org.kin.kinrpc.executor.ManagedExecutor;
 import org.kin.kinrpc.utils.RpcUtils;
-import org.kin.kinrpc.utils.ServiceFilterUtils;
+import org.kin.kinrpc.utils.ServiceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -48,7 +46,9 @@ public class RpcService<T> implements Invoker<T> {
         this.config = config;
         //创建filter chain
         Invoker<T> invoker = this::doInvoke;
-        this.chain = FilterChain.create(config.getFilters(), ServiceFilterUtils.internalPostFilters(), invoker);
+        List<Filter> filters = new ArrayList<>(config.getFilters());
+        filters.addAll(ServiceUtils.getServiceFilters());
+        this.chain = FilterChain.create(filters, ServiceUtils.internalPostFilters(), invoker);
 
         //create rpc handler
         IntObjectHashMap<RpcHandler> rpcHandlerMap = new IntObjectHashMap<>();
@@ -97,6 +97,10 @@ public class RpcService<T> implements Invoker<T> {
         if (isTerminated()) {
             return RpcResult.fail(invocation, new IllegalStateException(String.format("service '%s' unExported", service())));
         }
+
+        //attach
+        invocation.attach(InvocationConstants.APPLICATION_KEY, config.getApp().getAppName());
+        invocation.attach(InvocationConstants.SERVICE_CONFIG_KEY, config);
 
         try {
             String token = invocation.serverAttachments().remove(InvocationConstants.TOKEN_KEY);
@@ -319,8 +323,12 @@ public class RpcService<T> implements Invoker<T> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof RpcService)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof RpcService)) {
+            return false;
+        }
         RpcService<?> that = (RpcService<?>) o;
         return Objects.equals(config.getService(), that.config.getService());
     }

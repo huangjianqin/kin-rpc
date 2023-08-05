@@ -10,6 +10,8 @@ public final class InvocationConstants {
     public static final String VALIDATION_KEY = "validation";
     /** fallback class(service) name */
     public static final String FALLBACK_KEY = "fallback";
+    /** application */
+    public static final String APPLICATION_KEY = "application";
 
     //----------------------------------------------------------------reference invocation attachment key
     /** cluster根据规则策略选择可用的invoker */
@@ -30,12 +32,16 @@ public final class InvocationConstants {
     public static final String REGISTRY_ZONE_KEY = "registryZone";
     /** registry zone force */
     public static final String REGISTRY_ZONE_FORCE_KEY = "registryZoneForce";
+    /** 服务引用配置 */
+    public static final String REFERENCE_CONFIG_KEY = "referenceConfig";
 
     //----------------------------------------------------------------service invocation attachment key
     /** service token */
     public static final String TOKEN_KEY = "token";
     /** rpc call timeout(absolutely end time) */
     public static final String TIMEOUT_KEY = "timeout";
+    /** 服务配置 */
+    public static final String SERVICE_CONFIG_KEY = "serviceConfig";
 
     private InvocationConstants() {
     }

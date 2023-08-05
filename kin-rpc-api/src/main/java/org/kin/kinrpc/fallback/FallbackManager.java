@@ -66,7 +66,7 @@ public final class FallbackManager {
 
         assert fallbackServiceInstance != null;
         try {
-            Object result = invocation.method().invoke(fallbackServiceClass, invocation.params());
+            Object result = invocation.method().invoke(fallbackServiceInstance, invocation.params());
             return RpcResult.success(invocation,
                     CompletableFuture.completedFuture(result));
         } catch (Exception e) {
@@ -89,7 +89,7 @@ public final class FallbackManager {
         try {
             if (fallbackName.toLowerCase().equals(Boolean.TRUE.toString())) {
                 //同classpath下找名为{service interface}Fallback的类
-                RpcResult fallbackResult = invokeFallbackService(invocation, ClassUtils.getClass(fallbackName + "Fallback"));
+                RpcResult fallbackResult = invokeFallbackService(invocation, ClassUtils.getClass(invocation.interfaceClass().getName() + "Fallback"));
                 if (Objects.nonNull(fallbackResult)) {
                     return fallbackResult;
                 }

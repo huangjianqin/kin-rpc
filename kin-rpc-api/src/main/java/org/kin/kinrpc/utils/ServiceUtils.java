@@ -1,14 +1,19 @@
 package org.kin.kinrpc.utils;
 
 import com.google.common.collect.ImmutableSet;
+import org.kin.framework.utils.ExtensionLoader;
+import org.kin.kinrpc.Filter;
+import org.kin.kinrpc.Scope;
 import org.kin.kinrpc.config.ApplicationConfig;
 import org.kin.kinrpc.config.ApplicationConfigManager;
 import org.kin.kinrpc.config.ServerConfig;
 import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.constants.CommonConstants;
+import org.kin.kinrpc.constants.Scopes;
 import org.kin.kinrpc.service.MetadataService;
+import org.kin.kinrpc.validation.ValidationFilter;
 
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author huangjianqin
@@ -23,6 +28,9 @@ public final class ServiceUtils {
         internalServiceInterfacebuilder.add(MetadataService.class);
         INTERNAL_SERVICE_INTERFACES = internalServiceInterfacebuilder.build();
     }
+
+    /** 缓存spi加载的service端{@link Filter}实例 */
+    private static List<Filter> serviceFilters;
 
     private ServiceUtils() {
     }
@@ -48,4 +56,45 @@ public final class ServiceUtils {
                 .register(false);
     }
 
+    /**
+     * service内部前置filter
+     */
+    public static List<Filter> internalPreFilters() {
+        return Collections.emptyList();
+    }
+
+    /**
+     * service内部后置filter
+     */
+    public static List<Filter> internalPostFilters() {
+        return Collections.singletonList(ValidationFilter.instance());
+    }
+
+    /**
+     * 返回通过spi加载的service filter
+     *
+     * @return service filter
+     */
+    public static List<Filter> getServiceFilters() {
+        if (Objects.nonNull(serviceFilters)) {
+            return serviceFilters;
+        }
+
+        List<Filter> filters = new ArrayList<>(4);
+        for (Filter filter : ExtensionLoader.getExtensions(Filter.class)) {
+            Class<? extends Filter> filterClass = filter.getClass();
+            Scope scope = filterClass.getAnnotation(Scope.class);
+            if (Objects.isNull(scope)) {
+                continue;
+            }
+
+            if (Scopes.APPLICATION.equals(scope.value()) ||
+                    Scopes.PROVIDER.equals(scope.value())) {
+                filters.add(filter);
+            }
+        }
+
+        serviceFilters = filters;
+        return serviceFilters;
+    }
 }

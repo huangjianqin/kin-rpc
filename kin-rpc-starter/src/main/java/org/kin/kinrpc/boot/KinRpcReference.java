@@ -117,4 +117,7 @@ public @interface KinRpcReference {
 
     /** 自定义属性, {key1, value1, key2, value2.....} */
     String[] attachments() default {};
+
+    /** fallback (service) class name */
+    String fallback() default "";
 }

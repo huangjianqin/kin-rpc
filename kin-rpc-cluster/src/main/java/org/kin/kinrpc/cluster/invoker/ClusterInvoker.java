@@ -10,17 +10,18 @@ import org.kin.kinrpc.*;
 import org.kin.kinrpc.cluster.InvokerNotFoundException;
 import org.kin.kinrpc.cluster.loadbalance.LoadBalance;
 import org.kin.kinrpc.cluster.router.Router;
-import org.kin.kinrpc.cluster.utils.ReferenceFilterUtils;
 import org.kin.kinrpc.config.MethodConfig;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.RegistryConfig;
 import org.kin.kinrpc.constants.InvocationConstants;
 import org.kin.kinrpc.registry.directory.Directory;
+import org.kin.kinrpc.utils.ReferenceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -75,10 +76,13 @@ public abstract class ClusterInvoker<T> implements ReferenceInvoker<T> {
                     "multiClusterInvokerWrapper");
         }
 
+        List<Filter> filters = new ArrayList<>(referenceConfig.getFilters());
+        filters.addAll(ReferenceUtils.getReferenceFilters());
+
         //创建filter chain
-        this.filterChain = (FilterChain<T>) FilterChain.create(ReferenceFilterUtils.internalPreFilters(),
-                referenceConfig.getFilters(),
-                ReferenceFilterUtils.internalPostFilters(),
+        this.filterChain = (FilterChain<T>) FilterChain.create(ReferenceUtils.internalPreFilters(),
+                filters,
+                ReferenceUtils.internalPostFilters(),
                 RpcCallInvoker.instance());
 
         //创建loadbalance

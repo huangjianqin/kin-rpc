@@ -25,6 +25,7 @@
         <rsocket.version>1.1.2</rsocket.version>
         <validation-api.version>2.0.1.Final</validation-api.version>
         <hibernate-validator.version>8.0.1.Final</hibernate-validator.version>
+        <sentinel.version>1.8.6</sentinel.version>
     </properties>
 
     <dependencyManagement>
@@ -135,9 +136,16 @@
 
             <!-- hibernate validation -->
             <dependency>
-                <groupId>org.hibernate.validator</groupId>
+                <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-validator</artifactId>
                 <version>${hibernate-validator.version}</version>
+            </dependency>
+
+            <!-- sentinel -->
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>sentinel-core</artifactId>
+                <version>${sentinel.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

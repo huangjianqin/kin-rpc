@@ -41,7 +41,6 @@ public final class KinRpcReferenceUtils {
      * @param referenceAnnoAttrs {@link KinRpcReference}  注解属性
      * @return {@link ReferenceConfig}实例
      */
-    @SuppressWarnings("unchecked")
     public static <T> ReferenceConfig<T> toReferenceConfig(ApplicationContext applicationContext,
                                                            Class<T> interfaceClass,
                                                            Map<String, Object> referenceAnnoAttrs) {
@@ -130,6 +129,11 @@ public final class KinRpcReferenceUtils {
                     referenceConfig.attach(key, value);
                 }
             }
+        }
+
+        String fallback = (String) referenceAnnoAttrs.get("fallback");
+        if (StringUtils.isNotBlank(fallback)) {
+            referenceConfig.fallback(fallback);
         }
 
         AnnotationAttributes[] handlerAnnoAttrsList = (AnnotationAttributes[]) referenceAnnoAttrs.get("handlers");

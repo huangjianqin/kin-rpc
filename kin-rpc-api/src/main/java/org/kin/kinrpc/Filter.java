@@ -1,11 +1,14 @@
 package org.kin.kinrpc;
 
+import org.kin.framework.utils.SPI;
+
 /**
  * rpc call filter
  *
  * @author huangjianqin
  * @date 2023/6/19
  */
+@SPI(alias = "filter")
 public interface Filter {
     /**
      * rpc call过滤

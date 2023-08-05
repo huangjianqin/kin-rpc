@@ -138,15 +138,20 @@ public final class ReferenceProxy implements InvocationHandler {
 
         MethodConfig methodConfig = getMethodConfig(handlerId);
 
-        RpcInvocation invocation = new RpcInvocation(serviceId, service, config.getInterfaceClass(),
+        RpcInvocation invocation = new RpcInvocation(serviceId, service, config.getServiceName(), config.getInterfaceClass(),
                 args, RpcContext.attachments(), methodMetadata);
         //clear attachments
         RpcContext.clearAttachments();
         //attach config
+        invocation.attach(InvocationConstants.REFERENCE_CONFIG_KEY, config);
+        invocation.attach(InvocationConstants.APPLICATION_KEY, config.getApp().getAppName());
+        //attach method config
         invocation.attach(InvocationConstants.METHOD_CONFIG_KEY, methodConfig);
         invocation.attach(InvocationConstants.SERIALIZATION_KEY, config.getSerialization());
         //服务方法调用参数校验
         invocation.attach(InvocationConstants.VALIDATION_KEY, methodConfig.isValidation());
+        //fallback
+        invocation.attach(InvocationConstants.FALLBACK_KEY, config.getFallback());
         invocation.attachMany(RpcContext.attachments());
 
         if (log.isDebugEnabled()) {

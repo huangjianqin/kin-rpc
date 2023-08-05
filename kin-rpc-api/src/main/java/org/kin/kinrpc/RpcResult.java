@@ -1,7 +1,10 @@
 package org.kin.kinrpc;
 
+import org.kin.kinrpc.utils.RpcUtils;
+
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
 
 /**
@@ -48,6 +51,19 @@ public final class RpcResult {
      */
     public boolean hasException() {
         return resultFuture.isCompletedExceptionally();
+    }
+
+    /**
+     * 返回服务调用异常
+     *
+     * @return 服务调用异常
+     */
+    public Throwable getException() {
+        try {
+            return RpcUtils.normalizeException((Throwable) resultFuture.get());
+        } catch (InterruptedException | ExecutionException e) {
+            return e;
+        }
     }
 
     /**
