@@ -8,10 +8,7 @@ import org.kin.framework.collection.CopyOnWriteMap;
 import org.kin.framework.utils.StringUtils;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author huangjianqin
@@ -19,7 +16,7 @@ import java.util.Map;
  */
 public class DefaultHandlerRegistry extends HandlerRegistry {
     /** key -> 服务唯一id, value -> service definition */
-    private final Map<Integer, ServerServiceDefinition> services = new CopyOnWriteMap<>();
+    private final Map<Integer, ServerServiceDefinition> services = new CopyOnWriteMap<>(() -> new HashMap<>(16));
 
     @Override
     public List<ServerServiceDefinition> getServices() {

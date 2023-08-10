@@ -7,6 +7,7 @@ import org.kin.kinrpc.config.AttachableConfig;
 import org.kin.kinrpc.config.MethodConfig;
 import org.kin.kinrpc.constants.InvocationConstants;
 
+import java.util.HashMap;
 import java.util.Objects;
 
 /**
@@ -15,7 +16,7 @@ import java.util.Objects;
  */
 public abstract class AbstractCacheFactory implements CacheFactory {
     /** {@link Cache}缓存 */
-    private final CopyOnWriteMap<Integer, Cache> cacheMap = new CopyOnWriteMap<>();
+    private final CopyOnWriteMap<Integer, Cache> cacheMap = new CopyOnWriteMap<>(() -> new HashMap<>(16));
 
     @Override
     public final Cache createCache(Invocation invocation) {

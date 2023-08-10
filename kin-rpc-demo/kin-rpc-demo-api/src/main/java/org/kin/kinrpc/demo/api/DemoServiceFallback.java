@@ -52,7 +52,7 @@ public class DemoServiceFallback implements DemoService {
 
     @Override
     public int delayRandom2() {
-        return -1;
+        return -2;
     }
 
     @Override

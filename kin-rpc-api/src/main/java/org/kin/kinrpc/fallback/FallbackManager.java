@@ -9,6 +9,7 @@ import org.kin.kinrpc.RpcExceptionBlockException;
 import org.kin.kinrpc.RpcResult;
 import org.kin.kinrpc.constants.InvocationConstants;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -22,7 +23,7 @@ public final class FallbackManager {
     }
 
     /** key -> fallback (service) class, value -> fallback instance */
-    private static final Map<Class<?>, Object> FALLBACK_INST_MAP = new CopyOnWriteMap<>();
+    private static final Map<Class<?>, Object> FALLBACK_INST_MAP = new CopyOnWriteMap<>(() -> new HashMap<>(16));
 
     /**
      * 调用{@link Fallback}实例

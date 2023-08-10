@@ -49,7 +49,7 @@ public final class ReferenceProxy implements InvocationHandler {
     /** cluster invoker */
     private final Invoker<?> invoker;
     /** 服务方法元数据, key -> handlerId */
-    private final Map<Integer, MethodMetadata> methodMetadataMap = new CopyOnWriteMap<>();
+    private final Map<Integer, MethodMetadata> methodMetadataMap = new CopyOnWriteMap<>(() -> new HashMap<>(8));
     /** 方法级服务方法配置 */
     private final IntObjectMap<MethodConfig> methodConfigMap;
     /** 服务级服务方法配置 */
@@ -81,6 +81,7 @@ public final class ReferenceProxy implements InvocationHandler {
                 .async(config.isAsync())
                 .sticky(config.isSticky())
                 .validation(config.isValidation());
+        this.globalMethodConfig.attachMany(config.attachments());
     }
 
     @Override

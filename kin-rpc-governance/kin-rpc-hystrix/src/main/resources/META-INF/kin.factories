@@ -1,0 +1,1 @@
+org.kin.kinrpc.Filter=org.kin.kinrpc.hystrix.HystrixConsumerFilter

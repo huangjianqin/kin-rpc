@@ -21,4 +21,9 @@ public class DelegateInvoker<T> implements Invoker<T> {
     public Invoker<T> getDelegate() {
         return delegate;
     }
+
+    @Override
+    public String toString() {
+        return delegate.toString();
+    }
 }

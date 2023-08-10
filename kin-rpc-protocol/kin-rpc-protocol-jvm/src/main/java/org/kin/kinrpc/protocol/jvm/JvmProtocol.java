@@ -7,6 +7,7 @@ import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.ServerConfig;
 import org.kin.kinrpc.protocol.Protocol;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -20,7 +21,7 @@ import java.util.concurrent.CompletableFuture;
 @Extension("jvm")
 public class JvmProtocol implements Protocol {
     /** key -> service id, value -> service provider invoker */
-    private final Map<Integer, RpcService<?>> rpcServiceCache = new CopyOnWriteMap<>();
+    private final Map<Integer, RpcService<?>> rpcServiceCache = new CopyOnWriteMap<>(() -> new HashMap<>(8));
 
     @Override
     public <T> Exporter<T> export(RpcService<T> rpcService, ServerConfig serverConfig) {

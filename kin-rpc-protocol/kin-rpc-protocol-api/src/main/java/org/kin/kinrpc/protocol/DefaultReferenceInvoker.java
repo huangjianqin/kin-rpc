@@ -233,7 +233,7 @@ public class DefaultReferenceInvoker<T> implements ReferenceInvoker<T> {
                     resultFuture.complete(response.getResult());
                 } else {
                     response.deserializeResult(String.class);
-                    resultFuture.completeExceptionally(new ServerErrorException(String.format("rpc call fail, due to %s,invocation=%s", response.getResult(), invocation)));
+                    resultFuture.completeExceptionally(new ServerErrorException(String.format("rpc call fail, due to %s, invocation=%s", response.getResult(), invocation)));
                 }
             } catch (Exception e) {
                 resultFuture.completeExceptionally(new RpcException("rpc call fail, invocation=" + invocation, e));

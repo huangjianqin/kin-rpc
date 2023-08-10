@@ -23,7 +23,7 @@ public final class SentinelUtils {
     /** sentinel配置名-consumer资源名前缀 */
     private static final String CONSUMER_RES_NAME_PREFIX_KEY = "csp.sentinel.kinrpc.resource.consumer.prefix";
     /** sentinel配置名-服务唯一标识是否带上group和version */
-    private static final String INTERFACE_GROUP_VERSION_ENABLED = "csp.sentinel.kinrpc.interface.group.version.enabled";
+    private static final String GSV_ENABLED = "csp.sentinel.kinrpc.gsv.enabled";
 
 
     /** provider origin (caller) parser instance */
@@ -46,7 +46,7 @@ public final class SentinelUtils {
         }
 
         USE_PREFIX = Boolean.TRUE.toString().equalsIgnoreCase(SentinelConfig.getConfig(RES_NAME_WITH_PREFIX_KEY));
-        ENABLE_INTERFACE_GROUP_AND_VERSION = Boolean.TRUE.toString().equalsIgnoreCase(SentinelConfig.getConfig(INTERFACE_GROUP_VERSION_ENABLED));
+        ENABLE_INTERFACE_GROUP_AND_VERSION = Boolean.TRUE.toString().equalsIgnoreCase(SentinelConfig.getConfig(GSV_ENABLED));
 
         String providerPrefixConfig = SentinelConfig.getConfig(PROVIDER_RES_NAME_PREFIX_KEY);
         PROVIDER_PREFIX = StringUtil.isNotBlank(providerPrefixConfig) ? providerPrefixConfig : "kinrpc:provider:";

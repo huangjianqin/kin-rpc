@@ -15,6 +15,7 @@ import java.util.Arrays;
 @CommandCode(CommandCodes.RPC_REQUEST)
 public class RpcRequestCommand extends RequestCommand {
     private static final long serialVersionUID = 5549418324792160032L;
+    /** 空参数 */
     private static final Object[] EMPTY_PARAMS = new Object[0];
 
     /** 服务唯一id */

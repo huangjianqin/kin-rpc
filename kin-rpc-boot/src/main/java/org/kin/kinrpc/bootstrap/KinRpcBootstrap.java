@@ -278,6 +278,14 @@ public final class KinRpcBootstrap {
             attachmentMap.attachMany(referenceConfig.attachments());
             referenceConfig.attachMany(attachmentMap);
         }
+
+        //overwrite
+        for (MethodConfig methodConfig : referenceConfig.getHandlers()) {
+            AttachmentMap attachmentMap = new AttachmentMap(referenceConfig.attachments());
+            //overwrite
+            attachmentMap.attachMany(methodConfig.attachments());
+            methodConfig.attachMany(attachmentMap);
+        }
     }
 
     /**

@@ -13,6 +13,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>kin-rpc-sentinel</module>
+        <module>kin-rpc-hystrix</module>
     </modules>
 
 </project>

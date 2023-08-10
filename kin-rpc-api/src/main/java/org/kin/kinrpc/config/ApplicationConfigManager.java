@@ -47,9 +47,9 @@ public final class ApplicationConfigManager {
     }
 
     /** 应用唯一配置 */
-    private final Map<Class<? extends Config>, Config> uniqueConfigMap = new CopyOnWriteMap<>();
+    private final Map<Class<? extends Config>, Config> uniqueConfigMap = new CopyOnWriteMap<>(() -> new HashMap<>(8));
     /** key -> config class, value -> {key -> config unique id or {@link SharableConfig#getId()}, value -> config instance} */
-    private final Map<Class<? extends Config>, Map<String, Config>> configMap = new CopyOnWriteMap<>();
+    private final Map<Class<? extends Config>, Map<String, Config>> configMap = new CopyOnWriteMap<>(() -> new HashMap<>(8));
 
     private ApplicationConfigManager() {
     }
@@ -112,7 +112,7 @@ public final class ApplicationConfigManager {
                 id = Integer.toHexString(config.hashCode());
             }
 
-            Map<String, Config> map = configMap.computeIfAbsent(configClass, k -> new CopyOnWriteMap<>());
+            Map<String, Config> map = configMap.computeIfAbsent(configClass, k -> new CopyOnWriteMap<>(() -> new HashMap<>(16)));
             map.put(id, config);
         }
     }

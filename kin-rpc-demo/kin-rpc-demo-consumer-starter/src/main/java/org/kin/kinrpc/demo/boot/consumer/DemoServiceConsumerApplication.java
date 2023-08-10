@@ -41,7 +41,8 @@ public class DemoServiceConsumerApplication {
                             attachments = {CacheConstants.EXPIRING_CACHE_TTL, "1500"}),
                     @KinRpcHandler(name = "asyncFind2", async = true),
             },
-            fallback = "true")
+            fallback = "true",
+            attachments = {"hystrix.command.execution.isolation.thread.timeoutInMilliseconds", "3000"})
     @Bean
     public KinRpcReferenceBean<DemoService> demoServiceFactoryBean() {
         return new KinRpcReferenceBean<>(DemoService.class);
