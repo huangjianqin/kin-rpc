@@ -1,13 +1,12 @@
 package org.kin.kinrpc.validation;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.ClassFileVersion;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.implementation.FieldAccessor;
 import net.bytebuddy.implementation.Implementation;
 import net.bytebuddy.implementation.MethodCall;
+import org.kin.framework.collection.CopyOnWriteMap;
 import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.*;
@@ -24,7 +23,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 /**
@@ -45,10 +43,7 @@ public class ValidationFilter implements Filter {
     /** validator */
     private final Validator validator;
     /** 方法参数校验元数据 */
-    private final Cache<String, MethodValidationMetadata> methodValidationMetadataMap = CacheBuilder.newBuilder()
-            //内存不足时可清掉, 下次重新生成即可
-            .softValues()
-            .build();
+    private final Map<String, MethodValidationMetadata> methodValidationMetadataMap = new CopyOnWriteMap<>(() -> new HashMap<>(16));
 
     public ValidationFilter() {
         this(Validation.buildDefaultValidatorFactory());
@@ -71,13 +66,13 @@ public class ValidationFilter implements Filter {
         }
 
         Method method = invocation.method();
-        String key = method.getDeclaringClass().getName() + "$" + method;
-        MethodValidationMetadata validationMetadata;
-        try {
-            validationMetadata = methodValidationMetadataMap.get(key, () -> createMethodValidationMetadata(invocation));
-        } catch (ExecutionException e) {
-            return RpcResult.fail(invocation, new RpcException("valid rpc call parameter fail", e.getCause()));
+        if (CollectionUtils.isEmpty(method.getParameters())) {
+            //无参
+            return invoker.invoke(invocation);
         }
+
+        String key = method.getDeclaringClass().getName() + "$" + method;
+        MethodValidationMetadata validationMetadata = methodValidationMetadataMap.computeIfAbsent(key, k -> createMethodValidationMetadata(invocation));
 
         Class<?>[] groups = validationMetadata.getGroups();
 
