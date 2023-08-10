@@ -188,6 +188,7 @@ public abstract class AbstractInterfaceConfig<IC extends AbstractInterfaceConfig
     public String toString() {
         return "app=" + app +
                 ", registries=" + registries +
-                ", serialization='" + serialization + '\'';
+                ", serialization='" + serialization + '\'' +
+                super.toString();
     }
 }

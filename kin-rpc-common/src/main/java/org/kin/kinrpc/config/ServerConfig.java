@@ -211,11 +211,11 @@ public class ServerConfig extends SharableConfig<ServerConfig> {
     @Override
     public String toString() {
         return "ServerConfig{" +
-                super.toString() +
                 ", protocol='" + protocol + '\'' +
                 ObjectUtils.toStringIfPredicate(StringUtils.isNotBlank(host), ", host='" + host + '\'') +
                 ", port=" + port +
                 ObjectUtils.toStringIfNonNull(executor, ", executor=" + executor) +
+                ", " + super.toString() +
                 '}';
     }
 }

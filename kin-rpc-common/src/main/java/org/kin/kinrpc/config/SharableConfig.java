@@ -48,6 +48,7 @@ public abstract class SharableConfig<C extends SharableConfig<C>> extends Attach
 
     @Override
     public String toString() {
-        return "id='" + id + '\'';
+        return "id='" + id + '\'' +
+                ", " + super.toString();
     }
 }

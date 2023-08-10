@@ -164,6 +164,7 @@ public class MethodConfig extends AttachableConfig {
                 ", sticky=" + sticky +
                 "cache='" + cache + '\'' +
                 ", validation=" + validation +
+                ", " + super.toString() +
                 '}';
     }
 }

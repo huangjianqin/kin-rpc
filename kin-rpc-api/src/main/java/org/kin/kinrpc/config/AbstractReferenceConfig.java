@@ -355,8 +355,7 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
 
     @Override
     public String toString() {
-        return super.toString() +
-                ", cluster='" + cluster + '\'' +
+        return "cluster='" + cluster + '\'' +
                 ", loadBalance='" + loadBalance + '\'' +
                 ", router='" + router + '\'' +
                 ", generic=" + generic +
@@ -369,6 +368,7 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
                 ", sticky=" + sticky +
                 ", cache='" + cache + '\'' +
                 ", validation=" + validation +
-                ", fallback=" + fallback;
+                ", fallback=" + fallback +
+                ", " + super.toString();
     }
 }

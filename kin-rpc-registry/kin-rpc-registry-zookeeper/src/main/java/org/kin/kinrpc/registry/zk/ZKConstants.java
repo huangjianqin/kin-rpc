@@ -7,7 +7,7 @@ package org.kin.kinrpc.registry.zk;
 public final class ZKConstants {
 
     /** zookeeper会话超时 */
-    public static final String SESSION_TIMEOUT_KEY = "sessionTimeout";
+    public static final String SESSION_TIMEOUT_KEY = "zk.sessionTimeout";
 
     //-----------------------------------------------------------------------------------------------default
 

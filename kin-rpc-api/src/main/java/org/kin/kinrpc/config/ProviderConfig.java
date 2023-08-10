@@ -15,4 +15,9 @@ public class ProviderConfig extends AbstractServiceConfig<ProviderConfig> {
 
     protected ProviderConfig() {
     }
+
+    @Override
+    public String toString() {
+        return "ProviderConfig{" + super.toString() + "}";
+    }
 }

@@ -195,11 +195,11 @@ public final class ServiceConfig<T> extends AbstractServiceConfig<ServiceConfig<
     @Override
     public String toString() {
         return "ServiceConfig{" +
-                super.toString() +
-                ", interfaceClass=" + interfaceClass +
+                "interfaceClass=" + interfaceClass +
                 ", service='" + service + '\'' +
                 ", serviceId=" + serviceId +
                 ", instance=" + instance +
+                ", " + super.toString() +
                 '}';
     }
 }

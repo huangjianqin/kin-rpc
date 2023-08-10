@@ -248,14 +248,14 @@ public class RegistryConfig extends SharableConfig<RegistryConfig> {
     @Override
     public String toString() {
         return "RegistryConfig{" +
-                super.toString() +
-                ", name='" + name + '\'' +
+                "name='" + name + '\'' +
                 ", type='" + type + '\'' +
                 ", address='" + address + '\'' +
                 ", group='" + group + '\'' +
                 ", preferred=" + preferred +
                 ", zone='" + zone + '\'' +
                 ", weight=" + weight +
+                ", " + super.toString() +
                 '}';
     }
 }

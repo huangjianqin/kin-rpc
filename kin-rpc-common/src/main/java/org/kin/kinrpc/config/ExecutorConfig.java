@@ -226,13 +226,13 @@ public class ExecutorConfig extends SharableConfig<ExecutorConfig> {
     @Override
     public String toString() {
         return "ExecutorConfig{" +
-                super.toString() +
-                ObjectUtils.toStringIfPredicate(StringUtils.isNotBlank(name), ", name='" + name + '\'') +
+                ObjectUtils.toStringIfPredicate(StringUtils.isNotBlank(name), "name='" + name + '\'') +
                 ", type='" + type + '\'' +
                 ", corePoolSize=" + corePoolSize +
                 ", maxPoolSize=" + maxPoolSize +
                 ", alive=" + alive +
                 ", queueSize=" + queueSize +
+                ", " + super.toString() +
                 '}';
     }
 }

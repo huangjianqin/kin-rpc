@@ -214,11 +214,11 @@ public final class ReferenceConfig<T> extends AbstractReferenceConfig<ReferenceC
     @Override
     public String toString() {
         return "ReferenceConfig{" +
-                super.toString() +
-                ", interfaceClass=" + interfaceClass +
+                "interfaceClass=" + interfaceClass +
                 ", service='" + service + '\'' +
                 ", serviceId=" + serviceId +
                 ", handlers=" + handlers +
+                ", " + super.toString() +
                 '}';
     }
 }

@@ -306,8 +306,7 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
 
     @Override
     public String toString() {
-        return super.toString() +
-                ObjectUtils.toStringIfPredicate(CollectionUtils.isNonEmpty(servers), ", servers=" + servers) +
+        return ObjectUtils.toStringIfPredicate(CollectionUtils.isNonEmpty(servers), "servers=" + servers) +
                 ObjectUtils.toStringIfNonNull(ssl, ", ssl=" + ssl) +
                 ObjectUtils.toStringIfNonNull(executor, ", executor=" + executor) +
                 ", weight=" + weight +
@@ -316,6 +315,7 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
                 ", token=" + token +
                 ", exportAsync=" + exportAsync +
                 ", validation=" + validation +
-                ", fallback=" + fallback;
+                ", fallback=" + fallback +
+                ", " + super.toString();
     }
 }

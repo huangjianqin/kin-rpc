@@ -15,4 +15,9 @@ public class ConsumerConfig extends AbstractReferenceConfig<ConsumerConfig> {
 
     protected ConsumerConfig() {
     }
+
+    @Override
+    public String toString() {
+        return "ConsumerConfig{" + super.toString() + "}";
+    }
 }

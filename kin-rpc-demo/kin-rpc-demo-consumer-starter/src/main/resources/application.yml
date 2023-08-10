@@ -13,4 +13,6 @@ kinrpc:
     rpc-timeout: 2000
     retries: 0
     filter-beans: "logFilter"
+    attachments:
+      'hystrix.command.execution.isolation.thread.timeoutInMilliseconds': 10_000
   async-export-refer: true
