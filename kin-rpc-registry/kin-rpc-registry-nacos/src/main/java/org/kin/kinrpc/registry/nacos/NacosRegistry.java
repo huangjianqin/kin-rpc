@@ -34,8 +34,6 @@ public final class NacosRegistry extends DiscoveryRegistry {
     private static final String PROTOCOL_METADATA = "protocol";
     private static final String REVISION_METADATA = "revision";
 
-    /** nacos client name, 用于log */
-    private final String name;
     /** nacos cluster name */
     private final String clusterName;
     /** nacos naming service */
@@ -43,7 +41,6 @@ public final class NacosRegistry extends DiscoveryRegistry {
 
     public NacosRegistry(RegistryConfig config) {
         super(config);
-        name = String.format("nacos client(%s)", config.getAddress());
         clusterName = config.attachment(PropertyKeyConst.CLUSTER_NAME, NacosConstants.DEFAULT_CLUSTER_NAME);
         //nacos配置, 即PropertyKeyConst.XXX
         Properties properties = new Properties();
@@ -98,7 +95,7 @@ public final class NacosRegistry extends DiscoveryRegistry {
         try {
             namingService.registerInstance(appName, config.getGroup(), instance);
         } catch (NacosException e) {
-            throw new RegistryException(String.format("%s register service instance fail, instance=%s", name, instance), e);
+            throw new RegistryException(String.format("%s register service instance fail, instance=%s", getName(), instance), e);
         }
     }
 
@@ -109,7 +106,7 @@ public final class NacosRegistry extends DiscoveryRegistry {
         try {
             namingService.deregisterInstance(appName, config.getGroup(), instance);
         } catch (NacosException e) {
-            throw new RegistryException(String.format("%s deregister service instance fail, instance=%s", name, instance), e);
+            throw new RegistryException(String.format("%s deregister service instance fail, instance=%s", getName(), instance), e);
         }
     }
 
@@ -125,7 +122,7 @@ public final class NacosRegistry extends DiscoveryRegistry {
                     }
                 });
             } catch (NacosException e) {
-                throw new RegistryException(String.format("%s subscribe fail, appName=%s", name, appName), e);
+                throw new RegistryException(String.format("%s subscribe fail, appName=%s", getName(), appName), e);
             }
         }
 
@@ -137,7 +134,7 @@ public final class NacosRegistry extends DiscoveryRegistry {
                 try {
                     instances = namingService.selectInstances(appName, config.getGroup(), Collections.singletonList(clusterName), true, true);
                 } catch (NacosException e) {
-                    throw new RegistryException(String.format("%s selectInstances fail, appName=%s", name, appName), e);
+                    throw new RegistryException(String.format("%s selectInstances fail, appName=%s", getName(), appName), e);
                 }
 
                 if (CollectionUtils.isEmpty(instances)) {
@@ -157,7 +154,7 @@ public final class NacosRegistry extends DiscoveryRegistry {
             try {
                 namingService.unsubscribe(appName, config.getGroup(), Collections.singletonList(clusterName), unsubscribeListener);
             } catch (NacosException e) {
-                throw new RegistryException(String.format("%s unsubscribe fail, appName=%s", name, appName), e);
+                throw new RegistryException(String.format("%s unsubscribe fail, appName=%s", getName(), appName), e);
             }
         }
     }
@@ -187,7 +184,7 @@ public final class NacosRegistry extends DiscoveryRegistry {
         try {
             namingService.shutDown();
         } catch (NacosException e) {
-            throw new RegistryException(String.format("%s shutdown fail", name), e);
+            throw new RegistryException(String.format("%s shutdown fail", getName()), e);
         }
     }
 }
