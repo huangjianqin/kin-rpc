@@ -27,6 +27,7 @@
         <hibernate-validator.version>8.0.1.Final</hibernate-validator.version>
         <sentinel.version>1.8.6</sentinel.version>
         <hystrix.version>1.5.12</hystrix.version>
+        <nacos.version>2.2.4</nacos.version>
     </properties>
 
     <dependencyManagement>
@@ -154,6 +155,13 @@
                 <groupId>com.netflix.hystrix</groupId>
                 <artifactId>hystrix-core</artifactId>
                 <version>${hystrix.version}</version>
+            </dependency>
+
+            <!-- nacos -->
+            <dependency>
+                <groupId>com.alibaba.nacos</groupId>
+                <artifactId>nacos-client</artifactId>
+                <version>${nacos.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

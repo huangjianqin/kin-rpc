@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class RegistryConfig extends SharableConfig<RegistryConfig> {
     /** 默认注册中心地址分隔符 */
-    public static final String ADDRESS_SEPARATOR = ";";
+    public static final String ADDRESS_SEPARATOR = ",";
     /** 默认id生成 */
     private static final AtomicInteger DEFAULT_ID_GEN = new AtomicInteger();
     /** 默认id前缀 */
@@ -28,7 +28,7 @@ public class RegistryConfig extends SharableConfig<RegistryConfig> {
     private String name;
     /** 注册中心类型 */
     private String type;
-    /** 注册中心的地址, 如果有多个, 用分号分隔 */
+    /** 注册中心的地址, 如果有多个, 用逗号分隔 */
     private String address;
     /** 应用组 */
     private String group;

@@ -6,7 +6,6 @@ server:
 kinrpc:
   registry:
     address: "kinrpc://127.0.0.1:13000/default:demo:0.1.0.0?serialization=jsonb&weight=1&token=123456"
-    #    address: "kinrpc://127.0.0.1:13000/default:demo:0.1.0.0?serialization=jsonb&weight=1&token=123456;kinrpc://127.0.0.1:13010/default:demo:0.1.0.0?serialization=jsonb&weight=1&token=123456;kinrpc://127.0.0.1:13020/default:demo:0.1.0.0?serialization=jsonb&weight=1&token=123456;"
     type: "direct"
   consumer:
     cluster: "failover"

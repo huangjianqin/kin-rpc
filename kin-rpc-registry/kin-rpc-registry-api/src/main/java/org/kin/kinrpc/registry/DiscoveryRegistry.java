@@ -91,7 +91,7 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
             }
         }
 
-        doRegister(appMetadata, latestRevision);
+        doRegister(appMetadata);
     }
 
     @Override
@@ -161,6 +161,7 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
 
         HashSet<String> newWatchAppNames = new HashSet<>(appNames);
         newWatchAppNames.removeIf(n -> !watchingAppNames.contains(n));
+        //监听变化
         watch(newWatchAppNames);
     }
 
@@ -198,6 +199,9 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
                 app2Watchers.remove(appName);
             }
         }
+
+        //取消监听
+        unwatch(getWatchingAppNames());
     }
 
     @Override
@@ -221,9 +225,8 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
      * 注册服务
      *
      * @param appMetadata 应用元数据信息
-     * @param revision    注册的服务元数据版本
      */
-    protected abstract void doRegister(ApplicationMetadata appMetadata, String revision);
+    protected abstract void doRegister(ApplicationMetadata appMetadata);
 
     /**
      * 注销服务
@@ -236,6 +239,11 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
      * 监听应用实例变化
      */
     protected abstract void watch(Set<String> appNames);
+
+    /**
+     * 取消监听应用实例变化
+     */
+    protected abstract void unwatch(Set<String> appNames);
 
     /**
      * 释放注册中心占用资源

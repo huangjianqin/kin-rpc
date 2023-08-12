@@ -77,7 +77,7 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
      */
     private String connectAddress() {
         if (Objects.isNull(connectAddress)) {
-            connectAddress = config.replaceSeparator(",");
+            connectAddress = config.getAddress();
         }
         return connectAddress;
     }
@@ -218,9 +218,9 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
     }
 
     @Override
-    protected void doRegister(ApplicationMetadata appMetadata, String revision) {
+    protected void doRegister(ApplicationMetadata appMetadata) {
         DefaultApplicationInstance.Builder instance = DefaultApplicationInstance.create()
-                .revision(revision)
+                .revision(appMetadata.getRevision())
                 .scheme(appMetadata.getProtocol());
         createOrUpdateZNode(getPath(config.getGroup(), appMetadata.getAppName(), appMetadata.getAddress()),
                 JSON.writeBytes(instance.build()));
@@ -237,6 +237,11 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
         for (String appName : appNames) {
             watchAppNodeChildren(appName);
         }
+    }
+
+    @Override
+    protected void unwatch(Set<String> appNames) {
+        //do nothing
     }
 
     /**
