@@ -21,6 +21,7 @@ import org.kin.kinrpc.registry.DiscoveryUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -63,11 +64,31 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
     /** zk地址 */
     private String connectAddress;
     /** curator client */
-    private CuratorFramework client;
+    private final CuratorFramework client;
 
 
     public ZookeeperRegistry(RegistryConfig config) {
         super(config);
+
+        //同步创建zk client, 原生api是异步的
+        //RetryNTimes  RetryOneTime  RetryForever  RetryUntilElapsed
+        RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
+        CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory
+                .builder()
+                .connectString(connectAddress())
+                .sessionTimeoutMs(sessionTimeout())
+                .retryPolicy(retryPolicy)
+                .threadFactory(new SimpleThreadFactory("curator"))
+                //根节点会多出一个以命名空间名称所命名的节点
+                .namespace(ROOT);
+
+        String authSchema = config.attachment(ZKConstants.AUTH_SCHEMA_KEY);
+        String auth = config.attachment(ZKConstants.AUTH_KEY);
+        if (StringUtils.isNotBlank(authSchema) && StringUtils.isNotBlank(auth)) {
+            builder.authorization(authSchema, auth.getBytes(StandardCharsets.UTF_8));
+        }
+
+        client = builder.build();
     }
 
     /**
@@ -93,18 +114,6 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
 
     @Override
     public void init() {
-        //同步创建zk client, 原生api是异步的
-        //RetryNTimes  RetryOneTime  RetryForever  RetryUntilElapsed
-        RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-        client = CuratorFrameworkFactory
-                .builder()
-                .connectString(connectAddress())
-                .sessionTimeoutMs(sessionTimeout())
-                .retryPolicy(retryPolicy)
-                .threadFactory(new SimpleThreadFactory("curator"))
-                //根节点会多出一个以命名空间名称所命名的节点
-                .namespace(ROOT)
-                .build();
         client.getConnectionStateListenable().addListener((curatorFramework, connectionState) -> {
             if (ConnectionState.CONNECTED.equals(connectionState)) {
                 log.info("zookeeper registry(address={}) created", connectAddress());
