@@ -28,6 +28,7 @@
         <sentinel.version>1.8.6</sentinel.version>
         <hystrix.version>1.5.12</hystrix.version>
         <nacos.version>2.2.4</nacos.version>
+        <jetcd.version>0.7.6</jetcd.version>
     </properties>
 
     <dependencyManagement>
@@ -162,6 +163,13 @@
                 <groupId>com.alibaba.nacos</groupId>
                 <artifactId>nacos-client</artifactId>
                 <version>${nacos.version}</version>
+            </dependency>
+
+            <!-- etcd -->
+            <dependency>
+                <groupId>io.etcd</groupId>
+                <artifactId>jetcd-core</artifactId>
+                <version>${jetcd.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
