@@ -1,1 +1,1 @@
-registryFactory=org.kin.kinrpc.registry.nacos.NacosRegistry
+registryFactory=org.kin.kinrpc.registry.etcd.EtcdRegistry
