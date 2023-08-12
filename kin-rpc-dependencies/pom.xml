@@ -29,6 +29,7 @@
         <hystrix.version>1.5.12</hystrix.version>
         <nacos.version>2.2.4</nacos.version>
         <jetcd.version>0.7.6</jetcd.version>
+        <consul.version>1.4.5</consul.version>
     </properties>
 
     <dependencyManagement>
@@ -170,6 +171,13 @@
                 <groupId>io.etcd</groupId>
                 <artifactId>jetcd-core</artifactId>
                 <version>${jetcd.version}</version>
+            </dependency>
+
+            <!-- consul -->
+            <dependency>
+                <groupId>com.ecwid.consul</groupId>
+                <artifactId>consul-api</artifactId>
+                <version>${consul.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

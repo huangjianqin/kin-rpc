@@ -8,6 +8,7 @@ import org.kin.kinrpc.config.ServiceConfig;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 
 /**
@@ -104,5 +105,22 @@ public class ApplicationMetadata {
 
     public Map<String, ServiceMetadata> getRegisteredServiceMetadataMap() {
         return registeredServiceMetadataMap;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ApplicationMetadata)) {
+            return false;
+        }
+        ApplicationMetadata that = (ApplicationMetadata) o;
+        return Objects.equals(appName, that.appName) && Objects.equals(serverConfig, that.serverConfig) && Objects.equals(revision, that.revision);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(appName, serverConfig, revision);
     }
 }

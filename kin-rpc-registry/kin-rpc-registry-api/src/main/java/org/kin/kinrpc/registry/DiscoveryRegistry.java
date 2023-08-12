@@ -24,6 +24,11 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public abstract class DiscoveryRegistry extends AbstractRegistry {
     private static final Logger log = LoggerFactory.getLogger(DiscoveryRegistry.class);
 
+    /** 元数据-应用协议 */
+    protected static final String PROTOCOL_METADATA_KEY = "protocol";
+    /** 元数据-应用revision */
+    protected static final String REVISION_METADATA_KEY = "revision";
+
     /** 注册中心唯一name, 用于log */
     private final String name;
     /** key -> sorted provideBy, value -> {@link AppInstanceWatcher}实例 */
@@ -38,6 +43,20 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
     protected DiscoveryRegistry(RegistryConfig config) {
         super(config);
         this.name = RegistryManager.getAlias(config);
+    }
+
+    /**
+     * 构造应用元数据map
+     *
+     * @param appMetadata 应用元数据
+     * @return 应用元数据map
+     */
+    protected static Map<String, String> getMetadataMap(ApplicationMetadata appMetadata) {
+        Map<String, String> metadataMap = new HashMap<>(4);
+        metadataMap.put(PROTOCOL_METADATA_KEY, appMetadata.getProtocol());
+        metadataMap.put(REVISION_METADATA_KEY, appMetadata.getRevision());
+
+        return metadataMap;
     }
 
     /**

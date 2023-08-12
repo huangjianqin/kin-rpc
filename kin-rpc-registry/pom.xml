@@ -15,6 +15,7 @@
         <module>kin-rpc-registry-direct</module>
         <module>kin-rpc-registry-nacos</module>
         <module>kin-rpc-registry-etcd</module>
+        <module>kin-rpc-registry-consul</module>
     </modules>
     <packaging>pom</packaging>
 </project>

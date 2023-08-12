@@ -31,9 +31,6 @@ import java.util.function.Supplier;
 public final class NacosRegistry extends DiscoveryRegistry {
     private static final Logger log = LoggerFactory.getLogger(NacosRegistry.class);
 
-    private static final String PROTOCOL_METADATA = "protocol";
-    private static final String REVISION_METADATA = "revision";
-
     /** nacos cluster name */
     private final String clusterName;
     /** nacos naming service */
@@ -78,10 +75,7 @@ public final class NacosRegistry extends DiscoveryRegistry {
         instance.setEphemeral(false);
         instance.setWeight(config.getWeight());
         //元数据
-        Map<String, String> instanceMeta = new HashMap<>(4);
-        instanceMeta.put(PROTOCOL_METADATA, protocol);
-        instanceMeta.put(REVISION_METADATA, revision);
-        instance.setMetadata(instanceMeta);
+        instance.setMetadata(getMetadataMap(appMetadata));
         //cluster
         instance.setClusterName(clusterName);
 
@@ -171,8 +165,8 @@ public final class NacosRegistry extends DiscoveryRegistry {
             DefaultApplicationInstance appInstance = DefaultApplicationInstance.create()
                     .host(instance.getIp())
                     .port(instance.getPort())
-                    .revision(metadata.get(REVISION_METADATA))
-                    .scheme(metadata.get(PROTOCOL_METADATA))
+                    .revision(metadata.get(REVISION_METADATA_KEY))
+                    .scheme(metadata.get(PROTOCOL_METADATA_KEY))
                     .build();
             appInstances.add(appInstance);
         }
