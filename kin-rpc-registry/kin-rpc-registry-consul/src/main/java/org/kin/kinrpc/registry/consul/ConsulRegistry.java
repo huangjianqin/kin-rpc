@@ -20,6 +20,10 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
+ * 以consul为注册中心, 实时监听应用实例状态变化, 并更新可用{@link org.kin.kinrpc.ReferenceInvoker}实例
+ * 定时心跳, 上报健康状态
+ * 定时轮询发现服务应用变化
+ *
  * @author huangjianqin
  * @date 2023/8/12
  */
