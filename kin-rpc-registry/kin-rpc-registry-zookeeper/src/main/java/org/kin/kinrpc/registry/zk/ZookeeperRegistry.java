@@ -116,18 +116,18 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
     public void init() {
         client.getConnectionStateListenable().addListener((curatorFramework, connectionState) -> {
             if (ConnectionState.CONNECTED.equals(connectionState)) {
-                log.info("zookeeper registry(address={}) created", connectAddress());
+                log.info("{} created", getName());
                 watchAppGroupNode(config.getGroup());
             } else if (ConnectionState.RECONNECTED.equals(connectionState)) {
-                log.info("zookeeper registry(address={}) reconnected", connectAddress());
+                log.info("{} reconnected", getName());
                 watchAppGroupNode(config.getGroup());
                 for (String appName : getWatchingAppNames()) {
                     watchAppNodeChildren(appName);
                 }
             } else if (ConnectionState.LOST.equals(connectionState)) {
-                log.info("zookeeper registry(address={}) session expired", connectAddress());
+                log.info("{} session expired", getName());
             } else if (ConnectionState.SUSPENDED.equals(connectionState)) {
-                log.error("zookeeper registry(address={}) session suspend", connectAddress());
+                log.error("{} session suspend", getName());
             }
         });
 
@@ -149,16 +149,16 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
                     .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
                     .forPath(path, data);
             if (log.isDebugEnabled()) {
-                log.debug("create persistent znode(path='{}') success", path);
+                log.debug("{} create persistent znode(path='{}') success", getName(), path);
             }
         } catch (KeeperException e) {
             if (e instanceof KeeperException.NodeExistsException) {
                 updateZNode(path, data);
             } else {
-                log.error("create persistent znode(path='{}') fail", path, e);
+                log.error("{} create persistent znode(path='{}') fail", getName(), path, e);
             }
         } catch (Exception e) {
-            log.error("create persistent znode(path='{}') fail", path, e);
+            log.error("{} create persistent znode(path='{}') fail", getName(), path, e);
         }
     }
 
@@ -174,16 +174,16 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
                     //递归创建
                     .forPath(path, data);
             if (log.isDebugEnabled()) {
-                log.debug("update persistent znode(path='{}') success", path);
+                log.debug("{} update persistent znode(path='{}') success", getName(), path);
             }
         } catch (KeeperException e) {
             if (e instanceof KeeperException.NoNodeException) {
                 createOrUpdateZNode(path, data);
             } else {
-                log.error("update persistent znode(path='{}') fail", path, e);
+                log.error("{} update persistent znode(path='{}') fail", getName(), path, e);
             }
         } catch (Exception e) {
-            log.error("update persistent znode(path='{}') fail", path, e);
+            log.error("{} update persistent znode(path='{}') fail", getName(), path, e);
         }
     }
 
@@ -201,10 +201,10 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
                     .deletingChildrenIfNeeded()
                     .forPath(path);
             if (log.isDebugEnabled()) {
-                log.debug("delete znode(path='{}') success", path);
+                log.debug("{} delete znode(path='{}') success", getName(), path);
             }
         } catch (Exception e) {
-            log.error("delete znode(path='{}') fail", path, e);
+            log.error("{} delete znode(path='{}') fail", getName(), path, e);
         }
     }
 
@@ -217,11 +217,11 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
         try {
             client.delete().forPath(path);
             if (log.isDebugEnabled()) {
-                log.debug("delete znode(path='{}') success", path);
+                log.debug("{} delete znode(path='{}') success", getName(), path);
             }
         } catch (Exception e) {
             if (!(e instanceof KeeperException.NotEmptyException)) {
-                log.error("delete znode(path='{}') fail", path, e);
+                log.error("{} delete znode(path='{}') fail", getName(), path, e);
             }
         }
     }
@@ -266,7 +266,7 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
                 //application group path created
                 if (event.getType() == Watcher.Event.EventType.NodeCreated) {
                     if (log.isDebugEnabled()) {
-                        log.debug("node '{}' created", event.getPath());
+                        log.debug("{} node '{}' created", getName(), event.getPath());
                     }
                     if (isWatching(event.getPath())) {
                         watchAppNodeChildren(event.getPath());
@@ -277,7 +277,7 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
                 if (event.getType() == Watcher.Event.EventType.NodeDeleted) {
                     //application group root path deleted
                     if (log.isDebugEnabled()) {
-                        log.debug("node '{}' deleted", event.getPath());
+                        log.debug("{} node '{}' deleted", getName(), event.getPath());
                     }
                     onAppInstancesChanged(event.getPath(), Collections.emptyList());
                     //监控应用组节点即可, 等待应用实例重新注册
@@ -313,7 +313,7 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
                     (Watcher) (WatchedEvent event) -> {
                         if (event.getType() == Watcher.Event.EventType.NodeChildrenChanged) {
                             if (log.isDebugEnabled()) {
-                                log.debug("node '{}' childs changed", event.getPath());
+                                log.debug("{} node '{}' childs changed", getName(), event.getPath());
                             }
                             watchAppNodeChildren(appName);
                         }
@@ -358,7 +358,6 @@ public final class ZookeeperRegistry extends DiscoveryRegistry {
         if (Objects.isNull(client)) {
             return;
         }
-
 
         client.close();
     }
