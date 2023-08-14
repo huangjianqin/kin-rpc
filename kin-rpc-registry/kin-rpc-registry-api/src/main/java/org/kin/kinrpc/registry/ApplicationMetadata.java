@@ -61,11 +61,11 @@ public class ApplicationMetadata {
     }
 
     /**
-     * 计算revision, 如果有变化, 则更新{@link #revision}
+     * 返回revision, 如果有变化, 重新计算revision, 并更新{@link #revision}
      *
      * @return 最新revision
      */
-    public synchronized String calOrUpdateRevision() {
+    public synchronized String getOrUpdateRevision() {
         if (StringUtils.isNotBlank(revision) && !update) {
             return revision;
         }
@@ -122,5 +122,14 @@ public class ApplicationMetadata {
     @Override
     public int hashCode() {
         return Objects.hash(appName, serverConfig, revision);
+    }
+
+    @Override
+    public String toString() {
+        return "ApplicationMetadata{" +
+                "appName='" + appName + '\'' +
+                ", address=" + serverConfig.getProtocol() + ":" + serverConfig.getAddress() +
+                ", revision='" + revision + '\'' +
+                '}';
     }
 }

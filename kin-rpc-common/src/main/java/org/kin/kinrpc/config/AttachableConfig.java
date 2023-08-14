@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.function.Function;
 
 /**
  * 继承自{@link AttachmentMap}用于用户自定义配置项
@@ -90,7 +91,7 @@ public abstract class AttachableConfig extends AbstractConfig implements Attachm
                 if (StringUtils.isNumeric(valueStr)) {
                     return Long.parseLong(valueStr) > 0;
                 } else {
-                    return Boolean.parseBoolean(value.toString());
+                    return Boolean.parseBoolean(value.toString().trim());
                 }
             } else {
                 throw new IllegalFormatException(String.format("attachment '%s' is not a boolean", value));
@@ -108,7 +109,7 @@ public abstract class AttachableConfig extends AbstractConfig implements Attachm
                     Byte.TYPE.equals(valueClass)) {
                 return (byte) value;
             } else if (String.class.equals(valueClass)) {
-                return Byte.parseByte(value.toString());
+                return Byte.parseByte(value.toString().trim());
             } else {
                 throw new IllegalFormatException(String.format("attachment '%s' is not a byte", value));
             }
@@ -125,7 +126,7 @@ public abstract class AttachableConfig extends AbstractConfig implements Attachm
                     Short.TYPE.equals(valueClass)) {
                 return (byte) value;
             } else if (String.class.equals(valueClass)) {
-                return Short.parseShort(value.toString());
+                return Short.parseShort(value.toString().trim());
             } else {
                 throw new IllegalFormatException(String.format("attachment '%s' is not a short", value));
             }
@@ -142,7 +143,7 @@ public abstract class AttachableConfig extends AbstractConfig implements Attachm
                     Integer.TYPE.equals(valueClass)) {
                 return (byte) value;
             } else if (String.class.equals(valueClass)) {
-                return Integer.parseInt(value.toString());
+                return Integer.parseInt(value.toString().trim());
             } else {
                 throw new IllegalFormatException(String.format("attachment '%s' is not a integer", value));
             }
@@ -159,7 +160,7 @@ public abstract class AttachableConfig extends AbstractConfig implements Attachm
                     Long.TYPE.equals(valueClass)) {
                 return (byte) value;
             } else if (String.class.equals(valueClass)) {
-                return Long.parseLong(value.toString());
+                return Long.parseLong(value.toString().trim());
             } else {
                 throw new IllegalFormatException(String.format("attachment '%s' is not a long", value));
             }
@@ -176,7 +177,7 @@ public abstract class AttachableConfig extends AbstractConfig implements Attachm
                     Float.TYPE.equals(valueClass)) {
                 return (byte) value;
             } else if (String.class.equals(valueClass)) {
-                return Float.parseFloat(value.toString());
+                return Float.parseFloat(value.toString().trim());
             } else {
                 throw new IllegalFormatException(String.format("attachment '%s' is not a float", value));
             }
@@ -193,10 +194,29 @@ public abstract class AttachableConfig extends AbstractConfig implements Attachm
                     Double.TYPE.equals(valueClass)) {
                 return (byte) value;
             } else if (String.class.equals(valueClass)) {
-                return Double.parseDouble(value.toString());
+                return Double.parseDouble(value.toString().trim());
             } else {
                 throw new IllegalFormatException(String.format("attachment '%s' is not a double", value));
             }
+        }
+        return defaultValue;
+    }
+
+    @Nullable
+    @Override
+    public <T> T attachment(String key, Function<Object, T> func) {
+        Object value = attachment(key);
+        if (Objects.nonNull(value)) {
+            return func.apply(value);
+        }
+        return null;
+    }
+
+    @Override
+    public <T> T attachment(String key, Function<Object, T> func, T defaultValue) {
+        Object value = attachment(key);
+        if (Objects.nonNull(value)) {
+            return func.apply(value);
         }
         return defaultValue;
     }

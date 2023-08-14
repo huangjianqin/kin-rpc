@@ -2,6 +2,7 @@ package org.kin.kinrpc.registry;
 
 import org.jctools.maps.NonBlockingHashMap;
 import org.kin.framework.cache.ReferenceCountedCache;
+import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.ApplicationInstance;
 import org.kin.kinrpc.RegistryContext;
@@ -103,13 +104,15 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
         String latestRevision;
         synchronized (appMetadata) {
             String revision = appMetadata.getRevision();
-            latestRevision = appMetadata.calOrUpdateRevision();
+            latestRevision = appMetadata.getOrUpdateRevision();
             if (latestRevision.equals(revision)) {
                 //revision没有变化
                 return;
             }
         }
 
+        log.info("{} register application instance '{}'(address={}, revision={})", getName(), appMetadata.getAppName(),
+                appMetadata.getProtocol() + ":" + appMetadata.getAddress(), appMetadata.getRevision());
         doRegister(appMetadata);
     }
 
@@ -206,6 +209,7 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
         watchers.release(uniqueKey);
         watcher.removeListener(config.getService(), listener);
 
+        Set<String> unwatchAppNames = new HashSet<>();
         for (String appName : appNames) {
             Set<AppInstanceWatcher> watchers = app2Watchers.get(appName);
             if (Objects.isNull(watchers)) {
@@ -216,11 +220,14 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
             if (watchers.size() < 1) {
                 //没有任何watcher, 则remove
                 app2Watchers.remove(appName);
+                unwatchAppNames.add(appName);
             }
         }
 
-        //取消监听
-        unwatch(getWatchingAppNames());
+        if (CollectionUtils.isNonEmpty(unwatchAppNames)) {
+            //取消监听
+            unwatch(unwatchAppNames);
+        }
     }
 
     @Override
@@ -232,6 +239,8 @@ public abstract class DiscoveryRegistry extends AbstractRegistry {
         terminated = true;
 
         for (ApplicationMetadata metadata : address2AppMetaData.values()) {
+            log.info("{} unregister application instance '{}'(address={}, revision={})", getName(), metadata.getAppName(),
+                    metadata.getProtocol() + ":" + metadata.getAddress(), metadata.getRevision());
             doUnregister(metadata);
         }
 

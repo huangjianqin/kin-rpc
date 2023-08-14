@@ -30,6 +30,7 @@
         <nacos.version>2.2.4</nacos.version>
         <jetcd.version>0.7.6</jetcd.version>
         <consul.version>1.4.5</consul.version>
+        <fabric8.version>6.8.0</fabric8.version>
     </properties>
 
     <dependencyManagement>
@@ -178,6 +179,13 @@
                 <groupId>com.ecwid.consul</groupId>
                 <artifactId>consul-api</artifactId>
                 <version>${consul.version}</version>
+            </dependency>
+
+            <!-- fabric8io kubernetes client -->
+            <dependency>
+                <groupId>io.fabric8</groupId>
+                <artifactId>kubernetes-client</artifactId>
+                <version>${fabric8.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
