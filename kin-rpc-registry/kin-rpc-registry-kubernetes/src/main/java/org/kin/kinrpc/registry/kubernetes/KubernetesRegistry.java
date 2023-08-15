@@ -263,7 +263,7 @@ public class KubernetesRegistry extends DiscoveryRegistry {
 
                 String metadata = pod.getMetadata().getAnnotations().get(KUBERNETES_METADATA_KEY);
                 if (StringUtils.isNotBlank(metadata)) {
-                    DefaultApplicationInstance appInstanceMetadata = JSON.read(metadata, DefaultApplicationInstance.class);
+                    DefaultApplicationInstance base = JSON.read(metadata, DefaultApplicationInstance.class);
                     for (EndpointPort port : subset.getPorts()) {
                         if (StringUtils.isBlank(port.getName())) {
                             continue;
@@ -272,9 +272,9 @@ public class KubernetesRegistry extends DiscoveryRegistry {
                         DefaultApplicationInstance.Builder builder = DefaultApplicationInstance.create();
                         builder.host(ip)
                                 .port(port.getPort())
-                                .scheme(appInstanceMetadata.scheme())
-                                .revision(appInstanceMetadata.revision())
-                                .metadata(appInstanceMetadata.metadata());
+                                .scheme(base.scheme())
+                                .revision(base.revision())
+                                .metadata(base.metadata());
                         instances.add(builder.build());
                     }
                 } else {
