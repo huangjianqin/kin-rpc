@@ -53,10 +53,13 @@ public final class KubernetesConstants {
     //-----------------------------------------------------------------------------------------------discovery
     /** kubernetes discovery namespace */
     public static final String DISCOVERY_NAMESPACE_KEY = "discovery.namespace";
+    //-----------------------------------------------------------------------------------------------register
+    /** kubernetes register namespace */
+    public static final String REGISTER_NAMESPACE_KEY = "register.namespace";
 
-    //-----------------------------------------------------------------------------------------------discovery default
-    /** 默认kubernetes discovery namespace */
-    public static final String DEFAULT_DISCOVERY_NAMESPACE = "default";
+    //-----------------------------------------------------------------------------------------------register default
+    /** 默认kubernetes register namespace */
+    public static final String DEFAULT_REGISTER_NAMESPACE = "default";
 
     private KubernetesConstants() {
     }
