@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class RoundRobinLoadBalance extends AbstractLoadBalance {
     /** 回收长期没有selected到的invoker时间(毫秒) */
     private static final int RECYCLE_PERIOD = 60000;
-    /** key -> 服务方法唯一id, value -> {key -> invoker id, value -> invoker} */
+    /** key -> 服务方法唯一id, value -> {key -> invoker id, value -> {@link WeightedRoundRobin}} */
     private final ConcurrentMap<Integer, ConcurrentHashMap<Integer, WeightedRoundRobin>> weightedRoundRobinMap = new ConcurrentHashMap<>();
 
     @Override
