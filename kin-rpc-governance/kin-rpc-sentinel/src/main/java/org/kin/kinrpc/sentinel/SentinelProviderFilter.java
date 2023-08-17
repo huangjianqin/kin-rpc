@@ -13,7 +13,7 @@ import org.kin.kinrpc.sentinel.utils.SentinelUtils;
  * @date 2023/8/5
  */
 @Scope(Scopes.PROVIDER)
-public class SentinelProviderFilter implements Filter {
+public class SentinelProviderFilter extends AbstractSentinelFilter {
     @Override
     public RpcResult invoke(Invoker<?> invoker, Invocation invocation) {
         //get origin caller

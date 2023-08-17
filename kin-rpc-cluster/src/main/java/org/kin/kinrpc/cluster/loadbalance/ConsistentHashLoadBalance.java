@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2021/11/21
  */
 public class ConsistentHashLoadBalance extends AbstractLoadBalance {
-    /** key -> handler id, value -> 该服务方法对应的一致性hash环 */
+    /** key -> 服务方法唯一id, value -> 该服务方法对应的一致性hash环 */
     private final ConcurrentHashMap<Integer, ConsistentHash> consistentHashMap = new ConcurrentHashMap<>();
 
     @Override
