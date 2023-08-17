@@ -30,7 +30,7 @@ public class KubernetesRegistry extends DiscoveryRegistry {
     private static final Logger log = LoggerFactory.getLogger(KubernetesRegistry.class);
 
     /** pod metadata key */
-    public final static String KUBERNETES_METADATA_KEY = "org.kinrpc/metadata";
+    public final static String KUBERNETES_METADATA_KEY = "kinrpc.io/metadata";
     /** fabric8io kubernetes client */
     private final KubernetesClient client;
     /** 当前app host name, 即pod name */
