@@ -17,6 +17,8 @@ public enum RegistryType {
     CONSUL("consul"),
     /** kubernetes */
     K8S("k8s"),
+    /** mesh, 相当于开启mesh模式, 并不会有什么服务注册和发现行为 */
+    MESH("mesh"),
     ;
     private final String name;
 

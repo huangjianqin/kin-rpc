@@ -55,7 +55,7 @@ public final class DirectRegistry extends AbstractRegistry {
     @Override
     public void subscribe(ReferenceConfig<?> config, ServiceInstanceChangedListener listener) {
         if (isTerminated()) {
-            throw new IllegalStateException("DirectRegistry has been terminated");
+            throw new IllegalStateException(String.format("%s has been terminated", getClass().getSimpleName()));
         }
 
         String service = config.getService();
@@ -64,7 +64,7 @@ public final class DirectRegistry extends AbstractRegistry {
                 .collect(Collectors.toSet());
 
         if (log.isDebugEnabled()) {
-            log.debug("subscribe service '{}' and find instances, {}", service, matchedServiceInstances);
+            log.debug("{} subscribe service '{}' and find instances, {}", getClass().getSimpleName(), service, matchedServiceInstances);
         }
 
         listener.onServiceInstanceChanged(matchedServiceInstances);

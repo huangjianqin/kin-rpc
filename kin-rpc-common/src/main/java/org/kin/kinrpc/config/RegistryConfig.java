@@ -91,6 +91,15 @@ public class RegistryConfig extends SharableConfig<RegistryConfig> {
         return create(RegistryType.K8S, address);
     }
 
+    public static RegistryConfig mesh(String address) {
+        return create(RegistryType.MESH, address);
+    }
+
+    public static RegistryConfig mesh() {
+        return create(RegistryType.MESH);
+    }
+
+
     private RegistryConfig() {
     }
 
@@ -98,7 +107,10 @@ public class RegistryConfig extends SharableConfig<RegistryConfig> {
     public void checkValid() {
         super.checkValid();
         check(StringUtils.isNotBlank(type), "registry type must be not blank");
-        check(StringUtils.isNotBlank(address), "registry address must be not blank");
+        if (!RegistryType.MESH.getName().equalsIgnoreCase(type)) {
+            //mesh支持不配置address
+            check(StringUtils.isNotBlank(address), "registry address must be not blank");
+        }
         check(StringUtils.isNotBlank(group), "registry group must be not blank");
     }
 

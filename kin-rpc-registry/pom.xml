@@ -17,6 +17,7 @@
         <module>kin-rpc-registry-etcd</module>
         <module>kin-rpc-registry-consul</module>
         <module>kin-rpc-registry-kubernetes</module>
+        <module>kin-rpc-registry-mesh</module>
     </modules>
     <packaging>pom</packaging>
 </project>
