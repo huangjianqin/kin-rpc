@@ -37,12 +37,20 @@ public final class RpcCallInvoker<T> implements Invoker<T> {
             return RpcResult.fail(invocation, new IllegalStateException("can not find available invoker. invocation=" + invocation));
         }
 
+        //mark reference invoker active and watch
+        int invokerId = invoker.hashCode();
+        int handlerId = invocation.handlerId();
+        RpcStatus.watch(invokerId, handlerId);
+
         //ready to rpc call
         CompletableFuture<Object> future = new CompletableFuture<>();
 
         if (log.isDebugEnabled()) {
             log.debug("{} send rpc call. invocation={}", getClass().getSimpleName(), invocation);
         }
+
+        //attach
+        invocation.attach(InvocationConstants.RPC_CALL_START_TIME_KEY, System.currentTimeMillis());
 
         return invoker.invoke(invocation)
                 .onFinish((r, t) -> onRpcCallResponse(invocation, r, t, future), future);
@@ -54,33 +62,75 @@ public final class RpcCallInvoker<T> implements Invoker<T> {
      * @param invocation    rpc call信息
      * @param result        rpc call result
      * @param t             rpc call exception
-     * @param future        listen rpc call future
+     * @param rpcCallFuture rpc call listen future
      */
     private void onRpcCallResponse(Invocation invocation,
                                    @Nullable Object result,
                                    @Nullable Throwable t,
-                                   CompletableFuture<Object> future) {
-        if (future.isDone()) {
-            return;
-        }
-
+                                   CompletableFuture<Object> rpcCallFuture) {
         if (log.isDebugEnabled()) {
             log.debug("rpc call response. result={}, exception={}, invocation={}", result, t, invocation);
         }
 
+        invocation.attach(InvocationConstants.RPC_CALL_END_TIME_KEY, System.currentTimeMillis());
+
         RpcResponse rpcResponse = new RpcResponse(result, t);
-        FilterChain<T> chain = invocation.attachment(InvocationConstants.FILTER_CHAIN_KEY);
+        FilterChain<Object> chain = invocation.attachment(InvocationConstants.FILTER_CHAIN_KEY);
         if (Objects.nonNull(chain)) {
             chain.onResponse(invocation, rpcResponse);
+        }
+
+        afterFilterOnResponse(invocation, rpcResponse);
+
+        if (rpcCallFuture.isDone()) {
+            return;
         }
 
         //overwrite
         result = rpcResponse.getResult();
         t = rpcResponse.getException();
         if (Objects.isNull(t)) {
-            future.complete(result);
+            rpcCallFuture.complete(result);
         } else {
-            future.completeExceptionally(t);
+            rpcCallFuture.completeExceptionally(t);
         }
+    }
+
+    /**
+     * call after {@link Filter#onResponse(Invocation, RpcResponse)}
+     *
+     * @param invocation  rpc call信息
+     * @param rpcResponse rpc response
+     */
+    private void afterFilterOnResponse(Invocation invocation,
+                                       RpcResponse rpcResponse) {
+        ReferenceInvoker<T> invoker = invocation.attachment(InvocationConstants.SELECTED_INVOKER_KEY);
+        if (Objects.isNull(invoker)) {
+            return;
+        }
+
+        int invokerId = invoker.hashCode();
+        int handlerId = invocation.handlerId();
+
+        if (!invocation.hasAttachment(InvocationConstants.RPC_CALL_START_TIME_KEY)) {
+            return;
+        }
+
+        long startTime = invocation.longAttachment(InvocationConstants.RPC_CALL_START_TIME_KEY);
+        long endTime = invocation.longAttachment(InvocationConstants.RPC_CALL_END_TIME_KEY, System.currentTimeMillis());
+        //remoting发起rpc request耗时
+        long elapsed = endTime - startTime;
+
+        //默认true
+        boolean succeeded = true;
+        Throwable exception = rpcResponse.getException();
+        if (Objects.nonNull(exception) &&
+                !(exception instanceof ServerErrorException) &&
+                !(exception instanceof RpcExceptionBlockException)) {
+            //过滤服务方法执行异常 or 限流流控异常
+            succeeded = false;
+        }
+
+        RpcStatus.end(invokerId, handlerId, elapsed, succeeded);
     }
 }

@@ -6,6 +6,7 @@ import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.*;
 import org.kin.kinrpc.config.MethodConfig;
 import org.kin.kinrpc.constants.InvocationConstants;
+import org.kin.kinrpc.constants.ServiceMetadataConstants;
 import org.kin.kinrpc.transport.RemotingClient;
 import org.kin.kinrpc.transport.cmd.RpcRequestCommand;
 import org.kin.kinrpc.transport.cmd.RpcResponseCommand;

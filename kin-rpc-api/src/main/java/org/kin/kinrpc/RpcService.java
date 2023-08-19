@@ -98,18 +98,23 @@ public class RpcService<T> implements Invoker<T> {
             return RpcResult.fail(invocation, new IllegalStateException(String.format("service '%s' unExported", service())));
         }
 
-        //attach
-        invocation.attach(InvocationConstants.APPLICATION_KEY, config.getApp().getAppName());
-        invocation.attach(InvocationConstants.SERVICE_CONFIG_KEY, config);
-
         try {
             String token = invocation.serverAttachments().remove(InvocationConstants.TOKEN_KEY);
             if (StringUtils.isNotBlank(this.token) && !this.token.equals(token)) {
                 throw new AuthorizationException(String.format("check service '%s' token authorization fail", invocation.service()));
             }
 
+            //attach
+            invocation.attach(InvocationConstants.APPLICATION_KEY, config.getApp().getAppName());
+            invocation.attach(InvocationConstants.SERVICE_CONFIG_KEY, config);
+            invocation.attach(InvocationConstants.RPC_CALL_START_TIME_KEY, System.currentTimeMillis());
             //服务方法调用参数校验
             invocation.attach(InvocationConstants.VALIDATION_KEY, config.isValidation());
+
+            //mark service invoker active and watch
+            int invokerId = hashCode();
+            int handlerId = invocation.handlerId();
+            RpcStatus.watch(invokerId, handlerId);
 
             CompletableFuture<Object> future = new CompletableFuture<>();
             if (Objects.nonNull(executor)) {
@@ -120,10 +125,12 @@ public class RpcService<T> implements Invoker<T> {
                         return;
                     }
 
-                    chain.invoke(invocation).onFinish(future);
+                    chain.invoke(invocation)
+                            .onFinish((r, t) -> onInvokeFinish(invocation, t), future);
                 });
             } else {
-                chain.invoke(invocation).onFinish(future);
+                chain.invoke(invocation)
+                        .onFinish((r, t) -> onInvokeFinish(invocation, t), future);
             }
 
             return RpcResult.success(invocation, future);
@@ -254,6 +261,31 @@ public class RpcService<T> implements Invoker<T> {
     }
 
     /**
+     * call after service invoke finished
+     *
+     * @param invocation rpc call信息
+     * @param throwable  service invoke exception
+     */
+    private void onInvokeFinish(Invocation invocation,
+                                Throwable throwable) {
+        if (!invocation.hasAttachment(InvocationConstants.RPC_CALL_START_TIME_KEY)) {
+            return;
+        }
+
+        invocation.attach(InvocationConstants.RPC_CALL_END_TIME_KEY, System.currentTimeMillis());
+
+        int invokerId = hashCode();
+        int handlerId = invocation.handlerId();
+
+        long startTime = invocation.longAttachment(InvocationConstants.RPC_CALL_START_TIME_KEY);
+        long endTime = invocation.longAttachment(InvocationConstants.RPC_CALL_END_TIME_KEY, System.currentTimeMillis());
+        //服务方法执行耗时
+        long elapsed = endTime - startTime;
+
+        RpcStatus.end(invokerId, handlerId, elapsed, Objects.isNull(throwable));
+    }
+
+    /**
      * 返回服务唯一标识
      *
      * @return 服务唯一标识
@@ -336,5 +368,12 @@ public class RpcService<T> implements Invoker<T> {
     @Override
     public int hashCode() {
         return Objects.hash(config.getService());
+    }
+
+    @Override
+    public String toString() {
+        return "RpcService{" +
+                "config=" + config +
+                '}';
     }
 }

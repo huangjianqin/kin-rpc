@@ -60,6 +60,6 @@ public class SentinelProviderFilter extends AbstractSentinelFilter {
 
     @Override
     public int order() {
-        return -1000;
+        return Filter.HIGHEST_ORDER;
     }
 }

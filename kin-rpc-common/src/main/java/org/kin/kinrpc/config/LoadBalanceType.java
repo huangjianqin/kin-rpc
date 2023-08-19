@@ -11,6 +11,8 @@ public enum LoadBalanceType {
     RANDOM("random"),
     /** round robin */
     ROUND_ROBIN("roundRobin"),
+    /** Peak EWMA */
+    PEAK_EWMA("PeakEWMA"),
     ;
 
     private final String name;

@@ -3,6 +3,7 @@ loadbalance=org.kin.kinrpc.cluster.loadbalance.HashLoadBalance,\
             org.kin.kinrpc.cluster.loadbalance.ConsistentHashLoadBalance,\
             org.kin.kinrpc.cluster.loadbalance.RandomLoadBalance,\
             org.kin.kinrpc.cluster.loadbalance.RoundRobinLoadBalance,\
+            org.kin.kinrpc.cluster.loadbalance.PeakEWMALoadBalance,\
 
 rpcResultAdapter=org.kin.kinrpc.cluster.call.FutureResultAdapter,\
   org.kin.kinrpc.cluster.call.ReactiveResultAdapter

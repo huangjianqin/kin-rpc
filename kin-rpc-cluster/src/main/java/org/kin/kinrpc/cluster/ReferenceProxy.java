@@ -186,7 +186,7 @@ public final class ReferenceProxy implements InvocationHandler {
     }
 
     /**
-     * 发起rpc call
+     * rpc call
      *
      * @param invocation rpc call信息
      * @return rpc call future
@@ -195,9 +195,8 @@ public final class ReferenceProxy implements InvocationHandler {
         CompletableFuture<Object> userFuture = new CompletableFuture<>();
         // TODO: 2023/6/26 第一次rpc call还是在user invoke线程, 其他是在reference通用线程发起, 真要全异步, 这里需要扔到reference通用线程执行invoker.invoke
         RpcResult rpcResult = invoker.invoke(invocation);
-        invocation.attach(InvocationConstants.RPC_CALL_START_TIME_KEY, System.currentTimeMillis());
         //reference通用线程处理
-        rpcResult.onFinish((r, t) -> invocation.attach(InvocationConstants.RPC_CALL_FINISH_TIME_KEY, System.currentTimeMillis()), userFuture);
+        rpcResult.onFinish(userFuture);
         return userFuture;
     }
 }

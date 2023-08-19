@@ -10,6 +10,11 @@ import org.kin.framework.utils.SPI;
  */
 @SPI(alias = "filter")
 public interface Filter {
+    /** 最高优先级 */
+    int HIGHEST_ORDER = -1000;
+    /** 最低优先级 */
+    int LOWEST_ORDER = 1000;
+
     /**
      * rpc call过滤
      *
@@ -20,8 +25,10 @@ public interface Filter {
     RpcResult invoke(Invoker<?> invoker, Invocation invocation);
 
     /**
-     * rpc response时触发
+     * call after remoting rpc response
+     * <p>
      * user可以通过{@code response}修改服务调用结果
+     * 甚至可以通过{@link RpcResponse#setException(Throwable)}设置rpc call异常, 哪怕rpc call正常返回, 最后user也收到异常
      *
      * @param invocation rpc call信息
      * @param response   rpc response
@@ -37,6 +44,6 @@ public interface Filter {
      * @return 优先级
      */
     default int order() {
-        return Integer.MAX_VALUE;
+        return LOWEST_ORDER;
     }
 }

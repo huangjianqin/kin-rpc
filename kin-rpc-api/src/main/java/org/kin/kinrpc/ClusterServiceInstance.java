@@ -21,10 +21,16 @@ public class ClusterServiceInstance implements ServiceInstance {
     /** 注册中心权重 */
     private final int weight;
 
+    /**
+     * 用于多集群
+     */
     public ClusterServiceInstance(int serviceId, String service, String registryType) {
         this(serviceId, service, registryType, "*", -1);
     }
 
+    /**
+     * 用于单集群
+     */
     public ClusterServiceInstance(int serviceId, String service, String registryType, String address, int weight) {
         this.serviceId = serviceId;
         this.service = service;

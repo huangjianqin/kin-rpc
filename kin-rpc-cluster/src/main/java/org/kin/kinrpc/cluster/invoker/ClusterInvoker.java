@@ -73,7 +73,7 @@ public abstract class ClusterInvoker<T> implements ReferenceInvoker<T> {
         } else {
             //多注册中心场景(ZoneAwareClusterInvoker -> multi cluster invoker) or cluster invoker wrap cluster invokers
             this.serviceInstance = new ClusterServiceInstance(referenceConfig.getServiceId(), referenceConfig.getService(),
-                    "multiClusterInvokerWrapper");
+                    "MultiCluster");
         }
 
         List<Filter> filters = new ArrayList<>(referenceConfig.getFilters());
@@ -139,10 +139,6 @@ public abstract class ClusterInvoker<T> implements ReferenceInvoker<T> {
                 return invoker;
             }
         }
-
-        /**
-         * docker run -d -p 3181:3181 --name zk2 -v ~/docker/zookeeper2/conf/zoo.cfg:/conf/zoo.cfg -v ~/docker/zookeeper2/data:/data -v ~/docker/zookeeper2/datalog:/datalog zookeeper:3.5.8
-         */
 
         //2. list invokers
         List<ReferenceInvoker<?>> availableInvokers = directory.list();

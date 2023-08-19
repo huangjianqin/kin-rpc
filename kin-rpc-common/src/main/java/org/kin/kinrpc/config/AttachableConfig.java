@@ -124,7 +124,7 @@ public abstract class AttachableConfig extends AbstractConfig implements Attachm
             Class<?> valueClass = value.getClass();
             if (Short.class.equals(valueClass) ||
                     Short.TYPE.equals(valueClass)) {
-                return (byte) value;
+                return (short) value;
             } else if (String.class.equals(valueClass)) {
                 return Short.parseShort(value.toString().trim());
             } else {
@@ -141,7 +141,7 @@ public abstract class AttachableConfig extends AbstractConfig implements Attachm
             Class<?> valueClass = value.getClass();
             if (Integer.class.equals(valueClass) ||
                     Integer.TYPE.equals(valueClass)) {
-                return (byte) value;
+                return (int) value;
             } else if (String.class.equals(valueClass)) {
                 return Integer.parseInt(value.toString().trim());
             } else {
@@ -158,7 +158,7 @@ public abstract class AttachableConfig extends AbstractConfig implements Attachm
             Class<?> valueClass = value.getClass();
             if (Long.class.equals(valueClass) ||
                     Long.TYPE.equals(valueClass)) {
-                return (byte) value;
+                return (long) value;
             } else if (String.class.equals(valueClass)) {
                 return Long.parseLong(value.toString().trim());
             } else {
@@ -175,7 +175,7 @@ public abstract class AttachableConfig extends AbstractConfig implements Attachm
             Class<?> valueClass = value.getClass();
             if (Float.class.equals(valueClass) ||
                     Float.TYPE.equals(valueClass)) {
-                return (byte) value;
+                return (float) value;
             } else if (String.class.equals(valueClass)) {
                 return Float.parseFloat(value.toString().trim());
             } else {
@@ -192,7 +192,7 @@ public abstract class AttachableConfig extends AbstractConfig implements Attachm
             Class<?> valueClass = value.getClass();
             if (Double.class.equals(valueClass) ||
                     Double.TYPE.equals(valueClass)) {
-                return (byte) value;
+                return (double) value;
             } else if (String.class.equals(valueClass)) {
                 return Double.parseDouble(value.toString().trim());
             } else {

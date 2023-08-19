@@ -22,8 +22,8 @@ public final class InvocationConstants {
     public static final String SERIALIZATION_KEY = "serialization";
     /** rpc call start time(ms) */
     public static final String RPC_CALL_START_TIME_KEY = "rpcCallStartTime";
-    /** rpc call Finish time(ms) */
-    public static final String RPC_CALL_FINISH_TIME_KEY = "rpcCallFinishTime";
+    /** rpc call end time(ms) */
+    public static final String RPC_CALL_END_TIME_KEY = "rpcCallEndTime";
     /** loadbalance, 可能为null */
     public static final String LOADBALANCE_KEY = "loadbalance";
     /** filter chain */

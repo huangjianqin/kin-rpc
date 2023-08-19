@@ -5,12 +5,12 @@ import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.DefaultServiceInstance;
 import org.kin.kinrpc.ServiceInstance;
-import org.kin.kinrpc.ServiceMetadataConstants;
 import org.kin.kinrpc.common.Url;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.config.RegistryConfig;
 import org.kin.kinrpc.config.ServerConfig;
 import org.kin.kinrpc.config.ServiceConfig;
+import org.kin.kinrpc.constants.ServiceMetadataConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

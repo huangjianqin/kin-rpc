@@ -20,6 +20,7 @@
         <module>kin-rpc-api</module>
         <module>kin-rpc-boot</module>
         <module>kin-rpc-governance</module>
+        <module>kin-rpc-cluster-extensions</module>
     </modules>
     <packaging>pom</packaging>
 

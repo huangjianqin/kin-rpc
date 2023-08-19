@@ -7,6 +7,7 @@ import org.kin.framework.utils.CollectionUtils;
 import org.kin.kinrpc.*;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.constants.CommonConstants;
+import org.kin.kinrpc.constants.ServiceMetadataConstants;
 import org.kin.kinrpc.registry.directory.Directory;
 import org.kin.kinrpc.service.MetadataService;
 import org.kin.kinrpc.utils.ReferenceUtils;

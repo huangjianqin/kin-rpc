@@ -9,6 +9,7 @@ import org.kin.kinrpc.config.*;
 import org.kin.kinrpc.constants.CommonConstants;
 import org.kin.kinrpc.constants.ReferenceConstants;
 import org.kin.kinrpc.constants.Scopes;
+import org.kin.kinrpc.constants.ServiceMetadataConstants;
 import org.kin.kinrpc.validation.ValidationFilter;
 
 import java.util.*;

@@ -17,6 +17,6 @@ public class HystrixConsumerFilter implements Filter {
 
     @Override
     public int order() {
-        return -1000;
+        return Filter.HIGHEST_ORDER;
     }
 }

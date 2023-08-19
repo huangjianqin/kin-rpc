@@ -1,4 +1,4 @@
-package org.kin.kinrpc;
+package org.kin.kinrpc.constants;
 
 /**
  * 服务元数据常量
