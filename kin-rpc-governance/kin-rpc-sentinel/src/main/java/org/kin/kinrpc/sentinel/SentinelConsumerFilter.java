@@ -45,11 +45,6 @@ public class SentinelConsumerFilter extends AbstractSentinelFilter {
         }
     }
 
-    @Override
-    public int order() {
-        return Filter.HIGHEST_ORDER;
-    }
-
     //------------------------------------------------------------------------------------------------------------------------------
 
     /** {@link Entry} holder */

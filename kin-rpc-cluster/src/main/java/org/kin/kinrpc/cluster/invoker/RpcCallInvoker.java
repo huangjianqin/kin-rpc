@@ -40,7 +40,7 @@ public final class RpcCallInvoker<T> implements Invoker<T> {
         //mark reference invoker active and watch
         int invokerId = invoker.hashCode();
         int handlerId = invocation.handlerId();
-        RpcStatus.watch(invokerId, handlerId);
+        RpcCallProfiler.watch(invokerId, handlerId);
 
         //ready to rpc call
         CompletableFuture<Object> future = new CompletableFuture<>();
@@ -131,6 +131,6 @@ public final class RpcCallInvoker<T> implements Invoker<T> {
             succeeded = false;
         }
 
-        RpcStatus.end(invokerId, handlerId, elapsed, succeeded);
+        RpcCallProfiler.end(invokerId, handlerId, elapsed, succeeded);
     }
 }

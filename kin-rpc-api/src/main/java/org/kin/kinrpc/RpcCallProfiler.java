@@ -18,18 +18,18 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author huangjianqin
  * @date 2023/8/18
  */
-public final class RpcStatus {
-    private static final Logger log = LoggerFactory.getLogger(RpcStatus.class);
+public final class RpcCallProfiler {
+    private static final Logger log = LoggerFactory.getLogger(RpcCallProfiler.class);
     /**
      * 服务维度的统计
      * key -> {@link ReferenceInvoker}唯一id, value -> 统计信息
      */
-    private static final ConcurrentMap<Integer, RpcStatus> INVOKER_STATISTICS = new ConcurrentHashMap<>(16);
+    private static final ConcurrentMap<Integer, RpcCallProfiler> INVOKER_STATISTICS = new ConcurrentHashMap<>(16);
     /**
      * 服务方法维度的统计
      * key -> {@link ReferenceInvoker}唯一id, value -> {key -> 服务方法唯一id, value -> 统计信息}
      */
-    private static final ConcurrentMap<Integer, ConcurrentMap<Integer, RpcStatus>> HANDLER_STATISTICS =
+    private static final ConcurrentMap<Integer, ConcurrentMap<Integer, RpcCallProfiler>> HANDLER_STATISTICS =
             new ConcurrentHashMap<>(64);
 
     /** 活跃数, 即当前已发起但未结束的rpc call次数 */
@@ -55,8 +55,8 @@ public final class RpcStatus {
      * @param invokerId reference invoker id
      * @return 统计信息
      */
-    public static RpcStatus get(int invokerId) {
-        return INVOKER_STATISTICS.computeIfAbsent(invokerId, k -> new RpcStatus());
+    public static RpcCallProfiler get(int invokerId) {
+        return INVOKER_STATISTICS.computeIfAbsent(invokerId, k -> new RpcCallProfiler());
     }
 
     /**
@@ -66,9 +66,9 @@ public final class RpcStatus {
      * @param handlerId 服务方法唯一id
      * @return 统计信息
      */
-    public static RpcStatus get(int invokerId, int handlerId) {
-        ConcurrentMap<Integer, RpcStatus> handlerMap = HANDLER_STATISTICS.computeIfAbsent(invokerId, k -> new ConcurrentHashMap<>());
-        return handlerMap.computeIfAbsent(handlerId, k -> new RpcStatus());
+    public static RpcCallProfiler get(int invokerId, int handlerId) {
+        ConcurrentMap<Integer, RpcCallProfiler> handlerMap = HANDLER_STATISTICS.computeIfAbsent(invokerId, k -> new ConcurrentHashMap<>());
+        return handlerMap.computeIfAbsent(handlerId, k -> new RpcCallProfiler());
     }
 
     /**
@@ -78,7 +78,7 @@ public final class RpcStatus {
      * @return 原统计信息
      */
     @Nullable
-    public static RpcStatus remove(int invokerId) {
+    public static RpcCallProfiler remove(int invokerId) {
         return INVOKER_STATISTICS.remove(invokerId);
     }
 
@@ -90,8 +90,8 @@ public final class RpcStatus {
      * @return 原统计信息
      */
     @Nullable
-    public static RpcStatus remove(int invokerId, int handlerId) {
-        ConcurrentMap<Integer, RpcStatus> handlerMap = HANDLER_STATISTICS.computeIfAbsent(invokerId, k -> new ConcurrentHashMap<>());
+    public static RpcCallProfiler remove(int invokerId, int handlerId) {
+        ConcurrentMap<Integer, RpcCallProfiler> handlerMap = HANDLER_STATISTICS.computeIfAbsent(invokerId, k -> new ConcurrentHashMap<>());
         return handlerMap.remove(handlerId);
     }
 
@@ -114,8 +114,8 @@ public final class RpcStatus {
      */
     public static boolean watch(int invokerId, int handlerId, int max) {
         max = (max <= 0) ? Integer.MAX_VALUE : max;
-        RpcStatus serviceStatus = get(invokerId);
-        RpcStatus handlerStatus = get(invokerId, handlerId);
+        RpcCallProfiler serviceStatus = get(invokerId);
+        RpcCallProfiler handlerStatus = get(invokerId, handlerId);
 
         //active + 1
         for (int i; ; ) {
@@ -156,7 +156,7 @@ public final class RpcStatus {
      * @param elapsed   rpc call耗时
      * @param succeeded rpc call是否成功
      */
-    private static void end(RpcStatus status, long elapsed, boolean succeeded) {
+    private static void end(RpcCallProfiler status, long elapsed, boolean succeeded) {
         //active - 1
         status.active.decrementAndGet();
         //total + 1
@@ -192,14 +192,14 @@ public final class RpcStatus {
      */
     public static String log() {
         StringBuilder sb = new StringBuilder();
-        for (Map.Entry<Integer, RpcStatus> entry : INVOKER_STATISTICS.entrySet()) {
+        for (Map.Entry<Integer, RpcCallProfiler> entry : INVOKER_STATISTICS.entrySet()) {
             log.info("invoker statistics, invokerId={}, statistics={}", entry.getKey(), entry.getValue());
             sb.append(String.format("invoker statistics, invokerId=%d, statistics=%s", entry.getKey(), entry.getValue()));
             sb.append(System.lineSeparator());
         }
 
-        for (Map.Entry<Integer, ConcurrentMap<Integer, RpcStatus>> entry1 : HANDLER_STATISTICS.entrySet()) {
-            for (Map.Entry<Integer, RpcStatus> entry2 : entry1.getValue().entrySet()) {
+        for (Map.Entry<Integer, ConcurrentMap<Integer, RpcCallProfiler>> entry1 : HANDLER_STATISTICS.entrySet()) {
+            for (Map.Entry<Integer, RpcCallProfiler> entry2 : entry1.getValue().entrySet()) {
                 log.info("handler statistics, invokerId={}, handlerId={}, statistics={}", entry1.getKey(), entry2.getKey(), entry2.getValue());
                 sb.append(String.format("handler statistics, invokerId=%d, handlerId=%d, statistics=%s", entry1.getKey(), entry2.getKey(), entry2.getValue()));
                 sb.append(System.lineSeparator());

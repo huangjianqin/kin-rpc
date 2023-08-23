@@ -3,7 +3,7 @@ package org.kin.kinrpc.cluster.loadbalance;
 import org.kin.framework.utils.PeakEWMA;
 import org.kin.kinrpc.Invocation;
 import org.kin.kinrpc.ReferenceInvoker;
-import org.kin.kinrpc.RpcStatus;
+import org.kin.kinrpc.RpcCallProfiler;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.kin.kinrpc.constants.InvocationConstants;
 import org.kin.kinrpc.constants.PeakEWMAConstants;
@@ -75,20 +75,20 @@ public class PeakEWMALoadBalance extends AbstractLoadBalance {
         ConcurrentHashMap<Integer, Metric> handlerMap = metricMap.computeIfAbsent(invokerId, k -> new ConcurrentHashMap<>());
 
         int handlerId = invocation.handlerId();
-        RpcStatus rpcStatus = RpcStatus.get(invokerId, handlerId);
+        RpcCallProfiler rpcCallProfiler = RpcCallProfiler.get(invokerId, handlerId);
 
-        Metric metric = handlerMap.computeIfAbsent(handlerId, k -> new Metric(rpcStatus));
+        Metric metric = handlerMap.computeIfAbsent(handlerId, k -> new Metric(rpcCallProfiler));
         int active;
         double response;
         synchronized (metric) {
             //remoting rpc call往返平均耗时
             double rtt;
-            long succeed = rpcStatus.getSucceeded() - metric.getCallOffset();
+            long succeed = rpcCallProfiler.getSucceeded() - metric.getCallOffset();
             if (succeed != 0) {
-                rtt = (rpcStatus.getSucceededElapsed() * 1.0 - metric.getCallElapsedOffset()) / succeed;
+                rtt = (rpcCallProfiler.getSucceededElapsed() * 1.0 - metric.getCallElapsedOffset()) / succeed;
             } else {
                 //success后的首次fail
-                rtt = (rpcStatus.getTotalElapsed() * 1.0 - metric.getCallElapsedOffset());
+                rtt = (rpcCallProfiler.getTotalElapsed() * 1.0 - metric.getCallElapsedOffset());
             }
 
             if (!metric.init(lifeTime, rtt)) {
@@ -96,7 +96,7 @@ public class PeakEWMALoadBalance extends AbstractLoadBalance {
             }
             metric.updateOffset();
 
-            active = rpcStatus.getActive();
+            active = rpcCallProfiler.getActive();
             response = metric.getEstimateResponse();
         }
 
@@ -110,7 +110,7 @@ public class PeakEWMALoadBalance extends AbstractLoadBalance {
     //---------------------------------------------------------------------------------------------------------
     private static class Metric {
         /** invoker rpc call统计信息 */
-        private final RpcStatus rpcStatus;
+        private final RpcCallProfiler rpcCallProfiler;
         /** Peak EWMA algorithm */
         private PeakEWMA peakEWMA;
         /** 上次计算时, invoker已发起rpc请求总次数 */
@@ -119,8 +119,8 @@ public class PeakEWMALoadBalance extends AbstractLoadBalance {
         /**  */
         private long callElapsedOffset;
 
-        public Metric(RpcStatus rpcStatus) {
-            this.rpcStatus = rpcStatus;
+        public Metric(RpcCallProfiler rpcCallProfiler) {
+            this.rpcCallProfiler = rpcCallProfiler;
         }
 
         /**
@@ -146,8 +146,8 @@ public class PeakEWMALoadBalance extends AbstractLoadBalance {
          * 更新{@link #callOffset}和{@link #callElapsedOffset}字段值
          */
         public void updateOffset() {
-            callOffset = rpcStatus.getTotal();
-            callElapsedOffset = rpcStatus.getTotalElapsed();
+            callOffset = rpcCallProfiler.getTotal();
+            callElapsedOffset = rpcCallProfiler.getTotalElapsed();
         }
 
         /**

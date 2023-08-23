@@ -58,4 +58,9 @@ public class CacheFilter implements Filter {
             return rpcResult;
         }
     }
+
+    @Override
+    public int order() {
+        return HIGH_ORDER_5;
+    }
 }

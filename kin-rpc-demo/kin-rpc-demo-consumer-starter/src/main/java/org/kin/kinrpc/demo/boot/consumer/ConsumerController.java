@@ -6,7 +6,7 @@ import com.alibaba.csp.sentinel.slots.block.degrade.DegradeRuleManager;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRule;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRuleManager;
 import org.kin.framework.utils.StringUtils;
-import org.kin.kinrpc.RpcStatus;
+import org.kin.kinrpc.RpcCallProfiler;
 import org.kin.kinrpc.demo.api.DemoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -89,8 +89,8 @@ public class ConsumerController {
         return ThreadLocalRandom.current().nextInt(1_000);
     }
 
-    @GetMapping("/logRpcStatus")
-    public String logRpcStatus() {
-        return RpcStatus.log();
+    @GetMapping("/logRpcCallProfiler")
+    public String logRpcCallProfiler() {
+        return RpcCallProfiler.log();
     }
 }

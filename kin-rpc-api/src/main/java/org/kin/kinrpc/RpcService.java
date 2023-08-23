@@ -114,7 +114,7 @@ public class RpcService<T> implements Invoker<T> {
             //mark service invoker active and watch
             int invokerId = hashCode();
             int handlerId = invocation.handlerId();
-            RpcStatus.watch(invokerId, handlerId);
+            RpcCallProfiler.watch(invokerId, handlerId);
 
             CompletableFuture<Object> future = new CompletableFuture<>();
             if (Objects.nonNull(executor)) {
@@ -282,7 +282,7 @@ public class RpcService<T> implements Invoker<T> {
         //服务方法执行耗时
         long elapsed = endTime - startTime;
 
-        RpcStatus.end(invokerId, handlerId, elapsed, Objects.isNull(throwable));
+        RpcCallProfiler.end(invokerId, handlerId, elapsed, Objects.isNull(throwable));
     }
 
     /**

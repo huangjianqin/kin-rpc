@@ -57,9 +57,4 @@ public class SentinelProviderFilter extends AbstractSentinelFilter {
             ContextUtil.exit();
         }
     }
-
-    @Override
-    public int order() {
-        return Filter.HIGHEST_ORDER;
-    }
 }

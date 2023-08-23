@@ -1,6 +1,6 @@
 package org.kin.kinrpc.demo.boot.provider;
 
-import org.kin.kinrpc.RpcStatus;
+import org.kin.kinrpc.RpcCallProfiler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController()
 @RequestMapping("/provider")
 public class ProviderController {
-    @GetMapping("/logRpcStatus")
-    public String logRpcStatus() {
-        return RpcStatus.log();
+    @GetMapping("/logRpcCallProfiler")
+    public String logRpcCallProfiler() {
+        return RpcCallProfiler.log();
     }
 }

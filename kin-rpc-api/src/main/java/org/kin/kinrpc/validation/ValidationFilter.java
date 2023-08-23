@@ -113,6 +113,11 @@ public class ValidationFilter implements Filter {
                 });
     }
 
+    @Override
+    public int order() {
+        return HIGHEST_ORDER;
+    }
+
     private static String toErrorString(String msg,
                                         String handler,
                                         Set<? extends ConstraintViolation<?>> constraintViolations) {
@@ -282,7 +287,7 @@ public class ValidationFilter implements Filter {
      *
      * @param cls class
      */
-    public static boolean isPrimitives(Class<?> cls) {
+    private static boolean isPrimitives(Class<?> cls) {
         while (cls.isArray()) {
             cls = cls.getComponentType();
         }
@@ -294,7 +299,7 @@ public class ValidationFilter implements Filter {
      *
      * @param cls class
      */
-    public static boolean isPrimitive(Class<?> cls) {
+    private static boolean isPrimitive(Class<?> cls) {
         return cls.isPrimitive() || cls == String.class || cls == Boolean.class || cls == Character.class
                 || Number.class.isAssignableFrom(cls) || Date.class.isAssignableFrom(cls);
     }
