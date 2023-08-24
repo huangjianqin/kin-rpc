@@ -195,27 +195,60 @@ public abstract class ClusterInvoker<T> implements ReferenceInvoker<T> {
         }
 
         try {
-            return filterChain.invoke(invocation)
-                    .onFinish((r, t) -> {
-                        MethodConfig methodConfig = invocation.attachment(InvocationConstants.METHOD_CONFIG_KEY);
-                        if (Objects.isNull(methodConfig) || !methodConfig.isSticky()) {
-                            return;
-                        }
-
-                        //维护服务方法调用invoker sticky
-                        if (Objects.isNull(t)) {
-                            //rpc call success
-                            ReferenceInvoker<T> invoker = invocation.attachment(InvocationConstants.SELECTED_INVOKER_KEY);
-                            if (Objects.nonNull(invoker)) {
-                                stickyInvokerCache.put(invocation.handlerId(), invoker);
-                            }
-                        } else {
-                            //rpc call fail
-                            stickyInvokerCache.invalidate(invocation.handlerId());
-                        }
-                    });
+            CompletableFuture<Object> filterChainInvokeFuture = new CompletableFuture<>();
+            RpcResult filterChainInvokeResult = filterChain.invoke(invocation)
+                    .onFinish((r, t) -> onFilterChainInvokeFinish(invocation, r, t, filterChainInvokeFuture));
+            return RpcResult.success(invocation, filterChainInvokeFuture);
         } catch (Exception e) {
             return RpcResult.fail(invocation, e);
+        }
+    }
+
+    /**
+     * call after filter chain invoke finish
+     *
+     * @param invocation              rpc call信息
+     * @param result                  rpc call result
+     * @param t                       rpc call exception
+     * @param filterChainInvokeFuture filter chain invoke listen future
+     */
+    private void onFilterChainInvokeFinish(Invocation invocation,
+                                           @Nullable Object result,
+                                           @Nullable Throwable t,
+                                           CompletableFuture<Object> filterChainInvokeFuture) {
+        MethodConfig methodConfig = invocation.attachment(InvocationConstants.METHOD_CONFIG_KEY);
+        if (Objects.isNull(methodConfig)) {
+            return;
+        }
+
+        ReferenceInvoker<T> invoker = invocation.attachment(InvocationConstants.SELECTED_INVOKER_KEY);
+        if (methodConfig.isSticky()) {
+            //sticky method call
+            //维护sticky
+            if (Objects.isNull(t)) {
+                //rpc call success
+                if (Objects.nonNull(invoker)) {
+                    stickyInvokerCache.put(invocation.handlerId(), invoker);
+                }
+            } else {
+                //rpc call fail
+                stickyInvokerCache.invalidate(invocation.handlerId());
+            }
+        }
+
+        //rpc call profile
+        invocation.attach(InvocationConstants.RPC_CALL_END_TIME_KEY, System.currentTimeMillis());
+
+        RpcResponse rpcResponse = new RpcResponse(result, t);
+        filterChain.onResponse(invocation, rpcResponse);
+
+        //overwrite
+        result = rpcResponse.getResult();
+        t = rpcResponse.getException();
+        if (Objects.isNull(t)) {
+            filterChainInvokeFuture.complete(result);
+        } else {
+            filterChainInvokeFuture.completeExceptionally(t);
         }
     }
 
