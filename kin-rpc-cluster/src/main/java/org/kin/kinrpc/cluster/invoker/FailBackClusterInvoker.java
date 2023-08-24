@@ -75,7 +75,7 @@ public class FailBackClusterInvoker<T> extends ClusterInvoker<T> {
             }
         }
 
-        RetryTask retryTask = new RetryTask(invocation, future, invocation.attachment(InvocationConstants.SELECTED_INVOKER_KEY));
+        RetryTask retryTask = new RetryTask(invocation, future, invocation.attachment(InvocationConstants.RPC_CALL_INVOKER_KEY));
         try {
             timer.newTimeout(retryTask, RETRY_PERIOD, TimeUnit.SECONDS);
         } catch (Exception e) {
@@ -140,7 +140,7 @@ public class FailBackClusterInvoker<T> extends ClusterInvoker<T> {
                         log.error("failback cluster total retry to rpc call fail {} times(total {} times))", retryTimes, maxRetries, t);
                     } else {
                         log.error("failback cluster retry to rpc call fail, waiting to retry", t);
-                        ReferenceInvoker<?> referenceInvoker = invocation.attachment(InvocationConstants.SELECTED_INVOKER_KEY);
+                        ReferenceInvoker<?> referenceInvoker = invocation.attachment(InvocationConstants.RPC_CALL_INVOKER_KEY);
                         if (Objects.nonNull(referenceInvoker)) {
                             failInstances.add(referenceInvoker.serviceInstance());
                         }

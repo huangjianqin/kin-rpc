@@ -5,10 +5,9 @@ import org.kin.kinrpc.constants.InvocationConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import javax.annotation.Nullable;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * filter invoker chain
@@ -22,8 +21,8 @@ public class FilterChain<T> extends DelegateInvoker<T> {
     /** filter list, 优先级由低到高 */
     private final List<Filter> filters;
 
-    protected FilterChain(Invoker<T> rpcCallInvoker, List<Filter> filters) {
-        super(buildInvokerChain(rpcCallInvoker, filters));
+    protected FilterChain(Invoker<T> tailInvoker, List<Filter> filters) {
+        super(buildInvokerChain(tailInvoker, filters));
         this.filters = filters;
     }
 
@@ -48,25 +47,25 @@ public class FilterChain<T> extends DelegateInvoker<T> {
      *
      * @param userFilters         user defined filter
      * @param internalPostFilters 内部后置filter, 不参与user defined filter order sort
-     * @param rpcCallInvoker      发起rpc call invoker
+     * @param tailInvoker         tail invoker
      * @return {@link FilterChain}实例
      */
     public static <T> FilterChain<T> create(List<Filter> userFilters,
                                             List<Filter> internalPostFilters,
-                                            Invoker<T> rpcCallInvoker) {
-        return create(Collections.emptyList(), userFilters, internalPostFilters, rpcCallInvoker);
+                                            Invoker<T> tailInvoker) {
+        return create(Collections.emptyList(), userFilters, internalPostFilters, tailInvoker);
     }
 
     /**
      * 创建{@link FilterChain}实例
      *
      * @param userFilters user defined filter
-     * @param rpcCallInvoker 发起rpc call invoker
+     * @param tailInvoker tail invoker
      * @return {@link FilterChain}实例
      */
     public static <T> FilterChain<T> create(List<Filter> userFilters,
-                                            Invoker<T> rpcCallInvoker) {
-        return create(Collections.emptyList(), userFilters, Collections.emptyList(), rpcCallInvoker);
+                                            Invoker<T> tailInvoker) {
+        return create(Collections.emptyList(), userFilters, Collections.emptyList(), tailInvoker);
     }
 
     /**
@@ -75,13 +74,13 @@ public class FilterChain<T> extends DelegateInvoker<T> {
      * @param internalPreFilters  内部前置filter, 不参与user defined filter order sort
      * @param userFilters         user defined filter
      * @param internalPostFilters 内部后置filter, 不参与user defined filter order sort
-     * @param rpcCallInvoker         发起rpc call invoker
+     * @param tailInvoker         tail invoker
      * @return {@link FilterChain}实例
      */
     public static <T> FilterChain<T> create(List<Filter> internalPreFilters,
                                             List<Filter> userFilters,
                                             List<Filter> internalPostFilters,
-                                            Invoker<T> rpcCallInvoker) {
+                                            Invoker<T> tailInvoker) {
         //sort user defined filter
         userFilters.sort(Comparator.comparingInt(Filter::order));
 
@@ -91,13 +90,43 @@ public class FilterChain<T> extends DelegateInvoker<T> {
         finalFilters.addAll(internalPostFilters);
 
         // TODO: 2023/7/10 加载内置filter, 某些功能支持需要通过filter实现, 但我们不需要user手动配置, 同时filter还需要init
-        return new FilterChain<>(rpcCallInvoker, finalFilters);
+        return new FilterChain<>(tailInvoker, finalFilters);
     }
 
     @Override
     public RpcResult invoke(Invocation invocation) {
-        invocation.attach(InvocationConstants.FILTER_CHAIN_KEY, this);
-        return super.invoke(invocation);
+        CompletableFuture<Object> invokeFuture = new CompletableFuture<>();
+        super.invoke(invocation)
+                .onFinish((r, t) -> onInvokeFinish(invocation, r, t, invokeFuture));
+        return RpcResult.success(invocation, invokeFuture);
+    }
+
+    /**
+     * call after filter chain invoke finish
+     *
+     * @param invocation   rpc call信息
+     * @param result       rpc call result
+     * @param t            rpc call exception
+     * @param invokeFuture filter chain invoke listen future
+     */
+    private void onInvokeFinish(Invocation invocation,
+                                @Nullable Object result,
+                                @Nullable Throwable t,
+                                CompletableFuture<Object> invokeFuture) {
+        invocation.attach(InvocationConstants.RPC_CALL_END_TIME_KEY, System.currentTimeMillis());
+
+        //call Filter#onResponse
+        RpcResponse rpcResponse = new RpcResponse(result, t);
+        onResponse(invocation, rpcResponse);
+
+        //overwrite result or exception
+        result = rpcResponse.getResult();
+        t = rpcResponse.getException();
+        if (Objects.isNull(t)) {
+            invokeFuture.complete(result);
+        } else {
+            invokeFuture.completeExceptionally(t);
+        }
     }
 
     /**
@@ -106,13 +135,14 @@ public class FilterChain<T> extends DelegateInvoker<T> {
      * @param invocation rpc call信息
      * @param response   rpc response
      */
-    public void onResponse(Invocation invocation,
-                           RpcResponse response) {
+    private void onResponse(Invocation invocation,
+                            RpcResponse response) {
         for (Filter filter : filters) {
             try {
                 filter.onResponse(invocation, response);
             } catch (Exception e) {
-                log.error("{}#onResponse error", filter.getClass().getName(), e);
+                log.error("{}#onResponse error, invocation={}, response={}",
+                        filter.getClass().getName(), invocation, response, e);
             }
         }
     }

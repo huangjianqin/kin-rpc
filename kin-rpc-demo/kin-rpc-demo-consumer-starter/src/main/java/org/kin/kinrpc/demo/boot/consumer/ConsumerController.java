@@ -89,8 +89,8 @@ public class ConsumerController {
         return ThreadLocalRandom.current().nextInt(1_000);
     }
 
-    @GetMapping("/logRpcCallProfiler")
-    public String logRpcCallProfiler() {
+    @GetMapping("/logRpcCallProfile")
+    public String logRpcCallProfile() {
         return RpcCallProfiler.log();
     }
 }

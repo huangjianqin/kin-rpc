@@ -2,4 +2,4 @@ org.kin.kinrpc.cache.factory.CacheFactory=org.kin.kinrpc.cache.factory.ExpiringC
 org.kin.kinrpc.cache.factory.LruCacheFactory,\
 org.kin.kinrpc.cache.factory.ThreadLocalCacheFactory
 
-org.kin.kinrpc.Filter=org.kin.kinrpc.filter.RpcCallProfileConsumerFilter
+org.kin.kinrpc.Filter=org.kin.kinrpc.filter.RpcCallProfileFilter

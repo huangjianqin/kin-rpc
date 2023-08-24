@@ -12,10 +12,10 @@ public final class InvocationConstants {
     public static final String FALLBACK_KEY = "fallback";
     /** application */
     public static final String APPLICATION_KEY = "application";
+    /** 真正执行服务方法调用的invoker */
+    public static final String RPC_CALL_INVOKER_KEY = "rpcCallInvoker";
 
     //----------------------------------------------------------------reference invocation attachment key
-    /** cluster根据规则策略选择可用的invoker */
-    public static final String SELECTED_INVOKER_KEY = "selectedInvoker";
     /** 服务方法配置 */
     public static final String METHOD_CONFIG_KEY = "methodConfig";
     /** 序列化类型配置 */
@@ -26,8 +26,6 @@ public final class InvocationConstants {
     public static final String RPC_CALL_END_TIME_KEY = "rpcCallEndTime";
     /** loadbalance, 可能为null */
     public static final String LOADBALANCE_KEY = "loadbalance";
-    /** filter chain */
-    public static final String FILTER_CHAIN_KEY = "filterChain";
     /** registry zone */
     public static final String REGISTRY_ZONE_KEY = "registryZone";
     /** registry zone force */

@@ -12,22 +12,25 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2023/8/24
  */
-@Scope(Scopes.CONSUMER)
-public class RpcCallProfileConsumerFilter implements Filter {
-    private static final Logger log = LoggerFactory.getLogger(RpcCallProfileConsumerFilter.class);
+@Scope(Scopes.APPLICATION)
+public class RpcCallProfileFilter implements Filter {
+    private static final Logger log = LoggerFactory.getLogger(RpcCallProfileFilter.class);
 
     @Override
     public RpcResult invoke(Invoker<?> invoker, Invocation invocation) {
         try {
-            ReferenceInvoker<?> rpcCallInvoker = invocation.attachment(InvocationConstants.SELECTED_INVOKER_KEY);
+            //真正执行服务方法调用的invoker
+            Invoker<?> rpcCallInvoker = invocation.attachment(InvocationConstants.RPC_CALL_INVOKER_KEY);
             if (Objects.nonNull(rpcCallInvoker)) {
-                //mark reference invoker active and watch
+                //mark invoker active and watch
                 int invokerId = rpcCallInvoker.hashCode();
                 int handlerId = invocation.handlerId();
                 RpcCallProfiler.watch(invokerId, handlerId);
 
-                //attach
-                invocation.attach(InvocationConstants.RPC_CALL_START_TIME_KEY, System.currentTimeMillis());
+                if (!invocation.hasAttachment(InvocationConstants.RPC_CALL_START_TIME_KEY)) {
+                    //attach
+                    invocation.attach(InvocationConstants.RPC_CALL_START_TIME_KEY, System.currentTimeMillis());
+                }
             }
 
             return invoker.invoke(invocation);
@@ -39,7 +42,7 @@ public class RpcCallProfileConsumerFilter implements Filter {
 
     @Override
     public void onResponse(Invocation invocation, RpcResponse response) {
-        ReferenceInvoker<?> rpcCallInvoker = invocation.attachment(InvocationConstants.SELECTED_INVOKER_KEY);
+        Invoker<?> rpcCallInvoker = invocation.attachment(InvocationConstants.RPC_CALL_INVOKER_KEY);
         if (Objects.isNull(rpcCallInvoker)) {
             return;
         }
@@ -59,11 +62,18 @@ public class RpcCallProfileConsumerFilter implements Filter {
         //默认true
         boolean succeeded = true;
         Throwable exception = response.getException();
-        if (Objects.nonNull(exception) &&
-                !(exception instanceof ServerErrorException) &&
-                !(exception instanceof RpcExceptionBlockException)) {
-            //过滤服务方法执行异常 or 限流流控异常
-            succeeded = false;
+        //是否是provider侧
+        boolean provider = rpcCallInvoker instanceof RpcService;
+        if (provider) {
+            //provider端, 只要是异常, 即说明服务调用异常
+            succeeded = Objects.isNull(exception);
+        } else {
+            //consumer端, 需过滤服务方法执行异常 or 限流流控异常
+            if (Objects.nonNull(exception) &&
+                    !(exception instanceof ServerErrorException) &&
+                    !(exception instanceof RpcExceptionBlockException)) {
+                succeeded = false;
+            }
         }
 
         RpcCallProfiler.end(invokerId, handlerId, elapsed, succeeded);

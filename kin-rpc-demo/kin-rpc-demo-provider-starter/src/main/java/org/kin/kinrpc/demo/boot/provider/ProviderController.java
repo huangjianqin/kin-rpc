@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController()
 @RequestMapping("/provider")
 public class ProviderController {
-    @GetMapping("/logRpcCallProfiler")
-    public String logRpcCallProfiler() {
+    @GetMapping("/logRpcCallProfile")
+    public String logRpcCallProfile() {
         return RpcCallProfiler.log();
     }
 }

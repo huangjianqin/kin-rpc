@@ -47,10 +47,10 @@ public interface Filter {
     RpcResult invoke(Invoker<?> invoker, Invocation invocation);
 
     /**
-     * call after remoting rpc response
+     * call after reference invoker response or service handle finish
      * <p>
-     * user可以通过{@code response}修改服务调用结果
-     * 甚至可以通过{@link RpcResponse#setException(Throwable)}设置rpc call异常, 哪怕rpc call正常返回, 最后user也收到异常
+     * user可以通过{@code response}修改consumer或provider侧的服务调用结果
+     * 甚至可以通过{@link RpcResponse#setException(Throwable)}设置rpc call异常, 哪怕rpc call正常返回, 最后也收到异常
      *
      * @param invocation rpc call信息
      * @param response   rpc response

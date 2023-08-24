@@ -66,7 +66,7 @@ public class BroadcastClusterInvoker<T> extends ClusterInvoker<T> {
         Invocation invocationCopy = ReferenceUtils.copyInvocation(invocation);
         try {
             ReferenceInvoker<?> availableInvoker = availableInvokers.get(idx);
-            invocationCopy.attach(InvocationConstants.SELECTED_INVOKER_KEY, availableInvoker);
+            invocationCopy.attach(InvocationConstants.RPC_CALL_INVOKER_KEY, availableInvoker);
             RpcResult rpcResult = invokeFilterChain(invocationCopy);
             rpcResult.onFinish((r, t) -> {
                 if (Objects.isNull(t)) {

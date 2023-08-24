@@ -74,7 +74,7 @@ public class FailoverClusterInvoker<T> extends ClusterInvoker<T> {
                     log.warn("rpc call fail {} times, ready to retry rpc call, invocation={}", curTimes, invocation, t);
                     if (!(t instanceof ServerErrorException) && t instanceof RpcException) {
                         //rpc异常(非服务方法执行异常), 才发起rpc异常重试
-                        ReferenceInvoker<T> invoker = invocation.attachment(InvocationConstants.SELECTED_INVOKER_KEY);
+                        ReferenceInvoker<T> invoker = invocation.attachment(InvocationConstants.RPC_CALL_INVOKER_KEY);
                         if (Objects.nonNull(invoker)) {
                             excludes.add(invoker.serviceInstance());
                         }

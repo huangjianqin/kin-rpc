@@ -107,14 +107,11 @@ public class RpcService<T> implements Invoker<T> {
             //attach
             invocation.attach(InvocationConstants.APPLICATION_KEY, config.getApp().getAppName());
             invocation.attach(InvocationConstants.SERVICE_CONFIG_KEY, config);
+            invocation.attach(InvocationConstants.RPC_CALL_INVOKER_KEY, this);
+            //此处就开始统计执行时间, 目的是想包含在线程池等待服务调用的时间
             invocation.attach(InvocationConstants.RPC_CALL_START_TIME_KEY, System.currentTimeMillis());
             //服务方法调用参数校验
             invocation.attach(InvocationConstants.VALIDATION_KEY, config.isValidation());
-
-            //mark service invoker active and watch
-            int invokerId = hashCode();
-            int handlerId = invocation.handlerId();
-            RpcCallProfiler.watch(invokerId, handlerId);
 
             CompletableFuture<Object> future = new CompletableFuture<>();
             if (Objects.nonNull(executor)) {
@@ -126,11 +123,11 @@ public class RpcService<T> implements Invoker<T> {
                     }
 
                     chain.invoke(invocation)
-                            .onFinish((r, t) -> onInvokeFinish(invocation, t), future);
+                            .onFinish(future);
                 });
             } else {
                 chain.invoke(invocation)
-                        .onFinish((r, t) -> onInvokeFinish(invocation, t), future);
+                        .onFinish(future);
             }
 
             return RpcResult.success(invocation, future);
@@ -258,31 +255,6 @@ public class RpcService<T> implements Invoker<T> {
             ExceptionUtils.throwExt(e);
             return null;
         }
-    }
-
-    /**
-     * call after service invoke finished
-     *
-     * @param invocation rpc call信息
-     * @param throwable  service invoke exception
-     */
-    private void onInvokeFinish(Invocation invocation,
-                                Throwable throwable) {
-        if (!invocation.hasAttachment(InvocationConstants.RPC_CALL_START_TIME_KEY)) {
-            return;
-        }
-
-        invocation.attach(InvocationConstants.RPC_CALL_END_TIME_KEY, System.currentTimeMillis());
-
-        int invokerId = hashCode();
-        int handlerId = invocation.handlerId();
-
-        long startTime = invocation.longAttachment(InvocationConstants.RPC_CALL_START_TIME_KEY);
-        long endTime = invocation.longAttachment(InvocationConstants.RPC_CALL_END_TIME_KEY, System.currentTimeMillis());
-        //服务方法执行耗时
-        long elapsed = endTime - startTime;
-
-        RpcCallProfiler.end(invokerId, handlerId, elapsed, Objects.isNull(throwable));
     }
 
     /**

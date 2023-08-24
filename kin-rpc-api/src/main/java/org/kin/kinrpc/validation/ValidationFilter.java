@@ -11,6 +11,7 @@ import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.*;
 import org.kin.kinrpc.constants.InvocationConstants;
+import org.kin.kinrpc.constants.Scopes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
  * @author huangjianqin
  * @date 2023/7/25
  */
+@Scope(Scopes.APPLICATION)
 public class ValidationFilter implements Filter {
     private static final Logger log = LoggerFactory.getLogger(ValidationFilter.class);
     /** 空{@link Class}数组 */

@@ -2,13 +2,11 @@ package org.kin.kinrpc.cache;
 
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.StringUtils;
-import org.kin.kinrpc.Filter;
-import org.kin.kinrpc.Invocation;
-import org.kin.kinrpc.Invoker;
-import org.kin.kinrpc.RpcResult;
+import org.kin.kinrpc.*;
 import org.kin.kinrpc.cache.factory.CacheFactory;
 import org.kin.kinrpc.config.MethodConfig;
 import org.kin.kinrpc.constants.InvocationConstants;
+import org.kin.kinrpc.constants.Scopes;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -19,6 +17,7 @@ import java.util.concurrent.CompletableFuture;
  * @author huangjianqin
  * @date 2023/7/24
  */
+@Scope(Scopes.APPLICATION)
 public class CacheFilter implements Filter {
     /** 单例 */
     public static final CacheFilter INSTANCE = new CacheFilter();

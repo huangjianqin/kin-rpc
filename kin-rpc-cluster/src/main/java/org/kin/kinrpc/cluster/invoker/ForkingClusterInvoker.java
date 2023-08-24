@@ -74,7 +74,7 @@ public class ForkingClusterInvoker<T> extends ClusterInvoker<T> {
     private void doInvoke0(Invocation invocation,
                            CompletableFuture<Object> future,
                            ReferenceInvoker<T> selected) {
-        invocation.attach(InvocationConstants.SELECTED_INVOKER_KEY, selected);
+        invocation.attach(InvocationConstants.RPC_CALL_INVOKER_KEY, selected);
 
         RpcResult rpcResult = invokeFilterChain(invocation);
         rpcResult.onFinish((r, t) -> onRpcCallResponse(invocation, future, r, t));

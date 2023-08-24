@@ -42,4 +42,12 @@ public class RpcResponse {
     public void setException(Throwable exception) {
         this.exception = exception;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "result=" + result +
+                ", exception=" + exception +
+                '}';
+    }
 }

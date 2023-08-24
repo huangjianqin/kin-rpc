@@ -34,7 +34,7 @@ public final class RpcCallInvoker<T> implements Invoker<T> {
     @Override
     public RpcResult invoke(Invocation invocation) {
         //经过路由, 负载均衡等策略规则筛选后的invoker
-        ReferenceInvoker<T> invoker = invocation.attachment(InvocationConstants.SELECTED_INVOKER_KEY);
+        ReferenceInvoker<T> invoker = invocation.attachment(InvocationConstants.RPC_CALL_INVOKER_KEY);
         if (Objects.isNull(invoker) || !invoker.isAvailable()) {
             return RpcResult.fail(invocation, new IllegalStateException("can not find available invoker. invocation=" + invocation));
         }
