@@ -14,7 +14,6 @@
     <modules>
         <module>kin-rpc-sentinel</module>
         <module>kin-rpc-hystrix</module>
-        <module>kin-rpc-tracing</module>
     </modules>
 
 </project>
