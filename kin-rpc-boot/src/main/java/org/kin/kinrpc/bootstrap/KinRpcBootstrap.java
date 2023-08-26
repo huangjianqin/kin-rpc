@@ -6,6 +6,7 @@ import org.kin.framework.collection.AttachmentMap;
 import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadPoolUtils;
 import org.kin.framework.utils.*;
+import org.kin.kinrpc.ApplicationContext;
 import org.kin.kinrpc.GenericService;
 import org.kin.kinrpc.IllegalConfigException;
 import org.kin.kinrpc.config.*;
@@ -63,7 +64,7 @@ public final class KinRpcBootstrap {
     private ExecutorService asyncExportReferExecutor;
 
     //---------------------------------------------------------------------------config
-    private final ApplicationConfigManager configManager = ApplicationConfigManager.instance();
+    private final ApplicationContext configManager = ApplicationContext.instance();
     /** 应用配置 */
     private ApplicationConfig app;
     /** 服务所属组 */

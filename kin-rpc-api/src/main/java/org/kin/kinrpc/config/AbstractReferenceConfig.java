@@ -1,6 +1,7 @@
 package org.kin.kinrpc.config;
 
 import org.kin.framework.utils.StringUtils;
+import org.kin.kinrpc.ApplicationContext;
 
 import java.util.Objects;
 
@@ -203,12 +204,12 @@ public abstract class AbstractReferenceConfig<ARC extends AbstractReferenceConfi
     }
 
     public SslConfig getSsl() {
-        return ApplicationConfigManager.instance().getConfig(SslConfig.class);
+        return ApplicationContext.instance().getConfig(SslConfig.class);
     }
 
     public ARC ssl(SslConfig ssl) {
         this.ssl = ssl;
-        ApplicationConfigManager.instance().addConfig(ssl);
+        ApplicationContext.instance().addConfig(ssl);
         return castThis();
     }
 

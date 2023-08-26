@@ -1,6 +1,7 @@
 package org.kin.kinrpc.config;
 
 import org.kin.framework.utils.StringUtils;
+import org.kin.kinrpc.ApplicationContext;
 import org.kin.kinrpc.Filter;
 import org.kin.kinrpc.IllegalConfigException;
 
@@ -92,7 +93,7 @@ public abstract class AbstractInterfaceConfig<IC extends AbstractInterfaceConfig
 
     public IC app(ApplicationConfig app) {
         this.app = app;
-        ApplicationConfigManager.instance().addConfig(app);
+        ApplicationContext.instance().addConfig(app);
         return castThis();
     }
 

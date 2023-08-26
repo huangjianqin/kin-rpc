@@ -2,11 +2,11 @@ package org.kin.kinrpc.protocol;
 
 import org.kin.framework.cache.ReferenceCountedCache;
 import org.kin.framework.utils.ExtensionLoader;
-import org.kin.kinrpc.Exporter;
-import org.kin.kinrpc.ReferenceInvoker;
-import org.kin.kinrpc.RpcService;
-import org.kin.kinrpc.ServiceInstance;
-import org.kin.kinrpc.config.*;
+import org.kin.kinrpc.*;
+import org.kin.kinrpc.config.ExecutorConfig;
+import org.kin.kinrpc.config.ReferenceConfig;
+import org.kin.kinrpc.config.ServerConfig;
+import org.kin.kinrpc.config.SslConfig;
 import org.kin.kinrpc.executor.ExecutorManager;
 import org.kin.kinrpc.executor.ManagedExecutor;
 import org.kin.kinrpc.transport.RemotingClient;
@@ -77,7 +77,7 @@ public abstract class AbstractProtocol implements Protocol {
 
         Transport transport = ExtensionLoader.getExtension(Transport.class, name());
         RemotingServer server = transport.createServer(serverConfig.getHost(), serverConfig.getPort(),
-                executor, ApplicationConfigManager.instance().getConfig(SslConfig.class));
+                executor, ApplicationContext.instance().getConfig(SslConfig.class));
         DefaultRpcRequestProcessor rpcRequestProcessor = new DefaultRpcRequestProcessor();
         server.registerRequestProcessor(rpcRequestProcessor);
 

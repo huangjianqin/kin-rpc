@@ -5,7 +5,10 @@ import org.kin.framework.utils.StringUtils;
 import org.kin.kinrpc.*;
 import org.kin.kinrpc.cache.CacheFilter;
 import org.kin.kinrpc.common.Url;
-import org.kin.kinrpc.config.*;
+import org.kin.kinrpc.config.ApplicationConfig;
+import org.kin.kinrpc.config.ReferenceConfig;
+import org.kin.kinrpc.config.RegistryConfig;
+import org.kin.kinrpc.config.SerializationType;
 import org.kin.kinrpc.constants.CommonConstants;
 import org.kin.kinrpc.constants.ReferenceConstants;
 import org.kin.kinrpc.constants.Scopes;
@@ -60,7 +63,7 @@ public final class ReferenceUtils {
                 .group(CommonConstants.INTERNAL_SERVICE_GROUP)
                 .serviceName(serviceName)
                 .version(CommonConstants.INTERNAL_SERVICE_VERSION)
-                .app(ApplicationConfigManager.instance().getConfig(ApplicationConfig.class));
+                .app(ApplicationContext.instance().getConfig(ApplicationConfig.class));
     }
 
     /**

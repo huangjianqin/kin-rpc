@@ -1,7 +1,7 @@
 package org.kin.kinrpc.bootstrap;
 
+import org.kin.kinrpc.ApplicationContext;
 import org.kin.kinrpc.Exporter;
-import org.kin.kinrpc.KinRpcRuntimeContext;
 import org.kin.kinrpc.RpcService;
 import org.kin.kinrpc.config.RegistryConfig;
 import org.kin.kinrpc.config.ServerConfig;
@@ -56,7 +56,7 @@ public class DefaultServiceBootstrap<T> extends ServiceBootstrap<T> {
         }
 
         exporter = new CompositeExporter<>(exporters);
-        KinRpcRuntimeContext.cacheService(this);
+        ApplicationContext.instance().cacheService(this);
     }
 
     @Override

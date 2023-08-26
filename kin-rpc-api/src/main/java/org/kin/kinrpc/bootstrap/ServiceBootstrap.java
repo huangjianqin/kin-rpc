@@ -4,7 +4,7 @@ import org.kin.framework.concurrent.SimpleThreadFactory;
 import org.kin.framework.concurrent.ThreadPoolUtils;
 import org.kin.framework.utils.SPI;
 import org.kin.framework.utils.SysUtils;
-import org.kin.kinrpc.KinRpcRuntimeContext;
+import org.kin.kinrpc.ApplicationContext;
 import org.kin.kinrpc.ServiceListener;
 import org.kin.kinrpc.config.ServiceConfig;
 import org.slf4j.Logger;
@@ -88,7 +88,7 @@ public abstract class ServiceBootstrap<T> {
             }
         }
 
-        KinRpcRuntimeContext.cacheService(this);
+        ApplicationContext.instance().cacheService(this);
 
         log.info("service '{}' exported! serviceConfig={}", service, config);
     }
@@ -110,7 +110,7 @@ public abstract class ServiceBootstrap<T> {
             }
         }
 
-        KinRpcRuntimeContext.removeService(this);
+        ApplicationContext.instance().removeService(this);
 
         log.info("service '{}' unExported!", config.getService());
     }

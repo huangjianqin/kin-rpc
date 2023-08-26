@@ -1,25 +1,31 @@
-package org.kin.kinrpc.config;
+package org.kin.kinrpc;
 
 import com.google.common.collect.ImmutableSet;
+import org.kin.framework.JvmCloseCleaner;
 import org.kin.framework.collection.CopyOnWriteMap;
 import org.kin.framework.utils.CollectionUtils;
-import org.kin.kinrpc.IllegalConfigException;
+import org.kin.kinrpc.beans.factory.BeanFactory;
+import org.kin.kinrpc.beans.factory.DefaultBeanFactory;
+import org.kin.kinrpc.bootstrap.ReferenceBootstrap;
+import org.kin.kinrpc.bootstrap.ServiceBootstrap;
+import org.kin.kinrpc.config.*;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.Function;
 
 /**
- * 管理应用全部配置
+ * application context
  *
  * @author huangjianqin
  * @date 2023/7/22
  */
-public final class ApplicationConfigManager {
+public final class ApplicationContext {
     /** 单例 */
-    private static final ApplicationConfigManager INSTANCE = new ApplicationConfigManager();
+    private static final ApplicationContext INSTANCE = new ApplicationContext();
 
-    public static ApplicationConfigManager instance() {
+    public static ApplicationContext instance() {
         return INSTANCE;
     }
 
@@ -50,8 +56,17 @@ public final class ApplicationConfigManager {
     private final Map<Class<? extends Config>, Config> uniqueConfigMap = new CopyOnWriteMap<>(() -> new HashMap<>(8));
     /** key -> config class, value -> {key -> config unique id or {@link SharableConfig#getId()}, value -> config instance} */
     private final Map<Class<? extends Config>, Map<String, Config>> configMap = new CopyOnWriteMap<>(() -> new HashMap<>(8));
+    /** 已发布的服务 */
+    @SuppressWarnings("MapOrSetKeyShouldOverrideHashCodeEquals")
+    private final CopyOnWriteArraySet<ServiceBootstrap<?>> serviceBootstraps = new CopyOnWriteArraySet<>();
+    /** 已引用的服务代理 */
+    @SuppressWarnings("MapOrSetKeyShouldOverrideHashCodeEquals")
+    private final CopyOnWriteArraySet<ReferenceBootstrap<?>> referenceBootstraps = new CopyOnWriteArraySet<>();
+    /** bean factory */
+    private final BeanFactory beanFactory = new DefaultBeanFactory(null);
 
-    private ApplicationConfigManager() {
+    private ApplicationContext() {
+        JvmCloseCleaner.instance().add(this::destroy);
     }
 
     /**
@@ -193,5 +208,63 @@ public final class ApplicationConfigManager {
      */
     private boolean isUniqueConfigClass(Class<? extends Config> configClass) {
         return UNIQUE_CONFIG_CLASSES.contains(configClass);
+    }
+
+    /**
+     * app destroy
+     */
+    private void destroy() {
+        //服务下线
+        for (ServiceBootstrap<?> serviceBootstrap : serviceBootstraps) {
+            serviceBootstrap.unExport();
+        }
+
+        //注销服务引用
+        for (ReferenceBootstrap<?> referenceBootstrap : referenceBootstraps) {
+            referenceBootstrap.unRefer();
+        }
+    }
+
+    /**
+     * 缓存已发布的服务
+     *
+     * @param bootstrap service bootstrap
+     */
+    @SuppressWarnings("MapOrSetKeyShouldOverrideHashCodeEquals")
+    public void cacheService(ServiceBootstrap<?> bootstrap) {
+        serviceBootstraps.add(bootstrap);
+    }
+
+    /**
+     * 移除已发布的服务缓存
+     *
+     * @param bootstrap service bootstrap
+     */
+    public void removeService(ServiceBootstrap<?> bootstrap) {
+        serviceBootstraps.remove(bootstrap);
+    }
+
+    /**
+     * 缓存已引用的服务代理
+     *
+     * @param bootstrap reference bootstrap
+     */
+    @SuppressWarnings("MapOrSetKeyShouldOverrideHashCodeEquals")
+    public void cacheReference(ReferenceBootstrap<?> bootstrap) {
+        referenceBootstraps.add(bootstrap);
+    }
+
+    /**
+     * 移除已引用的服务代理缓存
+     *
+     * @param bootstrap reference bootstrap
+     */
+    public void removeReference(ReferenceBootstrap<?> bootstrap) {
+        referenceBootstraps.remove(bootstrap);
+    }
+
+    //getter
+    public BeanFactory getBeanFactory() {
+        return beanFactory;
     }
 }

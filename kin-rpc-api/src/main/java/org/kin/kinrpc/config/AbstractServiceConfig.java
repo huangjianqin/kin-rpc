@@ -3,6 +3,7 @@ package org.kin.kinrpc.config;
 import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.ExtensionLoader;
 import org.kin.framework.utils.StringUtils;
+import org.kin.kinrpc.ApplicationContext;
 import org.kin.kinrpc.ServiceListener;
 import org.kin.kinrpc.utils.ObjectUtils;
 
@@ -123,12 +124,12 @@ public abstract class AbstractServiceConfig<ASC extends AbstractServiceConfig<AS
     }
 
     public SslConfig getSsl() {
-        return ApplicationConfigManager.instance().getConfig(SslConfig.class);
+        return ApplicationContext.instance().getConfig(SslConfig.class);
     }
 
     public ASC ssl(SslConfig ssl) {
         this.ssl = ssl;
-        ApplicationConfigManager.instance().addConfig(ssl);
+        ApplicationContext.instance().addConfig(ssl);
         return castThis();
     }
 

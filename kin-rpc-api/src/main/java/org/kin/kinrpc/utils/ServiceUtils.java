@@ -2,10 +2,10 @@ package org.kin.kinrpc.utils;
 
 import com.google.common.collect.ImmutableSet;
 import org.kin.framework.utils.ExtensionLoader;
+import org.kin.kinrpc.ApplicationContext;
 import org.kin.kinrpc.Filter;
 import org.kin.kinrpc.Scope;
 import org.kin.kinrpc.config.ApplicationConfig;
-import org.kin.kinrpc.config.ApplicationConfigManager;
 import org.kin.kinrpc.config.ServerConfig;
 import org.kin.kinrpc.config.ServiceConfig;
 import org.kin.kinrpc.constants.CommonConstants;
@@ -47,7 +47,7 @@ public final class ServiceUtils {
 
     public static <T> ServiceConfig<T> createInternalService(Class<T> type, ServerConfig serverConfig, T instance) {
         return (ServiceConfig<T>) ServiceConfig.create(type, instance)
-                .app(ApplicationConfigManager.instance().getConfig(ApplicationConfig.class))
+                .app(ApplicationContext.instance().getConfig(ApplicationConfig.class))
                 .server(serverConfig)
                 .group(CommonConstants.INTERNAL_SERVICE_GROUP)
                 .version(CommonConstants.INTERNAL_SERVICE_VERSION)

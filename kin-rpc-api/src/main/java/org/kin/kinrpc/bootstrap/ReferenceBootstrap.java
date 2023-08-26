@@ -1,7 +1,7 @@
 package org.kin.kinrpc.bootstrap;
 
 import org.kin.framework.utils.SPI;
-import org.kin.kinrpc.KinRpcRuntimeContext;
+import org.kin.kinrpc.ApplicationContext;
 import org.kin.kinrpc.config.ReferenceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,8 +54,9 @@ public abstract class ReferenceBootstrap<T> {
             throw new IllegalStateException("service '{}' has been referenced before");
         }
 
+        REFERENCED_SERVICES.add(service);
         reference = doRefer();
-        KinRpcRuntimeContext.cacheReference(this);
+        ApplicationContext.instance().cacheReference(this);
 
         if (log.isDebugEnabled()) {
             log.debug("refer service '{}'. referenceConfig={}", config.getService(), config);
@@ -75,7 +76,7 @@ public abstract class ReferenceBootstrap<T> {
         //释放引用
         reference = null;
 
-        KinRpcRuntimeContext.removeReference(this);
+        ApplicationContext.instance().removeReference(this);
 
         if (log.isDebugEnabled()) {
             log.debug("unRefer service '{}'", config.getService());
