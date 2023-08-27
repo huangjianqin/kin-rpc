@@ -71,9 +71,10 @@
                                 <echo file="${src.dir}/${package.dir}/Version.java" append="true"
                                       message="    private static String VERSION = &quot;${project.version}&quot;;${line.separator}"/>
                                 <!-- build time字段 -->
-                                <echo file="${src.dir}/${package.dir}/Version.java" append="true"
-                                      message="    private static String BUILD_TIME = &quot;${buildtime}&quot;;${line.separator}"/>
+                                <!--                                <echo file="${src.dir}/${package.dir}/Version.java" append="true"-->
+                                <!--                                      message="    private static String BUILD_TIME = &quot;${buildtime}&quot;;${line.separator}"/>-->
 
+                                <!-- 分隔符 -->
                                 <echo file="${src.dir}/${package.dir}/Version.java" append="true"
                                       message="${line.separator}${line.separator}"/>
 
@@ -85,12 +86,12 @@
                                 <echo file="${src.dir}/${package.dir}/Version.java" append="true"
                                       message="    }${line.separator}"/>
                                 <!-- getBuildTime()方法 -->
-                                <echo file="${src.dir}/${package.dir}/Version.java" append="true"
-                                      message="    public static String getBuildTime() {${line.separator}"/>
-                                <echo file="${src.dir}/${package.dir}/Version.java" append="true"
-                                      message="        return BUILD_TIME;${line.separator}"/>
-                                <echo file="${src.dir}/${package.dir}/Version.java" append="true"
-                                      message="    }${line.separator}"/>
+                                <!--                                <echo file="${src.dir}/${package.dir}/Version.java" append="true"-->
+                                <!--                                      message="    public static String getBuildTime() {${line.separator}"/>-->
+                                <!--                                <echo file="${src.dir}/${package.dir}/Version.java" append="true"-->
+                                <!--                                      message="        return BUILD_TIME;${line.separator}"/>-->
+                                <!--                                <echo file="${src.dir}/${package.dir}/Version.java" append="true"-->
+                                <!--                                      message="    }${line.separator}"/>-->
                                 <!-- class尾 -->
                                 <echo file="${src.dir}/${package.dir}/Version.java" append="true"
                                       message="}${line.separator}"/>
