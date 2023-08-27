@@ -17,4 +17,84 @@
             <artifactId>kin-framework-java</artifactId>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <!-- 新增名为current.time的maven property -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.4.0</version>
+                <executions>
+                    <execution>
+                        <id>timestamp-property</id>
+                        <goals>
+                            <goal>timestamp-property</goal>
+                        </goals>
+                        <configuration>
+                            <name>current.time</name>
+                            <pattern>yyyy-MM-dd HH:mm:ss</pattern>
+                            <timeZone>GMT+8</timeZone>
+                            <locale>zh_CN</locale>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <target>
+                                <property name="src.dir" value="${project.build.sourceDirectory}"/>
+                                <property name="package.dir" value="org/kin/kinrpc/common"/>
+                                <property name="package.name" value="org.kin.kinrpc.common"/>
+                                <!--maven.build.timestamp是UTC时间，跟北京时间有8个小时的时差，
+                                    使用插件 build-helper-maven-plugin:timestamp-property 解决这个时差问题
+                                <property name="buildtime" value="${maven.build.timestamp}"/>-->
+                                <property name="buildtime" value="${current.time}"/>
+
+                                <!--生成一个 Version.java 文件，里面生成常量，可以在Java代码中直接使用-->
+                                <echo file="${src.dir}/${package.dir}/Version.java"
+                                      message="package ${package.name};${line.separator}${line.separator}"/>
+                                <!-- class头 -->
+                                <echo file="${src.dir}/${package.dir}/Version.java" append="true"
+                                      message="public final class Version {${line.separator}"/>
+                                <!-- version字段 -->
+                                <echo file="${src.dir}/${package.dir}/Version.java" append="true"
+                                      message="    private static String VERSION = &quot;${project.version}&quot;;${line.separator}"/>
+                                <!-- build time字段 -->
+                                <echo file="${src.dir}/${package.dir}/Version.java" append="true"
+                                      message="    private static String BUILD_TIME = &quot;${buildtime}&quot;;${line.separator}"/>
+                                <!-- getVersion()方法 -->
+                                <echo file="${src.dir}/${package.dir}/Version.java" append="true"
+                                      message="public static String getVersion() {${line.separator}"/>
+                                <echo file="${src.dir}/${package.dir}/Version.java" append="true"
+                                      message="return VERSION;${line.separator}"/>
+                                <echo file="${src.dir}/${package.dir}/Version.java" append="true"
+                                      message="}${line.separator}"/>
+                                <!-- getBuildTime()方法 -->
+                                <echo file="${src.dir}/${package.dir}/Version.java" append="true"
+                                      message="public static String getBuildTime() {${line.separator}"/>
+                                <echo file="${src.dir}/${package.dir}/Version.java" append="true"
+                                      message="return BUILD_TIME;${line.separator}"/>
+                                <echo file="${src.dir}/${package.dir}/Version.java" append="true"
+                                      message="}${line.separator}"/>
+                                <!-- class尾 -->
+                                <echo file="${src.dir}/${package.dir}/Version.java" append="true"
+                                      message="}${line.separator}"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

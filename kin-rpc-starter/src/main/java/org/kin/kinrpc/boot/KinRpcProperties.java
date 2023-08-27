@@ -26,6 +26,9 @@ public class KinRpcProperties {
     /** 全局server config */
     @NestedConfigurationProperty
     private ServerConfig server;
+    /** 全局tracing config */
+    @NestedConfigurationProperty
+    private TracingConfig tracing;
     /** !!!!无用, 纯粹为了生成spring yml doc */
     @NestedConfigurationProperty
     private SslConfig ssl;
@@ -76,6 +79,14 @@ public class KinRpcProperties {
 
     public void setServer(ServerConfig server) {
         this.server = server;
+    }
+
+    public TracingConfig getTracing() {
+        return tracing;
+    }
+
+    public void setTracing(TracingConfig tracing) {
+        this.tracing = tracing;
     }
 
     public SslConfig getSsl() {

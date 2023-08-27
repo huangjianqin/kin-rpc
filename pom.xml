@@ -21,6 +21,7 @@
         <module>kin-rpc-boot</module>
         <module>kin-rpc-governance</module>
         <module>kin-rpc-cluster-extensions</module>
+        <module>kin-rpc-metrics</module>
     </modules>
     <packaging>pom</packaging>
 

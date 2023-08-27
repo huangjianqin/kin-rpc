@@ -1,0 +1,6 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  org.kin.kinrpc.boot.observability.autoconfigure.KinRpcObservationAutoConfiguration,\
+  org.kin.kinrpc.boot.observability.autoconfigure.KinRpcMicrometerTracingAutoConfiguration,\
+  org.kin.kinrpc.boot.observability.autoconfigure.brave.BraveAutoConfiguration,\
+  org.kin.kinrpc.boot.observability.autoconfigure.exporter.zipkin.ZipkinSenderAutoConfiguration
+

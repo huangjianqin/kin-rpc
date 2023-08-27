@@ -15,3 +15,10 @@ kinrpc:
     attachments:
       'hystrix.command.execution.isolation.thread.timeoutInMilliseconds': 10_000
   async-export-refer: true
+  tracing:
+    enabled: true
+    exporter:
+      zipkin:
+        endpoint: http://localhost:9411/api/v2/spans
+    sampling:
+      probability: 1.0

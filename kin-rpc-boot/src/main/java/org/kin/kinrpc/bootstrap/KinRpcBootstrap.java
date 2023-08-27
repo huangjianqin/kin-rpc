@@ -64,7 +64,7 @@ public final class KinRpcBootstrap {
     private ExecutorService asyncExportReferExecutor;
 
     //---------------------------------------------------------------------------config
-    private final ApplicationContext configManager = ApplicationContext.instance();
+    private final ApplicationContext applicationContext = ApplicationContext.instance();
     /** 应用配置 */
     private ApplicationConfig app;
     /** 服务所属组 */
@@ -154,12 +154,12 @@ public final class KinRpcBootstrap {
             app.initDefaultConfig();
         }
 
-        for (ProviderConfig providerConfig : configManager.getConfigs(ProviderConfig.class)) {
+        for (ProviderConfig providerConfig : applicationContext.getConfigs(ProviderConfig.class)) {
             resolveReferConfig(providerConfig);
             providerConfig.initDefaultConfig();
         }
 
-        for (ConsumerConfig consumerConfig : configManager.getConfigs(ConsumerConfig.class)) {
+        for (ConsumerConfig consumerConfig : applicationContext.getConfigs(ConsumerConfig.class)) {
             resolveReferConfig(consumerConfig);
             consumerConfig.initDefaultConfig();
         }
@@ -176,24 +176,24 @@ public final class KinRpcBootstrap {
             serialization = DefaultConfig.DEFAULT_SERIALIZATION;
         }
 
-        for (ServiceConfig<?> serviceConfig : configManager.getConfigs(ServiceConfig.class)) {
+        for (ServiceConfig<?> serviceConfig : applicationContext.getConfigs(ServiceConfig.class)) {
             //尝试从bootstrap或provider获取配置
             String group = serviceConfig.getGroup();
-            ProviderConfig providerConfig = configManager.getConfig(ProviderConfig.class, group);
+            ProviderConfig providerConfig = applicationContext.getConfig(ProviderConfig.class, group);
             if (Objects.isNull(providerConfig)) {
-                providerConfig = configManager.getConfig(ProviderConfig.class, "");
+                providerConfig = applicationContext.getConfig(ProviderConfig.class, "");
             }
             initServiceConfig(serviceConfig, providerConfig);
             //初始化service默认配置
             serviceConfig.initDefaultConfig();
         }
 
-        for (ReferenceConfig<?> referenceConfig : configManager.getConfigs(ReferenceConfig.class)) {
+        for (ReferenceConfig<?> referenceConfig : applicationContext.getConfigs(ReferenceConfig.class)) {
             //尝试从bootstrap或consumer获取配置
             String group = referenceConfig.getGroup();
-            ConsumerConfig consumerConfig = configManager.getConfig(ConsumerConfig.class, group);
+            ConsumerConfig consumerConfig = applicationContext.getConfig(ConsumerConfig.class, group);
             if (Objects.isNull(consumerConfig)) {
-                consumerConfig = configManager.getConfig(ConsumerConfig.class, "");
+                consumerConfig = applicationContext.getConfig(ConsumerConfig.class, "");
             }
             initReferenceConfig(referenceConfig, consumerConfig);
             //初始化reference默认配置
@@ -331,7 +331,7 @@ public final class KinRpcBootstrap {
                 finalConfigs.add(config);
             } else {
                 String key = keyGetter.apply(config);
-                C referConfig = configManager.getConfig(configClass, key);
+                C referConfig = applicationContext.getConfig(configClass, key);
                 if (Objects.isNull(referConfig)) {
                     throw new IllegalConfigException(String.format("can not find '%s' with key = '%s'", configClass.getName(), key));
                 }
@@ -358,7 +358,7 @@ public final class KinRpcBootstrap {
         String id = config.getId();
         if (StringUtils.isNotBlank(id)) {
             String key = keyGetter.apply(config);
-            C referConfig = configManager.getConfig(configClass, key);
+            C referConfig = applicationContext.getConfig(configClass, key);
             if (Objects.isNull(referConfig)) {
                 throw new IllegalConfigException(String.format("can not find '%s' with key = '%s'", configClass.getName(), key));
             }
@@ -452,7 +452,7 @@ public final class KinRpcBootstrap {
         Map<String, String> listenHostPort2Protocol = new HashMap<>();
         Multimap<String, String> listenHostPort2Services = MultimapBuilder.hashKeys().linkedHashSetValues().build();
 
-        for (ServiceConfig<?> serviceConfig : configManager.getConfigs(ServiceConfig.class)) {
+        for (ServiceConfig<?> serviceConfig : applicationContext.getConfigs(ServiceConfig.class)) {
             serviceConfig.checkValid();
             String service = serviceConfig.getService();
             if (!exportServices.add(service)) {
@@ -481,7 +481,7 @@ public final class KinRpcBootstrap {
         }
 
         Set<String> referServices = new HashSet<>();
-        for (ReferenceConfig<?> referenceConfig : configManager.getConfigs(ReferenceConfig.class)) {
+        for (ReferenceConfig<?> referenceConfig : applicationContext.getConfigs(ReferenceConfig.class)) {
             referenceConfig.checkValid();
             String service = referenceConfig.getService();
             if (!referServices.add(service)) {
@@ -510,7 +510,7 @@ public final class KinRpcBootstrap {
      */
     @SuppressWarnings("rawtypes")
     private void exportServices() {
-        Collection<ServiceConfig> serviceConfigs = configManager.getConfigs(ServiceConfig.class);
+        Collection<ServiceConfig> serviceConfigs = applicationContext.getConfigs(ServiceConfig.class);
         if (CollectionUtils.isEmpty(serviceConfigs)) {
             return;
         }
@@ -549,7 +549,7 @@ public final class KinRpcBootstrap {
      */
     @SuppressWarnings("rawtypes")
     private void referServices() {
-        Collection<ReferenceConfig> referenceConfigs = configManager.getConfigs(ReferenceConfig.class);
+        Collection<ReferenceConfig> referenceConfigs = applicationContext.getConfigs(ReferenceConfig.class);
         if (CollectionUtils.isEmpty(referenceConfigs)) {
             return;
         }
@@ -605,11 +605,11 @@ public final class KinRpcBootstrap {
             return;
         }
 
-        for (ReferenceConfig<?> referenceConfig : configManager.getConfigs(ReferenceConfig.class)) {
+        for (ReferenceConfig<?> referenceConfig : applicationContext.getConfigs(ReferenceConfig.class)) {
             referenceConfig.unRefer();
         }
 
-        for (ServiceConfig<?> serviceConfig : configManager.getConfigs(ServiceConfig.class)) {
+        for (ServiceConfig<?> serviceConfig : applicationContext.getConfigs(ServiceConfig.class)) {
             serviceConfig.unExport();
         }
 
@@ -776,7 +776,7 @@ public final class KinRpcBootstrap {
     }
 
     public Collection<RegistryConfig> getRegistries() {
-        return configManager.getConfigs(RegistryConfig.class);
+        return applicationContext.getConfigs(RegistryConfig.class);
     }
 
     public KinRpcBootstrap registry(RegistryConfig registry) {
@@ -791,7 +791,7 @@ public final class KinRpcBootstrap {
 
     public KinRpcBootstrap registries(List<RegistryConfig> registries) {
         checkBeforeModify();
-        configManager.addConfigs(registries, RegistryConfig::getId);
+        applicationContext.addConfigs(registries, RegistryConfig::getId);
         return this;
     }
 
@@ -826,7 +826,7 @@ public final class KinRpcBootstrap {
     }
 
     public Collection<ProviderConfig> getProviders() {
-        return configManager.getConfigs(ProviderConfig.class);
+        return applicationContext.getConfigs(ProviderConfig.class);
     }
 
     public KinRpcBootstrap provider(ProviderConfig provider) {
@@ -840,13 +840,13 @@ public final class KinRpcBootstrap {
 
     public KinRpcBootstrap providers(Collection<ProviderConfig> providers) {
         checkBeforeModify();
-        configManager.addConfigs(providers,
+        applicationContext.addConfigs(providers,
                 pc -> Objects.nonNull(pc.getGroup()) ? pc.getGroup() : "");
         return this;
     }
 
     public Collection<ConsumerConfig> getConsumers() {
-        return configManager.getConfigs(ConsumerConfig.class);
+        return applicationContext.getConfigs(ConsumerConfig.class);
     }
 
     public KinRpcBootstrap consumer(ConsumerConfig consumer) {
@@ -860,7 +860,7 @@ public final class KinRpcBootstrap {
 
     public KinRpcBootstrap consumers(Collection<ConsumerConfig> consumers) {
         checkBeforeModify();
-        configManager.addConfigs(consumers,
+        applicationContext.addConfigs(consumers,
                 cc -> Objects.nonNull(cc.getGroup()) ? cc.getGroup() : "");
         return this;
     }
@@ -877,7 +877,7 @@ public final class KinRpcBootstrap {
     public KinRpcBootstrap services(Collection<ServiceConfig> services) {
         checkBeforeModify();
         for (ServiceConfig<?> service : services) {
-            configManager.addConfig(service);
+            applicationContext.addConfig(service);
         }
         return this;
     }
@@ -894,13 +894,13 @@ public final class KinRpcBootstrap {
     public KinRpcBootstrap references(Collection<ReferenceConfig> references) {
         checkBeforeModify();
         for (ReferenceConfig<?> reference : references) {
-            configManager.addConfig(reference);
+            applicationContext.addConfig(reference);
         }
         return this;
     }
 
     public Collection<ServerConfig> getServers() {
-        return configManager.getConfigs(ServerConfig.class);
+        return applicationContext.getConfigs(ServerConfig.class);
     }
 
     public KinRpcBootstrap server(ServerConfig server) {
@@ -915,12 +915,12 @@ public final class KinRpcBootstrap {
 
     public KinRpcBootstrap servers(Collection<ServerConfig> servers) {
         checkBeforeModify();
-        configManager.addConfigs(servers, ServerConfig::getId);
+        applicationContext.addConfigs(servers, ServerConfig::getId);
         return this;
     }
 
     public Collection<ExecutorConfig> getExecutors() {
-        return configManager.getConfigs(ExecutorConfig.class);
+        return applicationContext.getConfigs(ExecutorConfig.class);
     }
 
     public KinRpcBootstrap executor(ExecutorConfig executor) {
@@ -935,7 +935,7 @@ public final class KinRpcBootstrap {
 
     public KinRpcBootstrap executors(Collection<ExecutorConfig> executors) {
         checkBeforeModify();
-        configManager.addConfigs(executors, ExecutorConfig::getId);
+        applicationContext.addConfigs(executors, ExecutorConfig::getId);
         return this;
     }
 
@@ -954,6 +954,16 @@ public final class KinRpcBootstrap {
 
     public KinRpcBootstrap listeners(Collection<KinRpcBootstrapListener> listeners) {
         kinRpcBootstrapListeners.addAll(listeners);
+        return this;
+    }
+
+    public TracingConfig getTracing() {
+        return applicationContext.getConfig(TracingConfig.class);
+    }
+
+    public KinRpcBootstrap tracing(TracingConfig tracing) {
+        checkBeforeModify();
+        applicationContext.addConfig(tracing);
         return this;
     }
 }

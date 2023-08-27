@@ -40,6 +40,12 @@
         <!--            <artifactId>kin-rpc-hystrix</artifactId>-->
         <!--            <version>${project.version}</version>-->
         <!--        </dependency>-->
+
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-rpc-tracing-brave-zipkin-starter</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 </project>

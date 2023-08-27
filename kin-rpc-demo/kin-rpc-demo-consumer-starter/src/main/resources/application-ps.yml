@@ -13,3 +13,10 @@ kinrpc:
     retries: 0
     filter-beans: "logFilter"
   async-export-refer: true
+#  tracing:
+#    enabled: true
+#    exporter:
+#      zipkin:
+#        endpoint: http://localhost:9411/api/v2/spans
+#    sampling:
+#      probability: 1.0

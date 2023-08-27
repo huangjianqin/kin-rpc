@@ -3,6 +3,7 @@ package org.kin.kinrpc.config;
 import org.kin.framework.utils.NetUtils;
 import org.kin.framework.utils.SysUtils;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -106,6 +107,38 @@ public final class DefaultConfig {
     //--------------------------------------------------------------------broadcast cluster
     /** broadcast cluster默认服务调用失败的比例 */
     public static final int DEFAULT_BROADCAST_FAIL_PERCENT = 20;
+
+    //--------------------------------------------------------------------tracing
+    //--------------------------------------------------------------------tracing sampling
+    /** 默认采样概率 */
+    public static final Float DEFAULT_SAMPLING_PROBABILITY = 0.10f;
+
+    //--------------------------------------------------------------------tracing baggage
+    /** default correlation config */
+    public static final BaggageConfig.Correlation DEFAULT_BAGGAGE_CORRELATION = new BaggageConfig.Correlation();
+
+    //--------------------------------------------------------------------tracing propagation
+    /** 默认propagation type */
+    public static final String DEFAULT_PROPAGATION_TYPE = PropagationConfig.W3C;
+
+    //--------------------------------------------------------------------tracing exporter zipkin
+    /** default connection timeout for requests to zipkin */
+    public static final Duration DEFAULT_TRACING_EXPORTER_ZIPKIN_CONNECT_TIMEOUT = Duration.ofSeconds(3);
+    /** default read timeout for requests to zipkin */
+    public static final Duration DEFAULT_TRACING_EXPORTER_ZIPKIN_READ_TIMEOUT = Duration.ofSeconds(10);
+
+    //--------------------------------------------------------------------tracing exporter otlp
+    /** default time to wait for the collector to process an exported batch of spans */
+    public static final Duration DEFAULT_TRACING_EXPORTER_OTLP_TIMEOUT = Duration.ofSeconds(10);
+    /** default method used to compress payloads */
+    public static final String DEFAULT_TRACING_EXPORTER_OTLP_COMPRESSION_METHOD = "none";
+    //--------------------------------------------------------------------tracing 最后定义, 不然有些默认值无法初始化
+    /** default sampling config */
+    public static final SamplingConfig DEFAULT_SAMPLING_CONFIG = new SamplingConfig();
+    /** default baggage config */
+    public static final BaggageConfig DEFAULT_BAGGAGE_CONFIG = new BaggageConfig();
+    /** default propagation config */
+    public static final PropagationConfig DEFAULT_PROPAGATION_CONFIG = new PropagationConfig();
 
     private DefaultConfig() {
     }

@@ -97,6 +97,7 @@ public class KinRpcBootstrapApplicationListener implements ApplicationListener<A
                 () -> CollectionUtils.isNonEmpty(properties.getConsumers()) ? new ArrayList<>(properties.getConsumers()) : Collections.emptyList());
         configBootstrap(applicationContext, ServiceConfig.class, bootstrap::services);
         configBootstrap(applicationContext, ReferenceConfig.class, bootstrap::references);
+        bootstrap.tracing(properties.getTracing());
     }
 
     /**

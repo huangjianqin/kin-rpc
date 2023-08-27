@@ -21,3 +21,10 @@ kinrpc:
   registry:
     type: 'zookeeper'
     address: "127.0.0.1:2181"
+#  tracing:
+#    enabled: true
+#    exporter:
+#      zipkin:
+#        endpoint: http://localhost:9411/api/v2/spans
+#    sampling:
+#      probability: 1.0

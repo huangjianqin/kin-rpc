@@ -1,0 +1,2 @@
+org.kin.kinrpc.Filter=org.kin.kinrpc.metrics.observation.ObservationConsumerFilter,\
+org.kin.kinrpc.metrics.observation.ObservationProviderFilter

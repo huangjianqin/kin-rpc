@@ -21,7 +21,7 @@ import java.util.function.Function;
  * @author huangjianqin
  * @date 2023/7/22
  */
-public final class ApplicationContext {
+public final class ApplicationContext implements BeanFactory {
     /** 单例 */
     private static final ApplicationContext INSTANCE = new ApplicationContext();
 
@@ -37,7 +37,8 @@ public final class ApplicationContext {
     static {
         ImmutableSet.Builder<Class<? extends Config>> uniqueConfigClassesBuilder = ImmutableSet.builder();
         uniqueConfigClassesBuilder.add(ApplicationConfig.class)
-                .add(SslConfig.class);
+                .add(SslConfig.class)
+                .add(TracingConfig.class);
         UNIQUE_CONFIG_CLASSES = uniqueConfigClassesBuilder.build();
 
         ImmutableSet.Builder<Class<? extends Config>> configClassesBuilder = ImmutableSet.builder();
@@ -261,6 +262,33 @@ public final class ApplicationContext {
      */
     public void removeReference(ReferenceBootstrap<?> bootstrap) {
         referenceBootstraps.remove(bootstrap);
+    }
+
+    @Override
+    public void registerBean(Object bean) {
+        beanFactory.registerBean(bean);
+    }
+
+    @Override
+    public void registerBean(String name, Object bean) {
+        beanFactory.registerBean(name, bean);
+    }
+
+    @Override
+    public <T> List<T> getBeansOfType(Class<T> type) {
+        return beanFactory.getBeansOfType(type);
+    }
+
+    @Nullable
+    @Override
+    public <T> T getBean(Class<T> type) {
+        return beanFactory.getBean(type);
+    }
+
+    @Nullable
+    @Override
+    public <T> T getBean(String name, Class<T> type) {
+        return beanFactory.getBean(name, type);
     }
 
     //getter

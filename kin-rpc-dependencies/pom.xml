@@ -31,6 +31,10 @@
         <jetcd.version>0.7.6</jetcd.version>
         <consul.version>1.4.5</consul.version>
         <fabric8.version>6.8.0</fabric8.version>
+        <micrometer-tracing.version>1.1.3</micrometer-tracing.version>
+        <brave.version>5.6.6</brave.version>
+        <zipkin-reporter.version>2.9.0</zipkin-reporter.version>
+        <opentelemetry.version>1.28.0</opentelemetry.version>
     </properties>
 
     <dependencyManagement>
@@ -186,6 +190,42 @@
                 <groupId>io.fabric8</groupId>
                 <artifactId>kubernetes-client</artifactId>
                 <version>${fabric8.version}</version>
+            </dependency>
+
+            <!-- micrometer-tracing -->
+            <dependency>
+                <groupId>io.micrometer</groupId>
+                <artifactId>micrometer-tracing-bom</artifactId>
+                <version>${micrometer-tracing.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- zipkin.brave -->
+            <dependency>
+                <groupId>io.zipkin.brave</groupId>
+                <artifactId>brave-bom</artifactId>
+                <version>${brave.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- zipkin.reporter -->
+            <dependency>
+                <groupId>io.zipkin.reporter2</groupId>
+                <artifactId>zipkin-reporter-bom</artifactId>
+                <version>${zipkin-reporter.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- opentelemetry -->
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-bom</artifactId>
+                <version>${opentelemetry.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

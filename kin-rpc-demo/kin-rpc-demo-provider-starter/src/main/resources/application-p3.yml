@@ -18,3 +18,10 @@ kinrpc:
     delay: 3000
     token: "123456"
   async-export-refer: true
+#  tracing:
+#    enabled: true
+#    exporter:
+#      zipkin:
+#        endpoint: http://localhost:9411/api/v2/spans
+#    sampling:
+#      probability: 1.0
