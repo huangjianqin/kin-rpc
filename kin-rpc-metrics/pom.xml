@@ -17,5 +17,6 @@
         <module>kin-rpc-observability-autoconfigure</module>
         <module>kin-rpc-tracing-otel-zipkin-starter</module>
         <module>kin-rpc-tracing-otel-otlp-starter</module>
+        <module>kin-rpc-tracing-skywalking-starter</module>
     </modules>
 </project>

@@ -1,6 +1,6 @@
 # Tracing
 
-基于Micrometer Observation作为门面, 桥接Brave/otel, 并将Tracing信息发送给Zipkin或otlp的链路跟踪
+基于Micrometer Observation和Micrometer Tracing作为门面, 桥接Brave/otel, 并将Tracing信息发送给Zipkin或otlp的链路跟踪
 
 ## Tracing相关概念
 
