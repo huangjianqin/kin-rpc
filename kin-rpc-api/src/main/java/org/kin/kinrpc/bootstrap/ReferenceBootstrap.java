@@ -50,11 +50,12 @@ public abstract class ReferenceBootstrap<T> {
         }
 
         String service = config.getService();
-        if (REFERENCED_SERVICES.contains(service)) {
-            throw new IllegalStateException("service '{}' has been referenced before");
-        }
-
-        REFERENCED_SERVICES.add(service);
+        // TODO: 2023/8/28 判断唯一的reference config
+//        if (REFERENCED_SERVICES.contains(service)) {
+//            throw new IllegalStateException(String.format("service '%s' has been referenced before", service));
+//        }
+//
+//        REFERENCED_SERVICES.add(service);
         reference = doRefer();
         ApplicationContext.instance().cacheReference(this);
 
