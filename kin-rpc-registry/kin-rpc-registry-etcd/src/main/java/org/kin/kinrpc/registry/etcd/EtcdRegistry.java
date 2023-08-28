@@ -32,8 +32,8 @@ import java.util.concurrent.CompletableFuture;
 public final class EtcdRegistry extends DiscoveryRegistry {
     private static final Logger log = LoggerFactory.getLogger(EtcdRegistry.class);
 
-    /** 分隔符 */
-    private static final String SEPARATOR = ":";
+    /** etcd key分隔符, 最终表现形式是目录树, 并支持前缀搜索 */
+    private static final String SEPARATOR = "/";
     /** 默认前缀 */
     private static final String ROOT = "kinrpc" + SEPARATOR + "services";
 
