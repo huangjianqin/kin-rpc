@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: kinrpc-demo-springboot-consumer-nacos
+server:
+  port: 14001
+kinrpc:
+  registry:
+    type: "nacos"
+    address: "127.0.0.1:8848"
+  consumer:
+    cluster: "failover"
+    rpc-timeout: 2000
+    retries: 0
+    filter-beans: "logFilter"
+    provide-by: "kinrpc-demo-springboot-provider-nacos"
+  async-export-refer: true
+#  tracing:
+#    enabled: true
+#    exporter:
+#      zipkin:
+#        endpoint: http://localhost:9411/api/v2/spans
+#    sampling:
+#      probability: 1.0

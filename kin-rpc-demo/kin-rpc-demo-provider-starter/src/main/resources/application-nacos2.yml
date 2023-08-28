@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: kinrpc-demo-springboot-provider-nacos
+server:
+  port: 14010
+kinrpc:
+  server:
+    port: 13010
+    protocol: "kinrpc"
+  executor:
+    id: "executor1"
+    type: "fix"
+  provider:
+    executor:
+      id: "executor1"
+    weight: 2
+    filter-beans: "logFilter"
+    delay: 3000
+    token: "123456"
+  async-export-refer: true
+  registry:
+    type: 'nacos'
+    address: "127.0.0.1:8848"
+#  tracing:
+#    enabled: true
+#    exporter:
+#      zipkin:
+#        endpoint: http://localhost:9411/api/v2/spans
+#    sampling:
+#      probability: 1.0

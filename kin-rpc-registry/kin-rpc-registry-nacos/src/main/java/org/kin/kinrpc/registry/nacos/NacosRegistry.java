@@ -72,7 +72,7 @@ public final class NacosRegistry extends DiscoveryRegistry {
         Instance instance = new Instance();
         instance.setIp(((String) ipPort[0]));
         instance.setPort(((Integer) ipPort[1]));
-        instance.setEphemeral(false);
+//        instance.setEphemeral(false);
         instance.setWeight(config.getWeight());
         //元数据
         instance.setMetadata(getMetadataMap(appMetadata));

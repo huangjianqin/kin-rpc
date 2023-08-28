@@ -18,9 +18,16 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- 注册中心 -->
         <dependency>
             <groupId>org.kin</groupId>
             <artifactId>kin-rpc-registry-zookeeper</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-rpc-registry-nacos</artifactId>
             <version>${project.version}</version>
         </dependency>
 
