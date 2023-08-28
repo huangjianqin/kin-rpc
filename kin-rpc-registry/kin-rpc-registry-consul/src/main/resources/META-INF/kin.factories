@@ -1,1 +1,1 @@
-registryFactory=org.kin.kinrpc.registry.consul.ConsulRegistry
+registryFactory=org.kin.kinrpc.registry.consul.ConsulRegistryFactory

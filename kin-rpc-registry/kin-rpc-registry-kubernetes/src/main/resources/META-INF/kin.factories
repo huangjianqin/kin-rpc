@@ -1,1 +1,1 @@
-registryFactory=org.kin.kinrpc.registry.kubernetes.KubernetesRegistry
+registryFactory=org.kin.kinrpc.registry.kubernetes.KubernetesRegistryFactory

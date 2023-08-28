@@ -5,7 +5,6 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
-import org.kin.framework.utils.Extension;
 import org.kin.framework.utils.IllegalFormatException;
 import org.kin.framework.utils.JSON;
 import org.kin.framework.utils.StringUtils;
@@ -25,7 +24,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author huangjianqin
  * @date 2023/8/13
  */
-@Extension("k8s")
 public class KubernetesRegistry extends DiscoveryRegistry {
     private static final Logger log = LoggerFactory.getLogger(KubernetesRegistry.class);
 

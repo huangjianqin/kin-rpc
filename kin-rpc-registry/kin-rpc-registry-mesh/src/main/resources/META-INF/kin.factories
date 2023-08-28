@@ -1,1 +1,1 @@
-registryFactory=org.kin.kinrpc.registry.mesh.MeshRegistry
+registryFactory=org.kin.kinrpc.registry.mesh.MeshRegistryFactory
