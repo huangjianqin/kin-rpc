@@ -38,6 +38,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-rpc-registry-consul</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>net.bytebuddy</groupId>
             <artifactId>byte-buddy</artifactId>
         </dependency>

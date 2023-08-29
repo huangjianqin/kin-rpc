@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: kinrpc-demo-springboot-consumer-consul
+server:
+  port: 14001
+kinrpc:
+  registry:
+    type: "consul"
+    address: "127.0.0.1:8500"
+  consumer:
+    cluster: "failover"
+    rpc-timeout: 2000
+    retries: 0
+    filter-beans: "logFilter"
+    provide-by: "kinrpc-demo-springboot-provider-consul"
+  async-export-refer: true
+#  tracing:
+#    enabled: true
+#    exporter:
+#      zipkin:
+#        endpoint: http://localhost:9411/api/v2/spans
+#    sampling:
+#      probability: 1.0
