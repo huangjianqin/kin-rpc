@@ -51,6 +51,13 @@
 
             <dependency>
                 <groupId>org.kin</groupId>
+                <artifactId>kin-rpc-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- protocol -->
+            <dependency>
+                <groupId>org.kin</groupId>
                 <artifactId>kin-rpc-protocol-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -79,9 +86,16 @@
                 <version>${project.version}</version>
             </dependency>
 
+            <!-- registry -->
             <dependency>
                 <groupId>org.kin</groupId>
                 <artifactId>kin-rpc-registry-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.kin</groupId>
+                <artifactId>kin-rpc-registry-consul</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -93,16 +107,35 @@
 
             <dependency>
                 <groupId>org.kin</groupId>
-                <artifactId>kin-rpc-registry-zookeeper</artifactId>
+                <artifactId>kin-rpc-registry-etcd</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>org.kin</groupId>
-                <artifactId>kin-rpc-starter</artifactId>
+                <artifactId>kin-rpc-registry-kubernetes</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.kin</groupId>
+                <artifactId>kin-rpc-registry-mesh</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.kin</groupId>
+                <artifactId>kin-rpc-registry-nacos</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.kin</groupId>
+                <artifactId>kin-rpc-registry-zookeeper</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- transport -->
             <dependency>
                 <groupId>org.kin</groupId>
                 <artifactId>kin-rpc-transport-api</artifactId>
@@ -124,6 +157,56 @@
             <dependency>
                 <groupId>org.kin</groupId>
                 <artifactId>kin-rpc-transport-rsocket</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- governance -->
+            <dependency>
+                <groupId>org.kin</groupId>
+                <artifactId>kin-rpc-hystrix</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.kin</groupId>
+                <artifactId>kin-rpc-sentinel</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- metrics -->
+            <dependency>
+                <groupId>org.kin</groupId>
+                <artifactId>kin-rpc-metrics-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.kin</groupId>
+                <artifactId>kin-rpc-observability-autoconfigure</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.kin</groupId>
+                <artifactId>kin-rpc-tracing-brave-zipkin-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.kin</groupId>
+                <artifactId>kin-rpc-tracing-otel-otlp-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.kin</groupId>
+                <artifactId>kin-rpc-tracing-otel-zipkin-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.kin</groupId>
+                <artifactId>kin-rpc-tracing-skywalking-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>
