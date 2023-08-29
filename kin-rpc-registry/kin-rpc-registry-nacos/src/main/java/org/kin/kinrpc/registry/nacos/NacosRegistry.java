@@ -33,12 +33,15 @@ public final class NacosRegistry extends DiscoveryRegistry {
 
     /** nacos cluster name */
     private final String clusterName;
+    /** nacos服务实例是否持久化 */
+    private final boolean ephemeral;
     /** nacos naming service */
     private final NamingService namingService;
 
     public NacosRegistry(RegistryConfig config) {
         super(config);
         clusterName = config.attachment(PropertyKeyConst.CLUSTER_NAME, NacosConstants.DEFAULT_CLUSTER_NAME);
+        ephemeral = config.boolAttachment(NacosConstants.EPHEMERAL, true);
         //nacos配置, 即PropertyKeyConst.XXX
         Properties properties = new Properties();
         properties.put(PropertyKeyConst.SERVER_ADDR, config.getAddress());
@@ -72,7 +75,8 @@ public final class NacosRegistry extends DiscoveryRegistry {
         Instance instance = new Instance();
         instance.setIp(((String) ipPort[0]));
         instance.setPort(((Integer) ipPort[1]));
-//        instance.setEphemeral(false);
+        //单机模式不支持服务实例持久化, 需要集群模式才支持, 也就是开启raft才支持服务实例持久化
+        instance.setEphemeral(ephemeral);
         instance.setWeight(config.getWeight());
         //元数据
         instance.setMetadata(getMetadataMap(appMetadata));
