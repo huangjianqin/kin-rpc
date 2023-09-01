@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public abstract class ReferenceBootstrap<T> {
     private static final Logger log = LoggerFactory.getLogger(ReferenceBootstrap.class);
     /** 已引用的服务gsv */
-    private static final Set<String> REFERENCED_SERVICES = new CopyOnWriteArraySet<>();
+    private static final Set<String> REFERENCED = new CopyOnWriteArraySet<>();
     /** 初始状态 */
     private static final byte INIT_STATE = 1;
     /** refer状态 */
@@ -50,12 +50,11 @@ public abstract class ReferenceBootstrap<T> {
         }
 
         String service = config.getService();
-        // TODO: 2023/8/28 判断唯一的reference config
-//        if (REFERENCED_SERVICES.contains(service)) {
-//            throw new IllegalStateException(String.format("service '%s' has been referenced before", service));
-//        }
-//
-//        REFERENCED_SERVICES.add(service);
+        if (REFERENCED.contains(service)) {
+            throw new IllegalStateException(String.format("service '%s' has been referenced before", service));
+        }
+
+        REFERENCED.add(config.getReferenceUid());
         reference = doRefer();
         ApplicationContext.instance().cacheReference(this);
 
@@ -73,6 +72,7 @@ public abstract class ReferenceBootstrap<T> {
             return;
         }
 
+        REFERENCED.remove(config.getReferenceUid());
         doUnRefer();
         //释放引用
         reference = null;

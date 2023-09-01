@@ -36,6 +36,8 @@ public final class ReferenceConfig<T> extends AbstractReferenceConfig<ReferenceC
     private transient CountDownLatch latch = new CountDownLatch(1);
     /** 服务引用代理 */
     private transient volatile T proxy;
+    /** service reference uid */
+    private transient String referenceUid;
 
     public static <T> ReferenceConfig<T> create(Class<T> interfaceClass) {
         return new ReferenceConfig<T>().interfaceClass(interfaceClass);
@@ -172,6 +174,27 @@ public final class ReferenceConfig<T> extends AbstractReferenceConfig<ReferenceC
             }
         }
         return proxy;
+    }
+
+    /**
+     * 返回service reference uid
+     */
+    public String getReferenceUid() {
+        if (Objects.nonNull(referenceUid)) {
+            return referenceUid;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(getService()).append("$");
+        for (RegistryConfig registryConfig : getRegistries()) {
+            sb.append(registryConfig.getType())
+                    .append("#")
+                    .append(registryConfig.getAddress())
+                    .append("$");
+        }
+
+        referenceUid = sb.toString();
+        return referenceUid;
     }
 
     //setter && getter
