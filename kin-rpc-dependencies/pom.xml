@@ -16,7 +16,7 @@
         <kin-framework-spring.version>0.1.0.0</kin-framework-spring.version>
         <kin-serialization.version>0.1.0.0</kin-serialization.version>
         <junit.version>4.11</junit.version>
-        <zookeeper.version>3.5.8</zookeeper.version>
+        <zookeeper.version>3.7.2</zookeeper.version>
         <curator.version>5.1.0</curator.version>
         <grpc.version>1.56.1</grpc.version>
         <springcloud.version>2020.0.4</springcloud.version>
