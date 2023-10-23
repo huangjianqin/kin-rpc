@@ -9,10 +9,10 @@
         <version>${revision}</version>
     </parent>
 
-    <artifactId>kin-rpc-metrics</artifactId>
+    <artifactId>kin-rpc-tracing</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>kin-rpc-metrics-api</module>
+        <module>kin-rpc-tracing-api</module>
         <module>kin-rpc-tracing-brave-zipkin-starter</module>
         <module>kin-rpc-observability-autoconfigure</module>
         <module>kin-rpc-tracing-otel-zipkin-starter</module>

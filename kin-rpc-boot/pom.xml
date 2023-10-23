@@ -20,7 +20,7 @@
 
         <dependency>
             <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-metrics-api</artifactId>
+            <artifactId>kin-rpc-tracing-api</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

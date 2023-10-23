@@ -5,28 +5,27 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.kin</groupId>
-        <artifactId>kin-rpc-metrics</artifactId>
+        <artifactId>kin-rpc-tracing</artifactId>
         <version>${revision}</version>
     </parent>
 
-    <artifactId>kin-rpc-tracing-skywalking-starter</artifactId>
+    <artifactId>kin-rpc-tracing-brave-zipkin-starter</artifactId>
 
     <dependencies>
         <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-tracing</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-starter</artifactId>
+            <artifactId>kin-rpc-observability-autoconfigure</artifactId>
             <version>${project.version}</version>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>
-            <groupId>org.apache.skywalking</groupId>
-            <artifactId>apm-toolkit-micrometer-1.10</artifactId>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-brave</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.zipkin.reporter2</groupId>
+            <artifactId>zipkin-reporter-brave</artifactId>
         </dependency>
     </dependencies>
 </project>

@@ -5,28 +5,28 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.kin</groupId>
-        <artifactId>kin-rpc-metrics</artifactId>
+        <artifactId>kin-rpc-tracing</artifactId>
         <version>${revision}</version>
     </parent>
 
-    <artifactId>kin-rpc-tracing-otel-otlp-starter</artifactId>
+    <artifactId>kin-rpc-tracing-skywalking-starter</artifactId>
 
     <dependencies>
         <dependency>
-            <groupId>org.kin</groupId>
-            <artifactId>kin-rpc-observability-autoconfigure</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-tracing-bridge-otel</artifactId>
+            <artifactId>micrometer-tracing</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>io.opentelemetry</groupId>
-            <artifactId>opentelemetry-exporter-otlp</artifactId>
+            <groupId>org.kin</groupId>
+            <artifactId>kin-rpc-starter</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.skywalking</groupId>
+            <artifactId>apm-toolkit-micrometer-1.10</artifactId>
         </dependency>
     </dependencies>
-
 </project>
