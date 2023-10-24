@@ -44,7 +44,7 @@ public class DemoServiceConsumerApplication {
             fallback = "true",
             attachments = {"hystrix.command.execution.isolation.thread.timeoutInMilliseconds", "3000"})
     @Bean
-    public KinRpcReferenceBean<DemoService> demoServiceFactoryBean() {
+    public KinRpcReferenceBean<DemoService> demoService() {
         return new KinRpcReferenceBean<>(DemoService.class);
     }
 }
