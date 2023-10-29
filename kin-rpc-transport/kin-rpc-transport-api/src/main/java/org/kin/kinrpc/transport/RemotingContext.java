@@ -136,7 +136,7 @@ public class RemotingContext{
             @Override
             public void onFailure(Throwable cause) {
                 if(log.isDebugEnabled()){
-                    log.debug("send response fail, id={} to {}", command.getId(), address());
+                    log.debug("send response fail, id={} to {} {}", command.getId(), address(), cause);
                 }
             }
         });

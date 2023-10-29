@@ -158,23 +158,33 @@ public abstract class AbstractRemotingClient implements RemotingClient {
     protected abstract void onReconnect();
 
     /**
-     * connect success
+     * connect success, 默认开启健康检查
      */
     protected final void onConnectSuccess() {
+        onConnectSuccess(true);
+    }
+
+    /**
+     * connect success
+     * @param healthCheck   是否开启健康检查
+     */
+    protected final void onConnectSuccess(boolean healthCheck) {
         if (isTerminated()) {
             return;
         }
 
         try {
-            synchronized (this) {
-                if (!isReconnecting()) {
-                    //connect success
-                    log.info("{} connect to {} success", name(), remoteAddress());
-                    RemotingClientHealthManager.addClient(helper);
-                } else {
-                    //reconnect success
-                    log.info("{} reconnect to {} success", name(), remoteAddress());
-                    onReconnectSuccess();
+            if (healthCheck) {
+                synchronized (this) {
+                    if (!isReconnecting()) {
+                        //connect success
+                        log.info("{} connect to {} success", name(), remoteAddress());
+                        RemotingClientHealthManager.addClient(helper);
+                    } else {
+                        //reconnect success
+                        log.info("{} reconnect to {} success", name(), remoteAddress());
+                        onReconnectSuccess();
+                    }
                 }
             }
 

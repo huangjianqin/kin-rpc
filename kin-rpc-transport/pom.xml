@@ -14,6 +14,7 @@
         <module>kin-rpc-transport-api</module>
         <module>kin-rpc-transport-grpc</module>
         <module>kin-rpc-transport-rsocket</module>
+        <module>kin-rpc-transport-rest</module>
     </modules>
     <packaging>pom</packaging>
 </project>

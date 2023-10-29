@@ -1,4 +1,4 @@
-package org.kin.kinrpc.transport.rsocket;
+package org.kin.kinrpc.transport.rest;
 
 import org.kin.kinrpc.transport.cmd.MessageCommand;
 import org.kin.kinrpc.transport.cmd.RpcRequestCommand;
@@ -10,9 +10,9 @@ import java.io.IOException;
  * @author huangjianqin
  * @date 2023/6/7
  */
-public class RSocketClientTest {
+public class RestClientTest {
     public static void main(String[] args) throws IOException {
-        RSocketClient client = new RSocketClient(19999);
+        RestClient client = new RestClient(19999);
         client.connect();
 
         try {
@@ -28,6 +28,7 @@ public class RSocketClientTest {
             System.in.read();
         } finally {
             client.shutdown();
+            System.exit(0);
         }
     }
 }
