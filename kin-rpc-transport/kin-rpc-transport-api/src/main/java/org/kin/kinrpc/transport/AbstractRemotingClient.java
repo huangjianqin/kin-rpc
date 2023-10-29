@@ -7,6 +7,7 @@ import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.executor.DefaultManagedExecutor;
 import org.kin.kinrpc.executor.ManagedExecutor;
 import org.kin.kinrpc.transport.cmd.RemotingCodec;
+import org.kin.kinrpc.transport.cmd.RemotingCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -299,6 +300,7 @@ public abstract class AbstractRemotingClient implements RemotingClient {
         }
 
         terminated = true;
+        remotingProcessor.shutdown();
         onShutdown();
 
         for (CompletableFuture<Object> future : requestFutureMap.values()) {
@@ -388,6 +390,17 @@ public abstract class AbstractRemotingClient implements RemotingClient {
             } catch (Exception e) {
                 log.error("fire client state observer error", e);
             }
+        }
+    }
+
+    /**
+     * request之前的操作, 一般用于检查
+     *
+     * @param command request command
+     */
+    protected void beforeRequest(RemotingCommand command) {
+        if (Objects.isNull(command)) {
+            throw new IllegalArgumentException("request command is null");
         }
     }
 

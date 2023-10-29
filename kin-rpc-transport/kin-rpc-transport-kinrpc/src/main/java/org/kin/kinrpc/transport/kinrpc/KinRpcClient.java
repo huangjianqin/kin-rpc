@@ -4,7 +4,6 @@ import io.netty.util.NetUtil;
 import org.kin.kinrpc.config.SslConfig;
 import org.kin.kinrpc.transport.AbstractRemotingClient;
 import org.kin.kinrpc.transport.cmd.HeartbeatCommand;
-import org.kin.kinrpc.transport.cmd.RemotingCommand;
 import org.kin.kinrpc.transport.cmd.RequestCommand;
 import org.kin.transport.netty.ChannelOperationListener;
 import org.kin.transport.netty.ClientObserver;
@@ -105,19 +104,7 @@ public class KinRpcClient extends AbstractRemotingClient {
             return;
         }
 
-        remotingProcessor.shutdown();
         client.dispose();
-    }
-
-    /**
-     * request之前的操作, 一般用于检查
-     *
-     * @param command request command
-     */
-    private void beforeRequest(RemotingCommand command) {
-        if (Objects.isNull(command)) {
-            throw new IllegalArgumentException("request command is null");
-        }
     }
 
     @SuppressWarnings("unchecked")

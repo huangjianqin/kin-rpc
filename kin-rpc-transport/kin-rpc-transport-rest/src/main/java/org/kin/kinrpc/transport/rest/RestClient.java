@@ -8,7 +8,6 @@ import org.kin.framework.utils.SysUtils;
 import org.kin.kinrpc.config.SslConfig;
 import org.kin.kinrpc.transport.AbstractRemotingClient;
 import org.kin.kinrpc.transport.cmd.MessageCommand;
-import org.kin.kinrpc.transport.cmd.RemotingCommand;
 import org.kin.kinrpc.transport.cmd.RequestCommand;
 import org.kin.kinrpc.transport.cmd.RpcRequestCommand;
 import org.kin.transport.netty.utils.SslUtils;
@@ -32,8 +31,6 @@ import java.util.concurrent.CompletableFuture;
 public class RestClient extends AbstractRemotingClient {
     private static final Logger log = LoggerFactory.getLogger(RestClient.class);
 
-    /** fake heartbeat返回值 */
-    private static final CompletableFuture<Void> EMPTY_HEARTBEAT = CompletableFuture.completedFuture(null);
     /** http client default {@link LoopResources} */
     private static final LoopResources DEFAULT_LOOP_RESOURCES = LoopResources.create("kin-http-client", SysUtils.CPU_NUM * 4, false);
 
@@ -115,25 +112,14 @@ public class RestClient extends AbstractRemotingClient {
 
     @Override
     protected void onShutdown() {
-        remotingProcessor.shutdown();
         connectionProvider.dispose();
+        log.info("{} closed", name());
     }
 
     @Override
     protected CompletableFuture<Void> heartbeat() {
         //fake heartbeat
-        return EMPTY_HEARTBEAT;
-    }
-
-    /**
-     * request之前的操作, 一般用于检查
-     *
-     * @param command request command
-     */
-    private void beforeRequest(RemotingCommand command) {
-        if (Objects.isNull(command)) {
-            throw new IllegalArgumentException("request command is null");
-        }
+        return FAKE_HEARTBEAT;
     }
 
     /**

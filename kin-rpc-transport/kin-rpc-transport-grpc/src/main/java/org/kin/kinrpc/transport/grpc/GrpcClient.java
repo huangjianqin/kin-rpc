@@ -106,8 +106,7 @@ public class GrpcClient extends AbstractRemotingClient {
         }
 
         channel.shutdown();
-        remotingProcessor.shutdown();
-        log.info("{} terminated", name());
+        log.info("{} connection closed", name());
     }
 
     @Override
@@ -119,21 +118,10 @@ public class GrpcClient extends AbstractRemotingClient {
         onConnect0();
     }
 
-    /**
-     * call之前的操作, 一般用于检查
-     *
-     * @param command request command
-     */
-    private void beforeCall(RemotingCommand command) {
-        if (Objects.isNull(command)) {
-            throw new IllegalArgumentException("request command is null");
-        }
-    }
-
     @SuppressWarnings("unchecked")
     @Override
     public <T> CompletableFuture<T> requestResponse(RequestCommand command) {
-        beforeCall(command);
+        beforeRequest(command);
 
         CompletableFuture<T> requestFuture = (CompletableFuture<T>) createRequestFuture(command.getId());
         return call(command, requestFuture);
@@ -147,7 +135,7 @@ public class GrpcClient extends AbstractRemotingClient {
     @Override
     protected CompletableFuture<Void> heartbeat() {
         HeartbeatCommand command = new HeartbeatCommand();
-        beforeCall(command);
+        beforeRequest(command);
 
         CompletableFuture<Object> requestFuture = createRequestFuture(command.getId());
         call(command, requestFuture);

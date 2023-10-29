@@ -15,6 +15,9 @@ import java.util.concurrent.TimeUnit;
  * @date 2023/6/1
  */
 public interface RemotingClient {
+    /** fake heartbeat返回值 */
+    CompletableFuture<Void> FAKE_HEARTBEAT = CompletableFuture.completedFuture(null);
+
     /**
      * remote connect, block util connect success or fail
      */

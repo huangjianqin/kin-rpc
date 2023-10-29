@@ -124,20 +124,8 @@ public class RSocketClient extends AbstractRemotingClient {
                     }
 
                     rsocket.dispose();
-                    remotingProcessor.shutdown();
                 })
                 .subscribe();
-    }
-
-    /**
-     * request之前的操作, 一般用于检查
-     *
-     * @param command request command
-     */
-    private void beforeRequest(RemotingCommand command) {
-        if (Objects.isNull(command)) {
-            throw new IllegalArgumentException("request command is null");
-        }
     }
 
     @Override
