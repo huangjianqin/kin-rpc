@@ -47,5 +47,11 @@
             <groupId>net.bytebuddy</groupId>
             <artifactId>byte-buddy</artifactId>
         </dependency>
+
+        <!-- 保证非kinrpc+springboot2应用也能启动参数校验 -->
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-el</artifactId>
+        </dependency>
     </dependencies>
 </project>

@@ -11,7 +11,7 @@ import java.util.*;
  * @author huangjianqin
  * @date 2023/6/16
  */
-public abstract class AbstractInterfaceConfig<IC extends AbstractInterfaceConfig<IC>> extends AttachableConfig {
+public abstract class AbstractInterfaceConfig<IC extends AbstractInterfaceConfig<IC>> extends AttachableConfig<IC> {
     /** 应用配置 */
     private ApplicationConfig app;
     /** 注册中心配置 */
@@ -70,11 +70,6 @@ public abstract class AbstractInterfaceConfig<IC extends AbstractInterfaceConfig
         if (Objects.isNull(serialization)) {
             serialization = DefaultConfig.DEFAULT_SERIALIZATION;
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    protected final IC castThis() {
-        return (IC) this;
     }
 
     /**

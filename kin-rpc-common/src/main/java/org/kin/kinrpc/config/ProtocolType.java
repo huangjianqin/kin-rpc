@@ -12,7 +12,10 @@ public enum ProtocolType {
     /** 在同一jvm内部直接调用 */
     JVM("jvm"),
     /** 基于rsocket */
-    RSOCKET("rsocket");
+    RSOCKET("rsocket"),
+    /** 基于rest */
+    REST("rest"),
+    ;
 
     private final String name;
 

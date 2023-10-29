@@ -101,7 +101,6 @@ public abstract class AbstractProtocol implements Protocol {
         //default do nothing
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public final <T> ReferenceInvoker<T> refer(ReferenceConfig<T> referenceConfig,
                                                ServiceInstance instance) {

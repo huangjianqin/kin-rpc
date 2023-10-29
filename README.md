@@ -230,7 +230,7 @@ public class DemoServiceApplication {
 public class DemoServiceApplication {
   public static void main(String[] args) throws Exception {
     KinRpcBootstrap.instance()
-            .registries(RegistryConfig.direct("kinrpc://127.0.0.1:13000/kinrpc:demo:0.1.0.0?serialization=jsonb"))
+            .registries(RegistryConfig.direct("kinrpc://127.0.0.1:13000/default:demo:0.1.0.0?serialization=jsonb"))
             .app(ApplicationConfig.create("demo-consumer"))
             .consumer(ConsumerConfig.create()
                     .cluster(ClusterType.FAILOVER))

@@ -33,10 +33,10 @@ public class RemoteServiceConsumer extends ServiceConsumer {
 //        );
 
         String address = String.join(RegistryConfig.ADDRESS_SEPARATOR,
-                protocol + "://127.0.0.1:13000/kinrpc:demo:0.1.0.0?serialization=jsonb&weight=1&token=123456"
-//                protocol+ "://127.0.0.1:13100/kinrpc:demo:0.1.0.0?serialization=jsonb&weight=2&token=123456",
-//                protocol+ "://127.0.0.1:13200/kinrpc:demo:0.1.0.0?serialization=jsonb&weight=3&token=123456"
-//                protocol+ "://127.0.0.1:13300/kinrpc/demo:0.1.0.0?serialization=jsonb&weight=4&token=123456"
+                protocol + "://127.0.0.1:13000/default:demo:0.1.0.0?serialization=jsonb&weight=1&token=123456"
+//                protocol+ "://127.0.0.1:13100/default:demo:0.1.0.0?serialization=jsonb&weight=2&token=123456",
+//                protocol+ "://127.0.0.1:13200/default:demo:0.1.0.0?serialization=jsonb&weight=3&token=123456"
+//                protocol+ "://127.0.0.1:13300/default:demo:0.1.0.0?serialization=jsonb&weight=4&token=123456"
         );
         RegistryConfig registryConfig = RegistryConfig.direct(address);
         ReferenceConfig<DemoService> referenceConfig = ReferenceConfig.create(DemoService.class)
@@ -75,10 +75,10 @@ public class RemoteServiceConsumer extends ServiceConsumer {
 
     public static void genericInvoke(String appNamePrefix, String protocol) {
         String address = String.join(RegistryConfig.ADDRESS_SEPARATOR,
-                protocol + "://127.0.0.1:13000/kinrpc:demo:0.1.0.0?serialization=jsonb&weight=1&token=123456"
-//                protocol+ "://127.0.0.1:13100/kinrpc:demo:0.1.0.0?serialization=jsonb&weight=2&token=123456",
-//                protocol+ "://127.0.0.1:13200/kinrpc:demo:0.1.0.0?serialization=jsonb&weight=3&token=123456"
-//                protocol+ "://127.0.0.1:13300/kinrpc/demo:0.1.0.0?serialization=jsonb&weight=4&token=123456"
+                protocol + "://127.0.0.1:13000/default:demo:0.1.0.0?serialization=jsonb&weight=1&token=123456"
+//                protocol+ "://127.0.0.1:13100/default:demo:0.1.0.0?serialization=jsonb&weight=2&token=123456",
+//                protocol+ "://127.0.0.1:13200/default:demo:0.1.0.0?serialization=jsonb&weight=3&token=123456"
+//                protocol+ "://127.0.0.1:13300/default:demo:0.1.0.0?serialization=jsonb&weight=4&token=123456"
         );
         RegistryConfig registryConfig = RegistryConfig.direct(address);
         ReferenceConfig<GenericService> genericReferenceConfig = ReferenceConfig.create(GenericService.class)
@@ -122,10 +122,10 @@ public class RemoteServiceConsumer extends ServiceConsumer {
      */
     public static void invoke2(String appNamePrefix, String protocol) {
         String address = String.join(RegistryConfig.ADDRESS_SEPARATOR,
-                protocol + "://127.0.0.1:13000/kinrpc:demo:0.1.0.0?serialization=jsonb&weight=1&token=123456"
-//                protocol+ "://127.0.0.1:13100/kinrpc:demo:0.1.0.0?serialization=jsonb&weight=2&token=123456",
-//                protocol+ "://127.0.0.1:13200/kinrpc:demo:0.1.0.0?serialization=jsonb&weight=3&token=123456"
-//                protocol+ "://127.0.0.1:13300/kinrpc/demo:0.1.0.0?serialization=jsonb&weight=4&token=123456"
+                protocol + "://127.0.0.1:13000/default:demo:0.1.0.0?serialization=jsonb&weight=1&token=123456"
+//                protocol+ "://127.0.0.1:13100/default:demo:0.1.0.0?serialization=jsonb&weight=2&token=123456",
+//                protocol+ "://127.0.0.1:13200/default:demo:0.1.0.0?serialization=jsonb&weight=3&token=123456"
+//                protocol+ "://127.0.0.1:13300/default:demo:0.1.0.0?serialization=jsonb&weight=4&token=123456"
         );
 
         KinRpcBootstrap.instance()
@@ -145,7 +145,7 @@ public class RemoteServiceConsumer extends ServiceConsumer {
                                 .cache(CacheType.EXPIRING)
                                 .attach(CacheConstants.EXPIRING_CACHE_TTL, 1500))
                         .handler(MethodConfig.create("asyncFind2").async()))
-                .asyncExportRefer()
+//                .asyncExportRefer()
                 .start();
 
         try {

@@ -17,5 +17,6 @@
         <module>kin-rpc-protocol-jvm</module>
         <module>kin-rpc-protocol-kinrpc</module>
         <module>kin-rpc-protocol-rsocket</module>
+        <module>kin-rpc-protocol-rest</module>
     </modules>
 </project>

@@ -18,6 +18,7 @@
         <module>kin-rpc-demo-rsocket</module>
         <module>kin-rpc-demo-provider-starter</module>
         <module>kin-rpc-demo-consumer-starter</module>
+        <module>kin-rpc-demo-rest</module>
     </modules>
     <packaging>pom</packaging>
 </project>

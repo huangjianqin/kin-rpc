@@ -100,6 +100,18 @@ public class ServerConfig extends SharableConfig<ServerConfig> {
         return create(ProtocolType.RSOCKET, host, port);
     }
 
+    public static ServerConfig rest() {
+        return create(ProtocolType.REST);
+    }
+
+    public static ServerConfig rest(int port) {
+        return create(ProtocolType.REST, port);
+    }
+
+    public static ServerConfig rest(String host, int port) {
+        return create(ProtocolType.REST, host, port);
+    }
+
     private ServerConfig() {
     }
 

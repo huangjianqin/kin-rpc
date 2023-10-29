@@ -10,7 +10,7 @@ import java.util.Objects;
  * @author huangjianqin
  * @date 2023/6/16
  */
-public class MethodConfig extends AttachableConfig {
+public class MethodConfig extends AttachableConfig<MethodConfig> {
     /**
      * 方法名称
      * 不支持方法重载

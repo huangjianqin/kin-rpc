@@ -1,7 +1,7 @@
 package org.kin.kinrpc.config;
 
 import org.kin.framework.collection.AttachmentMap;
-import org.kin.framework.collection.AttachmentSupport;
+import org.kin.framework.utils.CollectionUtils;
 import org.kin.framework.utils.IllegalFormatException;
 import org.kin.framework.utils.StringUtils;
 import org.kin.framework.utils.YamlUtils;
@@ -20,7 +20,7 @@ import java.util.function.Function;
  * @author huangjianqin
  * @date 2023/6/15
  */
-public abstract class AttachableConfig extends AbstractConfig implements AttachmentSupport {
+public abstract class AttachableConfig<AC extends AttachableConfig<AC>> extends AbstractConfig {
     /** attachments */
     private Map<String, Object> attachments = new HashMap<>();
 
@@ -37,21 +37,47 @@ public abstract class AttachableConfig extends AbstractConfig implements Attachm
         this.attachments = attachments;
     }
 
-    @Override
-    public void attachMany(Map<String, ?> attachments) {
-        this.attachments.putAll(attachments);
-    }
-
-    @Override
-    public void attachMany(AttachmentMap other) {
-        this.attachments.putAll(other.attachments());
-    }
-
+    /**
+     * 强制转换成this
+     *
+     * @return this
+     */
     @SuppressWarnings("unchecked")
-    @Nullable
-    @Override
-    public <T> T attach(String key, Object obj) {
-        return (T) attachments.put(key, obj);
+    protected final AC castThis() {
+        return (AC) this;
+    }
+
+    /**
+     * 附带attachment
+     *
+     * @param attachments attachments
+     * @return this
+     */
+    public AC attachMany(Map<String, ?> attachments) {
+        this.attachments.putAll(attachments);
+        return castThis();
+    }
+
+    /**
+     * 附带attachment
+     *
+     * @param attachments attachments
+     * @return this
+     */
+    public AC attachMany(AttachmentMap attachments) {
+        return attachMany(attachments.attachments());
+    }
+
+    /**
+     * 附带attachment
+     *
+     * @param key attachment key
+     * @param obj attachment value
+     * @return this
+     */
+    public AC attach(String key, Object obj) {
+        attachments.put(key, obj);
+        return castThis();
     }
 
     /**
@@ -60,31 +86,56 @@ public abstract class AttachableConfig extends AbstractConfig implements Attachm
      * @param key attachment key
      * @return true表示存在attachment key
      */
-    @Override
     public boolean hasAttachment(String key) {
         return attachments.containsKey(key);
     }
 
+    /**
+     * 返回attachment value
+     *
+     * @param key attachment key
+     * @return attachment value
+     */
     @SuppressWarnings("unchecked")
     @Nullable
-    @Override
     public <T> T attachment(String key) {
         return (T) attachments.get(key);
     }
 
+    /**
+     * 返回attachment value, 如果不存在则取{@code defaultValue}
+     *
+     * @param key          attachment key
+     * @param defaultValue 默认attachment value
+     * @return attachment value
+     */
     @SuppressWarnings("unchecked")
-    @Override
     public <T> T attachment(String key, T defaultValue) {
         return (T) attachments.getOrDefault(key, defaultValue);
     }
 
-    @Override
+    /**
+     * 返回attachment boolean value
+     *
+     * @param key attachment key
+     * @return attachment boolean value
+     */
+    public boolean boolAttachment(String key) {
+        return boolAttachment(key, false);
+    }
+
+    /**
+     * 返回attachment boolean value, 如果不存在则取{@code defaultValue}
+     *
+     * @param key          attachment key
+     * @param defaultValue 默认attachment boolean value
+     * @return attachment boolean value
+     */
     public boolean boolAttachment(String key, boolean defaultValue) {
         Object value = attachment(key);
         if (Objects.nonNull(value)) {
             Class<?> valueClass = value.getClass();
-            if (Boolean.class.equals(valueClass) ||
-                    Boolean.TYPE.equals(valueClass)) {
+            if (Boolean.class.equals(valueClass)) {
                 return (boolean) value;
             } else if (String.class.equals(valueClass)) {
                 String valueStr = (String) value;
@@ -100,13 +151,28 @@ public abstract class AttachableConfig extends AbstractConfig implements Attachm
         return defaultValue;
     }
 
-    @Override
+    /**
+     * 返回attachment byte value
+     *
+     * @param key attachment key
+     * @return attachment byte value
+     */
+    public byte byteAttachment(String key) {
+        return byteAttachment(key, (byte) 0);
+    }
+
+    /**
+     * 返回attachment byte value, 如果不存在则取{@code defaultValue}
+     *
+     * @param key          attachment key
+     * @param defaultValue 默认attachment byte value
+     * @return attachment byte value
+     */
     public byte byteAttachment(String key, byte defaultValue) {
         Object value = attachment(key);
         if (Objects.nonNull(value)) {
             Class<?> valueClass = value.getClass();
-            if (Byte.class.equals(valueClass) ||
-                    Byte.TYPE.equals(valueClass)) {
+            if (Byte.class.equals(valueClass)) {
                 return (byte) value;
             } else if (String.class.equals(valueClass)) {
                 return Byte.parseByte(value.toString().trim());
@@ -117,13 +183,28 @@ public abstract class AttachableConfig extends AbstractConfig implements Attachm
         return defaultValue;
     }
 
-    @Override
+    /**
+     * 返回attachment short value
+     *
+     * @param key attachment key
+     * @return attachment short value
+     */
+    public short shortAttachment(String key) {
+        return shortAttachment(key, (short) 0);
+    }
+
+    /**
+     * 返回attachment short value, 如果不存在则取{@code defaultValue}
+     *
+     * @param key          attachment key
+     * @param defaultValue 默认attachment short value
+     * @return attachment short value
+     */
     public short shortAttachment(String key, short defaultValue) {
         Object value = attachment(key);
         if (Objects.nonNull(value)) {
             Class<?> valueClass = value.getClass();
-            if (Short.class.equals(valueClass) ||
-                    Short.TYPE.equals(valueClass)) {
+            if (Short.class.equals(valueClass)) {
                 return (short) value;
             } else if (String.class.equals(valueClass)) {
                 return Short.parseShort(value.toString().trim());
@@ -134,13 +215,28 @@ public abstract class AttachableConfig extends AbstractConfig implements Attachm
         return defaultValue;
     }
 
-    @Override
+    /**
+     * 返回attachment int value
+     *
+     * @param key attachment key
+     * @return attachment int value
+     */
+    public int intAttachment(String key) {
+        return intAttachment(key, 0);
+    }
+
+    /**
+     * 返回attachment int value, 如果不存在则取{@code defaultValue}
+     *
+     * @param key          attachment key
+     * @param defaultValue 默认attachment int value
+     * @return attachment int value
+     */
     public int intAttachment(String key, int defaultValue) {
         Object value = attachment(key);
         if (Objects.nonNull(value)) {
             Class<?> valueClass = value.getClass();
-            if (Integer.class.equals(valueClass) ||
-                    Integer.TYPE.equals(valueClass)) {
+            if (Integer.class.equals(valueClass)) {
                 return (int) value;
             } else if (String.class.equals(valueClass)) {
                 return Integer.parseInt(value.toString().trim());
@@ -151,13 +247,28 @@ public abstract class AttachableConfig extends AbstractConfig implements Attachm
         return defaultValue;
     }
 
-    @Override
+    /**
+     * 返回attachment long value
+     *
+     * @param key attachment key
+     * @return attachment long value
+     */
+    public long longAttachment(String key) {
+        return longAttachment(key, 0L);
+    }
+
+    /**
+     * 返回attachment long value, 如果不存在则取{@code defaultValue}
+     *
+     * @param key          attachment key
+     * @param defaultValue 默认attachment long value
+     * @return attachment long value
+     */
     public long longAttachment(String key, long defaultValue) {
         Object value = attachment(key);
         if (Objects.nonNull(value)) {
             Class<?> valueClass = value.getClass();
-            if (Long.class.equals(valueClass) ||
-                    Long.TYPE.equals(valueClass)) {
+            if (Long.class.equals(valueClass)) {
                 return (long) value;
             } else if (String.class.equals(valueClass)) {
                 return Long.parseLong(value.toString().trim());
@@ -168,13 +279,28 @@ public abstract class AttachableConfig extends AbstractConfig implements Attachm
         return defaultValue;
     }
 
-    @Override
+    /**
+     * 返回attachment float value
+     *
+     * @param key attachment key
+     * @return attachment float value
+     */
+    public float floatAttachment(String key) {
+        return floatAttachment(key, 0F);
+    }
+
+    /**
+     * 返回attachment float value, 如果不存在则取{@code defaultValue}
+     *
+     * @param key          attachment key
+     * @param defaultValue 默认attachment float value
+     * @return attachment float value
+     */
     public float floatAttachment(String key, float defaultValue) {
         Object value = attachment(key);
         if (Objects.nonNull(value)) {
             Class<?> valueClass = value.getClass();
-            if (Float.class.equals(valueClass) ||
-                    Float.TYPE.equals(valueClass)) {
+            if (Float.class.equals(valueClass)) {
                 return (float) value;
             } else if (String.class.equals(valueClass)) {
                 return Float.parseFloat(value.toString().trim());
@@ -185,13 +311,28 @@ public abstract class AttachableConfig extends AbstractConfig implements Attachm
         return defaultValue;
     }
 
-    @Override
+    /**
+     * 返回attachment double value
+     *
+     * @param key attachment key
+     * @return attachment double value
+     */
+    public double doubleAttachment(String key) {
+        return doubleAttachment(key, 0D);
+    }
+
+    /**
+     * 返回attachment double value, 如果不存在则取{@code defaultValue}
+     *
+     * @param key          attachment key
+     * @param defaultValue 默认attachment double value
+     * @return attachment double value
+     */
     public double doubleAttachment(String key, double defaultValue) {
         Object value = attachment(key);
         if (Objects.nonNull(value)) {
             Class<?> valueClass = value.getClass();
-            if (Double.class.equals(valueClass) ||
-                    Double.TYPE.equals(valueClass)) {
+            if (Double.class.equals(valueClass)) {
                 return (double) value;
             } else if (String.class.equals(valueClass)) {
                 return Double.parseDouble(value.toString().trim());
@@ -202,8 +343,14 @@ public abstract class AttachableConfig extends AbstractConfig implements Attachm
         return defaultValue;
     }
 
+    /**
+     * 返回attachment value, 并使用{@code func}进行值转换
+     *
+     * @param key  attachment key
+     * @param func attachment convert function
+     * @return attachment value
+     */
     @Nullable
-    @Override
     public <T> T attachment(String key, Function<Object, T> func) {
         Object value = attachment(key);
         if (Objects.nonNull(value)) {
@@ -212,7 +359,14 @@ public abstract class AttachableConfig extends AbstractConfig implements Attachm
         return null;
     }
 
-    @Override
+    /**
+     * 返回attachment value, 并使用{@code func}进行值转换, 如果不存在则取{@code defaultValue}
+     *
+     * @param key          attachment key
+     * @param func         attachment convert function
+     * @param defaultValue 默认attachment value
+     * @return attachment value
+     */
     public <T> T attachment(String key, Function<Object, T> func, T defaultValue) {
         Object value = attachment(key);
         if (Objects.nonNull(value)) {
@@ -221,19 +375,39 @@ public abstract class AttachableConfig extends AbstractConfig implements Attachm
         return defaultValue;
     }
 
+    /**
+     * 移除attachment
+     *
+     * @param key attachment key
+     * @return attachment value if exists
+     */
     @SuppressWarnings("unchecked")
     @Nullable
-    @Override
     public <T> T detach(String key) {
         return (T) attachments.remove(key);
     }
 
-    @Override
+    /**
+     * 返回所有attachment
+     *
+     * @return 所有attachment
+     */
     public Map<String, Object> attachments() {
         return attachments;
     }
 
-    @Override
+    /**
+     * 返回attachment map是否为空
+     *
+     * @return true表示attachment map为空
+     */
+    public boolean isEmpty() {
+        return CollectionUtils.isEmpty(attachments());
+    }
+
+    /**
+     * 移除所有attachment
+     */
     public void clear() {
         attachments.clear();
     }
@@ -255,7 +429,7 @@ public abstract class AttachableConfig extends AbstractConfig implements Attachm
         if (!(o instanceof AttachableConfig)) {
             return false;
         }
-        AttachableConfig that = (AttachableConfig) o;
+        AttachableConfig<?> that = (AttachableConfig<?>) o;
         return Objects.equals(attachments, that.attachments);
     }
 

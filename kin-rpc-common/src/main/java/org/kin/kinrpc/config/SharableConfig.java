@@ -10,17 +10,12 @@ import org.kin.framework.utils.StringUtils;
  * @date 2023/7/10
  * @see org.kin.kinrpc.bootstrap.KinRpcBootstrap
  */
-public abstract class SharableConfig<C extends SharableConfig<C>> extends AttachableConfig {
+public abstract class SharableConfig<SC extends SharableConfig<SC>> extends AttachableConfig<SC> {
     /**
      * 配置唯一id, 用于引用全局配置
      * 如果不需要引用配置, 则不配置即可
      */
     private String id;
-
-    @SuppressWarnings("unchecked")
-    protected final C castThis() {
-        return (C) this;
-    }
 
     /**
      * 生成默认配置id
@@ -37,7 +32,7 @@ public abstract class SharableConfig<C extends SharableConfig<C>> extends Attach
         return id;
     }
 
-    public final C id(String id) {
+    public final SC id(String id) {
         this.id = id;
         return castThis();
     }

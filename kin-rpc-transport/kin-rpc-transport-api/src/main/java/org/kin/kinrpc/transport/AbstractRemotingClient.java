@@ -187,6 +187,9 @@ public abstract class AbstractRemotingClient implements RemotingClient {
                         onReconnectSuccess();
                     }
                 }
+            } else {
+                //不需要健康检查, 则是一直是健康
+                helper.toHealth();
             }
 
             fireStateObserver(o -> o.onConnectSuccess(this));
