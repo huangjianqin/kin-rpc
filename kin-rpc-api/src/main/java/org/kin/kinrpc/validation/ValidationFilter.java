@@ -200,7 +200,12 @@ public class ValidationFilter implements Filter {
         for (Parameter parameter : validParameters) {
             validParametersHashCode += parameter.getType().hashCode();
         }
-        builder.add(String.valueOf(validParametersHashCode));
+        if (validParametersHashCode > 0) {
+            builder.add(String.valueOf(validParametersHashCode));
+        } else {
+            //负数用Neg代替-
+            builder.add("Neg" + Math.abs(validParametersHashCode));
+        }
 
         DynamicType.Builder<Object> dynamicTypeBuilder = new ByteBuddy(ClassFileVersion.JAVA_V8)
                 .subclass(Object.class)
