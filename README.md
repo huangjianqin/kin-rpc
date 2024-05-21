@@ -398,10 +398,10 @@ consumer启动成功后, 即可通过`localhost:14001/users/findAll`访问demo�
 
 ## 展望
 
-* transport支持rest
 * actor支持基于gossip发现集群actor
-* metrics
-* 协议支持http, 并与springcloud互通
+* metrics补充
+* 实现springcloud互通. 目标是可以通过Spring web的注解发布http服务到kinrpc上,实现配置方式的统一. 可参考rest实现,
+  区别在于需要解析Spring web注解
 * 支持k8s探针, 暴露http接口访问服务暴露状态, 控制服务上线下线, 需要区分spring和非spring模式, spring模式下可以基于actuator
   endpoint实现, 这样不用重复起http服务
 * 分布式事务
